@@ -82,11 +82,24 @@ npm run dist      # Build installer for your platform
 ### Building the release
 
 ```bash
-# Frontend build is done by CI; desktop builds both editions on all platforms
+# Frontend build is done by CI; the desktop shell packages the product edition on each platform
 npm run dist:linux   # Linux
 npm run dist:mac     # macOS
 npm run dist:win     # Windows
 ```
+
+## Testing
+
+Unit tests and the type-check run with `npm test` and `npx tsc --noEmit` in `frontend/`. The end-to-end suite
+needs a running product engine serving this repository's built pages:
+
+```bash
+cd frontend && npm run build
+PRAVRUDHI_EDITION=product PRAVRUDHI_FRONTEND_DIR=$PWD/out pravrudhi app --root <a root made by pravrudhi init> --no-browser --port 8301
+LOCAL_ENGINE_URL=http://127.0.0.1:8301 npx playwright test
+```
+
+CI does exactly this against the release pinned in `engine/ENGINE_VERSION`, from a fresh `pravrudhi init` root.
 
 ## Architecture
 
