@@ -13,3 +13,5 @@ frontend/tsconfig.tsbuildinfo
 # Smoke runs write a report and a throwaway Electron user-data directory
 desktop/.smoke/
 desktop/.smoke-dist/
+frontend/test-results/
+frontend/playwright-report/
