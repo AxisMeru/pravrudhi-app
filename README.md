@@ -88,6 +88,15 @@ npm run dist:mac     # macOS
 npm run dist:win     # Windows
 ```
 
+## The web door
+
+The same interface is served on the web at the `pravrudhi-app` Vercel project (team `axismeru`), deployed by
+Vercel's git integration on every push to `main`, root directory `frontend`. It talks to the engine named by
+`NEXT_PUBLIC_API_BASE` in the project's environment and signs users in through Supabase when
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set; without an engine it shows the
+connection banner rather than a recording. The desktop shell is the other door to the same account, with what
+a browser cannot offer: a local engine, the file system and local models.
+
 ## Testing
 
 Unit tests and the type-check run with `npm test` and `npx tsc --noEmit` in `frontend/`. The end-to-end suite
