@@ -4,3 +4,8 @@ desktop/dist/
 .venv/
 .env
 .env.local
+
+# Next.js build cache and type stubs are outputs, never sources
+frontend/.next/
+frontend/next-env.d.ts
+frontend/tsconfig.tsbuildinfo
