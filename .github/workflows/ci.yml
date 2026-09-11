@@ -1,0 +1,52 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: typecheck
+        working-directory: frontend
+        run: npx tsc --noEmit -p .
+
+      - name: lint
+        working-directory: frontend
+        run: npx eslint .
+
+      - name: tests
+        working-directory: frontend
+        run: npm test
+
+      - name: build
+        working-directory: frontend
+        run: npm run build
+
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: desktop dependencies
+        working-directory: desktop
+        run: npm ci
+
+      - name: desktop tests
+        working-directory: desktop
+        run: node --test test/

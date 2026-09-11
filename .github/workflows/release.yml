@@ -1,0 +1,101 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: build static export
+        working-directory: frontend
+        run: npm run build
+
+      - name: upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-out
+          path: frontend/out
+          if-no-files-found: error
+
+  desktop:
+    needs: [frontend]
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [linux, mac, win]
+        include:
+          - { platform: linux, os: ubuntu-latest }
+          - { platform: mac, os: macos-latest }
+          - { platform: win, os: windows-latest }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: download frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-out
+          path: frontend/out
+
+      - name: build desktop for ${{ matrix.platform }}
+        working-directory: desktop
+        run: |
+          npm ci
+          npx electron-builder --${{ matrix.platform }} --config electron-builder.json
+
+      - name: verify package.json was not rewritten
+        working-directory: desktop
+        run: node -e "const p=require('./package.json'); if(!p.scripts||!p.main) { throw new Error('build clobbered package.json'); }"
+
+      - name: upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.platform }}
+          path: |
+            desktop/dist/*.AppImage
+            desktop/dist/*.dmg
+            desktop/dist/*.exe
+            desktop/dist/*.zip
+          if-no-files-found: error
+
+  release:
+    needs: [desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: download all installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          merge-multiple: true
+          path: dist
+
+      - name: compute checksums
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS && cat SHA256SUMS
+
+      - name: create github release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
