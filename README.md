@@ -98,7 +98,7 @@ connection banner rather than a recording. The desktop shell is the other door t
 a browser cannot offer: a local engine, the file system and local models.
 
 Since 2026-09-11 the engine behind the web door is a hosted one: `NEXT_PUBLIC_API_BASE` names
-`https://pravrudhi-app.tmp------h.workers.dev`, a Cloudflare Worker that proxies to the product's engine
+`https://pravrudhi-app.axismeru.workers.dev`, a Cloudflare Worker that proxies to the product's engine
 container wherever it currently runs (the gateway recipe is `deploy/gateway/` in `AxisMeru/pravrudhi`). The
 engine runs with identity required: every `/api` call but the health check carries the signed-in user's token.
 
