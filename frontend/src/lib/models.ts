@@ -6,14 +6,11 @@
 // lib/candidates.ts and lib/objective.ts keep their own join logic instead of extending it.
 
 import {
-  external,
   models as fetchModels,
   runs as fetchRuns,
-  type ExternalRow,
   type PromotedModel,
   type RunHandle,
 } from "./api";
-import { candidatesList, type Candidate } from "./candidates";
 import { percent } from "./num";
 
 // A percentage already screened by lib/num.ts's `percent`, with an explicit sign prepended -- every delta this
@@ -87,7 +84,20 @@ function inferHeadlines(
   return out;
 }
 
-function itemsOf(row: ExternalRow | null): Record<string, number> | null {
+// The shape of an external-tier row this join used to read; the product never receives one, so the type is
+// kept only so the card-building code below stays the same as Studio's and the two do not drift apart.
+interface ExternalLike {
+  metrics?: Record<string, Record<string, number>> | null;
+  n_samples?: Record<string, number | null> | null;
+  model?: string | null;
+  items?: Record<string, number>;
+}
+
+function noExternalRow(): ExternalLike | null {
+  return null;
+}
+
+function itemsOf(row: ExternalLike | null): Record<string, number> | null {
   const raw = row ? (row as Record<string, unknown>).items : undefined;
   return raw && typeof raw === "object" ? (raw as Record<string, number>) : null;
 }
@@ -224,36 +234,14 @@ function runPolicyFor(run: RunHandle | undefined): string | null {
 }
 
 export async function modelCards(): Promise<ModelCard[]> {
-  const [promoted, candidates, externalRows, runRows] = await Promise.all([
-    fetchModels(),
-    candidatesList().catch(() => [] as Candidate[]),
-    external().catch(() => [] as ExternalRow[]),
-    fetchRuns().catch(() => [] as RunHandle[]),
-  ]);
-
-  const candidateById = new Map(candidates.map((c) => [c.id, c] as const));
-
-  // Reproduces the join application/api/runs.py's `models_listing` performs server-side: a `base` row is keyed
-  // by its literal track code ("M" model / "H" harness, per `ext-record --track`), an "after" row by the
-  // candidate id named after the colon in its condition ("adapter:c-0045" / "harness:c-0012"). The latest by
-  // ledger sequence wins for each key, same as the Python version's forward-overwrite through the same rows.
-  const baseByTrack = new Map<string, ExternalRow>();
-  const afterByCid = new Map<string, ExternalRow>();
-  for (const r of externalRows) {
-    if (r.condition === "base") {
-      const prev = baseByTrack.get(r.track);
-      if (!prev || r.seq > prev.seq) baseByTrack.set(r.track, r);
-    } else if (r.condition.includes(":")) {
-      const cid = r.condition.slice(r.condition.indexOf(":") + 1);
-      const prev = afterByCid.get(cid);
-      if (!prev || r.seq > prev.seq) afterByCid.set(cid, r);
-    }
-  }
+  // The product has no ledger of candidates and no external-tier rows to join (those are Studio's, ADR-0049 §6);
+  // a card is built from what /api/models itself carries plus the run that produced it.
+  const [promoted, runRows] = await Promise.all([fetchModels(), fetchRuns().catch(() => [] as RunHandle[])]);
 
   return promoted.map((m: PromotedModel): ModelCard => {
-    const letter = m.track === "harness" ? "H" : "M";
-    const beforeRow = baseByTrack.get(letter) ?? null;
-    const afterRow = afterByCid.get(m.id) ?? null;
+    // No external-tier row on a product install: the card carries what /api/models itself sends.
+    const beforeRow = noExternalRow();
+    const afterRow = noExternalRow();
     // Falls back to the trimmed metrics `/api/models` itself carries when the richer per-item row cannot be
     // found (an older engine build without /api/external, or a row this join missed) -- the page still shows
     // the before/after value pair it always could, just without a paired significance test.
@@ -270,7 +258,6 @@ export async function modelCards(): Promise<ModelCard[]> {
       itemsByBenchmark[h.name] = afterItems && h.itemsTask ? Object.keys(afterItems).sort() : null;
     }
 
-    const candidate = candidateById.get(m.id) ?? null;
     // A night's own record does not name the objective it served, so the run this model's night belongs to is
     // found by (night, track) alone -- the same join lib/objective.ts uses for a run's night. A live run's
     // `target` field reads "model"/"harness" directly; a closed night's reads "lora"/"harness" (the internal
@@ -289,9 +276,9 @@ export async function modelCards(): Promise<ModelCard[]> {
       policy: runPolicyFor(run),
       artefact: m.artefact,
       baseModelName: beforeRow?.model || null,
-      editFamily: candidate?.edit_family ?? null,
+      editFamily: null,
       recipe: describeRecipe(m.recipe ?? {}),
-      costGpuH: candidate?.cost_gpu_h ?? null,
+      costGpuH: null,
       benchmarks,
       itemsByBenchmark,
     };

@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import {
-  agents,
-  applyUpdate,
   clearMessaging,
   deleteProviderKey,
   IS_DEMO,
@@ -13,11 +11,8 @@ import {
   providers,
   putProviderKey,
   putUpdateConfig,
-  rollbackUpdate,
   updateConfig,
   updateStatus,
-  type AgentStatus,
-  type ApplyResult,
   type MessagingStatus,
   type ProviderInfo,
   type UpdateConfig,
@@ -164,13 +159,7 @@ function ProvidersSection() {
   );
 }
 
-interface ActionState {
-  pending: boolean;
-  result: ApplyResult | null;
-  error: string | null;
-}
 
-const IDLE_ACTION: ActionState = { pending: false, result: null, error: null };
 
 function UpdatesSection() {
   const [info, setInfo] = useState<UpdateStatus | null>(null);
@@ -179,8 +168,6 @@ function UpdatesSection() {
   const [channel, setChannel] = useState<"dev" | "release">("release");
   const [autoApply, setAutoApply] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
-  const [applyState, setApplyState] = useState<ActionState>(IDLE_ACTION);
-  const [rollbackState, setRollbackState] = useState<ActionState>(IDLE_ACTION);
 
   useEffect(() => {
     let cancelled = false;
@@ -222,26 +209,6 @@ function UpdatesSection() {
       /* the selector keeps the attempted values so the operator can retry */
     } finally {
       setSavingConfig(false);
-    }
-  }
-
-  async function handleApply() {
-    setApplyState({ pending: true, result: null, error: null });
-    try {
-      const result = await applyUpdate(channel);
-      setApplyState({ pending: false, result, error: null });
-    } catch {
-      setApplyState({ pending: false, result: null, error: "could not reach the engine" });
-    }
-  }
-
-  async function handleRollback() {
-    setRollbackState({ pending: true, result: null, error: null });
-    try {
-      const result = await rollbackUpdate();
-      setRollbackState({ pending: false, result, error: null });
-    } catch {
-      setRollbackState({ pending: false, result: null, error: "could not reach the engine" });
     }
   }
 
@@ -291,32 +258,9 @@ function UpdatesSection() {
               </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled={applyState.pending}
-                onClick={handleApply}
-                className="rounded-md border border-[var(--color-border)] px-3 py-1 text-sm disabled:opacity-50"
-              >
-                {applyState.pending ? "Updating…" : "Update now"}
-              </button>
-              <button
-                type="button"
-                disabled={rollbackState.pending}
-                onClick={handleRollback}
-                className="rounded-md border border-[var(--color-border)] px-3 py-1 text-sm disabled:opacity-50"
-              >
-                {rollbackState.pending ? "Rolling back…" : "Roll back"}
-              </button>
-            </div>
-            {applyState.result && (
-              <p className="text-xs text-[var(--color-text-dim)]">{applyState.result.reason}</p>
-            )}
-            {applyState.error && <p className="text-xs text-red-500">{applyState.error}</p>}
-            {rollbackState.result && (
-              <p className="text-xs text-[var(--color-text-dim)]">{rollbackState.result.reason}</p>
-            )}
-            {rollbackState.error && <p className="text-xs text-red-500">{rollbackState.error}</p>}
+            <p className="text-xs text-[var(--color-text-dim)]">
+              The desktop shell applies engine updates on this channel; this page only chooses the channel.
+            </p>
           </>
         )}
       </div>
@@ -456,68 +400,10 @@ function TelegramSection() {
 }
 
 export default function SettingsPage() {
-  const [rows, setRows] = useState<AgentStatus[] | null>(null);
-  const [unsupported, setUnsupported] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    agents()
-      .then((data) => {
-        if (!cancelled) setRows(data);
-      })
-      .catch(() => {
-        if (!cancelled) setUnsupported(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Coding agents available to this engine." />
+      <PageHeader title="Settings" subtitle="Your providers, notifications and update channel." />
       <div className="space-y-8 p-8">
-        <div>
-          {unsupported && (
-            <p className="text-sm text-[var(--color-text-dim)]">engine does not report agents yet.</p>
-          )}
-          {!unsupported && rows === null && <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>}
-          {!unsupported && rows !== null && rows.length === 0 && (
-            <p className="text-sm text-[var(--color-text-dim)]">No coding agents configured.</p>
-          )}
-          {!unsupported && rows !== null && rows.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[var(--color-surface)] text-xs uppercase tracking-wide text-[var(--color-text-dim)]">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Agent</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((a) => (
-                    <tr key={a.name} className="border-t border-[var(--color-border)]">
-                      <td className="px-4 py-3 font-medium text-[var(--color-text)]">{a.name}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1.5 ${
-                            a.available ? "text-[var(--color-accent)]" : "text-[var(--color-text-dim)]"
-                          }`}
-                        >
-                          {a.available ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                          {a.available ? "ready" : "unavailable"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-[var(--color-text-dim)]">{a.reason}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
         <div>
           <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Model providers</h2>
           <ProvidersSection />

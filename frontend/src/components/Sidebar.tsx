@@ -7,29 +7,15 @@ import {
   Sparkles,
   History,
   Package,
-  Server,
   Settings,
   Download,
   Target,
   MessageSquare,
   LineChart,
-  Bot,
   Brain,
-  FileDiff,
-  Activity,
   Scale,
-  Radio,
-  Inbox as InboxIcon,
   Library,
-  Layers,
-  ListChecks,
-  Compass,
-  Flame,
   Rocket,
-  Cpu,
-  Monitor,
-  GitCompare,
-  GitBranch,
   Menu,
   X,
 } from "lucide-react";
@@ -37,8 +23,6 @@ import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
-import { inbox } from "@/lib/inbox";
-import { requests } from "@/lib/requests";
 
 interface NavItem {
   href: string;
@@ -49,28 +33,14 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: "/start", label: "Start", icon: Rocket },
   { href: "/", label: "Improve", icon: Sparkles },
-  { href: "/tour", label: "Tour", icon: Compass },
-  { href: "/appetite", label: "Appetite", icon: Flame },
   { href: "/objectives", label: "Objectives", icon: Target },
   { href: "/progress", label: "Progress", icon: LineChart },
-  { href: "/inbox", label: "Inbox", icon: InboxIcon },
-  { href: "/requests", label: "Requests", icon: ListChecks },
-  { href: "/candidates", label: "Candidates", icon: Layers },
-  { href: "/swarm", label: "Swarm", icon: Bot },
-  { href: "/diffs", label: "Diffs", icon: FileDiff },
   { href: "/memory", label: "Memory", icon: Brain },
-  { href: "/heartbeat", label: "Heartbeat", icon: Activity },
-  { href: "/trace", label: "Agent trace", icon: Radio },
   { href: "/catalogue", label: "Catalogue", icon: Library },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/nyaya", label: "Nyaya", icon: Scale },
-  { href: "/search", label: "Search", icon: GitBranch },
   { href: "/runs", label: "Runs", icon: History },
   { href: "/models", label: "Models", icon: Package },
-  { href: "/machines", label: "Machines", icon: Server },
-  { href: "/desktop", label: "Desktop", icon: Monitor },
-  { href: "/parity", label: "Parity", icon: GitCompare },
-  { href: "/system", label: "System", icon: Cpu },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/install", label: "Install", icon: Download },
 ];
@@ -84,8 +54,6 @@ export function Sidebar() {
     edition().then((e) => !off && setWhoami(e)).catch(() => {});
     return () => { off = true; };
   }, []);
-  const [pendingInbox, setPendingInbox] = useState(0);
-  const [openRequests, setOpenRequests] = useState(0);
 
   const [navOpen, setNavOpen] = useState(false);
 
@@ -94,26 +62,6 @@ export function Sidebar() {
     setNavOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    let cancelled = false;
-    inbox()
-      .then((items) => {
-        if (!cancelled) setPendingInbox(items.filter((i) => !i.signed).length);
-      })
-      .catch(() => {
-        /* no engine reachable yet — the badge just stays at zero */
-      });
-    requests()
-      .then((snapshot) => {
-        if (!cancelled) setOpenRequests(snapshot?.open ?? 0);
-      })
-      .catch(() => {
-        /* no engine reachable yet — the badge just stays at zero */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <>
@@ -171,16 +119,6 @@ export function Sidebar() {
             >
               <Icon size={16} />
               <span className="flex-1">{label}</span>
-              {href === "/inbox" && pendingInbox > 0 && (
-                <span className="rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 text-[10px] font-medium text-[#06110c]">
-                  {pendingInbox}
-                </span>
-              )}
-              {href === "/requests" && openRequests > 0 && (
-                <span className="rounded-full bg-[var(--color-accent)] px-1.5 py-0.5 text-[10px] font-medium text-[#06110c]">
-                  {openRequests}
-                </span>
-              )}
             </Link>
           );
         })}
