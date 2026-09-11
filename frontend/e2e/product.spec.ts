@@ -26,6 +26,7 @@ const PAGES: Array<[string, string]> = [
   ["/start", "Start"], ["/", "Pravrudhi"], ["/objectives", "Objectives"], ["/progress", "Progress"],
   ["/memory", "Memory"], ["/catalogue", "Catalogue"], ["/chat", "Chat"], ["/nyaya", "Nyaya"],
   ["/runs", "Runs"], ["/models", "Models"], ["/settings", "Settings"], ["/install", "Get it running"],
+  ["/signin", "Sign in"],
 ];
 
 for (const [path, heading] of PAGES) {

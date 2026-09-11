@@ -70,6 +70,61 @@ export function clearSession(): void {
 }
 
 /**
+ * Sign up with email and password.
+ * Returns { ok: true, data: user } if a session is provided (no confirmation required),
+ * or { ok: false, needsConfirmation: true } if confirmation is required,
+ * or { ok: false, error: message } on failure.
+ */
+export async function signUp(
+  email: string,
+  password: string,
+): Promise<
+  | { ok: true; data: User }
+  | { ok: false; needsConfirmation: true }
+  | { ok: false; error: string }
+> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    return { ok: false, error: "Supabase not configured" };
+  }
+
+  try {
+    const response = await fetch(`${url}/auth/v1/signup`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        apikey: anonKey,
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const data = (await response.json()) as { error_description?: string };
+      const message = data.error_description || "Sign up failed";
+      return { ok: false, error: message };
+    }
+
+    const data = (await response.json()) as {
+      access_token?: string;
+      user: User;
+    };
+
+    // If access_token is present, confirmation is not required
+    if (data.access_token) {
+      setSession(data.access_token, data.user);
+      return { ok: true, data: data.user };
+    }
+
+    // No access token means confirmation is required
+    return { ok: false, needsConfirmation: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+/**
  * Sign in with email and password.
  * Returns { ok: true, data: user } on success, or { ok: false, error: message } on failure.
  */
