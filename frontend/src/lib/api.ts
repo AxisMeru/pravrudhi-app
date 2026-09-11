@@ -3,13 +3,14 @@
 // Every function here can fail — there may be no engine running, or an endpoint may not exist yet on an
 // older engine build. Callers are expected to handle rejection; nothing here retries or hides a failure.
 
-const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
 
 function detectBase(): string {
   const configured = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "");
   if (configured) return configured;
-  if (typeof window !== "undefined" && LOOPBACK.has(window.location.hostname)) return "";
-  return "http://localhost:8008";
+  // Same-origin when the engine serves the page (loopback or the desktop shell); from a hosted origin with no
+  // engine named there is no engine, and the connection banner says so rather than reaching for the visitor's
+  // machine (ADR-0051 addendum 2).
+  return "";
 }
 
 // Resolve at request time so static prerendering cannot freeze the browser's base.
@@ -33,10 +34,8 @@ async function webSessionToken(): Promise<string | null> {
 // anyway produces nothing but console errors. A page served by the engine itself is on localhost and is live.
 // NEXT_PUBLIC_DEMO forces the recording on for local preview of the public site.
 function detectDemo(): boolean {
-  if (process.env.NEXT_PUBLIC_DEMO === "1") return true;
-  if (typeof window === "undefined") return false;
-  if (process.env.NEXT_PUBLIC_API_BASE) return false;
-  return !LOOPBACK.has(window.location.hostname);
+  // The product has no recording; only a build that says NEXT_PUBLIC_DEMO=1 (none does) is one.
+  return process.env.NEXT_PUBLIC_DEMO === "1";
 }
 
 export const IS_DEMO = detectDemo();
