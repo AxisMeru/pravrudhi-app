@@ -75,6 +75,37 @@ jobs:
             desktop/dist/*.zip
           if-no-files-found: error
 
+  # The packaged product, smoked as a user would run it: the AppImage under Xvfb, finding the engine this
+  # repository pins (scripts/install-engine.sh installs the wheels from AxisMeru/pravrudhi's release). Reports beside
+  # the release rather than gating it until it has proven itself green.
+  packaged-smoke:
+    needs: [desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: "3.13" }
+      - name: install the pinned engine
+        run: |
+          PRAVRUDHI_APP_HOME="$GITHUB_WORKSPACE/.pravrudhi-app" bash scripts/install-engine.sh
+          "$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin/pravrudhi" --version
+      - uses: actions/download-artifact@v4
+        with:
+          name: installers-linux
+          # smoke-dist.js reads dist/<edition>/ and this repository builds one edition, the product.
+          path: desktop/dist/product
+      - name: smoke the packaged AppImage against the pinned engine
+        working-directory: desktop
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libfuse2 > /dev/null
+          npm ci
+          export PATH="$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin:$PATH"
+          ls dist/product
+          npm run smoke:dist -- product
+          cat .smoke-dist/report.json
+
   release:
     needs: [desktop]
     runs-on: ubuntu-latest
