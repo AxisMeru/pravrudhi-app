@@ -4,8 +4,10 @@ const {createAuth} = require('./auth');
 const {createProduct} = require('./product');
 const {createApiClient} = require('./api');
 
-function createIpcHandlers({getOrigin, selectWorkspace, supabaseUrl, supabaseAnonKey}) {
-  const auth = createAuth({url: supabaseUrl, key: supabaseAnonKey});
+function createIpcHandlers({getOrigin, selectWorkspace, supabaseUrl, supabaseAnonKey, auth: givenAuth = null}) {
+  // main.js owns the auth module when it also drives the browser (OAuth + PKCE) sign-in and persists the
+  // refresh token; a caller without that hands nothing and gets a session-only one.
+  const auth = givenAuth || createAuth({url: supabaseUrl, key: supabaseAnonKey});
 
   // Create an API client that uses auth tokens for bearer authentication
   const api = createApiClient(getOrigin, {
