@@ -1,0 +1,18 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/catalogue/page": "/catalogue",
+  "/chat/page": "/chat",
+  "/install/page": "/install",
+  "/memory/page": "/memory",
+  "/models/page": "/models",
+  "/nyaya/page": "/nyaya",
+  "/objectives/detail/page": "/objectives/detail",
+  "/objectives/page": "/objectives",
+  "/page": "/",
+  "/progress/page": "/progress",
+  "/runs/[id]/page": "/runs/[id]",
+  "/runs/page": "/runs",
+  "/settings/page": "/settings",
+  "/start/page": "/start"
+}

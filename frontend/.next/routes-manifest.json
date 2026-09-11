@@ -1,0 +1,144 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/runs/[id]",
+      "regex": "^/runs/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/runs/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/catalogue",
+      "regex": "^/catalogue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/catalogue(?:/)?$"
+    },
+    {
+      "page": "/chat",
+      "regex": "^/chat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/chat(?:/)?$"
+    },
+    {
+      "page": "/install",
+      "regex": "^/install(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/install(?:/)?$"
+    },
+    {
+      "page": "/memory",
+      "regex": "^/memory(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/memory(?:/)?$"
+    },
+    {
+      "page": "/models",
+      "regex": "^/models(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/models(?:/)?$"
+    },
+    {
+      "page": "/nyaya",
+      "regex": "^/nyaya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/nyaya(?:/)?$"
+    },
+    {
+      "page": "/objectives",
+      "regex": "^/objectives(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/objectives(?:/)?$"
+    },
+    {
+      "page": "/objectives/detail",
+      "regex": "^/objectives/detail(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/objectives/detail(?:/)?$"
+    },
+    {
+      "page": "/progress",
+      "regex": "^/progress(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/progress(?:/)?$"
+    },
+    {
+      "page": "/runs",
+      "regex": "^/runs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/runs(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
+    },
+    {
+      "page": "/start",
+      "regex": "^/start(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/start(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
