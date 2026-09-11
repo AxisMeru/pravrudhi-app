@@ -69,10 +69,10 @@ jobs:
         with:
           name: installers-${{ matrix.platform }}
           path: |
-            desktop/dist/*.AppImage
-            desktop/dist/*.dmg
-            desktop/dist/*.exe
-            desktop/dist/*.zip
+            desktop/dist/product/*.AppImage
+            desktop/dist/product/*.dmg
+            desktop/dist/product/*.exe
+            desktop/dist/product/*.zip
           if-no-files-found: error
 
   # The packaged product, smoked as a user would run it: the AppImage under Xvfb, finding the engine this
