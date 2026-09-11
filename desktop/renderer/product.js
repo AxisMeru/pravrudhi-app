@@ -21,10 +21,15 @@
   }
   async function refreshAuth() {
     const status = await bridge.authStatus();
-    el('signout').hidden = !status.user;
-    el('signin-status').textContent = status.user ? `Signed in as ${status.user.email || status.user.id}` : 'Not signed in.';
-    el('workspace-section').hidden = !status.user;
-    if (!status.user) el('artifact-section').hidden = true;
+    const hasUser = status.user && status.configured;
+    el('signout').hidden = !hasUser;
+    if (!status.configured) {
+      el('signin-status').textContent = 'Supabase is not configured for this installation.';
+    } else {
+      el('signin-status').textContent = hasUser ? `Signed in as ${status.user.email || status.user.id}` : 'Not signed in.';
+    }
+    el('workspace-section').hidden = !hasUser;
+    if (!hasUser) el('artifact-section').hidden = true;
     return status;
   }
   async function loadWorkspaces() {

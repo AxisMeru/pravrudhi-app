@@ -15,3 +15,4 @@ require('./integration.test.js');
 require('./product.test.js');
 require('./auth.test.js');
 require('./updates.test.js');
+require('./ipc-wiring.test.js');

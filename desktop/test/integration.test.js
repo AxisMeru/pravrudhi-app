@@ -135,7 +135,10 @@ test('sandbox preload provides an enumerated invoke-only API with no renderer-co
     assert.equal(name,'electron');return {contextBridge:{exposeInMainWorld:(name,api)=>{assert.equal(name,'desktop');exposed=api;}},ipcRenderer:{invoke:async(...args)=>{assert.equal(args.length,1);channels.push(args[0]);}}};
   }});
   assert.ok(Object.isFrozen(exposed));
-  for(const fn of Object.values(exposed)) await fn('untrusted arbitrary command');
+  // Test only the engine functions at the top level, not the product sub-object
+  for(const [key, fn] of Object.entries(exposed)) {
+    if (typeof fn === 'function') await fn('untrusted arbitrary command');
+  }
   // engine:backlog and engine:inbox are gone with the operator surfaces they fed. They were still wired in
   // main.js and preload.js after the client dropped them, so every launch died on "handler is not a function".
   assert.deepEqual(channels,['engine:health','engine:update-state','engine:open','engine:status','engine:locate','engine:restart','engine:stop','engine:doctor','engine:updates','engine:workspace']);

@@ -39,6 +39,22 @@ function readEdition(resourcesPath, readFile = p => fs.readFileSync(p, 'utf8')) 
   }
 }
 
+// Read the full edition configuration including Supabase settings.
+function readEditionConfig(resourcesPath, readFile = p => fs.readFileSync(p, 'utf8')) {
+  let config = {};
+  try {
+    config = JSON.parse(readFile(path.join(resourcesPath, 'edition.json')));
+  } catch {
+    // absent, unreadable or malformed: use defaults
+  }
+
+  return {
+    edition: editionOf(config.edition),
+    supabaseUrl: config.supabaseUrl || process.env.SUPABASE_URL,
+    supabaseAnonKey: config.supabaseAnonKey || process.env.SUPABASE_ANON_KEY,
+  };
+}
+
 // Both builds package the same `name` — electron-builder carries productName in the platform metadata, not in
 // the packaged package.json — so Electron's app.getName() answers "pravrudhi-desktop" for either one, and the
 // per-user data directory it derives from that would be shared. Two installs that overwrite each other's saved
@@ -74,4 +90,4 @@ function engineEnv(env, edition, resourcesPath, isPackaged) {
   return result;
 }
 
-module.exports = {PRODUCT, STUDIO, editionOf, readEdition, engineEnv, userDataName};
+module.exports = {PRODUCT, STUDIO, editionOf, readEdition, readEditionConfig, engineEnv, userDataName};

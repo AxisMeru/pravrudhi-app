@@ -7,8 +7,10 @@ const {recovery} = require('./lib/recovery');
 const {createApiClient} = require('./lib/api');
 const {selectConnection, defaultWorkspace} = require('./lib/connection');
 const {createProcessOwner, singleInstance, focusWindow} = require('./lib/lifecycle');
-const {engineEnv, readEdition, userDataName} = require('./lib/edition');
+const {engineEnv, readEdition, readEditionConfig, userDataName} = require('./lib/edition');
+const {createIpcHandlers} = require('./lib/ipc-handlers');
 const edition = readEdition(process.resourcesPath);
+const editionConfig = readEditionConfig(process.resourcesPath);
 const {engineMenu, trayState} = require('./lib/menu');
 const {createSmokeReporter} = require('./lib/smoke');
 const {shellIsStale} = require('./lib/updates');
@@ -289,11 +291,27 @@ if (instanceReady) {
   app.whenReady().then(async () => {
     stateFile = path.join(app.getPath('userData'), 'desktop-state.json'); settings = readState(stateFile);
     workspace = defaultWorkspace({env:process.env.PRAVRUDHI_WORKSPACE,saved:settings.workspace,binary:await discoverEngine({saved:settings.enginePath}),home:app.getPath('home')}); settings.workspace = workspace;
+
+    // Create product/auth IPC handlers with the current settings
+    const productHandlers = createIpcHandlers({
+      getOrigin: () => status.origin,
+      selectWorkspace: async (path) => { workspace = path; settings.workspace = workspace; persist(); },
+      supabaseUrl: editionConfig.supabaseUrl,
+      supabaseAnonKey: editionConfig.supabaseAnonKey
+    });
+
     const handlers = {'engine:status':() => ({...status,workspace,shellVersion:app.getVersion(),shellStale:shellIsStale(app.getVersion(),latestTag)}), 'engine:locate':locate,'engine:restart':() => serialize(start),'engine:stop':() => serialize(stop),'engine:doctor':doctor,'engine:updates':updates,'engine:workspace':engineController.openWorkspace, 'engine:health':api.health, 'engine:update-state':api.update, 'engine:open':async()=>{ if (!status.origin) throw new Error('Engine is not connected.'); for (const w of windows) await w.loadURL(status.origin); }};
     for (const [channel, handler] of Object.entries(handlers)) ipcMain.handle(channel, (event) => {
       const url = event.senderFrame?.url;
       if (!windows.has(BrowserWindow.fromWebContents(event.sender)) || event.senderFrame !== event.sender.mainFrame || !(url === statusURL || linkPolicy(url,status.origin) === 'internal')) throw new Error('Untrusted desktop request');
       return handler();
+    });
+
+    // Register product/auth handlers with argument forwarding
+    for (const [channel, handler] of Object.entries(productHandlers)) ipcMain.handle(channel, (event, ...args) => {
+      const url = event.senderFrame?.url;
+      if (!windows.has(BrowserWindow.fromWebContents(event.sender)) || event.senderFrame !== event.sender.mainFrame || !(url === statusURL || linkPolicy(url,status.origin) === 'internal')) throw new Error('Untrusted desktop request');
+      return handler(event, ...args);
     });
     Menu.setApplicationMenu(Menu.buildFromTemplate([
       {label:'File',submenu:[{label:'New Window',accelerator:'CmdOrCtrl+N',click:createWindow},{label:'Locate engine…',click:safe(locate)},{type:'separator'},{role:'quit'}]},
