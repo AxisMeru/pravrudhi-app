@@ -7,7 +7,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Plus } from "lucide-react";
 import {
-  chat,
   chatStream,
   chatThreads,
   chatThread,
@@ -242,7 +241,7 @@ function LiveChat() {
     };
     setTurns((t) => [...t, initialAssistantTurn]);
 
-    let assistantTurn: DisplayTurn = { ...initialAssistantTurn };
+    const assistantTurn: DisplayTurn = { ...initialAssistantTurn };
     let threadId: string | null = null;
     let hasError = false;
 

@@ -141,7 +141,7 @@ function pageResults(isStudio: boolean): PaletteResult[] {
   }));
 }
 
-function globalActions(isDemo: boolean): PaletteResult[] {
+function globalActions(): PaletteResult[] {
   return [
     {
       id: "action:start-night",
@@ -228,8 +228,8 @@ export function buildCatalogue(
   index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false,
 ): PaletteResult[] {
   return [
-    ...pageResults(false),
-    ...globalActions(isDemo),
+    ...pageResults(isStudio),
+    ...globalActions(),
     ...objectiveResults(index.objectives, isDemo),
     ...runResults(index.runs, isDemo),
     ...modelResults(index.models),
