@@ -4,7 +4,6 @@
 
 import {
   status as fetchStatus,
-  nights as fetchNights,
   models as fetchModels,
   runs as fetchRuns,
   objectives as fetchObjectives,
@@ -15,10 +14,10 @@ import {
   type Objective,
   type BenchmarkProgress,
 } from "./api";
-import { appetite as fetchAppetite, type AppetiteResponse } from "./appetite";
-import { requests as fetchRequests, type RequestsResponse } from "./requests";
-import { swarmLive as fetchSwarmLive, type LiveAgent } from "./swarm";
-import { heartbeat as fetchHeartbeat, type HeartbeatBeat } from "./heartbeat";
+import type { AppetiteResponse } from "./appetite";
+import type { RequestsResponse } from "./requests";
+import type { LiveAgent } from "./swarm";
+import type { HeartbeatBeat } from "./heartbeat";
 import { RUNNING_STATUSES, asStr, asNum, runHref } from "./run";
 import { objectiveHref, withPairedStats } from "./objective";
 
@@ -42,27 +41,26 @@ function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
 // taking the whole page down -- a workspace that has never run a night, or an engine that is briefly
 // unreachable, must still render the bands that do have data.
 export async function loadHome(): Promise<HomeData> {
-  const [st, objs, nts, mdls, rns, app, reqs, live, beats] = await Promise.allSettled([
+  // The engine a product install runs answers 404 on /api/appetite, /api/requests, /api/swarm/live,
+  // /api/heartbeat and /api/nights (roles.py classifies them as Studio's), so this interface does not ask;
+  // the bands that would show them render their empty state. Whether a user's OWN workspace loop should be
+  // visible to them is an engine question, filed upstream (AxisMeru/pravrudhi request r-d73f9cea).
+  const [st, objs, mdls, rns] = await Promise.allSettled([
     fetchStatus(),
     fetchObjectives(),
-    fetchNights(),
     fetchModels(),
     fetchRuns(),
-    fetchAppetite(),
-    fetchRequests(),
-    fetchSwarmLive(),
-    fetchHeartbeat(50),
   ]);
   return {
     status: settled(st, null),
     objectives: settled(objs, { objectives: [], problems: [] }).objectives,
-    nights: settled(nts, []),
+    nights: [],
     models: settled(mdls, []),
     runHandles: settled(rns, []),
-    appetite: settled(app, null),
-    requests: settled(reqs, null),
-    agentsWorking: settled(live, []),
-    heartbeats: settled(beats, []),
+    appetite: null,
+    requests: null,
+    agentsWorking: [],
+    heartbeats: [],
   };
 }
 

@@ -4,7 +4,7 @@
 // it, the same reason lib/candidates.ts keeps its own fetch path instead of extending api.ts's.
 
 import { ApiError, apiBase, IS_DEMO, runs as fetchRuns, type BenchmarkProgress, type RunHandle } from "./api";
-import { candidatesSnapshot, type CandidateRow } from "./candidates";
+import type { CandidateRow, CandidatesSnapshot } from "./candidates";
 import { percent } from "./num";
 
 export function objectiveHref(id: string): string {
@@ -57,7 +57,9 @@ async function nightTracks(): Promise<NightTrack[]> {
     const rows = ((await demo()) as unknown as Record<string, unknown>)["nights"];
     return Array.isArray(rows) ? (rows as NightTrack[]) : [];
   }
-  return getJSON<NightTrack[]>("/api/nights");
+  // A product install answers 404 here (roles.py: Studio's); the night tracks are simply absent for it. Upstream
+  // request r-d73f9cea decides whether a user's own nights should be theirs to see.
+  return [];
 }
 
 function nightOf(handle: RunHandle): number | undefined {
@@ -77,7 +79,7 @@ export async function objectiveActivity(track: string): Promise<ObjectiveActivit
   const [allRuns, nights, snapshot] = await Promise.all([
     fetchRuns().catch(() => [] as RunHandle[]),
     nightTracks().catch(() => [] as NightTrack[]),
-    candidatesSnapshot().catch(() => ({ candidates: [], rows: [], obsPoints: [], tracks: [] })),
+    Promise.resolve<CandidatesSnapshot>({ candidates: [], rows: [], obsPoints: [], tracks: [] }) /* /api/candidates and /api/observations are Studio's on a product install (r-d73f9cea) */,
   ]);
   const nightsOnTrack = new Set(nights.filter((n) => n.track === track).map((n) => n.night));
   return {
