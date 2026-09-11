@@ -75,6 +75,8 @@ jobs:
         run: npm run build
 
       - name: install the pinned engine release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
 
       - name: browsers

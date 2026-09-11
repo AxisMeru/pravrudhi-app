@@ -89,6 +89,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with: { python-version: "3.13" }
       - name: install the pinned engine
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PRAVRUDHI_APP_HOME="$GITHUB_WORKSPACE/.pravrudhi-app" bash scripts/install-engine.sh
           "$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin/pravrudhi" --version
