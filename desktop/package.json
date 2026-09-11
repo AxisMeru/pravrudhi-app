@@ -1,0 +1,23 @@
+{
+  "name": "pravrudhi-app",
+  "productName": "Pravrudhi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The native desktop shell for an installed Pravrudhi engine",
+  "author": "Pravrudhi",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --config electron-builder.json",
+    "dist:linux": "electron-builder --linux --config electron-builder.json",
+    "test": "node --test test/",
+    "smoke": "node smoke.js",
+    "smoke:dist": "node smoke-dist.js",
+    "dist:mac": "electron-builder --mac --config electron-builder.json",
+    "dist:win": "electron-builder --win --config electron-builder.json"
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^26.0.0"
+  }
+}

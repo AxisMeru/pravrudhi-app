@@ -1,0 +1,47 @@
+{
+  "appId": "org.pravrudhi.desktop",
+  "productName": "Pravrudhi",
+  "files": [
+    "main.js",
+    "preload.js",
+    "lib/**",
+    "renderer/**",
+    "package.json"
+  ],
+  "linux": {
+    "target": "AppImage",
+    "category": "Development",
+    "icon": "renderer/icon.png"
+  },
+  "mac": {
+    "target": [
+      "dmg",
+      "zip"
+    ],
+    "identity": null,
+    "icon": "renderer/icon.png",
+    "category": "public.app-category.developer-tools"
+  },
+  "win": {
+    "target": [
+      "nsis",
+      "zip"
+    ],
+    "icon": "renderer/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true
+  },
+  "directories": {
+    "output": "dist"
+  },
+  "extraResources": [
+    {
+      "from": "../frontend/out",
+      "to": "frontend"
+    }
+  ],
+  "artifactName": "pravrudhi-${version}-${os}-${arch}.${ext}"
+}
