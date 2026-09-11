@@ -27,6 +27,14 @@ async function webSessionToken(): Promise<string | null> {
   }
 }
 
+// A hosted engine answering 401 means the session is gone or was never made: go to /signin rather than present
+// the refusal as an engine that is not reachable. Only when a build names a Supabase project; never from /signin.
+function toSignIn(status: number): void {
+  if (status !== 401 || typeof window === "undefined" || !process.env.NEXT_PUBLIC_SUPABASE_URL) return;
+  if (window.location.pathname.startsWith("/signin")) return;
+  window.location.assign(new URL("/signin", window.location.origin).href);
+}
+
 // Whether this page is a recording rather than a live engine.
 //
 // Decided at runtime, from where the page is being served, because that is what actually determines it: a browser
@@ -56,7 +64,10 @@ async function getJSON<T>(path: string): Promise<T> {
     cache: "no-store",
     headers: token ? { authorization: `Bearer ${token}` } : {},
   });
-  if (!res.ok) throw new ApiError(res.status, path);
+  if (!res.ok) {
+    toSignIn(res.status);
+    throw new ApiError(res.status, path);
+  }
   return (await res.json()) as T;
 }
 
