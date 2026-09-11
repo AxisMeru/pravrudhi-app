@@ -47,7 +47,11 @@ test("the interface offers only the product's pages", async ({ page }) => {
     "/search", "/system", "/requests", "/machines", "/tour", "/desktop"]) {
     expect(offered.has(studio), `${studio} is Studio's and must not be offered`).toBe(false);
   }
-  for (const own of PAGES.map(([p]) => p)) expect(offered.has(own), `${own} is the product's and must be offered`).toBe(true);
+  // Sign-in is reached from the account control in the sidebar header, not from the navigation list.
+  for (const own of PAGES.map(([p]) => p).filter((p) => p !== "/signin")) {
+    expect(offered.has(own), `${own} is the product's and must be offered`).toBe(true);
+  }
+  expect(offered.has("/signin") || (await page.locator("a[href='/signin']").count()) > 0, "sign-in is reachable").toBe(true);
 });
 
 test("the engine names the product edition", async ({ request }) => {
