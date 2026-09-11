@@ -97,6 +97,11 @@ Vercel's git integration on every push to `main`, root directory `frontend`. It 
 connection banner rather than a recording. The desktop shell is the other door to the same account, with what
 a browser cannot offer: a local engine, the file system and local models.
 
+Since 2026-09-11 the engine behind the web door is a hosted one: `NEXT_PUBLIC_API_BASE` names
+`https://pravrudhi-app.tmp------h.workers.dev`, a Cloudflare Worker that proxies to the product's engine
+container wherever it currently runs (the gateway recipe is `deploy/gateway/` in `AxisMeru/pravrudhi`). The
+engine runs with identity required: every `/api` call but the health check carries the signed-in user's token.
+
 ## Testing
 
 Unit tests and the type-check run with `npm test` and `npx tsc --noEmit` in `frontend/`. The end-to-end suite
