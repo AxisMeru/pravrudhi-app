@@ -15,6 +15,17 @@ function detectBase(): string {
 // Resolve at request time so static prerendering cannot freeze the browser's base.
 export { detectBase as apiBase };
 
+// Get the current web session's access token for Supabase JWT auth.
+async function webSessionToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const { accessToken } = await import("./auth");
+    return accessToken();
+  } catch {
+    return null;
+  }
+}
+
 // Whether this page is a recording rather than a live engine.
 //
 // Decided at runtime, from where the page is being served, because that is what actually determines it: a browser
@@ -41,7 +52,11 @@ export class ApiError extends Error {
 }
 
 async function getJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${detectBase()}${path}`, { cache: "no-store" });
+  const token = await webSessionToken();
+  const res = await fetch(`${detectBase()}${path}`, {
+    cache: "no-store",
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
 }
@@ -65,12 +80,14 @@ export async function localToken(): Promise<string | null> {
 }
 
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
-  const token = await localToken();
+  const localTok = await localToken();
+  const webTok = await webSessionToken();
   const res = await fetch(`${detectBase()}${path}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      ...(token ? { "x-pravrudhi-token": token } : {}),
+      ...(localTok ? { "x-pravrudhi-token": localTok } : {}),
+      ...(webTok ? { authorization: `Bearer ${webTok}` } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -79,12 +96,14 @@ async function postJSON<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function putJSON<T>(path: string, body: unknown): Promise<T> {
-  const token = await localToken();
+  const localTok = await localToken();
+  const webTok = await webSessionToken();
   const res = await fetch(`${detectBase()}${path}`, {
     method: "PUT",
     headers: {
       "content-type": "application/json",
-      ...(token ? { "x-pravrudhi-token": token } : {}),
+      ...(localTok ? { "x-pravrudhi-token": localTok } : {}),
+      ...(webTok ? { authorization: `Bearer ${webTok}` } : {}),
     },
     body: JSON.stringify(body),
   });
@@ -93,10 +112,14 @@ async function putJSON<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function deleteJSON<T>(path: string): Promise<T> {
-  const token = await localToken();
+  const localTok = await localToken();
+  const webTok = await webSessionToken();
   const res = await fetch(`${detectBase()}${path}`, {
     method: "DELETE",
-    headers: token ? { "x-pravrudhi-token": token } : {},
+    headers: {
+      ...(localTok ? { "x-pravrudhi-token": localTok } : {}),
+      ...(webTok ? { authorization: `Bearer ${webTok}` } : {}),
+    },
   });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
@@ -721,12 +744,14 @@ export async function* chatStream(
 ): AsyncGenerator<Record<string, unknown>, void, unknown> {
   if (IS_DEMO) throw new ApiError(501, "/api/chat/stream");
 
-  const token = await localToken();
+  const localTok = await localToken();
+  const webTok = await webSessionToken();
   const res = await fetch(`${detectBase()}/api/chat/stream`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      ...(token ? { "x-pravrudhi-token": token } : {}),
+      ...(localTok ? { "x-pravrudhi-token": localTok } : {}),
+      ...(webTok ? { authorization: `Bearer ${webTok}` } : {}),
     },
     body: JSON.stringify({ message, thread_id: threadId }),
   });

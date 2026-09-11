@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { AccountControl } from "@/components/AccountControl";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 
@@ -99,6 +100,9 @@ export function Sidebar() {
         <p className="mt-1 text-xs leading-snug text-[var(--color-text-dim)]">
           {whoami.tagline}
         </p>
+        <div className="mt-3">
+          <AccountControl />
+        </div>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
