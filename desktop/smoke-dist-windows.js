@@ -5,8 +5,13 @@
 //
 // electron-builder's Windows `zip` target is the portable equivalent of the Linux AppImage: an unpacked
 // directory zipped as-is, runnable directly with no installer step (unlike the `nsis` target, which needs a
-// silent install this environment has no reason to perform). `tar -xf` extracts it — ships on Windows 10/
-// Server 2019 and later (bsdtar understands .zip), so nothing extra needs installing on the runner.
+// silent install this environment has no reason to perform). Windows 10/Server 2019+ ships a bundled bsdtar
+// at %SystemRoot%\System32\tar.exe that understands .zip, so nothing extra needs installing on the runner —
+// but a bare `tar` on PATH is not reliable: on a GitHub Windows runner, Git for Windows puts its own GNU tar
+// ahead of System32 on PATH, and GNU tar parses a `D:\a\...` extraction path as a `host:path` remote spec
+// ("tar: Cannot connect to D: resolve failed") instead of extracting locally. Invoke System32's tar.exe by
+// absolute path so this can't happen again, and verify at runtime that it really is bsdtar rather than
+// silently accepting whatever binary answers to that path.
 const {spawn, execFileSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -26,6 +31,26 @@ const failure = async error => {
   await createSmokeReporter(reportFile).fail(error);
   process.exitCode = 1;
 };
+
+// %SystemRoot% is always set on Windows; System32\tar.exe is the bundled bsdtar this script depends on.
+const systemTar = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+
+function assertBsdtar(tarPath) {
+  let versionOutput;
+  try {
+    versionOutput = execFileSync(tarPath, ['--version'], {encoding: 'utf8'});
+  } catch (error) {
+    throw new Error(`Could not run ${tarPath} --version: ${error.message}`);
+  }
+  if (!/bsdtar/i.test(versionOutput)) {
+    throw new Error(
+      `${tarPath} did not report itself as bsdtar (got: ${versionOutput.trim().split('\n')[0]}). ` +
+      'This script depends on Windows\' bundled bsdtar to extract a .zip; a GNU tar here would silently ' +
+      'misparse the extraction path as a remote host spec instead of failing obviously, so refusing rather ' +
+      'than guessing.'
+    );
+  }
+}
 
 // Depth-first search for the packaged .exe rather than assuming a fixed layout: electron-builder's zip target
 // has shipped both a flat directory and a single top-level folder across versions, and asserting the exact
@@ -47,7 +72,8 @@ async function main() {
   if (!zipName) throw new Error(`No .zip found in dist/${wanted}/. Run \`npm run dist:win\` first.`);
   fs.rmSync(smokeDir, {recursive: true, force: true});
   fs.mkdirSync(extractDir, {recursive: true});
-  execFileSync('tar', ['-xf', path.join(distDir, zipName), '-C', extractDir], {stdio: 'inherit'});
+  assertBsdtar(systemTar);
+  execFileSync(systemTar, ['-xf', path.join(distDir, zipName), '-C', extractDir], {stdio: 'inherit'});
   const exePath = findExe(extractDir);
   if (!exePath) throw new Error(`No .exe found after extracting ${zipName}.`);
   fs.mkdirSync(path.dirname(reportFile), {recursive: true});
