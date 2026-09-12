@@ -72,6 +72,11 @@ jobs:
 
       - name: build the interface
         working-directory: frontend
+        # The sign-in page renders its form only when a Supabase project is named at build time; these are public,
+        # inert placeholders so the guards have a form to check (nothing is called until submit).
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npm run build
 
       - name: install the pinned engine release
