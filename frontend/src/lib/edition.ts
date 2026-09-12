@@ -5,7 +5,7 @@
 //
 // The recorded demo is the public site, which nobody is signed in to, so it shows the product.
 
-import { apiBase, IS_DEMO } from "@/lib/api";
+import { IS_DEMO, apiBase, engineFetch } from "@/lib/api";
 
 export interface Edition {
   edition: string;
@@ -24,7 +24,7 @@ export const PRODUCT: Edition = {
 export async function edition(): Promise<Edition> {
   if (IS_DEMO) return PRODUCT;
   try {
-    const res = await fetch(`${apiBase()}/api/me`, { cache: "no-store" });
+    const res = await engineFetch(`${apiBase()}/api/me`, { cache: "no-store" });
     if (!res.ok) return PRODUCT;
     const body = (await res.json()) as Partial<Edition>;
     return {
