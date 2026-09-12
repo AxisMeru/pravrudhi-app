@@ -18,13 +18,20 @@ export default defineConfig({
   use: { baseURL: engineURL, ...devices["Desktop Chrome"] },
   projects: [
     { name: "product-chromium", testMatch: ["product.spec.ts", "signin-guards.spec.ts"] },
-    {
-      name: "live-chromium",
-      testMatch: "live.spec.ts",
-      // A little more patience than the local-engine default: real network latency to a real, cold hosted
-      // engine, not a process on localhost.
-      timeout: 60_000,
-      use: { baseURL: liveURL, ...devices["Desktop Chrome"] },
-    },
+    // The nightly's project only exists when the nightly's account is in the environment
+    // (pravrudhi-e2e-nightly.service's EnvironmentFile): CI runs every project it can see and has no such
+    // account, and a live door is not something a pull request should be able to fail on.
+    ...(process.env.E2E_EMAIL
+      ? [
+          {
+            name: "live-chromium",
+            testMatch: "live.spec.ts",
+            // A little more patience than the local-engine default: real network latency to a real, cold
+            // hosted engine, not a process on localhost.
+            timeout: 60_000,
+            use: { baseURL: liveURL, ...devices["Desktop Chrome"] },
+          },
+        ]
+      : []),
   ],
 });
