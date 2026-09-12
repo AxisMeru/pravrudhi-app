@@ -110,6 +110,13 @@ jobs:
         run: |
           PRAVRUDHI_APP_HOME="$GITHUB_WORKSPACE/.pravrudhi-app" bash scripts/install-engine.sh
           "$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin/pravrudhi" --version
+          # v0.1.0 failed here in a way that named the wrong thing: "spawn .../bin/pravrudhi ENOENT" even though
+          # the binary itself ran fine one line up. The real cause was a spawn `cwd` (the desktop shell's default
+          # workspace) that did not exist on this runner's $HOME — Node/libuv's spawn ENOENT is ambiguous between
+          # "command not found" and "cwd not found", so this failed silently instead of naming the actual gap
+          # (fixed in desktop/main.js). Printed here so a future regression of this shape names itself instead.
+          ls -la "$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin"
+          head -1 "$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin/pravrudhi"
       - uses: actions/download-artifact@v4
         with:
           name: installers-linux

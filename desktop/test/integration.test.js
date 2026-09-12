@@ -251,6 +251,66 @@ test('main bootstrap reports signin_state as configured once real Supabase confi
   const report=await runMainBootstrap({SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'test-anon-key'});
   assert.equal(report.signin_state,'configured');
 });
+// v0.1.0's packaged-smoke: "Packaged desktop smoke failed: spawn .../.venv/bin/pravrudhi ENOENT" on a stock
+// GitHub Actions runner, though the same binary had just run --version successfully one step earlier. The
+// runner's $HOME has no pre-existing pravrudhi/ directory (unlike a developer's own machine, where it
+// coincidentally does, which is why this never reproduced locally at first): lib/connection.js's
+// defaultWorkspace() falls back to `${home}/pravrudhi` and returns it whether or not it exists — nothing ever
+// created it — and passing a nonexistent `cwd` to child_process.spawn produces exactly this ENOENT, naming the
+// command rather than the missing directory (a well-known Node/libuv ambiguity). Real, not CI-only: any first
+// launch on a machine without that directory hits the same crash.
+test('main bootstrap creates the default workspace directory before using it as a spawn cwd',async()=>{
+  const fs=require('node:fs');const os=require('node:os');const vm=require('node:vm');const path=require('node:path');
+  const desktopDir=path.dirname(require.resolve('../main'));
+  const tmpHome=fs.mkdtempSync(path.join(os.tmpdir(),'pravrudhi-workspace-test-'));
+  const app=new EventEmitter();let exited,shutdown=false,capturedCwd,cwdExistedAtSpawnTime;
+  const exit=new Promise(resolve=>{exited=resolve;});
+  Object.assign(app,{requestSingleInstanceLock:()=>true,setPath(){},getPath:name=>name==='home'?tmpHome:desktopDir,getVersion:()=> 'test-shell',whenReady:async()=>{},quit:()=>app.emit('before-quit',{preventDefault(){}}),exit:code=>exited(code)});
+  class Window extends EventEmitter {
+    constructor(options) {
+      super();this.webContents=new EventEmitter();
+      Object.assign(this.webContents,{session:{setPermissionRequestHandler(){}},setWindowOpenHandler(){},executeJavaScript:async script=>assert.match(script,/apiReady/),getTitle:()=>this.title});
+    }
+    async loadFile(){this.title='Desktop fixture';this.webContents.emit('did-finish-load');}
+    async loadURL(url){this.title='Engine fixture';this.webContents.emit('did-finish-load');}
+  }
+  class Tray { on(){} setToolTip(){} setContextMenu(){} }
+  const core=require('../lib/core');const lifecycle=require('../lib/lifecycle');const connection=require('../lib/connection');
+  let report;
+  const modules={
+    electron:{app,BrowserWindow:Window,Menu:{buildFromTemplate:items=>items,setApplicationMenu(){}},Tray,nativeImage:{createFromBitmap(){}},ipcMain:{handle(){}},dialog:{showErrorBox:(_title,message)=>assert.fail(message)},shell:{},screen:{getAllDisplays:()=>[]}},
+    './lib/edition':{...require('../lib/edition'),readEditionConfig:()=>({edition:'product'})},
+    // discoverEngine finds nothing (a plausible fresh machine), so defaultWorkspace below falls all the way
+    // through to its bare `${home}/pravrudhi` default rather than deriving a path from a binary location.
+    './lib/core':{...core,discoverEngine:async()=>null,pollHealth:async()=>({ok:true}),readState:()=>({}),writeState(){}},
+    // defaultWorkspace is the REAL function (not mocked away): this test is about its actual return value
+    // meeting the real filesystem, which a mock would hide.
+    './lib/connection':{...connection,selectConnection:async()=>({attached:true,binary:'fixture-engine',origin:'http://127.0.0.1:8008'})},
+    './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'}),update:async()=>({current:{version:'fixture'},latest:null,update_available:false})})},
+    './lib/smoke':{createSmokeReporter:(file,opts)=>require('../lib/smoke').createSmokeReporter(file,{...opts,write:(_file,value)=>{report=value;}})},
+    './lib/lifecycle':{...lifecycle,createProcessOwner:()=>({launch:(_binary,args,options)=>{
+      // Recorded rather than asserted here: doctor()'s own try/catch (main.js) would otherwise swallow a
+      // failed assertion as an ordinary doctorError and let the test pass regardless — the check that matters
+      // happens below, outside any of main.js's own error handling.
+      capturedCwd=options.cwd;
+      cwdExistedAtSpawnTime=fs.existsSync(capturedCwd);
+      const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();
+      queueMicrotask(()=>{child.stdout.emit('data',JSON.stringify({checks:[]}));child.emit('close',0);});return child;
+    },stop:async()=>{},shutdown:async()=>{shutdown=true;}})}
+  };
+  try {
+    vm.runInNewContext(fs.readFileSync(require.resolve('../main'),'utf8'),{
+      require:name=>modules[name] || (name.startsWith('./') ? require(path.join(desktopDir,name)) : require(name)),
+      __dirname:desktopDir,process:{env:{PRAVRUDHI_DESKTOP_SMOKE:'1'},on(){}},console,Buffer,AbortController,AbortSignal,URL,setTimeout,clearTimeout,
+      fetch:async()=>({ok:true,headers:{get:()=> 'text/html'}})
+    });
+    assert.equal(await exit,0);assert.equal(shutdown,true);
+    assert.equal(capturedCwd,path.join(tmpHome,'pravrudhi'),'doctor must be spawned with the default workspace as its cwd');
+    assert.equal(cwdExistedAtSpawnTime,true,`${capturedCwd} must exist at the moment it is handed to spawn as a cwd`);
+  } finally {
+    fs.rmSync(tmpHome,{recursive:true,force:true});
+  }
+});
 
 test('main.js registers its OAuth redirect scheme, opens the browser to sign in, and delivers both redirect paths to auth.completeBrowserSignIn',async()=>{
   const fs=require('node:fs');const vm=require('node:vm');const path=require('node:path');

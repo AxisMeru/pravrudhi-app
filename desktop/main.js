@@ -335,6 +335,12 @@ if (instanceReady) {
     stateFile = path.join(app.getPath('userData'), 'desktop-state.json'); settings = readState(stateFile);
     auth.restore(settings.auth); // a session signed into a previous launch; unusable until its first `token()` refresh
     workspace = defaultWorkspace({env:process.env.PRAVRUDHI_WORKSPACE,saved:settings.workspace,binary:await discoverEngine({saved:settings.enginePath}),home:app.getPath('home')}); settings.workspace = workspace;
+    // defaultWorkspace only decides a path; it does not create it (lib/connection.js keeps that function pure
+    // and unit-testable without touching the real filesystem). Its bare fallback, `${home}/pravrudhi`, does not
+    // exist on a machine that has never run this before — and a nonexistent `cwd` handed to `launch()`'s
+    // spawn produces "spawn <binary> ENOENT", naming the binary rather than the missing directory (v0.1.0's
+    // packaged-smoke, reproduced locally only once $HOME pointed somewhere without a coincidental pravrudhi/).
+    require('node:fs').mkdirSync(workspace, {recursive: true});
 
     // Create product/auth IPC handlers with the current settings
     const productHandlers = createIpcHandlers({
