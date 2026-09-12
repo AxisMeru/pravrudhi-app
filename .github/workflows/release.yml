@@ -22,6 +22,15 @@ jobs:
 
       - name: build static export
         working-directory: frontend
+        # The sign-in page reads NEXT_PUBLIC_SUPABASE_URL at BUILD time (Next.js inlines it into the static
+        # export), so the bundle every desktop platform ships must be built with the same publishable
+        # configuration editions/product.json carries -- otherwise /signin renders "not configured" while the
+        # shell's own signin_state says configured (found by the desktop nightly against v0.1.2, 2026-09-12).
+        # These are the client-side URL and anon key, public by design; the same repo variables feed the
+        # desktop job below.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: upload frontend artifact
