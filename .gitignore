@@ -18,3 +18,7 @@ frontend/playwright-report/
 .vercel
 .env*
 !.env.example
+
+# Session reports (not ADRs): local working notes, never published. docs/decisions/ itself stays tracked -
+# ADR-0001 and future ADRs are decisions this repository publishes.
+docs/decisions/reports/
