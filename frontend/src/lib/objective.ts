@@ -1,10 +1,8 @@
-// Data helpers for the objective detail page: routing to it, and joining the runs and candidates that were
-// scored under this objective's track -- the only association the ledger records between an objective and the
-// work it produced. Kept out of lib/api.ts so this join logic does not contend with pages already built against
-// it, the same reason lib/candidates.ts keeps its own fetch path instead of extending api.ts's.
+// Data helpers for the objective detail page: routing to it, and joining the runs that were scored under this
+// objective's track -- the only association the ledger records between an objective and the work it produced.
+// Kept out of lib/api.ts so this join logic does not contend with pages already built against it.
 
 import { IS_DEMO, runs as fetchRuns, type BenchmarkProgress, type RunHandle } from "./api";
-import type { CandidateRow, CandidatesSnapshot } from "./candidates";
 import { percent } from "./num";
 
 export function objectiveHref(id: string): string {
@@ -33,7 +31,7 @@ export function withPairedStats(p: BenchmarkProgress): PairedProgress {
 }
 
 // A percentage already screened by lib/num.ts's `percent`, with an explicit sign prepended -- every delta this
-// page shows is a change against a baseline, so the sign is the point (mirrors lib/candidates.ts's signedDelta).
+// page shows is a change against a baseline, so the sign is the point.
 export function signedPercent(v: number | null | undefined, digits = 1): string {
   if (typeof v !== "number" || !Number.isFinite(v)) return "—";
   const s = percent(v, digits);
@@ -62,25 +60,24 @@ function nightOf(handle: RunHandle): number | undefined {
 }
 
 export interface ObjectiveActivity {
-  runs: RunHandle[];
-  candidates: CandidateRow[];
+  // `null` means the runs fetch itself failed -- distinct from an empty array, which means it answered and this
+  // track genuinely has no run yet (mirrors lib/home.ts's HomeData discipline: a caller must be able to tell
+  // empty from failed).
+  runs: RunHandle[] | null;
 }
 
-// Everything scored on this objective's track: a run whose night was recorded against the track, and a
-// candidate whose most recently observed night was. Neither a `Candidate` nor a `RunHandle` names an objective
-// directly -- the track, joined through the night it was scored on, is the only link the ledger supports.
+// Everything scored on this objective's track: a run whose night was recorded against the track. A `RunHandle`
+// does not name an objective directly -- the track, joined through the night it was scored on, is the only link
+// the ledger supports.
 export async function objectiveActivity(track: string): Promise<ObjectiveActivity> {
-  const [allRuns, nights, snapshot] = await Promise.all([
-    fetchRuns().catch(() => [] as RunHandle[]),
-    nightTracks().catch(() => [] as NightTrack[]),
-    Promise.resolve<CandidatesSnapshot>({ candidates: [], rows: [], obsPoints: [], tracks: [] }) /* /api/candidates and /api/observations are Studio's on a product install (r-d73f9cea) */,
-  ]);
-  const nightsOnTrack = new Set(nights.filter((n) => n.track === track).map((n) => n.night));
+  const [allRuns, nights] = await Promise.allSettled([fetchRuns(), nightTracks()]);
+  if (allRuns.status !== "fulfilled") return { runs: null };
+  const nightsList = nights.status === "fulfilled" ? nights.value : [];
+  const nightsOnTrack = new Set(nightsList.filter((n) => n.track === track).map((n) => n.night));
   return {
-    runs: allRuns.filter((r) => {
+    runs: allRuns.value.filter((r) => {
       const night = nightOf(r);
       return night !== undefined && nightsOnTrack.has(night);
     }),
-    candidates: snapshot.rows.filter((row) => row.tracks.includes(track)),
   };
 }
