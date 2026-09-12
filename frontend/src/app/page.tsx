@@ -1,20 +1,20 @@
 "use client";
 
-// The home page: four bands built only from data the engine already computes, in order of what a person
-// looking at the screen actually wants to know -- what this engine has achieved, what it is doing right now,
-// what it has done overall, and how to point it at your own work. Every number comes from loadHome()'s sources;
-// a workspace that has never run a night renders each band's honest "nothing yet" state instead of a fabricated
-// number or a spinner that never ends.
+// The home page: what this signed-in user has asked for and how far it has got. State one objective, get one
+// artifact (ADR-0049 in AxisMeru/pravrudhi) - every band here is built only from data this product engine
+// actually serves a user (api/roles.py's USER_FACING set), never from Studio's own self-improvement surfaces
+// (appetite, heartbeat, swarm, nights, requests, candidates), which 404 here and never belonged on this page.
+// See docs/decisions/reports/2026-09-12-s7-product-front-door.md for what used to be here and why it came out.
 
 import { useEffect, useState } from "react";
 import { IS_DEMO } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
-import { RecordedRun } from "@/components/RecordedRun";
 import { ResultBand } from "@/components/home/ResultBand";
 import { NowBand } from "@/components/home/NowBand";
 import { DoneBand } from "@/components/home/DoneBand";
+import { NyayaBand } from "@/components/home/NyayaBand";
 import { StartBand } from "@/components/home/StartBand";
-import { loadHome, biggestResult, runningRun, latestBeat, doneStrip, type HomeData } from "@/lib/home";
+import { loadHome, biggestResult, runningRun, doneStrip, type HomeData } from "@/lib/home";
 
 const POLL_MS = 10000;
 
@@ -38,24 +38,19 @@ export default function HomePage() {
     <div>
       <PageHeader
         title="Pravrudhi"
-        subtitle="What this engine has produced, what it's doing right now, and how to point it at your own work."
+        subtitle="What you've asked for, how far it's got, and what to point it at next."
       />
       <div className="space-y-6 p-8">
         {data ? (
           <>
             <ResultBand result={biggestResult(data.objectives)} />
-            <NowBand
-              appetite={data.appetite}
-              beat={latestBeat(data.heartbeats)}
-              running={runningRun(data.runHandles)}
-              agentsWorking={data.agentsWorking.length}
-            />
+            <NowBand running={runningRun(data.runHandles)} />
             <DoneBand strip={doneStrip(data)} />
+            <NyayaBand asks={data.nyayaAsks} />
           </>
         ) : (
           <div className="h-64 animate-pulse rounded-lg bg-[var(--color-surface)]" />
         )}
-        <RecordedRun />
         <StartBand />
       </div>
     </div>

@@ -1,66 +1,41 @@
-// Data-shaping for the home page's four bands. Every function here is pure: given what the engine (or the
-// recorded demo) actually returned, decide what a band should show, including the honest "nothing yet" case.
-// Fetching lives in the page; this file only turns raw responses into what a band renders.
+// Data-shaping for the home page's bands. Every function here is pure: given what the engine (or the recorded
+// demo) actually returned, decide what a band should show, including the honest "nothing yet" case. Fetching
+// lives in the page; this file only turns raw responses into what a band renders.
+//
+// Every source here is one this product engine actually serves a signed-in user (checked against
+// api/roles.py's USER_FACING set in AxisMeru/pravrudhi, not assumed): objectives, runs, Nyaya asks. Studio-only
+// surfaces (appetite, heartbeat, swarm, nights, requests, candidates) 404 there and never belonged on this
+// page - S7's report is the record of finding them still wired in, unused, months after the product/Studio
+// split (ADR-0049).
 
 import {
-  status as fetchStatus,
-  models as fetchModels,
   runs as fetchRuns,
   objectives as fetchObjectives,
-  type StatusResponse,
-  type NightSummary,
-  type PromotedModel,
+  nyayaAsks as fetchNyayaAsks,
   type RunHandle,
   type Objective,
   type BenchmarkProgress,
+  type NyayaAsk,
 } from "./api";
-import type { AppetiteResponse } from "./appetite";
-import type { RequestsResponse } from "./requests";
-import type { LiveAgent } from "./swarm";
-import type { HeartbeatBeat } from "./heartbeat";
 import { RUNNING_STATUSES, asStr, asNum, runHref } from "./run";
 import { objectiveHref, withPairedStats } from "./objective";
 
 export interface HomeData {
-  status: StatusResponse | null;
-  objectives: Objective[];
-  nights: NightSummary[];
-  models: PromotedModel[];
-  runHandles: RunHandle[];
-  appetite: AppetiteResponse | null;
-  requests: RequestsResponse | null;
-  agentsWorking: LiveAgent[];
-  heartbeats: HeartbeatBeat[];
+  // `null` means the fetch itself failed or the engine does not serve this yet - distinct from an empty array,
+  // which means it answered and there is genuinely nothing. A number derived from `null` is dropped, not shown
+  // as zero (heartbeat.spec.ts's own discipline before heartbeat.ts was deleted: "a caller must be able to tell
+  // empty from failed").
+  objectives: Objective[] | null;
+  runHandles: RunHandle[] | null;
+  nyayaAsks: NyayaAsk[] | null;
 }
 
-function settled<T>(r: PromiseSettledResult<T>, fallback: T): T {
-  return r.status === "fulfilled" ? r.value : fallback;
-}
-
-// Every source is fetched independently and a failed one falls back to its honest empty value rather than
-// taking the whole page down -- a workspace that has never run a night, or an engine that is briefly
-// unreachable, must still render the bands that do have data.
 export async function loadHome(): Promise<HomeData> {
-  // The engine a product install runs answers 404 on /api/appetite, /api/requests, /api/swarm/live,
-  // /api/heartbeat and /api/nights (roles.py classifies them as Studio's), so this interface does not ask;
-  // the bands that would show them render their empty state. Whether a user's OWN workspace loop should be
-  // visible to them is an engine question, filed upstream (AxisMeru/pravrudhi request r-d73f9cea).
-  const [st, objs, mdls, rns] = await Promise.allSettled([
-    fetchStatus(),
-    fetchObjectives(),
-    fetchModels(),
-    fetchRuns(),
-  ]);
+  const [objs, rns, asks] = await Promise.allSettled([fetchObjectives(), fetchRuns(), fetchNyayaAsks()]);
   return {
-    status: settled(st, null),
-    objectives: settled(objs, { objectives: [], problems: [] }).objectives,
-    nights: [],
-    models: settled(mdls, []),
-    runHandles: settled(rns, []),
-    appetite: null,
-    requests: null,
-    agentsWorking: [],
-    heartbeats: [],
+    objectives: objs.status === "fulfilled" ? objs.value.objectives : null,
+    runHandles: rns.status === "fulfilled" ? rns.value : null,
+    nyayaAsks: asks.status === "fulfilled" ? asks.value : null,
   };
 }
 
@@ -105,9 +80,9 @@ function isMeasured(p: BenchmarkProgress): p is MeasuredProgress {
   return p.state === "measured" && p.delta !== null && p.baseline !== null && p.latest !== null;
 }
 
-export function biggestResult(objs: Objective[]): BiggestResult | null {
+export function biggestResult(objs: Objective[] | null): BiggestResult | null {
   let best: { obj: Objective; p: MeasuredProgress } | null = null;
-  for (const obj of objs) {
+  for (const obj of objs ?? []) {
     for (const p of obj.progress) {
       if (!isMeasured(p)) continue;
       if (!best || betterRow(p, best.p)) best = { obj, p };
@@ -138,7 +113,9 @@ export function biggestResult(objs: Objective[]): BiggestResult | null {
 }
 
 // ---------------------------------------------------------------------------
-// Band 2: what it is doing now.
+// Band 2: what is running right now, against the user's own objectives. (Studio's appetite/heartbeat/swarm
+// concepts do not apply here - a product user's "now" is their own run, not the whole engine's self-improvement
+// loop; see S7's report.)
 
 export interface RunningRun {
   id: string;
@@ -149,8 +126,8 @@ export interface RunningRun {
   budgetGpuH: number | null;
 }
 
-export function runningRun(handles: RunHandle[]): RunningRun | null {
-  const running = handles.find((h) => RUNNING_STATUSES.has(asStr(h.status) ?? ""));
+export function runningRun(handles: RunHandle[] | null): RunningRun | null {
+  const running = (handles ?? []).find((h) => RUNNING_STATUSES.has(asStr(h.status) ?? ""));
   if (!running) return null;
   return {
     id: running.id,
@@ -162,27 +139,25 @@ export function runningRun(handles: RunHandle[]): RunningRun | null {
   };
 }
 
-export function latestBeat(beats: HeartbeatBeat[]): HeartbeatBeat | null {
-  return beats.length ? beats[beats.length - 1] : null;
-}
-
 // ---------------------------------------------------------------------------
-// Band 3: what it has done.
+// Band 3: a slim strip of real, per-user numbers - each dropped rather than shown as zero when its own source
+// could not be read, and each linking only to a page this repository actually has.
 
 export interface DoneStrip {
-  nightsRun: number;
-  gpuHoursSpent: number;
-  candidatesScored: number;
-  promoted: number;
-  openRequests: number;
+  objectivesStated: number | null;
+  runsCompleted: number | null;
+  nyayaAsksAnswered: number | null;
 }
+
+const COMPLETED_RUN_STATUSES = new Set(["finished", "failed"]);
 
 export function doneStrip(data: HomeData): DoneStrip {
   return {
-    nightsRun: data.nights.length,
-    gpuHoursSpent: data.nights.reduce((sum, n) => sum + (n.spent_gpu_h ?? 0), 0),
-    candidatesScored: data.status?.initialised ? data.status.candidates : 0,
-    promoted: data.models.length,
-    openRequests: data.requests?.open ?? 0,
+    objectivesStated: data.objectives?.length ?? null,
+    runsCompleted:
+      data.runHandles === null
+        ? null
+        : data.runHandles.filter((h) => COMPLETED_RUN_STATUSES.has(asStr(h.status) ?? "")).length,
+    nyayaAsksAnswered: data.nyayaAsks?.length ?? null,
   };
 }

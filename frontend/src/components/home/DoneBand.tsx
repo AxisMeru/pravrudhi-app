@@ -1,10 +1,11 @@
-// Band 3: a compact strip of what the engine has done so far, each figure a link to the page that explains it.
+// Band: a compact strip of what this user has done so far, each figure a link to the page that explains it.
+// A number whose own source could not be read is dropped, not shown as a fabricated zero (see lib/home.ts's
+// DoneStrip and S7's report) - real API, real page, or the tile does not appear at all.
 
 import Link from "next/link";
 import type { DoneStrip } from "@/lib/home";
-import { fixed } from "@/lib/num";
 
-function Tile({ href, value, label }: { href: string; value: string; label: string }) {
+function Tile({ href, value, label }: { href: string; value: number; label: string }) {
   return (
     <Link
       href={href}
@@ -17,17 +18,22 @@ function Tile({ href, value, label }: { href: string; value: string; label: stri
 }
 
 export function DoneBand({ strip }: { strip: DoneStrip }) {
+  const tiles: Array<{ href: string; value: number; label: string }> = [];
+  if (strip.objectivesStated !== null) tiles.push({ href: "/objectives", value: strip.objectivesStated, label: "objectives stated" });
+  if (strip.runsCompleted !== null) tiles.push({ href: "/runs", value: strip.runsCompleted, label: "runs completed" });
+  if (strip.nyayaAsksAnswered !== null) tiles.push({ href: "/nyaya", value: strip.nyayaAsksAnswered, label: "nyaya asks answered" });
+
+  if (tiles.length === 0) return null;
+
   return (
     <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)]">
       <div className="border-b border-[var(--color-border)] px-5 py-3">
-        <h2 className="text-sm font-medium text-[var(--color-text)]">What it has done</h2>
+        <h2 className="text-sm font-medium text-[var(--color-text)]">What you&apos;ve done</h2>
       </div>
       <div className="flex flex-wrap divide-x divide-[var(--color-border)]">
-        <Tile href="/runs" value={String(strip.nightsRun)} label="nights run" />
-        <Tile href="/runs" value={fixed(strip.gpuHoursSpent, 1)} label="GPU-hours spent" />
-        <Tile href="/candidates" value={String(strip.candidatesScored)} label="candidates scored" />
-        <Tile href="/models" value={String(strip.promoted)} label="promoted" />
-        <Tile href="/requests" value={String(strip.openRequests)} label="open decisions" />
+        {tiles.map((t) => (
+          <Tile key={t.href} {...t} />
+        ))}
       </div>
     </section>
   );
