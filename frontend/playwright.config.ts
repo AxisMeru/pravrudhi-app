@@ -11,5 +11,5 @@ export default defineConfig({
   retries: 0,
   reporter: "line",
   use: { baseURL: engineURL, ...devices["Desktop Chrome"] },
-  projects: [{ name: "product-chromium", testMatch: "product.spec.ts" }],
+  projects: [{ name: "product-chromium", testMatch: ["product.spec.ts", "signin-guards.spec.ts"] }],
 });
