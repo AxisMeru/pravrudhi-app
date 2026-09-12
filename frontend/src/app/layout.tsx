@@ -4,6 +4,7 @@ import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { EditionGate } from "@/components/EditionGate";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
+import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
 import "./globals.css";
 
 // GitHub Pages serves this app under /pravrudhi/app, and Next does not prefix an absolute icon URL with the
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             re-running the evidence for the claim rather than trusting the claim. */}
         <CommandPalette />
         <KeyboardShortcuts />
+        <WorkspaceBootstrap />
       </body>
     </html>
   );

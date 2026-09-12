@@ -92,8 +92,59 @@ export class ApiError extends Error {
   }
 }
 
+// Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
+// panel/messaging routes, runs.py's run routes, nyaya.py's routes) — a signed-in non-admin caller who omits it
+// gets refused with 400 ("Name a workspace..."), the gap the default-workspace decision (session-3, 2026-09-12)
+// closes. Kept as a root list rather than a per-call-site concern, so a route added to one side (a new engine
+// endpoint that takes `workspace`) only needs adding here once, on the frontend side, for every caller of
+// getJSON/postJSON/putJSON/deleteJSON/streamRun to pick it up.
+const WORKSPACE_SCOPED_ROOTS = [
+  "/api/objectives",
+  "/api/providers",
+  "/api/panel/vendors",
+  "/api/messaging/telegram",
+  "/api/runs",
+  "/api/models",
+  "/api/nyaya",
+];
+
+function isWorkspaceScoped(path: string): boolean {
+  return WORKSPACE_SCOPED_ROOTS.some((root) => path === root || path.startsWith(`${root}/`) || path.startsWith(`${root}?`));
+}
+
+// Every product account gets exactly one workspace for now (see ensureDefaultWorkspace below); a future picker
+// that lets a user choose or create among several — matching desktop's lib/product.js — only has to change
+// this constant and the two functions around it, not every call site below.
+export const DEFAULT_WORKSPACE = "default";
+
+// Only a real signed-in web session gets a workspace named for it. A local or desktop caller has no session at
+// all (identity disabled or optional, CurrentUserDep resolves to None) and root_for()'s refusal is worse for it
+// than the one this whole change fixes: `workspace` present with `user is None` is "Sign in to open a
+// workspace", not the admin-gets-engine-root path that local/desktop use has always relied on. So naming one
+// must depend on there being a session, not merely on the path shape. `typeof window === "undefined"` guards
+// the dynamic import the same way webSessionToken() above does, so this stays inert during SSR/static build.
+async function hasWebSession(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  try {
+    const { currentSession } = await import("./auth");
+    return currentSession() !== null;
+  } catch {
+    return false;
+  }
+}
+
+// The single place the workspace slug is threaded onto a request, so every one of the ~15 call sites below
+// stays a bare path. Appending it to a path the engine does not resolve by workspace is harmless (FastAPI
+// ignores an unrecognised query parameter); the guard in workspace-scoped.spec.ts is what keeps the two sides
+// honest as routes are added.
+export async function withWorkspace(path: string): Promise<string> {
+  if (!isWorkspaceScoped(path) || !(await hasWebSession())) return path;
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}workspace=${encodeURIComponent(DEFAULT_WORKSPACE)}`;
+}
+
 async function getJSON<T>(path: string): Promise<T> {
-  const res = await engineFetch(`${detectBase()}${path}`, { cache: "no-store" });
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, { cache: "no-store" });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
 }
@@ -118,7 +169,7 @@ export async function localToken(): Promise<string | null> {
 
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
   const localTok = await localToken();
-  const res = await engineFetch(`${detectBase()}${path}`, {
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -132,7 +183,7 @@ async function postJSON<T>(path: string, body: unknown): Promise<T> {
 
 async function putJSON<T>(path: string, body: unknown): Promise<T> {
   const localTok = await localToken();
-  const res = await engineFetch(`${detectBase()}${path}`, {
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, {
     method: "PUT",
     headers: {
       "content-type": "application/json",
@@ -146,7 +197,7 @@ async function putJSON<T>(path: string, body: unknown): Promise<T> {
 
 async function deleteJSON<T>(path: string): Promise<T> {
   const localTok = await localToken();
-  const res = await engineFetch(`${detectBase()}${path}`, {
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, {
     method: "DELETE",
     headers: {
       ...(localTok ? { "x-pravrudhi-token": localTok } : {}),
@@ -154,6 +205,26 @@ async function deleteJSON<T>(path: string): Promise<T> {
   });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
+}
+
+// Provisions this account's one workspace, once per session. ensure_workspace (application/workspaces.py) is
+// itself idempotent — a second call only confirms the workspace still exists — so this collapses concurrent and
+// repeat calls into the one real request rather than relying on the caller to remember not to call it twice.
+// A failure here is never swallowed: it rejects, and the next call retries: the same underlying failure would
+// also surface on the very next workspace-scoped page fetch as the ordinary "could not reach" state every page
+// already renders on ApiError, so no separate error surface is needed.
+let workspaceBootstrap: Promise<void> | null = null;
+
+export function ensureDefaultWorkspace(): Promise<void> {
+  if (!workspaceBootstrap) {
+    workspaceBootstrap = postJSON<{ slug: string; path: string }>("/api/workspaces", { slug: DEFAULT_WORKSPACE })
+      .then(() => undefined)
+      .catch((e) => {
+        workspaceBootstrap = null;
+        throw e;
+      });
+  }
+  return workspaceBootstrap;
 }
 
 export interface HealthResponse {
@@ -528,19 +599,29 @@ export function streamRun(
   onEvent: (event: RunEvent) => void,
   onError?: (error: Event) => void,
 ): () => void {
-  const source = new EventSource(`${detectBase()}/api/runs/${encodeURIComponent(runId)}/events`);
-  source.onmessage = (message) => {
-    try {
-      onEvent(JSON.parse(message.data) as RunEvent);
-    } catch {
-      /* a malformed frame is skipped rather than killing the stream */
-    }
+  // withWorkspace is async (it checks for a real session before naming one), so the source cannot open
+  // synchronously; a caller that closes before it opens must still be honoured, hence `closed`.
+  let source: EventSource | null = null;
+  let closed = false;
+  void withWorkspace(`/api/runs/${encodeURIComponent(runId)}/events`).then((path) => {
+    if (closed) return;
+    source = new EventSource(`${detectBase()}${path}`);
+    source.onmessage = (message) => {
+      try {
+        onEvent(JSON.parse(message.data) as RunEvent);
+      } catch {
+        /* a malformed frame is skipped rather than killing the stream */
+      }
+    };
+    source.onerror = (error) => {
+      onError?.(error);
+      source?.close();
+    };
+  });
+  return () => {
+    closed = true;
+    source?.close();
   };
-  source.onerror = (error) => {
-    onError?.(error);
-    source.close();
-  };
-  return () => source.close();
 }
 
 // ---------------------------------------------------------------------------

@@ -32,14 +32,6 @@ async function signIn(page: import("@playwright/test").Page) {
   await expect(page.getByText(E2E_EMAIL!, { exact: true })).toBeVisible();
 }
 
-// The engine refuses to guess a signed-in user's workspace (workspace_root.py's own docstring: "a fallback ...
-// is exactly how one user ends up reading another's work"), and the product frontend does not yet send a
-// `?workspace=` on any request — so /runs answers 400 for a real, freshly created account that has never
-// selected or been given one, a correct refusal rather than a bug in either this test or the page. Real for
-// every account until the product gains a workspace-selection step; excluded here rather than silenced, so it
-// stays visible as a known, named gap instead of quietly passing.
-const KNOWN_WORKSPACE_GAP = new Set(["/runs"]);
-
 test("signed in for real, every offered page renders — no failure paragraph, no stuck Loading…", async ({ page }) => {
   await signIn(page);
   const offered = new Set(
@@ -50,7 +42,10 @@ test("signed in for real, every offered page renders — no failure paragraph, n
   const stuckLoadingPages: string[] = [];
   const signedOutPages: string[] = [];
   for (const path of offered) {
-    if (KNOWN_WORKSPACE_GAP.has(path)) continue;
+    // /runs used to 400 here (workspace_root.py refusing to guess a workspace, and the frontend never named
+    // one) until the default-workspace decision (session-3, 2026-09-12): every account now gets a "default"
+    // workspace provisioned on sign-in, and every workspace-scoped request carries it (api.ts's withWorkspace).
+    // No longer excluded — this is the real regression check for that gap staying closed.
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     if (new URL(page.url()).pathname === "/signin") {
