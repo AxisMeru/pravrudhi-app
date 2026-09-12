@@ -5,11 +5,26 @@ import { defineConfig, devices } from "@playwright/test";
 // and nothing here reaches for a Studio surface.
 const engineURL: string = (process.env.LOCAL_ENGINE_URL ?? "http://127.0.0.1:8301").replace(/\/+$/, "");
 
+// The nightly's target: the real hosted door (deploy/gateway/README.md's Worker in front of the real engine),
+// not a local one — the one project in this repository that runs against production, signed in as a real
+// account. LIVE_URL overrides for a rehearsal against a preview deployment.
+const liveURL: string = (process.env.LIVE_URL ?? "https://pravrudhi-app.vercel.app").replace(/\/+$/, "");
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 45_000,
   retries: 0,
   reporter: "line",
   use: { baseURL: engineURL, ...devices["Desktop Chrome"] },
-  projects: [{ name: "product-chromium", testMatch: ["product.spec.ts", "signin-guards.spec.ts"] }],
+  projects: [
+    { name: "product-chromium", testMatch: ["product.spec.ts", "signin-guards.spec.ts"] },
+    {
+      name: "live-chromium",
+      testMatch: "live.spec.ts",
+      // A little more patience than the local-engine default: real network latency to a real, cold hosted
+      // engine, not a process on localhost.
+      timeout: 60_000,
+      use: { baseURL: liveURL, ...devices["Desktop Chrome"] },
+    },
+  ],
 });
