@@ -133,4 +133,28 @@ function createUpdateOffer({
   return Object.freeze({check, dismiss, accept, start, stop, subscribe, getState});
 }
 
-module.exports = {createUpdateOffer, shellIsStale, DEFAULT_INTERVAL_MS, DEFAULT_DOWNLOAD_TIMEOUT_MS};
+// Turns a background offer into an automatic ask, so a waiting release is offered without anyone finding a
+// "Check for updates" menu item first. `ask` and `apply` are the caller's own UI (a native dialog today; this
+// stays framework-agnostic so a future in-page prompt could reuse it); this function contributes only the
+// bookkeeping an offer's own state changes cannot: never asking twice about one notification while the first
+// ask is still open. The offer already refuses to re-notify for a state that has not changed (see
+// `createUpdateOffer` above) and remembers a decline across the whole run (`dismissedVersion`), so this needs
+// no memory of its own beyond "is an ask in flight right now".
+function offerPrompt(offer, {ask, apply}) {
+  let asking = false;
+  return offer.subscribe((state) => {
+    if (state.status !== 'available' || asking) return;
+    asking = true;
+    Promise.resolve()
+      .then(() => ask(state))
+      .then((accepted) => {
+        if (!accepted) { offer.dismiss(); return; }
+        offer.accept();
+        return apply(state);
+      })
+      .catch(() => {}) // the caller's ask/apply own their own error reporting; a rejection here must not crash
+      .finally(() => { asking = false; });
+  });
+}
+
+module.exports = {createUpdateOffer, offerPrompt, shellIsStale, DEFAULT_INTERVAL_MS, DEFAULT_DOWNLOAD_TIMEOUT_MS};

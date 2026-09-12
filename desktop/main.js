@@ -15,7 +15,7 @@ const edition = readEdition(process.resourcesPath);
 const editionConfig = readEditionConfig(process.resourcesPath);
 const {engineMenu, trayState} = require('./lib/menu');
 const {createSmokeReporter} = require('./lib/smoke');
-const {shellIsStale} = require('./lib/updates');
+const {shellIsStale, createUpdateOffer, offerPrompt} = require('./lib/updates');
 const {updateShell} = require('./lib/shell-updater');
 const {applyBinary, applyBundle} = require('./lib/shell-apply');
 const {latestRelease, download, io: updateIo, installedPath} = require('./lib/shell-update-io');
@@ -96,6 +96,14 @@ const windows = new Set(), processes = createProcessOwner();
 let status = {phase: 'starting', detail: 'Finding your installed engine…', checks: [], version: 'Unknown', origin: null};
 const api = createApiClient(()=>status.origin);
 const engineController = {restart:()=>serialize(start),stop:()=>serialize(stop),checkForUpdates:updates,openWorkspace:async()=>{ const error = await shell.openPath(workspace); if (error) throw new Error(error); }};
+// The same offer `desktop/lib/updates.js` already builds and tests, now actually asked: without this an update
+// was only ever offered to someone who found "Check for updates" in the menu first. `offerPrompt` reuses the
+// exact dialog `updates()` shows for a manual check, wired to the offer's own state instead of a click.
+const updateOffer = createUpdateOffer({apiClient: api});
+offerPrompt(updateOffer, {
+  ask: (state) => dialog.showMessageBox({type:'question', message:`Engine update available: ${state.version}`, detail:'Apply the release using the engine’s update safeguards?', buttons:['Cancel','Apply update'], defaultId:0, cancelId:0}).then(c => c.response === 1),
+  apply: () => applyEngineUpdate().catch(e => dialog.showMessageBox({message:'Pravrudhi', detail:e.message, buttons:['OK']})),
+});
 function persist() { writeState(stateFile, settings); }
 function publish(patch) { status = {...status, ...patch}; refreshTray(); }
 function statusScreens() { for (const w of windows) w.loadFile(statusFile).catch(() => {}); }
@@ -175,6 +183,9 @@ async function start() {
     // both of the operator's machines ran a superseded build while their engines stayed up to date.
     // Quiet by construction: the engine caches its own check, and a failure here must never disturb a start.
     if (!smokeMode) api.update().then(r => { latestTag = r?.latest?.tag ?? latestTag; }).catch(() => {});
+    // Idempotent: a restart or reconnect calls this again, and `start()` (the offer's own, not this function)
+    // only schedules its poll once per process (see createUpdateOffer). Off during smoke, like the check above.
+    if (!smokeMode) updateOffer.start();
     // And then, if this install is set to keep itself current, replace the application too. The engine has
     // always updated itself; the shell could not, so a bundle sat behind a current engine until someone
     // downloaded a new one by hand. Off unless asked for: replacing the application someone is using is not a
@@ -246,6 +257,13 @@ async function refreshShell() {
   return result;
 }
 
+// The one place that actually applies an engine update, shared by the manual "Check for updates" dialog and the
+// automatic offer above: a single path to get right rather than two copies to keep in agreement.
+async function applyEngineUpdate() {
+  const applied = JSON.parse(await command(['update','--apply','--channel','release','--json','--root',workspace], 300000));
+  if (typeof applied.reason !== 'string') throw new Error('The engine returned an update result without a reason.');
+  await dialog.showMessageBox({message:'Engine update', detail: applied.reason, buttons:['OK']});
+}
 async function updates() {
   if (updating) return;
   updating = true;
@@ -255,11 +273,7 @@ async function updates() {
     const staleShell = shellIsStale(app.getVersion(), latestTag);
     if (result.update_available === true) {
       const choice = await dialog.showMessageBox({type:'question', message:`Engine update available: ${result.latest?.tag || 'new release'}`, detail:'Apply the release using the engine’s update safeguards?', buttons:['Cancel','Apply update'], defaultId:0, cancelId:0});
-      if (choice.response === 1) {
-        const applied = JSON.parse(await command(['update','--apply','--channel','release','--json','--root',workspace], 300000));
-        if (typeof applied.reason !== 'string') throw new Error('The engine returned an update result without a reason.');
-        await dialog.showMessageBox({message:'Engine update', detail: applied.reason, buttons:['OK']});
-      }
+      if (choice.response === 1) await applyEngineUpdate();
     } else if (staleShell) {
       // Offered rather than applied: this path is somebody choosing "Check for updates", and the answer to
       // "is there a new application" should not be to replace theirs without asking.

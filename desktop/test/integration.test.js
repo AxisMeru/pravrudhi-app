@@ -223,7 +223,7 @@ async function runMainBootstrap(extraEnv) {
     './lib/edition':{...edition,readEditionConfig:()=>({edition:'product',supabaseUrl:extraEnv.SUPABASE_URL,supabaseAnonKey:extraEnv.SUPABASE_ANON_KEY})},
     './lib/core':{...core,discoverEngine:async()=> 'fixture-engine',pollHealth:async()=>({ok:true}),readState:()=>({}),writeState(){}},
     './lib/connection':{selectConnection:async()=>({attached:true,binary:'fixture-engine',origin:'http://127.0.0.1:8008'}),defaultWorkspace:()=>desktopDir},
-    './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'})})},
+    './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'}),update:async()=>({current:{version:'fixture'},latest:null,update_available:false})})},
     './lib/smoke':{createSmokeReporter:(file,opts)=>createSmokeReporter(file,{...opts,write:(_file,value)=>{report=value;}})},
     './lib/lifecycle':{...lifecycle,createProcessOwner:()=>({launch:(_binary,args)=>{
       if(args[0]==='app')spawnedApp=true;
@@ -281,7 +281,7 @@ test('main.js registers its OAuth redirect scheme, opens the browser to sign in,
     electron:{app,BrowserWindow:Window,Menu:{buildFromTemplate:items=>{if(!menuTemplate)menuTemplate=items;return items;},setApplicationMenu(){}},Tray,nativeImage:{createFromBitmap(){}},ipcMain:{handle(){}},dialog:{showErrorBox:(_title,message)=>assert.fail(message)},shell:{openExternal:async url=>{openedUrl=url;}},screen:{getAllDisplays:()=>[]}},
     './lib/core':{...core,discoverEngine:async()=> 'fixture-engine',pollHealth:async()=>({ok:true}),readState:()=>({}),writeState(){}},
     './lib/connection':{selectConnection:async()=>({attached:true,binary:'fixture-engine',origin:'http://127.0.0.1:8008'}),defaultWorkspace:()=>desktopDir},
-    './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'})})},
+    './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'}),update:async()=>({current:{version:'fixture'},latest:null,update_available:false})})},
     './lib/smoke':{createSmokeReporter:file=>createSmokeReporter(file,{write:(_file,value)=>{report=value;}})},
     './lib/lifecycle':{...lifecycle,createProcessOwner:()=>({launch:(_binary,args)=>{
       assert.equal(args[0],'doctor');const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();

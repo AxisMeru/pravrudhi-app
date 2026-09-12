@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {createUpdateOffer} = require('../lib/updates');
+const {createUpdateOffer, offerPrompt} = require('../lib/updates');
 const {restartForUpdate} = require('../lib/lifecycle');
 
 function fakeApi(responses) {
@@ -174,6 +174,68 @@ test('subscribers hear every state change with the current state', async () => {
 
 test('createUpdateOffer refuses to run without an apiClient', () => {
   assert.throws(() => createUpdateOffer({}), /apiClient/);
+});
+
+// --- offerPrompt: turning a background offer into an automatic ask, without anyone opening a menu -------------
+
+test('offerPrompt asks once when an update becomes available, and applies it once accepted', async () => {
+  const api = fakeApi([AVAILABLE('v2.0.0')]);
+  const offer = createUpdateOffer({apiClient: api});
+  let asked = 0;
+  const applied = [];
+  offerPrompt(offer, {ask: async () => { asked++; return true; }, apply: async (state) => { applied.push(state.version); }});
+  await offer.check();
+  await new Promise(setImmediate); // let the ask() -> apply() chain the subscriber kicked off settle
+  assert.equal(asked, 1);
+  assert.deepEqual(applied, ['v2.0.0']);
+});
+
+test('offerPrompt dismisses the offer and never applies when the answer is no', async () => {
+  const api = fakeApi([AVAILABLE('v2.0.0')]);
+  const offer = createUpdateOffer({apiClient: api});
+  let applied = false;
+  offerPrompt(offer, {ask: async () => false, apply: async () => { applied = true; }});
+  await offer.check();
+  await new Promise(setImmediate);
+  assert.equal(applied, false);
+  assert.deepEqual(offer.getState(), {status: 'none'});
+});
+
+test('offerPrompt is asked again for a genuinely new release, but not for one already declined', async () => {
+  const api = fakeApi([AVAILABLE('v2.0.0'), AVAILABLE('v2.0.0'), AVAILABLE('v2.1.0')]);
+  const offer = createUpdateOffer({apiClient: api});
+  const askedVersions = [];
+  offerPrompt(offer, {ask: async (state) => { askedVersions.push(state.version); return false; }, apply: async () => {}});
+  await offer.check(); await new Promise(setImmediate);
+  await offer.check(); await new Promise(setImmediate); // still v2.0.0 -- the offer itself holds the decline, no re-ask
+  await offer.check(); await new Promise(setImmediate); // v2.1.0 -- a genuinely new release
+  assert.deepEqual(askedVersions, ['v2.0.0', 'v2.1.0']);
+});
+
+test('offerPrompt never opens a second ask for a notification still being answered', async () => {
+  // Exercised against a minimal stand-in for the offer rather than the real poller: the real offer already
+  // never re-notifies for an unchanged state (see the dismissal test above), so this proves the wiring's own
+  // guard holds even if something upstream ever did emit the same state twice.
+  const listeners = new Set();
+  const stub = {
+    subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+    accept: () => {}, dismiss: () => {},
+  };
+  let askCount = 0, resolveAsk;
+  offerPrompt(stub, {ask: () => { askCount++; return new Promise((r) => { resolveAsk = r; }); }, apply: async () => {}});
+  for (const fn of listeners) fn({status: 'available', version: 'v2.0.0'});
+  for (const fn of listeners) fn({status: 'available', version: 'v2.0.0'});
+  await new Promise(setImmediate); // `ask()` runs on the microtask the subscriber schedules, not synchronously
+  assert.equal(askCount, 1);
+  resolveAsk(false);
+});
+
+test('offerPrompt swallows an apply failure rather than crashing the process', async () => {
+  const api = fakeApi([AVAILABLE('v2.0.0')]);
+  const offer = createUpdateOffer({apiClient: api});
+  offerPrompt(offer, {ask: async () => true, apply: async () => { throw new Error('command failed'); }});
+  await offer.check();
+  await new Promise(setImmediate); // must not produce an unhandled rejection
 });
 
 test('restartForUpdate saves state, waits for a clean engine shutdown, then relaunches and exits in order', async () => {
