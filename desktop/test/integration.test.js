@@ -107,13 +107,20 @@ test('smoke records observed values and rejects failures rather than manufacturi
   let saved;const make=()=>createSmokeReporter('report.json',{write:(_file,value)=>{saved=value;}});
   const reporter=make(); reporter.launched();reporter.engine('http://127.0.0.1:8008');
   assert.equal(await reporter.finish({getTitle:()=> 'Real engine title',health:async()=>({ok:true})}),0);
-  assert.deepEqual(saved,{launched:true,engine_found:true,engine_url:'http://127.0.0.1:8008',page_title:'Real engine title',health_ok:true,edition:null,errors:[]});
+  assert.deepEqual(saved,{launched:true,engine_found:true,engine_url:'http://127.0.0.1:8008',page_title:'Real engine title',health_ok:true,edition:null,signin_state:'not-applicable',errors:[]});
   // The edition the app actually ran as, carried through so the packaged smoke can refuse a Studio build that
   // came back as the product. Recorded, never inferred: an absent edition stays null rather than becoming one.
   const stamped=createSmokeReporter('report.json',{write:(_f,v)=>{saved=v;},edition:'studio'});
   stamped.launched();stamped.engine('http://127.0.0.1:8008');
   assert.equal(await stamped.finish({getTitle:()=>'Studio',health:async()=>({ok:true})}),0);
   assert.equal(saved.edition,'studio');
+  // Whether the packaged build could ever show a sign-in surface at all: the product reports whether it
+  // received real Supabase configuration, and a build with nothing to say about it (Studio, which has no
+  // account surface) is 'not-applicable' rather than a false 'unconfigured'.
+  const signedIn=createSmokeReporter('report.json',{write:(_f,v)=>{saved=v;},signinState:'configured'});
+  signedIn.launched();signedIn.engine('http://127.0.0.1:8008');
+  assert.equal(await signedIn.finish({getTitle:()=>'Product',health:async()=>({ok:true})}),0);
+  assert.equal(saved.signin_state,'configured');
   for(const health of [async()=>({ok:false}),async()=>{throw Error('refused');}]) {
     const r=make();r.launched();r.engine('http://127.0.0.1:8008');assert.equal(await r.finish({getTitle:()=> 'Page',health}),1);assert.ok(saved.errors.length);assert.equal(saved.health_ok,false);
   }
@@ -189,7 +196,10 @@ test('default workspace respects the user and detects a source installation with
     path.resolve('home/pravrudhi-release'),
   );
 });
-test('main bootstrap attaches, runs doctor, loads the engine and reports before tearing down',async()=>{
+// Shared by the two signin_state variants below: everything about a successful bootstrap is identical, only
+// the environment main.js reads its Supabase configuration from (via lib/edition.js::readEditionConfig)
+// differs, which is exactly the one thing signin_state exists to report.
+async function runMainBootstrap(extraEnv) {
   const fs=require('node:fs');const vm=require('node:vm');const path=require('node:path');
   const desktopDir=path.dirname(require.resolve('../main'));
   const app=new EventEmitter();let report,windowOptions,exited,spawnedApp=false,shutdown=false;
@@ -204,13 +214,17 @@ test('main bootstrap attaches, runs doctor, loads the engine and reports before 
     async loadURL(url){assert.equal(url,'http://127.0.0.1:8008');this.title='Engine fixture';this.webContents.emit('did-finish-load');}
   }
   class Tray { on(){} setToolTip(){} setContextMenu(){} }
-  const core=require('../lib/core');const lifecycle=require('../lib/lifecycle');
+  const core=require('../lib/core');const lifecycle=require('../lib/lifecycle');const edition=require('../lib/edition');
   const modules={
     electron:{app,BrowserWindow:Window,Menu:{buildFromTemplate:items=>items,setApplicationMenu(){}},Tray,nativeImage:{createFromBitmap(){}},ipcMain:{handle(){}},dialog:{showErrorBox:(_title,message)=>assert.fail(message)},shell:{},screen:{getAllDisplays:()=>[]}},
+    // Isolates readEditionConfig from this process's real environment and from whatever edition.json may or
+    // may not exist on disk, so the two variants below are controlled entirely by the `extraEnv` argument
+    // rather than by accident of the host running the test.
+    './lib/edition':{...edition,readEditionConfig:()=>({edition:'product',supabaseUrl:extraEnv.SUPABASE_URL,supabaseAnonKey:extraEnv.SUPABASE_ANON_KEY})},
     './lib/core':{...core,discoverEngine:async()=> 'fixture-engine',pollHealth:async()=>({ok:true}),readState:()=>({}),writeState(){}},
     './lib/connection':{selectConnection:async()=>({attached:true,binary:'fixture-engine',origin:'http://127.0.0.1:8008'}),defaultWorkspace:()=>desktopDir},
     './lib/api':{createApiClient:()=>({health:async()=>({ok:true,version:'fixture'})})},
-    './lib/smoke':{createSmokeReporter:file=>createSmokeReporter(file,{write:(_file,value)=>{report=value;}})},
+    './lib/smoke':{createSmokeReporter:(file,opts)=>createSmokeReporter(file,{...opts,write:(_file,value)=>{report=value;}})},
     './lib/lifecycle':{...lifecycle,createProcessOwner:()=>({launch:(_binary,args)=>{
       if(args[0]==='app')spawnedApp=true;
       assert.equal(args[0],'doctor');const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();
@@ -219,12 +233,23 @@ test('main bootstrap attaches, runs doctor, loads the engine and reports before 
   };
   vm.runInNewContext(fs.readFileSync(require.resolve('../main'),'utf8'),{
     require:name=>modules[name] || (name.startsWith('./') ? require(path.join(desktopDir,name)) : require(name)),
-    __dirname:desktopDir,process:{env:{PRAVRUDHI_DESKTOP_SMOKE:'1'},on(){}},console,Buffer,AbortController,AbortSignal,URL,setTimeout,clearTimeout,
+    __dirname:desktopDir,process:{env:{PRAVRUDHI_DESKTOP_SMOKE:'1',...extraEnv},on(){}},console,Buffer,AbortController,AbortSignal,URL,setTimeout,clearTimeout,
     fetch:async()=>({ok:true,headers:{get:()=> 'text/html'}})
   });
   assert.equal(await exit,0);assert.equal(shutdown,true);assert.equal(spawnedApp,false);
   assert.equal(windowOptions.webPreferences.contextIsolation,true);assert.equal(windowOptions.webPreferences.nodeIntegration,false);assert.equal(windowOptions.webPreferences.sandbox,true);
   assert.equal(report.page_title,'Engine fixture');assert.equal(report.launched,true);assert.equal(report.health_ok,true);assert.deepEqual(report.errors,[]);
+  return report;
+}
+test('main bootstrap attaches, runs doctor, loads the engine and reports before tearing down',async()=>{
+  const report=await runMainBootstrap({});
+  // No SUPABASE_URL/SUPABASE_ANON_KEY and no edition.json: today's actual default for every build that has
+  // not had real Supabase configuration wired into it, which packaged-smoke must be able to see and fail on.
+  assert.equal(report.signin_state,'unconfigured');
+});
+test('main bootstrap reports signin_state as configured once real Supabase configuration reaches it',async()=>{
+  const report=await runMainBootstrap({SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'test-anon-key'});
+  assert.equal(report.signin_state,'configured');
 });
 
 test('main.js registers its OAuth redirect scheme, opens the browser to sign in, and delivers both redirect paths to auth.completeBrowserSignIn',async()=>{

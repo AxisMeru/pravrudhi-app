@@ -54,6 +54,22 @@ jobs:
           name: frontend-out
           path: frontend/out
 
+      # editions/product.json ships committed with no Supabase fields (docs/decisions/reports/
+      # 2026-09-12-w3-desktop-signin-coverage.md §2: nothing credential-shaped is ever committed), so a build
+      # that runs without these repository variables set keeps today's safe default — "not configured" — rather
+      # than failing. SUPABASE_ANON_KEY is the client-side anon key, meant to be public and safe in a shipped
+      # bundle; it is a repository *variable*, not a secret, for that reason. Passed through env rather than
+      # interpolated into the shell script, so neither value ever passes through shell parsing.
+      - name: write real Supabase configuration into edition.json, when this repository has any configured
+        if: ${{ vars.SUPABASE_URL != '' && vars.SUPABASE_ANON_KEY != '' }}
+        working-directory: desktop
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          node -e "require('node:fs').writeFileSync('editions/product.json', JSON.stringify({edition:'product',supabaseUrl:process.env.SUPABASE_URL,supabaseAnonKey:process.env.SUPABASE_ANON_KEY}))"
+
       - name: build desktop for ${{ matrix.platform }}
         working-directory: desktop
         run: |

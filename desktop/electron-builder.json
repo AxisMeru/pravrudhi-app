@@ -41,6 +41,10 @@
     {
       "from": "../frontend/out",
       "to": "frontend"
+    },
+    {
+      "from": "editions/product.json",
+      "to": "edition.json"
     }
   ],
   "artifactName": "pravrudhi-${version}-${os}-${arch}.${ext}"

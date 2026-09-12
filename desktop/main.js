@@ -33,8 +33,7 @@ if (offscreen) app.disableHardwareAcceleration();
 // again below, because a packaged smoke must write outside the read-only app.asar.
 app.setPath('userData', path.join(app.getPath('appData'), userDataName(edition)));
 if (smokeMode) app.setPath('userData', path.join(smokeDir, '.smoke/user-data'));
-const smoke = smokeMode ? createSmokeReporter(path.join(smokeDir, '.smoke/report.json'), {edition}) : null;
-let smokeExitCode = 1, smokeFinished = false;
+let smoke = null, smokeExitCode = 1, smokeFinished = false;
 async function finishSmoke(error) {
   if (!smoke || smokeFinished) return;
   smokeFinished = true;
@@ -77,6 +76,12 @@ if (typeof app.setAsDefaultProtocolClient === 'function') {
 function persistAuth(value) { if (!settings) return; if (value) settings.auth = value; else delete settings.auth; persist(); }
 const auth = createAuth({url: editionConfig.supabaseUrl, key: editionConfig.supabaseAnonKey,
   redirectUri: `${oauthScheme}://${OAUTH_REDIRECT_PATH}`, onSession: persistAuth});
+// Whether this build ever actually received real Supabase configuration — the one thing between the auth
+// module's own thorough test coverage and a packaged app that can reach it (readEditionConfig above). Read
+// from auth.status() rather than editionConfig directly, so this always agrees with what a sign-in attempt
+// would itself see.
+if (smokeMode) smoke = createSmokeReporter(path.join(smokeDir, '.smoke/report.json'),
+  {edition, signinState: auth.status().configured ? 'configured' : 'unconfigured'});
 async function signInWithBrowser() { const {url} = await auth.beginBrowserSignIn(); await shell.openExternal(url); }
 // The Supabase OAuth redirect the system browser hands back: `open-url` is how macOS delivers it to a running
 // app; on Windows and Linux a launch through the custom protocol is redirected by the OS into this instance's

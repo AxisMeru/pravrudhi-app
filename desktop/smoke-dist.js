@@ -54,6 +54,13 @@ async function main() {
         if (report.edition !== wanted) {
           throw new Error(`Built the ${wanted} edition but the packaged app ran as ${report.edition ?? 'nothing'}.`);
         }
+        // A packaged product build with nowhere to say it received real Supabase configuration is exactly
+        // today's silent gap (docs/decisions/reports/2026-09-12-w3-desktop-signin-coverage.md §2): the
+        // installer builds, launches, finds an engine — and only ever shows "not configured". Refusing this
+        // here turns that into a build failure instead of something a real user discovers first.
+        if (wanted === 'product' && report.signin_state !== 'configured') {
+          throw new Error(`Product build's signin_state was '${report.signin_state}', not 'configured' — desktop/edition.json (or SUPABASE_URL/SUPABASE_ANON_KEY) did not reach the packaged app.`);
+        }
         console.log(`Packaged ${wanted} app loaded ${report.engine_url}: ${report.page_title}`);
         process.exitCode = 0;
       } catch (error) {
