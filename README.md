@@ -102,6 +102,32 @@ Since 2026-09-11 the engine behind the web door is a hosted one: `NEXT_PUBLIC_AP
 container wherever it currently runs (the gateway recipe is `deploy/gateway/` in `AxisMeru/pravrudhi`). The
 engine runs with identity required: every `/api` call but the health check carries the signed-in user's token.
 
+## The nightlies
+
+Two scheduled checks run on the operator's own box (`pravrudhi-e2e-nightly.timer`, `deploy/e2e-nightly/` in
+`AxisMeru/pravrudhi`), signed in as a real, dedicated, non-admin Supabase account (`gateway-probe@axismeru.com`):
+
+- **The web nightly** (`frontend/e2e/live.spec.ts`, project `live-chromium`) signs in against the real hosted
+  door (`https://pravrudhi-app.vercel.app`) and clicks through every offered page, plus one written-and-removed
+  memory note. This is what proves the hosted engine and the deployed frontend.
+- **The desktop nightly** (`desktop/nightly-dist.js`) fetches the latest *released* Linux AppImage, verifies it
+  against the release's own `SHA256SUMS`, installs the engine version that release was pinned to, and drives a
+  real sign-in / default-workspace / one-run scenario against it via `desktop/lib/nightly-scenario.js`, executed
+  inside the packaged shell's own loaded page (the same technique `PRAVRUDHI_DESKTOP_SHOT` already used for a
+  screenshot, extended into a full scripted scenario). Its report lands beside the web nightly's, under
+  `~/.local/share/pravrudhi-hosted/e2e/`.
+
+**The desktop nightly's exact claim, because it is easy to overstate: real account, real auth, released shell,
+fresh local root — not the hosted engine's data.** The desktop shell cannot reach the hosted product engine at
+all: `desktop/lib/connection.js`'s `loopbackOrigin` refuses any origin that is not `127.0.0.1`/`localhost`, by
+design (the product is a shell over the user's own hardware, ADR-0051 and the operator's bring-your-own-key
+rule — not a client for a remote engine). So the desktop nightly starts a *local* engine, with
+`PRAVRUDHI_AUTH=required` and the real Supabase project's URL (never a service key — only `SUPABASE_URL`;
+`identity.py`'s token verification needs nothing else), and gateway-probe signs into *that* — a real account,
+validated by real Supabase auth, running a released shell — but the workspace and run it creates live in a
+throwaway local root, never the hosted engine's own data. The web nightly above is what proves the hosted
+engine; the desktop nightly proves the shell.
+
 ## Testing
 
 Unit tests and the type-check run with `npm test` and `npx tsc --noEmit` in `frontend/`. The end-to-end suite

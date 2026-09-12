@@ -136,6 +136,34 @@ test('smoke writes parseable JSON to disk and preserves partial observations on 
   const report=JSON.parse(await fs.readFile(file,'utf8'));
   assert.equal(report.launched,true);assert.equal(report.engine_found,true);assert.equal(report.health_ok,false);assert.deepEqual(report.errors,['frontend missing']);
 });
+test('smoke.nightly merges observed fields without changing the shape of a report that never calls it',async()=>{
+  let saved;const reporter=createSmokeReporter('report.json',{write:(_f,v)=>{saved=v;}});
+  reporter.launched();reporter.engine('http://127.0.0.1:8008');
+  assert.equal(await reporter.finish({getTitle:()=>'Pravrudhi',health:async()=>({ok:true})}),0);
+  // No nightly() call above: the base shape must stay exactly what packaged-smoke's own test already pins.
+  assert.deepEqual(Object.keys(saved).sort(),['edition','engine_found','engine_url','errors','health_ok','launched','page_title','signin_state'].sort());
+  let saved2;const nightly=createSmokeReporter('report.json',{write:(_f,v)=>{saved2=v;}});
+  nightly.launched();nightly.engine('http://127.0.0.1:8008');
+  nightly.nightly({signed_in:true,workspace_bootstrapped:true,run_id:'r1',run_events:3,run_status:'failed'});
+  assert.equal(await nightly.finish({getTitle:()=>'Pravrudhi',health:async()=>({ok:true})}),0);
+  assert.equal(saved2.signed_in,true);assert.equal(saved2.workspace_bootstrapped,true);
+  assert.equal(saved2.run_id,'r1');assert.equal(saved2.run_events,3);assert.equal(saved2.run_status,'failed');
+});
+test('the nightly scenario script embeds credentials as data, never as breakout syntax',async()=>{
+  const vm=require('node:vm');
+  const {nightlyScenarioScript}=require('../lib/nightly-scenario');
+  // A credential containing a backtick or ${...} must not be able to inject code into the template literal —
+  // proved by actually building the script with hostile values and parsing the result as JavaScript, not by
+  // eyeballing the escaping.
+  const hostileEmail='`); throw new Error("pwned"); (`';
+  const hostilePassword='${globalThis.pwned=true}';
+  const script=nightlyScenarioScript({email:hostileEmail,password:hostilePassword,workspaceSlug:'default'});
+  assert.doesNotThrow(()=>new vm.Script(script),'the generated script must remain syntactically valid JavaScript');
+  // The exact JSON-quoted form appearing verbatim is the proof: JSON.stringify already escaped anything that
+  // could break out of the template literal, so its presence means the value landed as inert string data.
+  assert.ok(script.includes(JSON.stringify(hostileEmail)));
+  assert.ok(script.includes(JSON.stringify(hostilePassword)));
+});
 test('sandbox preload provides an enumerated invoke-only API with no renderer-controlled arguments',async()=>{
   const fs=require('node:fs');const vm=require('node:vm');let exposed;const channels=[];
   vm.runInNewContext(fs.readFileSync(require.resolve('../preload'),'utf8'),{require:name=>{
@@ -163,6 +191,26 @@ test('first-run renderer displays API data and named failed doctor reasons with 
 
   const check=elements.get('checks').children[0];assert.match(check.children[0].textContent,/docker/);assert.match(check.children[1].textContent,/daemon is not running/);
   assert.equal(check.children[2].children[0].textContent,'systemctl start docker');assert.equal(body.dataset.apiReady,'true');
+});
+test('an update check that fails before sign-in is shown, not treated as a fault — only health gates readiness',async()=>{
+  // A local engine started with PRAVRUDHI_AUTH=required 401s /api/update before anyone has signed in (the
+  // desktop main process's own API client carries no user token — only the Next.js renderer does, once a real
+  // session exists there). That used to join engine:update-state's failure into apiError, which main.js's own
+  // wait-loop treats as fatal — the packaged shell died on the diagnostics screen before a real account ever
+  // reached /signin. Health is the actual "is the engine reachable" signal; update is supplementary status.
+  const fs=require('node:fs');const vm=require('node:vm');const elements=new Map();
+  const element=()=>({textContent:'',dataset:{},children:[],addEventListener(){},replaceChildren(){this.children=[];},append(...children){this.children.push(...children);}});
+  const body=element();
+  const document={body,getElementById:id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element};
+  const desktop={engineStatus:async()=>({phase:'running',origin:'http://127.0.0.1:8008',binary:'engine',workspace:'workspace',checks:[]}),
+    health:async()=>({ok:true,version:'test-installed'}),
+    updateState:async()=>{throw Error('/api/update: request failed. Check the connection and sign-in.');}};
+  vm.runInNewContext(fs.readFileSync(require.resolve('../renderer/app'),'utf8'),{document,window:{desktop},setTimeout:()=>{}});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.match(elements.get('health-value').textContent,/Healthy/);
+  assert.equal(elements.get('update-value').textContent,'update: unavailable before sign-in');
+  assert.equal(body.dataset.apiReady,'true');
+  assert.equal(body.dataset.apiError,'','an update-check failure alone must not block readiness');
 });
 test('process ownership spawns detached without a shell and tears down only its own groups once',async()=>{
   const {createProcessOwner}=require('../lib/lifecycle');const signalled=[];let options;

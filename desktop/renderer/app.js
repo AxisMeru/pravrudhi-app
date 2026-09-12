@@ -61,14 +61,21 @@ async function refresh() {
 async function refreshActivity(origin) {
   apiBusy = true;
   const errors = [];
+  // health is the actual "is the engine reachable" signal, and the only one whose failure blocks readiness.
+  // update is supplementary status: /api/update needs identity, and the desktop main process's own API client
+  // carries no user token (only the Next.js renderer does, once a real session exists there) — a local engine
+  // started with PRAVRUDHI_AUTH=required 401s it on every load before anyone has signed in, which is not a
+  // fault in the engine or the shell, just a status this screen cannot know yet.
   const fields = [
-    ['health',()=>window.desktop.health(),value=>value.ok === true ? `Healthy · ${value.version || 'version not reported'}` : 'Engine reports unhealthy'],
-    ['update',()=>window.desktop.updateState(),value=>`${value.current?.version || value.current?.tag || 'Version not reported'} · ${value.update_available ? `Update available: ${value.latest?.tag || 'new release'}` : value.latest ? 'Up to date' : 'Latest release unavailable'}`],
-
+    ['health',()=>window.desktop.health(),value=>value.ok === true ? `Healthy · ${value.version || 'version not reported'}` : 'Engine reports unhealthy',true],
+    ['update',()=>window.desktop.updateState(),value=>`${value.current?.version || value.current?.tag || 'Version not reported'} · ${value.update_available ? `Update available: ${value.latest?.tag || 'new release'}` : value.latest ? 'Up to date' : 'Latest release unavailable'}`,false],
   ];
-  await Promise.allSettled(fields.map(async ([id,read,format])=> {
+  await Promise.allSettled(fields.map(async ([id,read,format,fatal])=> {
     try { $(id+'-value').textContent = format(await read()); }
-    catch (error) { $(id+'-value').textContent = error.message; errors.push(error.message); }
+    catch (error) {
+      if (fatal) { $(id+'-value').textContent = error.message; errors.push(error.message); }
+      else { $(id+'-value').textContent = 'update: unavailable before sign-in'; }
+    }
   }));
   apiOrigin = origin; lastActivity = Date.now(); apiBusy = false;
   document.body.dataset.apiError = errors.join('; ');

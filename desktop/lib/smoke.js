@@ -13,6 +13,10 @@ function createSmokeReporter(file, {write = writeState, edition = null, signinSt
   return {
     launched: () => { report.launched = true; },
     engine: origin => { report.engine_found = true; report.engine_url = origin; },
+    // The nightly's own fields (signed_in, workspace, run_id, run_events, run_status), added only when the
+    // driven scenario actually runs — an ordinary packaged-smoke run that never calls this keeps the exact
+    // report shape it always had, so it stays a plain merge rather than reserved keys on every report.
+    nightly: patch => { Object.assign(report, patch); },
     async finish({getTitle,health}) {
       try {
         report.page_title = await getTitle();

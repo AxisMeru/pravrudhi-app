@@ -15,6 +15,7 @@ const edition = readEdition(process.resourcesPath);
 const editionConfig = readEditionConfig(process.resourcesPath);
 const {engineMenu, trayState} = require('./lib/menu');
 const {createSmokeReporter} = require('./lib/smoke');
+const {nightlyScenarioScript} = require('./lib/nightly-scenario');
 const {shellIsStale, createUpdateOffer, offerPrompt} = require('./lib/updates');
 const {updateShell} = require('./lib/shell-updater');
 const {applyBinary, applyBundle} = require('./lib/shell-apply');
@@ -24,6 +25,10 @@ const {latestRelease, download, io: updateIo, installedPath} = require('./lib/sh
 // current engine and nothing said so until now.
 let latestTag = null;
 const smokeMode = process.env.PRAVRUDHI_DESKTOP_SMOKE === '1';
+// The nightly's own scenario, on top of an ordinary smoke run: sign in as a real account, confirm the default
+// workspace bootstrapped (frontend/src/lib/api.ts's ensureDefaultWorkspace), start one run and see it reach a
+// first event. Meaningless without smokeMode, since it needs the same report file and writable userData.
+const nightlyMode = smokeMode && process.env.PRAVRUDHI_DESKTOP_NIGHTLY === '1';
 // A packaged app's __dirname resolves inside the read-only app.asar, so a packaged
 // smoke run redirects its report and userData to a writable directory outside it.
 const smokeDir = process.env.PRAVRUDHI_DESKTOP_SMOKE_DIR || __dirname;
@@ -210,6 +215,23 @@ async function start() {
         check();
       })`);
       await window.loadURL(origin);
+      if (nightlyMode) {
+        const email = process.env.E2E_EMAIL, password = process.env.E2E_PASSWORD;
+        if (!email || !password) throw new Error('E2E_EMAIL and E2E_PASSWORD must both be set for the nightly scenario.');
+        // A second loadURL immediately after the first occasionally lost a race under the packaged AppImage's
+        // slower, extract-then-run startup (ERR_FAILED, never reproduced against an unpacked dev build, which
+        // starts fast enough not to hit it) — no webRequest filter or origin allowlist exists anywhere in this
+        // shell (grepped for one; there is only linkPolicy's same-origin check, which this satisfies), so a
+        // transient race rather than a policy refusal is what this retries past.
+        let lastError = null;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try { await window.loadURL(new URL('/signin', origin).href); lastError = null; break; }
+          catch (e) { lastError = e; await new Promise(r => setTimeout(r, 500)); }
+        }
+        if (lastError) throw lastError;
+        const outcome = await window.webContents.executeJavaScript(nightlyScenarioScript({email, password, workspaceSlug: 'default'}));
+        smoke.nightly(outcome);
+      }
       await finishSmoke();
     }
   } catch (e) {
