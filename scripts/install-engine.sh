@@ -63,12 +63,23 @@ if [ ! -d "$VENV_DIR" ]; then
   fi
 fi
 
+# A Windows venv (uv's or the stdlib's) lays out its binaries in Scripts/ with a .exe suffix; a POSIX one uses
+# bin/ with none. Detected from what the venv actually created rather than assumed from $OSTYPE, since that is
+# what determines where the binaries this script is about to call actually landed.
+if [ -d "$VENV_DIR/Scripts" ]; then
+  BIN_DIR="$VENV_DIR/Scripts"
+  EXE=".exe"
+else
+  BIN_DIR="$VENV_DIR/bin"
+  EXE=""
+fi
+
 # Install both wheels into the venv. A venv uv makes has no pip, so the installer is uv itself when uv is
 # present and the venv's own pip otherwise; either way the wheels land in $VENV_DIR, and nothing is activated.
 if command -v uv &> /dev/null; then
-  install() { uv pip install --python "$VENV_DIR/bin/python" "$@"; }
+  install() { uv pip install --python "$BIN_DIR/python$EXE" "$@"; }
 else
-  install() { "$VENV_DIR/bin/python" -m pip install --quiet "$@"; }
+  install() { "$BIN_DIR/python$EXE" -m pip install --quiet "$@"; }
 fi
 
 echo "Installing kernel wheel"
@@ -79,4 +90,4 @@ install "$ENGINE_WHEEL"
 
 echo "Installation complete!"
 echo "Engine is installed at: $VENV_DIR"
-echo "Run it as: $VENV_DIR/bin/pravrudhi"
+echo "Run it as: $BIN_DIR/pravrudhi$EXE"

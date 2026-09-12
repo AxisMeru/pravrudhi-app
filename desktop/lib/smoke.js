@@ -17,6 +17,12 @@ function createSmokeReporter(file, {write = writeState, edition = null, signinSt
     // driven scenario actually runs — an ordinary packaged-smoke run that never calls this keeps the exact
     // report shape it always had, so it stays a plain merge rather than reserved keys on every report.
     nightly: patch => { Object.assign(report, patch); },
+    // What /signin actually rendered, checked whenever signin_state is 'configured' — a genuinely separate
+    // claim from signin_state itself (that's the desktop main process's own auth module; this is the DOM the
+    // window shows), and the two disagreed once already: a release shipped with signin_state 'configured' but
+    // a frontend bundle built with no Supabase env vars at all, so /signin always showed "not configured"
+    // regardless. Added only when the check actually runs, same reasoning as `nightly` above.
+    signinForm: result => { report.signin_form = result; },
     async finish({getTitle,health}) {
       try {
         report.page_title = await getTitle();

@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {createSmokeReporter} = require('./lib/smoke');
 const {terminateGroup} = require('./lib/lifecycle');
+const {assertSmokeReport} = require('./lib/smoke-assert');
 // Which edition to smoke: `npm run smoke:dist -- studio`, defaulting to the product. The builds write to
 // dist/<edition>/ so both can exist at once, which is the point of having two of them.
 const wanted = (process.argv[2] || 'product').trim().toLowerCase();
@@ -45,22 +46,7 @@ async function main() {
       clearTimeout(timer); process.removeListener('SIGINT', forward); process.removeListener('SIGTERM', forward);
       try {
         const report = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
-        if (timedOut || code !== 0 || report.launched !== true || report.engine_found !== true || report.health_ok !== true || !report.engine_url || !report.page_title || !Array.isArray(report.errors) || report.errors.length) {
-          throw new Error(timedOut ? 'Launch timed out.' : report.errors?.join('; ') || `Packaged app exited ${signal || code} without a successful report.`);
-        }
-        // The edition is what makes these two builds different installs rather than two copies of one. It has
-        // been got wrong twice by build configuration that looked correct, so the packaged app is made to say
-        // which it is and this refuses a build that came back as the other one.
-        if (report.edition !== wanted) {
-          throw new Error(`Built the ${wanted} edition but the packaged app ran as ${report.edition ?? 'nothing'}.`);
-        }
-        // A packaged product build with nowhere to say it received real Supabase configuration is exactly
-        // today's silent gap (docs/decisions/reports/2026-09-12-w3-desktop-signin-coverage.md §2): the
-        // installer builds, launches, finds an engine — and only ever shows "not configured". Refusing this
-        // here turns that into a build failure instead of something a real user discovers first.
-        if (wanted === 'product' && report.signin_state !== 'configured') {
-          throw new Error(`Product build's signin_state was '${report.signin_state}', not 'configured' — desktop/edition.json (or SUPABASE_URL/SUPABASE_ANON_KEY) did not reach the packaged app.`);
-        }
+        assertSmokeReport(report, {wanted, timedOut, code, signal});
         console.log(`Packaged ${wanted} app loaded ${report.engine_url}: ${report.page_title}`);
         process.exitCode = 0;
       } catch (error) {

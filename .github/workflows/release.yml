@@ -141,6 +141,46 @@ jobs:
           npm run smoke:dist -- product
           cat .smoke-dist/.smoke/report.json
 
+  # The Windows twin of packaged-smoke, at the same shallow bar (launch, engine found, health, edition,
+  # signin_state, and now the signin-form DOM check both platforms share — lib/smoke-assert.js). Uses the
+  # portable `zip` build (desktop/smoke-dist-windows.js), not the `nsis` installer, for the same reason the
+  # Linux job extracts rather than installs the AppImage: no interactive install step this runner can perform.
+  # Not yet a dependency of `release` below — this is the first run of this job, built without a Windows
+  # machine to verify it against locally, so it is left non-blocking until it has proven green for real.
+  packaged-smoke-windows:
+    needs: [desktop]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: astral-sh/setup-uv@v6
+        with: { python-version: "3.13" }
+      - name: install the pinned engine
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRAVRUDHI_APP_HOME="$GITHUB_WORKSPACE/.pravrudhi-app" bash scripts/install-engine.sh
+          # A Windows venv's binaries land in Scripts/ (uv's or the stdlib's), not bin/ — install-engine.sh
+          # detects this itself; both are put on PATH here so this step does not have to guess which one won.
+          export PATH="$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/Scripts:$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin:$PATH"
+          pravrudhi --version
+      - uses: actions/download-artifact@v4
+        with:
+          name: installers-win
+          # smoke-dist-windows.js reads dist/<edition>/ and this repository builds one edition, the product.
+          path: desktop/dist/product
+      - name: smoke the packaged zip against the pinned engine
+        shell: bash
+        working-directory: desktop
+        run: |
+          npm ci
+          export PATH="$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/Scripts:$GITHUB_WORKSPACE/.pravrudhi-app/engine/.venv/bin:$PATH"
+          ls dist/product
+          npm run smoke:dist:windows -- product
+          cat .smoke-dist-windows/.smoke/report.json
+
   release:
     needs: [desktop, packaged-smoke]
     runs-on: ubuntu-latest

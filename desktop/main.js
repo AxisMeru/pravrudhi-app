@@ -16,6 +16,7 @@ const editionConfig = readEditionConfig(process.resourcesPath);
 const {engineMenu, trayState} = require('./lib/menu');
 const {createSmokeReporter} = require('./lib/smoke');
 const {nightlyScenarioScript} = require('./lib/nightly-scenario');
+const {signinFormCheckScript} = require('./lib/signin-form-check');
 const {shellIsStale, createUpdateOffer, offerPrompt} = require('./lib/updates');
 const {updateShell} = require('./lib/shell-updater');
 const {applyBinary, applyBundle} = require('./lib/shell-apply');
@@ -215,9 +216,12 @@ async function start() {
         check();
       })`);
       await window.loadURL(origin);
-      if (nightlyMode) {
-        const email = process.env.E2E_EMAIL, password = process.env.E2E_PASSWORD;
-        if (!email || !password) throw new Error('E2E_EMAIL and E2E_PASSWORD must both be set for the nightly scenario.');
+      // Every smoke run checks what /signin actually renders, not just signin_state (which is the desktop main
+      // process's own auth module, not the frontend bundle the window shows — the two disagreed once already,
+      // see lib/signin-form-check.js). Only meaningful once auth is genuinely configured; an unconfigured build
+      // is refused by smoke-dist.js's own assertion on signin_state before this would matter.
+      let onSigninPage = false;
+      if (auth.status().configured) {
         // A second loadURL immediately after the first occasionally lost a race under the packaged AppImage's
         // slower, extract-then-run startup (ERR_FAILED, never reproduced against an unpacked dev build, which
         // starts fast enough not to hit it) — no webRequest filter or origin allowlist exists anywhere in this
@@ -229,6 +233,13 @@ async function start() {
           catch (e) { lastError = e; await new Promise(r => setTimeout(r, 500)); }
         }
         if (lastError) throw lastError;
+        onSigninPage = true;
+        smoke.signinForm(await window.webContents.executeJavaScript(signinFormCheckScript()));
+      }
+      if (nightlyMode) {
+        if (!onSigninPage) throw new Error('The nightly scenario needs a configured build to sign in at all.');
+        const email = process.env.E2E_EMAIL, password = process.env.E2E_PASSWORD;
+        if (!email || !password) throw new Error('E2E_EMAIL and E2E_PASSWORD must both be set for the nightly scenario.');
         const outcome = await window.webContents.executeJavaScript(nightlyScenarioScript({email, password, workspaceSlug: 'default'}));
         smoke.nightly(outcome);
       }

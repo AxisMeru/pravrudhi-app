@@ -164,6 +164,28 @@ test('the nightly scenario script embeds credentials as data, never as breakout 
   assert.ok(script.includes(JSON.stringify(hostileEmail)));
   assert.ok(script.includes(JSON.stringify(hostilePassword)));
 });
+test('the signin-form check script is syntactically valid and looks for the real form and the real refusal text',()=>{
+  const vm=require('node:vm');
+  const {signinFormCheckScript}=require('../lib/signin-form-check');
+  const script=signinFormCheckScript();
+  assert.doesNotThrow(()=>new vm.Script(script));
+  assert.match(script,/getElementById\('email'\)/);
+  assert.match(script,/Sign-in is not configured for this installation/);
+});
+test('assertSmokeReport: a product build whose signin_state is configured must also show the real form',()=>{
+  const {assertSmokeReport}=require('../lib/smoke-assert');
+  const base={launched:true,engine_found:true,engine_url:'http://127.0.0.1:8008',page_title:'Pravrudhi',health_ok:true,edition:'product',signin_state:'configured',errors:[]};
+  const opts={wanted:'product',timedOut:false,code:0,signal:null};
+  // The exact regression this exists for: signin_state says configured, but /signin rendered "not configured"
+  // anyway (a release once shipped exactly this — see W9's real-release finding).
+  assert.throws(()=>assertSmokeReport({...base,signin_form:{form_present:false,not_configured_shown:true}},opts),/did not render its sign-in form/);
+  assert.throws(()=>assertSmokeReport({...base,signin_form:undefined},opts),/did not render its sign-in form/);
+  assert.doesNotThrow(()=>assertSmokeReport({...base,signin_form:{form_present:true,not_configured_shown:false}},opts));
+  // An unconfigured build has nothing to check here — the earlier signin_state assertion already refuses it
+  // before this one would run in smoke-dist.js's own real flow, but the function itself must not also demand
+  // signin_form for a build that was never supposed to have one.
+  assert.doesNotThrow(()=>assertSmokeReport({...base,edition:'studio',signin_state:'not-applicable',signin_form:undefined},{...opts,wanted:'studio'}));
+});
 test('sandbox preload provides an enumerated invoke-only API with no renderer-controlled arguments',async()=>{
   const fs=require('node:fs');const vm=require('node:vm');let exposed;const channels=[];
   vm.runInNewContext(fs.readFileSync(require.resolve('../preload'),'utf8'),{require:name=>{
@@ -256,10 +278,16 @@ async function runMainBootstrap(extraEnv) {
   class Window extends EventEmitter {
     constructor(options) {
       super();windowOptions=options;this.webContents=new EventEmitter();
-      Object.assign(this.webContents,{session:{setPermissionRequestHandler(){}},setWindowOpenHandler(){},executeJavaScript:async script=>assert.match(script,/apiReady/),getTitle:()=>this.title});
+      Object.assign(this.webContents,{session:{setPermissionRequestHandler(){}},setWindowOpenHandler(){},executeJavaScript:async script=>{
+        // Once auth is configured (the second variant below), main.js also drives the signin-form check
+        // (lib/signin-form-check.js) against /signin — recognised by its own distinctive return shape rather
+        // than by re-deriving the exact script text here.
+        if (/form_present/.test(script)) return {form_present:true,not_configured_shown:false};
+        assert.match(script,/apiReady/);
+      },getTitle:()=>this.title});
     }
     async loadFile(){this.title='Desktop fixture';this.webContents.emit('did-finish-load');}
-    async loadURL(url){assert.equal(url,'http://127.0.0.1:8008');this.title='Engine fixture';this.webContents.emit('did-finish-load');}
+    async loadURL(url){assert.ok(url==='http://127.0.0.1:8008'||url==='http://127.0.0.1:8008/signin',`unexpected loadURL: ${url}`);this.title='Engine fixture';this.webContents.emit('did-finish-load');}
   }
   class Tray { on(){} setToolTip(){} setContextMenu(){} }
   const core=require('../lib/core');const lifecycle=require('../lib/lifecycle');const edition=require('../lib/edition');
@@ -298,6 +326,10 @@ test('main bootstrap attaches, runs doctor, loads the engine and reports before 
 test('main bootstrap reports signin_state as configured once real Supabase configuration reaches it',async()=>{
   const report=await runMainBootstrap({SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'test-anon-key'});
   assert.equal(report.signin_state,'configured');
+  // signin_state alone missed exactly this once already (a release built the frontend with no
+  // NEXT_PUBLIC_SUPABASE_URL/ANON_KEY, so /signin always showed "not configured" regardless) — this is the
+  // check that would have caught it: what /signin's own DOM rendered, not just the desktop's own auth module.
+  assert.deepEqual(report.signin_form,{form_present:true,not_configured_shown:false});
 });
 // v0.1.0's packaged-smoke: "Packaged desktop smoke failed: spawn .../.venv/bin/pravrudhi ENOENT" on a stock
 // GitHub Actions runner, though the same binary had just run --version successfully one step earlier. The
