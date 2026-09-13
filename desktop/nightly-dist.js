@@ -81,7 +81,15 @@ function launchPackaged(appImagePath, env, smokeDir) {
   const hasXvfb = !spawnSync('xvfb-run', ['--help'], {stdio: 'ignore'}).error;
   const args = ['--appimage-extract-and-run', '--no-sandbox', '--disable-dev-shm-usage'];
   const fullEnv = {...env};
-  if (!hasXvfb) { fullEnv.ELECTRON_DISABLE_GPU = '1'; args.push('--headless', '--ozone-platform=headless', '--disable-gpu'); }
+  // Ozone's platform auto-detection does not defer to the X11 $DISPLAY xvfb-run exports: this host's real
+  // desktop session is Wayland (XDG_SESSION_TYPE=wayland leaks into the systemd user manager's own environment,
+  // confirmed via `systemctl --user show-environment`), so without an explicit hint Electron tries to connect
+  // to a Wayland compositor that is not reachable from this service context and exits before drawing a window
+  // (2026-09-13's first-ever run of the desktop nightly: "Failed to connect to Wayland display: Connection
+  // refused (111)"). The headless branch already states its platform explicitly; this makes the xvfb branch
+  // just as explicit instead of trusting auto-detection.
+  if (hasXvfb) { args.push('--ozone-platform=x11'); }
+  else { fullEnv.ELECTRON_DISABLE_GPU = '1'; args.push('--headless', '--ozone-platform=headless', '--disable-gpu'); }
   return new Promise((resolve) => {
     const child = spawn(hasXvfb ? 'xvfb-run' : appImagePath, hasXvfb ? ['-a', appImagePath, ...args] : args,
       {env: fullEnv, cwd: smokeDir, stdio: 'inherit', detached: true});
