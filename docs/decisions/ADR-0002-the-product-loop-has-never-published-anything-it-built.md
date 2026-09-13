@@ -61,6 +61,13 @@ worse, not better, than the branch simply not existing on `origin` at all.
   `notifications.emit` already use elsewhere in this file.
 - This does not change who may promote `loop/product` into `main`: that is still ADR-0040's `/inbox/sign`
   path, gated the same way it already is for every other kind of promotion.
+- **The push is to the same public, anonymously-readable remote the hourly snapshot publisher writes to** —
+  the same shape of gap this ADR's own finding came from: an automated path running for weeks with nothing
+  checking what it was actually exposing (`64cb2d8` found the snapshot publisher had never redacted personal
+  data, only credential shapes). Whatever redaction/PII discipline governs what the publisher is allowed to
+  push must be understood to apply here too — a `loop/*` branch pushed by this ADR's mechanism is exactly as
+  public as `demo.json`, and nothing in `_push_loop_branch` itself screens content; it pushes whatever the
+  loop's own build-mode integration already committed.
 
 ## Related
 
