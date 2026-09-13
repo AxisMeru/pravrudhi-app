@@ -180,6 +180,30 @@ async function main() {
   } else {
     console.log(`Desktop nightly passed: signed in, workspace "default" bootstrapped, run ${report.run_id} reached ${report.run_events} event(s) (status: ${report.run_status}).`);
   }
+  // cli-lead, 2026-09-13: the first time this nightly ever passed the display bug and reached a real run, that
+  // run itself failed (run_status "failed") -- and the ephemeral scratch root (workspaceRoot's own
+  // research/ledger.jsonl and .pravrudhi/ state, the actual evidence of what the run did) was already gone by
+  // the time anyone could read it, because the .finally() below deletes it unconditionally. This copies the
+  // engine root and the smoke dir into the same persistent reportDir the JSON summary already lives in,
+  // whenever the run itself did not plainly succeed -- not gated on `ok` as a whole, since `ok` today does not
+  // actually require run_status to be a success value (see the note below); gated on the run-specific signal
+  // instead, so a future fix to `ok` does not accidentally stop this from firing.
+  if (report.run_status && report.run_status !== 'succeeded' && report.run_status !== 'complete') {
+    const evidenceDir = path.join(reportDir, `evidence-${stamp}`);
+    try {
+      fs.mkdirSync(evidenceDir, {recursive: true});
+      if (fs.existsSync(workspaceRoot)) fs.cpSync(workspaceRoot, path.join(evidenceDir, 'workspace'), {recursive: true});
+      if (fs.existsSync(smokeDir)) fs.cpSync(smokeDir, path.join(evidenceDir, 'smoke'), {recursive: true});
+      console.log(`Preserved run evidence (run_status=${report.run_status}) at ${evidenceDir}`);
+    } catch (e) {
+      console.error(`Failed to preserve run evidence: ${e.message}`);
+    }
+  }
+  // NOTE, not fixed here (2026-09-13): `ok` above never actually requires the run to succeed -- it only
+  // requires `run_events > 0 || run_status !== 'running'`, so a run that outright failed still satisfies this
+  // clause and the nightly prints "Desktop nightly passed... (status: failed)". That confusing message is what
+  // this note explains; changing what `ok` means is a separate decision from preserving evidence and is not
+  // made in this commit.
 }
 
 main()
