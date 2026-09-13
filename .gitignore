@@ -23,3 +23,13 @@ frontend/playwright-report/
 # ADR-0001 and future ADRs are decisions this repository publishes.
 docs/decisions/reports/
 .worktrees/
+
+# pravrudhi kernel state (secret, pools, jobs)
+.pravrudhi/
+
+# Loop-local state from the mis-rooted period (2026-09-12): a pravrudhi kernel
+# ledger and harness prompts that landed in this product checkout by accident.
+# Kept on disk, never committed - research/ evidence and kernel state are local
+# by the public/local split, and this is the product repo.
+research/
+harness/
