@@ -9,12 +9,12 @@ import { fixed, percent } from "@/lib/num";
 function describe(event: RunEvent): { text: string; icon?: ReactNode; tone?: "good" | "bad" | "dim" } {
   switch (event.type) {
     case "proposed":
-      return { text: `Proposer generated ${event.raw ?? "?"} candidates, ${event.accepted ?? "?"} accepted.` };
+      return { text: `Explored ${event.raw ?? "?"} options, kept ${event.accepted ?? "?"}.` };
     case "proposed_one":
-      return { text: `Candidate ${event.candidate ?? "?"} proposed.` };
+      return { text: `Attempt ${event.candidate ?? "?"} proposed.` };
     case "round":
       return {
-        text: `Round ${event.round ?? "?"}: ${event.selected ?? "?"} candidates selected, `
+        text: `Round ${event.round ?? "?"}: ${event.selected ?? "?"} options kept, `
           + `${fixed(event.remaining_gpu_h, 1)} GPU-h remaining.`,
       };
     case "paired": {
@@ -23,16 +23,16 @@ function describe(event: RunEvent): { text: string; icon?: ReactNode; tone?: "go
       return {
         text: `${event.candidate ?? "?"} evaluated${nTxt}: ${percent(event.incumbent, 1)} → `
           + `${percent(event.candidate_score, 1)} (${positive ? "+" : ""}${percent(event.delta, 1)}) `
-          + `— boundary: ${event.decision ?? "?"}.`,
+          + `— decision: ${event.decision ?? "?"}.`,
         tone: positive ? "good" : "bad",
       };
     }
     case "promoted":
-      return { text: `${event.candidate ?? "?"} promoted — this is the new incumbent.`, icon: <Star size={13} />, tone: "good" };
+      return { text: `${event.candidate ?? "?"} adopted — this is the new current best.`, icon: <Star size={13} />, tone: "good" };
     case "pruned":
       return { text: `${event.candidate ?? "?"} rejected.`, icon: <XCircle size={13} />, tone: "dim" };
     case "closed":
-      return { text: `Night ${event.night ?? "?"} ${event.status ?? "closed"}.` };
+      return { text: `Pass ${event.night ?? "?"} ${event.status ?? "closed"}.` };
     case "end":
       return { text: `Run ${event.status ?? "finished"} (exit code ${event.exit_code ?? "?"}).` };
     case "log":

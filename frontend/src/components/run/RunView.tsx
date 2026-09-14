@@ -190,7 +190,7 @@ function DemoRunView({ id }: { id: string }) {
               Replay
             </button>
             <span className="ml-auto text-xs text-[var(--color-text-dim)]">
-              Replaying a recorded night — every line is from the engine&apos;s own record.
+              Replaying a recorded run — every line is from the engine&apos;s own record.
             </span>
           </div>
           <CandidatePanel events={fullEvents.slice(0, shown)} />
