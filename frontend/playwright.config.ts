@@ -17,7 +17,10 @@ export default defineConfig({
   reporter: "line",
   use: { baseURL: engineURL, ...devices["Desktop Chrome"] },
   projects: [
-    { name: "product-chromium", testMatch: ["product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts"] },
+    {
+      name: "product-chromium",
+      testMatch: ["product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts"],
+    },
     // The nightly's project only exists when the nightly's account is in the environment
     // (pravrudhi-e2e-nightly.service's EnvironmentFile): CI runs every project it can see and has no such
     // account, and a live door is not something a pull request should be able to fail on.
