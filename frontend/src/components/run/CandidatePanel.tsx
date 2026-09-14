@@ -19,7 +19,7 @@ function ScoreBar({ incumbent, score }: { incumbent: number | undefined; score: 
         <div
           className="absolute top-0 h-full w-0.5 bg-[var(--color-text)]"
           style={{ left: `${incPct}%` }}
-          title="incumbent"
+          title="current best"
         />
       )}
     </div>
@@ -49,13 +49,13 @@ export function CandidatePanel({ events }: { events: RunEvent[] }) {
   return (
     <section className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
       <header className="border-b border-[var(--color-border)] px-4 py-3">
-        <h2 className="text-sm font-medium text-[var(--color-text)]">Candidates</h2>
+        <h2 className="text-sm font-medium text-[var(--color-text)]">Attempts</h2>
         <p className="text-xs text-[var(--color-text-dim)]">
-          incumbent {state.incumbent !== null ? percent(state.incumbent, 1) : "—"}
+          current best {state.incumbent !== null ? percent(state.incumbent, 1) : "—"}
         </p>
       </header>
       {state.rows.length === 0 && (
-        <p className="px-4 py-6 text-sm text-[var(--color-text-dim)]">No candidate has been evaluated yet.</p>
+        <p className="px-4 py-6 text-sm text-[var(--color-text-dim)]">No attempt has been evaluated yet.</p>
       )}
       {state.rows.length > 0 && (
         <ul className="max-h-96 overflow-y-auto">

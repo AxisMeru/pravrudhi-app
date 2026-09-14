@@ -78,7 +78,7 @@ function EventRow({ event }: { event: RunEvent }) {
         <div className={`${base} bg-[var(--color-accent-dim)]/20`}>
           {timeCol}
           <Star size={13} className="shrink-0 text-[var(--color-accent)]" />
-          <span className="font-medium text-[var(--color-text)]">{event.candidate} promoted</span>
+          <span className="font-medium text-[var(--color-text)]">{event.candidate} adopted</span>
         </div>
       );
     case "proposed":
@@ -86,7 +86,7 @@ function EventRow({ event }: { event: RunEvent }) {
         <div className={base}>
           {timeCol}
           <span className="text-[var(--color-text-dim)]">
-            proposer: {event.raw} raw, {event.accepted} accepted
+            explored {event.raw} options, kept {event.accepted}
           </span>
         </div>
       );
@@ -95,7 +95,7 @@ function EventRow({ event }: { event: RunEvent }) {
         <div className={base}>
           {timeCol}
           <span className="text-[var(--color-text-dim)]">
-            round {event.round}: {event.selected} selected, {event.remaining_gpu_h?.toFixed(1) ?? "—"} GPU-h remaining
+            round {event.round}: {event.selected} kept, {event.remaining_gpu_h?.toFixed(1) ?? "—"} GPU-h remaining
           </span>
         </div>
       );
@@ -104,7 +104,7 @@ function EventRow({ event }: { event: RunEvent }) {
         <div className={base}>
           {timeCol}
           <span className="text-[var(--color-text-dim)]">
-            night {event.night} {event.status}
+            pass {event.night} {event.status}
           </span>
         </div>
       );
@@ -177,7 +177,7 @@ function RunCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="font-medium capitalize text-[var(--color-text)]">{target}</span>
-            {night !== undefined && <span className="text-sm text-[var(--color-text-dim)]">night {night}</span>}
+            {night !== undefined && <span className="text-sm text-[var(--color-text-dim)]">pass {night}</span>}
           </div>
           <div className="mt-0.5 text-xs text-[var(--color-text-dim)]">
             started {relativeTime(startedAt)}
@@ -200,7 +200,7 @@ function RunCard({
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-[var(--color-text-dim)]">promoted</div>
+            <div className="text-xs text-[var(--color-text-dim)]">adopted</div>
             <div className="text-sm font-medium text-[var(--color-text)]">{promotedCount}</div>
           </div>
         </div>

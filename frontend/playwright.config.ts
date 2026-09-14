@@ -19,7 +19,10 @@ export default defineConfig({
   projects: [
     {
       name: "product-chromium",
-      testMatch: ["product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts"],
+      testMatch: [
+        "product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts",
+        "run-plain-language.spec.ts",
+      ],
     },
     // The nightly's project only exists when the nightly's account is in the environment
     // (pravrudhi-e2e-nightly.service's EnvironmentFile): CI runs every project it can see and has no such

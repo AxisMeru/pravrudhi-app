@@ -20,7 +20,7 @@ export function RunHeader({ handle, events }: { handle: RunHandle; events: RunEv
       <div className="flex flex-wrap items-center gap-3">
         <Icon size={18} className="shrink-0 text-[var(--color-text-dim)]" />
         <h1 className="text-lg font-semibold text-[var(--color-text)]">
-          {trackLabel(target)} {night !== undefined && `· Night ${night}`}
+          {trackLabel(target)} {night !== undefined && `· Pass ${night}`}
         </h1>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2.5 py-1 text-xs text-[var(--color-text-dim)]">
           <span className="h-2 w-2 rounded-full" style={{ background: statusColor(status) }} aria-hidden />
