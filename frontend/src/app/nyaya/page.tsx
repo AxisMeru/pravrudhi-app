@@ -22,6 +22,13 @@ import {
   type NyayaVendor,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
+import {
+  CAPABILITY_LABEL,
+  CAPABILITY_DESCRIPTION,
+  ELEMENT_APPLICATION_STATUS,
+  LEAN_CONTRACTS,
+  LEAN_CHECKER_OPTION,
+} from "@/lib/nyayaLean";
 
 const VERDICT: Record<NyayaAnswer["verdict"], { label: string; tone: string; Icon: typeof ShieldCheck; meaning: string }> = {
   licensed: {
@@ -100,7 +107,22 @@ function AnswerCard({ a }: { a: NyayaAnswer }) {
           ))}
         </div>
       )}
-      {a.audit && (
+      {a.audit && a.audit.checker === LEAN_CHECKER_OPTION ? (
+        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
+          <div className="font-medium text-[var(--color-text)]">
+            {CAPABILITY_LABEL}: {a.audit.verdict}
+          </div>
+          {a.audit.unlicensed_claims && a.audit.unlicensed_claims.length > 0 && (
+            <ul className="mt-1 list-disc pl-4 text-[var(--color-text-dim)]">
+              {a.audit.unlicensed_claims.map((c) => (
+                <li key={c}>not licensed: {c}</li>
+              ))}
+            </ul>
+          )}
+          {a.audit.why && <div className="mt-1 text-[var(--color-text-dim)]">{a.audit.why}</div>}
+          <div className="mt-1 text-[var(--color-text-dim)]">{CAPABILITY_DESCRIPTION}</div>
+        </div>
+      ) : a.audit ? (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
           <div className="font-medium text-[var(--color-text)]">
             Audit by {a.audit.checker}: {a.audit.verdict}
@@ -116,7 +138,7 @@ function AnswerCard({ a }: { a: NyayaAnswer }) {
             A second model’s opinion in a fixed shape; on the sibling benchmark the best vendor’s false-positive rate was measured in the tens of items, pipeline tier.
           </div>
         </div>
-      )}
+      ) : null}
     </article>
   );
 }
@@ -138,6 +160,7 @@ function AskTab() {
   const [vendors, setVendors] = useState<NyayaVendor[]>([]);
   const [chosen, setChosen] = useState<string[]>([]);
   const [checker, setChecker] = useState<string>("");
+  const [contractId, setContractId] = useState<string>(LEAN_CONTRACTS[0]?.id ?? "");
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -169,7 +192,7 @@ function AskTab() {
     setBusy(true);
     setError(null);
     try {
-      const rec = await nyayaAsk(question, chosen, checker || null);
+      const rec = await nyayaAsk(question, chosen, checker || null, checker === LEAN_CHECKER_OPTION ? contractId : null);
       setResult(rec);
       setHistory((h) => [rec, ...h].slice(0, 20));
     } catch (e) {
@@ -215,6 +238,9 @@ function AskTab() {
               title="A second vendor that audits each answer for a reasoning error, in the A1.1 shape"
             >
               <option value="">no audit</option>
+              <option value={LEAN_CHECKER_OPTION} title={CAPABILITY_DESCRIPTION}>
+                {CAPABILITY_LABEL}
+              </option>
               {vendors
                 .filter((v) => v.available)
                 .map((v) => (
@@ -223,6 +249,20 @@ function AskTab() {
                   </option>
                 ))}
             </select>
+            {checker === LEAN_CHECKER_OPTION && (
+              <select
+                className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1 text-xs text-[var(--color-text)]"
+                value={contractId}
+                onChange={(e) => setContractId(e.target.value)}
+                title="Only questions with a compiled contract can be checked; pick which one."
+              >
+                {LEAN_CONTRACTS.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               onClick={submit}
               disabled={busy || !question.trim() || chosen.length === 0}
@@ -282,6 +322,7 @@ function AskTab() {
 function AuditTab() {
   const [vendors, setVendors] = useState<NyayaVendor[]>([]);
   const [checker, setChecker] = useState("");
+  const [contractId, setContractId] = useState<string>(LEAN_CONTRACTS[0]?.id ?? "");
   const [sources, setSources] = useState("");
   const [answer, setAnswer] = useState("");
   const [busy, setBusy] = useState(false);
@@ -301,7 +342,7 @@ function AuditTab() {
     setBusy(true);
     setError(null);
     try {
-      setResult(await nyayaAudit(sources, answer, checker));
+      setResult(await nyayaAudit(sources, answer, checker, checker === LEAN_CHECKER_OPTION ? contractId : null));
     } catch (e) {
       setError(e instanceof ApiError ? `the engine answered HTTP ${e.status}` : e instanceof Error ? e.message : String(e));
     } finally {
@@ -336,6 +377,9 @@ function AuditTab() {
             value={checker}
             onChange={(e) => setChecker(e.target.value)}
           >
+            <option value={LEAN_CHECKER_OPTION} title={CAPABILITY_DESCRIPTION}>
+              {CAPABILITY_LABEL}
+            </option>
             {vendors
               .filter((v) => v.available)
               .map((v) => (
@@ -344,6 +388,20 @@ function AuditTab() {
                 </option>
               ))}
           </select>
+          {checker === LEAN_CHECKER_OPTION && (
+            <select
+              className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1 text-xs text-[var(--color-text)]"
+              value={contractId}
+              onChange={(e) => setContractId(e.target.value)}
+              title="Only questions with a compiled contract can be checked; pick which one."
+            >
+              {LEAN_CONTRACTS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             onClick={submit}
             disabled={busy || !answer.trim() || !checker}
@@ -358,11 +416,27 @@ function AuditTab() {
       {result && (
         <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm">
           <div className="font-medium text-[var(--color-text)]">
-            {result.checker}: {result.verdict}
+            {result.checker === LEAN_CHECKER_OPTION ? CAPABILITY_LABEL : result.checker}: {result.verdict}
             {result.class && result.class !== "none" ? ` · ${result.class}` : ""}
           </div>
-          {result.span && result.span !== "NONE" && <div className="mt-2 text-[var(--color-text-dim)]">span: “{result.span}”</div>}
-          {result.why && <div className="mt-1 text-[var(--color-text-dim)]">{result.why}</div>}
+          {result.checker === LEAN_CHECKER_OPTION ? (
+            <>
+              {result.unlicensed_claims && result.unlicensed_claims.length > 0 && (
+                <ul className="mt-2 list-disc pl-4 text-[var(--color-text-dim)]">
+                  {result.unlicensed_claims.map((c) => (
+                    <li key={c}>not licensed: {c}</li>
+                  ))}
+                </ul>
+              )}
+              {result.why && <div className="mt-1 text-[var(--color-text-dim)]">{result.why}</div>}
+              <div className="mt-2 text-[var(--color-text-dim)]">{CAPABILITY_DESCRIPTION}</div>
+            </>
+          ) : (
+            <>
+              {result.span && result.span !== "NONE" && <div className="mt-2 text-[var(--color-text-dim)]">span: “{result.span}”</div>}
+              {result.why && <div className="mt-1 text-[var(--color-text-dim)]">{result.why}</div>}
+            </>
+          )}
         </section>
       )}
     </div>
@@ -448,6 +522,11 @@ export default function NyayaPage() {
         subtitle="A question of Indian law, answered from statute sources by the models you pick, side by side. Every citation is checked against the corpus; an answer that says it does not know is recorded as such."
       />
       <div className="p-8">
+        <section className="mb-5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <h2 className="text-sm font-medium text-[var(--color-text)]">{CAPABILITY_LABEL}</h2>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--color-text-dim)]">{CAPABILITY_DESCRIPTION}</p>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--color-text-dim)]">{ELEMENT_APPLICATION_STATUS}</p>
+        </section>
         <div className="mb-5 flex gap-1 border-b border-[var(--color-border)]">
           {(
             [

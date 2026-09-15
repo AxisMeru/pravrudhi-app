@@ -984,6 +984,10 @@ export interface NyayaAudit {
   span?: string | null;
   class?: string | null;
   why?: string | null;
+  /** checker="lean" only (Track A P1b, ADR-0003): the claims the checked contract does not license. */
+  unlicensed_claims?: string[] | null;
+  /** checker="lean" only: how many `notFormalisable` entries the checked contract itself declares. */
+  not_formalisable_count?: number | null;
 }
 
 export interface NyayaAnswer {
@@ -1029,14 +1033,18 @@ export async function nyayaCorpus(q: string): Promise<{ documents: number; sourc
   return getJSON(`/api/nyaya/corpus?q=${encodeURIComponent(q)}`);
 }
 
-export async function nyayaAsk(question: string, vendors: string[], checker: string | null): Promise<NyayaAsk> {
+export async function nyayaAsk(
+  question: string, vendors: string[], checker: string | null, contractId?: string | null,
+): Promise<NyayaAsk> {
   if (IS_DEMO) throw new ApiError(501, "/api/nyaya/ask");
-  return postJSON<NyayaAsk>("/api/nyaya/ask", { question, vendors, checker });
+  return postJSON<NyayaAsk>("/api/nyaya/ask", { question, vendors, checker, contract_id: contractId ?? null });
 }
 
-export async function nyayaAudit(sources: string, answer: string, checker: string): Promise<NyayaAudit & { raw?: string }> {
+export async function nyayaAudit(
+  sources: string, answer: string, checker: string, contractId?: string | null,
+): Promise<NyayaAudit & { raw?: string }> {
   if (IS_DEMO) throw new ApiError(501, "/api/nyaya/audit");
-  return postJSON("/api/nyaya/audit", { sources, answer, checker });
+  return postJSON("/api/nyaya/audit", { sources, answer, checker, contract_id: contractId ?? null });
 }
 
 export async function nyayaAsks(): Promise<NyayaAsk[]> {
