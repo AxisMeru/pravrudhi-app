@@ -9,8 +9,9 @@
 // `docs/reviews/liaison-log.md`, entry "pravrudhi-04 (product surface)". Two standing rules that came with
 // the sign-off, enforced by this module's shape rather than left as a comment someone can miss:
 //
-//   1. The word "verified" may appear only inside CAPABILITY_LABEL ("Lean-checked citation licensing"),
-//      nowhere else on the page. `nyayaLean.spec.ts` greps the rendered page for it.
+//   1. The word "verified" may not appear anywhere in this surface's copy, including CAPABILITY_LABEL
+//      itself — the label says "checked", not "verified", by the reviewer's own choice of word.
+//      `nyayaLean.spec.ts` checks every string this module exports for it.
 //   2. No per-vendor lift number may be shown anywhere on this surface until the reviewer sends an accepted
 //      sha for one. Nothing here computes or renders one; ELEMENT_APPLICATION_STATUS is text, not a number.
 
