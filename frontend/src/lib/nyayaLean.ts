@@ -3,9 +3,11 @@
 //
 // Every string here is verbatim from track-a-adversarial-review-ae6770-43's sign-off (2026-09-15), given
 // against what pravrudhi main actually runs (src/pravrudhi/application/nyaya_lean.py). Do not edit these
-// strings without a fresh sign-off from that reviewer — see docs/decisions/ (Nyaya ship-pitch surface) for
-// the exchange. Two standing rules that came with the sign-off, enforced by this module's shape rather than
-// left as a comment someone can miss:
+// strings without a fresh sign-off from that reviewer, and route any new string on this page that describes
+// what the checker does through them first — session names don't survive turnover, so the durable record is
+// the pravrudhi review branch `claude/track-a-adversarial-review-ae6770`,
+// `docs/reviews/liaison-log.md`, entry "pravrudhi-04 (product surface)". Two standing rules that came with
+// the sign-off, enforced by this module's shape rather than left as a comment someone can miss:
 //
 //   1. The word "verified" may appear only inside CAPABILITY_LABEL ("Lean-checked citation licensing"),
 //      nowhere else on the page. `nyayaLean.spec.ts` greps the rendered page for it.
