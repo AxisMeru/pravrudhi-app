@@ -13,6 +13,9 @@ import {
   nyayaAudit,
   nyayaCorpus,
   nyayaVendors,
+  nyayaRegistryContracts,
+  nyayaRegistryElements,
+  nyayaRegistryCheck,
   ApiError,
   IS_DEMO,
   type NyayaAnswer,
@@ -20,6 +23,7 @@ import {
   type NyayaAudit,
   type NyayaCorpusHit,
   type NyayaVendor,
+  type NyayaRegistryCheckResult,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import {
@@ -443,6 +447,156 @@ function AuditTab() {
   );
 }
 
+// Manual element audit: the fourteen BNS/IPC registry contracts (Track A T5b), a DIFFERENT family from
+// the citation-shaped Lean checker in AuditTab above. These contracts score an explicit per-element
+// Met/Not-Met judgment, never free text this page parses itself -- so this tab asks the person to
+// state that judgment directly, one checkbox per required element, rather than pretend to derive it
+// from pasted prose. The element-first harness is meant to supply the same assertions shape
+// automatically later; nothing here claims that yet -- this is the manual path only.
+function RegistryAuditTab() {
+  const [contracts, setContracts] = useState<string[]>([]);
+  const [contractId, setContractId] = useState("");
+  const [elements, setElements] = useState<string[]>([]);
+  const [met, setMet] = useState<Record<string, boolean>>({});
+  const [evidence, setEvidence] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<NyayaRegistryCheckResult | null>(null);
+
+  useEffect(() => {
+    nyayaRegistryContracts()
+      .then((ids) => {
+        setContracts(ids);
+        setContractId((c) => c || ids[0] || "");
+      })
+      .catch(() => setContracts([]));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Deferred a tick so the effect itself sets no state synchronously (react-hooks/set-state-in-effect).
+    const t = setTimeout(() => {
+      if (cancelled) return;
+      if (!contractId) {
+        setElements([]);
+        return;
+      }
+      setMet({});
+      setEvidence({});
+      setResult(null);
+      nyayaRegistryElements(contractId)
+        .then((els) => {
+          if (!cancelled) setElements(els);
+        })
+        .catch(() => {
+          if (!cancelled) setElements([]);
+        });
+    }, 0);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [contractId]);
+
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      setResult(await nyayaRegistryCheck(contractId, met, evidence));
+    } catch (e) {
+      setError(e instanceof ApiError ? `the engine answered HTTP ${e.status}` : e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const anyMarked = Object.values(met).some(Boolean);
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+        <p className="text-xs leading-relaxed text-[var(--color-text-dim)]">
+          For each required element of a BNS/IPC provision, say whether the facts establish it (Met) or not
+          (Not Met / unaddressed), citing the evidence if you like, and the Lean checker scores the whole
+          contract deterministically. This is the manual path — you supply the per-element judgment yourself;
+          nothing here reads it out of free text.
+        </p>
+        <label className="mt-3 block text-xs text-[var(--color-text-dim)]">
+          Contract
+          <select
+            className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-2 py-1 text-sm text-[var(--color-text)]"
+            value={contractId}
+            onChange={(e) => setContractId(e.target.value)}
+          >
+            {contracts.map((id) => (
+              <option key={id} value={id}>
+                {id}
+              </option>
+            ))}
+          </select>
+        </label>
+        {elements.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {elements.map((el) => (
+              <div key={el} className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2">
+                <label className="flex items-start gap-2 text-sm text-[var(--color-text)]">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={Boolean(met[el])}
+                    onChange={(e) => setMet((m) => ({ ...m, [el]: e.target.checked }))}
+                  />
+                  <span>{el}</span>
+                </label>
+                {met[el] && (
+                  <input
+                    type="text"
+                    className="mt-1 w-full rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1 text-xs text-[var(--color-text)]"
+                    placeholder="evidence span (optional, display only — not sent to the checker's scoring)"
+                    value={evidence[el] ?? ""}
+                    onChange={(e) => setEvidence((ev) => ({ ...ev, [el]: e.target.value }))}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          onClick={submit}
+          disabled={busy || !contractId || elements.length === 0 || !anyMarked}
+          className="mt-3 flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[#06110c] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {busy ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />}
+          {busy ? "Checking…" : "Check against the Lean binary"}
+        </button>
+        {error && <p className="mt-2 text-xs text-[var(--color-danger)]">{error}</p>}
+      </section>
+      {result && (
+        <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm">
+          <div className="font-medium text-[var(--color-text)]">
+            {result.contract_id}: {result.verdict}
+          </div>
+          {result.denied_claims.length > 0 && (
+            <div className="mt-2 text-xs text-[var(--color-danger)]">
+              Refuted (the sources say the opposite): {result.denied_claims.join("; ")}
+            </div>
+          )}
+          {result.unlicensed_claims.length > 0 && (
+            <div className="mt-1 text-xs text-amber-400">
+              Not a required element of this contract: {result.unlicensed_claims.join("; ")}
+            </div>
+          )}
+          {result.omitted_claims.length > 0 && (
+            <div className="mt-1 text-xs text-[var(--color-text-dim)]">
+              Never asserted Met: {result.omitted_claims.join("; ")}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
+
 function CorpusTab() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<NyayaCorpusHit[]>([]);
@@ -507,7 +661,7 @@ function DemoNyaya() {
 
 export default function NyayaPage() {
   const [mode, setMode] = useState<"unknown" | "demo" | "live">("unknown");
-  const [tab, setTab] = useState<"ask" | "audit" | "corpus">("ask");
+  const [tab, setTab] = useState<"ask" | "audit" | "registry" | "corpus">("ask");
   useEffect(() => {
     // Decided after mount, one frame later, so the prerendered HTML and the first client render agree.
     const f = requestAnimationFrame(() => setMode(IS_DEMO ? "demo" : "live"));
@@ -532,6 +686,7 @@ export default function NyayaPage() {
             [
               ["ask", "Ask"],
               ["audit", "Audit an answer"],
+              ["registry", "Element audit (14 contracts)"],
               ["corpus", "Corpus"],
             ] as const
           ).map(([id, label]) => (
@@ -546,6 +701,7 @@ export default function NyayaPage() {
         </div>
         {tab === "ask" && <AskTab />}
         {tab === "audit" && <AuditTab />}
+        {tab === "registry" && <RegistryAuditTab />}
         {tab === "corpus" && <CorpusTab />}
       </div>
     </div>

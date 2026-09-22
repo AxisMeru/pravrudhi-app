@@ -1051,3 +1051,49 @@ export async function nyayaAsks(): Promise<NyayaAsk[]> {
   if (IS_DEMO) return [];
   return (await getJSON<{ asks: NyayaAsk[] }>("/api/nyaya/asks")).asks;
 }
+
+// The fourteen BNS/IPC registry contracts (Track A T5b, `nyaya_lean_registry.py`), a DIFFERENT family
+// from the citation-shaped Lean checker above (`NyayaAudit`'s `contract_id`): these score an explicit
+// per-element Met/Not-Met judgment the caller supplies, never free text this surface derives itself --
+// see `nyaya_lean_registry.check_registry`'s own docstring for why. Manual (person-supplied
+// assertions) today; the element-first harness is meant to supply the same shape once it exists --
+// nothing here claims that yet.
+
+export interface NyayaRegistryCheckResult {
+  checker: string;
+  contract_id: string;
+  verdict: string;
+  denied_claims: string[];
+  unlicensed_claims: string[];
+  omitted_claims: string[];
+  elements: Record<string, boolean>;
+  evidence: Record<string, string>;
+  provenance: string;
+}
+
+export async function nyayaRegistryContracts(): Promise<string[]> {
+  if (IS_DEMO) return [];
+  return (await getJSON<{ contracts: string[] }>("/api/nyaya/registry/contracts")).contracts;
+}
+
+export async function nyayaRegistryElements(contractId: string): Promise<string[]> {
+  if (IS_DEMO) return [];
+  return (
+    await getJSON<{ contract_id: string; elements: string[] }>(
+      `/api/nyaya/registry/${encodeURIComponent(contractId)}/elements`,
+    )
+  ).elements;
+}
+
+export async function nyayaRegistryCheck(
+  contractId: string,
+  assertions: Record<string, boolean>,
+  evidence?: Record<string, string>,
+): Promise<NyayaRegistryCheckResult> {
+  if (IS_DEMO) throw new ApiError(501, "/api/nyaya/registry/check");
+  return postJSON("/api/nyaya/registry/check", {
+    contract_id: contractId,
+    assertions,
+    evidence: evidence && Object.keys(evidence).length > 0 ? evidence : null,
+  });
+}

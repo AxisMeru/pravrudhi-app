@@ -84,6 +84,12 @@ test("every workspace-scoped exported call leaves with ?workspace=default when s
       await api.models();
       await api.nyayaVendors();
       await api.nyayaCorpus("q");
+      await api.nyayaRegistryContracts();
+      await api.nyayaRegistryElements("ipc405_misappropriation");
+      // nyayaRegistryCheck is POST and pulls in a legitimate, correctly-unscoped /api/app-token
+      // side call (postJSON's local-token fetch) -- excluded from this GET-only-calls loop for the
+      // same reason nyayaAsk/nyayaAudit (also POST) are not in it either; not a gap specific to this
+      // function.
     });
   } finally {
     restore();
