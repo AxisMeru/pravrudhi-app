@@ -32,15 +32,27 @@ if ! echo "$RELEASE_DATA" | grep -q '"tag_name"'; then
   exit 1
 fi
 
+# The asset list comes from the release's own assets_url, not the by-tag view above: the by-tag view has
+# been seen listing zero assets for ~40 minutes after a release publishes (both v0.5.25's engine-image
+# build, pravrudhi 93ef1be, and this script against the same release hit it), while assets_url and
+# /releases/latest listed all of them immediately. RELEASE_DATA above is still used for the "release not
+# found" check and the diagnostic asset-name listing below; only the wheel search itself reads from here.
+ASSETS_URL=$(echo "$RELEASE_DATA" | grep -o '"assets_url": *"[^"]*"' | head -1 | sed 's/.*"\(https[^"]*\)"/\1/' || true)
+if [ -z "$ASSETS_URL" ]; then
+  echo "ERROR: release v$ENGINE_VERSION has no assets_url in its API response" >&2
+  exit 1
+fi
+ASSET_DATA=$(curl -sS "${AUTH[@]}" "${ASSETS_URL}?per_page=100")
+
 # Extract wheel download URLs. A grep with no match exits 1, which with pipefail would end the script without
 # a word, so each pipeline is allowed to come back empty and the emptiness is reported below.
-KERNEL_WHEEL=$(echo "$RELEASE_DATA" | grep -o '"browser_download_url": *"[^"]*pravrudhi[_-]kernel[^"]*\.whl"' | head -1 | sed 's/.*"\(https[^"]*\)"/\1/' || true)
-ENGINE_WHEEL=$(echo "$RELEASE_DATA" | grep -o '"browser_download_url": *"[^"]*pravrudhi-[0-9][^"]*\.whl"' | head -1 | sed 's/.*"\(https[^"]*\)"/\1/' || true)
+KERNEL_WHEEL=$(echo "$ASSET_DATA" | grep -o '"browser_download_url": *"[^"]*pravrudhi[_-]kernel[^"]*\.whl"' | head -1 | sed 's/.*"\(https[^"]*\)"/\1/' || true)
+ENGINE_WHEEL=$(echo "$ASSET_DATA" | grep -o '"browser_download_url": *"[^"]*pravrudhi-[0-9][^"]*\.whl"' | head -1 | sed 's/.*"\(https[^"]*\)"/\1/' || true)
 
 if [ -z "$KERNEL_WHEEL" ] || [ -z "$ENGINE_WHEEL" ]; then
   echo "ERROR: Could not find both wheels in release v$ENGINE_VERSION" >&2
   echo "Expected files: pravrudhi_kernel-*.whl and pravrudhi-$ENGINE_VERSION-*.whl; the release carries:" >&2
-  echo "$RELEASE_DATA" | grep -o '"name": *"[^"]*"' | head -20 >&2
+  echo "$ASSET_DATA" | grep -o '"name": *"[^"]*"' | head -20 >&2
   exit 1
 fi
 
