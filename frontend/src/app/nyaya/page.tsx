@@ -33,6 +33,7 @@ import {
   LEAN_CONTRACTS,
   LEAN_CHECKER_OPTION,
 } from "@/lib/nyayaLean";
+import { decodeLeanWireForDisplay } from "@/lib/leanWire";
 
 const VERDICT: Record<NyayaAnswer["verdict"], { label: string; tone: string; Icon: typeof ShieldCheck; meaning: string }> = {
   licensed: {
@@ -578,17 +579,17 @@ function RegistryAuditTab() {
           </div>
           {result.denied_claims.length > 0 && (
             <div className="mt-2 text-xs text-[var(--color-danger)]">
-              Refuted (the sources say the opposite): {result.denied_claims.join("; ")}
+              Refuted (the sources say the opposite): {result.denied_claims.map(decodeLeanWireForDisplay).join("; ")}
             </div>
           )}
           {result.unlicensed_claims.length > 0 && (
             <div className="mt-1 text-xs text-amber-400">
-              Not a required element of this contract: {result.unlicensed_claims.join("; ")}
+              Not a required element of this contract: {result.unlicensed_claims.map(decodeLeanWireForDisplay).join("; ")}
             </div>
           )}
           {result.omitted_claims.length > 0 && (
             <div className="mt-1 text-xs text-[var(--color-text-dim)]">
-              Never asserted Met: {result.omitted_claims.join("; ")}
+              Never asserted Met: {result.omitted_claims.map(decodeLeanWireForDisplay).join("; ")}
             </div>
           )}
         </section>

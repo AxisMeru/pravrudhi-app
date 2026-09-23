@@ -29,10 +29,20 @@ test("nyayaLean: 'verified' appears nowhere except inside the capability label",
   assert.ok(!CAPABILITY_LABEL.toLowerCase().includes("verified")); // it doesn't -- the label says "checked"
 });
 
-test("nyayaLean: defers the element-application claim rather than hiding or overstating it", () => {
-  assert.match(ELEMENT_APPLICATION_STATUS, /not yet claimed/);
-  assert.match(ELEMENT_APPLICATION_STATUS, /gate P2\.5/);
-  assert.match(ELEMENT_APPLICATION_STATUS, /no number until it passes/);
+test("nyayaLean: states what's actually true today -- registry checker live, judgment is the user's, trained judges not served here", () => {
+  // 2026-09-23 rewrite (the lead's instruction): the P2.5/LegalBench framing described a checker-lift
+  // experiment that never shipped a number and has since been superseded by the registry checker
+  // actually landing. The new copy must describe what a user sees TODAY, not a gate's internal status.
+  assert.match(ELEMENT_APPLICATION_STATUS, /14/);
+  assert.match(ELEMENT_APPLICATION_STATUS, /registry/i);
+  // The Element audit tab's Met/Not-Met judgment is the PERSON's, not the model's -- must not be
+  // overstated as automatic.
+  assert.match(ELEMENT_APPLICATION_STATUS, /person|user/i);
+  assert.match(ELEMENT_APPLICATION_STATUS, /trained element judges/i);
+  assert.match(ELEMENT_APPLICATION_STATUS, /not served/i);
+  // No internal gate numbers in user-facing copy.
+  assert.doesNotMatch(ELEMENT_APPLICATION_STATUS, /gate P\d/i);
+  assert.doesNotMatch(ELEMENT_APPLICATION_STATUS, /P2\.5/);
   // Never "came back null" -- that's not what happened (measured no contribution beyond retrieval).
   assert.doesNotMatch(ELEMENT_APPLICATION_STATUS, /came back null/);
 });

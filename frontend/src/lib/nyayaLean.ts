@@ -24,12 +24,14 @@ export const CAPABILITY_DESCRIPTION =
   "for questions with a compiled contract, a Lean checker names any cited claim the contract does not " +
   "license and any required element the answer omits. Questions without a contract are not checked.";
 
-/** The element-application/checker-lift claim, deferred honestly rather than hidden or overstated. P2.5 has
- * started; the first attempt measured no contribution beyond retrieval, not "came back null". */
+/** The element-application status, rewritten 2026-09-23 to describe what a user actually sees on this
+ * page today rather than an internal gate's status (the lead's instruction: no gate numbers in the
+ * UI). The registry checker is real and live; what's honestly not automated is who decides each
+ * element's Met/Not-Met status -- a person, on the Element audit tab, not the model. */
 export const ELEMENT_APPLICATION_STATUS =
-  "Element-by-element application checking is not yet claimed. Measured on LegalBench (hearsay, personal " +
-  "jurisdiction, two vendors): the checker added nothing beyond retrieval. A structural decider is being " +
-  "built (gate P2.5); no number until it passes.";
+  "The registry checker is live for all 14 BNS/IPC contracts. On the Element audit tab, the per-element " +
+  "Met/Not-Met judgment is supplied by the person using it, not derived automatically from the model's " +
+  "own reasoning. Trained element judges exist but are not served on this surface yet.";
 
 /** One contract this workspace's compiled Lean binary knows how to check, per `nyaya_lean.KNOWN_CONTRACT_IDS`
  * (src/pravrudhi/application/nyaya_lean.py). Kept in sync by hand — there is no listing endpoint yet, and the
