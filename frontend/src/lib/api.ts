@@ -1144,15 +1144,51 @@ export interface AnalyseFactsResult {
   provenance: string;
 }
 
+// 320s: a generous margin above RunPod LB's own ~300s execution ceiling and the ~2.5 minute worst-case cold
+// start (operator decision 2026-09-24, no warm workers while we build: ~24s engine start + ~200s judge cold
+// start). A shorter client-side timeout would cut a real, still-in-progress cold start off before the
+// backend could ever have answered -- this exists so that never happens, not to bound wall-clock time.
+export const ANALYSE_FACTS_TIMEOUT_MS = 320_000;
+
+async function analyseFactsAttempt(path: string, body: string): Promise<Response> {
+  const localTok = await localToken();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ANALYSE_FACTS_TIMEOUT_MS);
+  try {
+    return await engineFetch(`${detectBase()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
+      body,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
   narrative?: string,
 ): Promise<AnalyseFactsResult> {
-  if (IS_DEMO) throw new ApiError(501, "/api/v1/analyse-facts");
-  return postJSON("/api/v1/analyse-facts", {
-    facts,
-    contract_ids: contractIds,
-    narrative: narrative ?? "",
-  });
+  const path = "/api/v1/analyse-facts";
+  if (IS_DEMO) throw new ApiError(501, path);
+  const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "" });
+  // This route takes no workspace param (partner.py's session-free design) -- called directly, not through
+  // postJSON/withWorkspace, so it can carry its own generous timeout without affecting every other call site.
+  let res: Response;
+  try {
+    res = await analyseFactsAttempt(path, body);
+  } catch {
+    // A network error or our own timeout abort during the cold-start window -- retried once, since that's
+    // exactly the case a warm-up failure looks like from here.
+    res = await analyseFactsAttempt(path, body);
+  }
+  if (!res.ok) {
+    // A 5xx while the judge is still warming up is retried once too; a real client error (4xx) never is --
+    // retrying a bad request just wastes another cold-start-length wait for the same wrong answer.
+    if (res.status >= 500) res = await analyseFactsAttempt(path, body);
+    if (!res.ok) throw new ApiError(res.status, path);
+  }
+  return (await res.json()) as AnalyseFactsResult;
 }
