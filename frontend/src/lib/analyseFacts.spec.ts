@@ -112,3 +112,94 @@ test("analyseFacts: never carries ?workspace=, signed in or not (the server rout
     assert.doesNotMatch(url, /[?&]workspace=/, `analyse-facts call carried ?workspace=: ${url}`);
   }
 });
+
+// Cold-start UX (2026-09-24, operator decision: no warm workers while we build -- first analyse-facts on
+// serverless can take ~2.5 minutes, ~24s engine start + ~200s judge cold start). A single transient failure
+// during that window -- a 503 while the judge is still coming up, or the request timing out mid-warm-up --
+// must not surface as a hard failure the first time; it's retried once before giving up for real.
+
+function analyseFactsCalls(calls: { url: string; init?: RequestInit }[]): { url: string; init?: RequestInit }[] {
+  return calls.filter((c) => c.url.includes("/api/v1/analyse-facts"));
+}
+
+test("analyseFacts: a 503 (judge still warming up) is retried once and succeeds on the retry", async () => {
+  const { analyseFacts } = await import("./api");
+  let attempt = 0;
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    attempt += 1;
+    return attempt === 1
+      ? new Response(JSON.stringify({ detail: "nyaya agent unavailable" }), { status: 503 })
+      : ok(FAKE_RESULT);
+  });
+  try {
+    const result = await analyseFacts(["fact"], ["bns69"]);
+    assert.equal(result.run_id, FAKE_RESULT.run_id);
+  } finally {
+    restore();
+  }
+  assert.equal(analyseFactsCalls(calls).length, 2, "must have retried exactly once");
+});
+
+test("analyseFacts: a network error (aborted mid-warm-up) is retried once and succeeds on the retry", async () => {
+  const { analyseFacts } = await import("./api");
+  let attempt = 0;
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    attempt += 1;
+    if (attempt === 1) throw new Error("network error");
+    return ok(FAKE_RESULT);
+  });
+  try {
+    const result = await analyseFacts(["fact"], ["bns69"]);
+    assert.equal(result.run_id, FAKE_RESULT.run_id);
+  } finally {
+    restore();
+  }
+  assert.equal(analyseFactsCalls(calls).length, 2, "must have retried exactly once");
+});
+
+test("analyseFacts: two consecutive 503s throw the real status, not a silent third attempt", async () => {
+  const { analyseFacts, ApiError } = await import("./api");
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    return new Response(JSON.stringify({ detail: "nyaya agent unavailable" }), { status: 503 });
+  });
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"]), (e: unknown) => {
+      assert.ok(e instanceof ApiError);
+      assert.equal((e as InstanceType<typeof ApiError>).status, 503);
+      return true;
+    });
+  } finally {
+    restore();
+  }
+  assert.equal(analyseFactsCalls(calls).length, 2, "exactly one retry, never more");
+});
+
+test("analyseFacts: a 400 (bad request) is never retried", async () => {
+  const { analyseFacts, ApiError } = await import("./api");
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    return new Response(JSON.stringify({ detail: "bad contract id" }), { status: 400 });
+  });
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"]), (e: unknown) => {
+      assert.ok(e instanceof ApiError);
+      assert.equal((e as InstanceType<typeof ApiError>).status, 400);
+      return true;
+    });
+  } finally {
+    restore();
+  }
+  assert.equal(analyseFactsCalls(calls).length, 1, "a real client error must not be retried");
+});
+
+test("analyseFacts: its client-side timeout is generous, above RunPod's own 300s ceiling", async () => {
+  const { ANALYSE_FACTS_TIMEOUT_MS } = await import("./api");
+  assert.ok(
+    ANALYSE_FACTS_TIMEOUT_MS > 300_000,
+    `timeout (${ANALYSE_FACTS_TIMEOUT_MS}ms) must exceed RunPod LB's own 300s execution ceiling, or a slow ` +
+      "cold start gets cut off client-side before the real backend would have answered",
+  );
+});

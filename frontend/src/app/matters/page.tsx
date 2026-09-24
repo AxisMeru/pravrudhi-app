@@ -141,6 +141,7 @@ export default function MattersPage() {
   const [narrative, setNarrative] = useState("");
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
 
@@ -181,12 +182,18 @@ export default function MattersPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setElapsedSeconds(0);
+    // Real ticking clock, not a spinner that could look hung: the operator's decision (2026-09-24, no warm
+    // workers while we build) means a real cold start here can run ~2.5 minutes (~24s engine start + ~200s
+    // judge cold start) -- see the "Warming up" copy below, which reads this same counter.
+    const ticker = window.setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
     try {
       const r = await analyseFacts(facts, Array.from(selected), narrative);
       setResult(r);
     } catch (e) {
       setError(e instanceof ApiError ? `Could not reach the engine's analyse-facts API (${e.status}).` : "Could not analyse these facts.");
     } finally {
+      window.clearInterval(ticker);
       setLoading(false);
     }
   }
@@ -249,6 +256,15 @@ export default function MattersPage() {
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Scale size={14} />}
             {loading ? "Analysing…" : "Analyse"}
           </button>
+          {loading && (
+            <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
+              Warming up the verification engine — first run can take about 3 minutes.{" "}
+              <span className="font-mono">
+                {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
+              </span>{" "}
+              elapsed.
+            </p>
+          )}
           {error && <p className="text-sm text-red-400">{error}</p>}
         </div>
 

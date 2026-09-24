@@ -12,10 +12,17 @@ import { expect, test } from "@playwright/test";
  * "engine 0.5.29 opens ... without login"). Against whatever engine is deployed BEFORE that ships, this test
  * correctly fails with a 401 in the honest-failure branch below — that is real, expected behaviour for the
  * gap this test exists to close, not a flake to retry around.
+ *
+ * Cold-start UX (2026-09-24, operator decision: no warm workers while we build): also asserts the warm-up
+ * state actually appears while the real cold start is happening, not just that a result eventually shows up
+ * — the whole point of that UI is that a user watching a slow first run sees SOMETHING moving, not a stuck
+ * spinner. Timeout raised well past the ~2.5 minute worst case (client's own ANALYSE_FACTS_TIMEOUT_MS is
+ * 320s; this test allows a bit more for render/network on top).
  */
 test("a real analyse-facts call against the deployed app, run anonymously, returns a real judged response", async ({
   page,
 }) => {
+  test.setTimeout(360_000);
   await page.goto("/matters");
   await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
 
@@ -29,10 +36,21 @@ test("a real analyse-facts call against the deployed app, run anonymously, retur
   await page.getByLabel(/^Narrative/).fill("A real playwright e2e run against the deployed app, not a recorded demo.");
   await page.getByRole("button", { name: "Analyse" }).click();
 
+  // The warm-up state must actually render while the real request is in flight -- not asserted after the
+  // fact from a screenshot, checked live, before the result can possibly have arrived.
+  await expect(
+    page.getByText(/^Warming up the verification engine/),
+    "the warm-up state must appear while a real cold start is in progress, not a silent/stuck spinner",
+  ).toBeVisible({ timeout: 5_000 });
+
   // Real proof of a real response, not just "something rendered": a real run id and a real 64-hex score sha
   // appear verbatim in the DOM.
   const summary = page.getByText(/^run .+ · score sha [0-9a-f]{64}$/);
-  await expect(summary, "a real run id and a real 64-hex score sha must appear together").toBeVisible({ timeout: 60_000 });
+  await expect(summary, "a real run id and a real 64-hex score sha must appear together").toBeVisible({ timeout: 340_000 });
+
+  // And the warm-up state is gone once the real result has rendered -- never left stuck on screen alongside
+  // a finished result.
+  await expect(page.getByText(/^Warming up the verification engine/)).toHaveCount(0);
 
   // Every requested contract reached one of the real outcome values analyseFacts()'s own
   // AnalyseFactsContract["outcome"] type allows -- not a placeholder, not a blank card.
