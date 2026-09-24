@@ -21,7 +21,7 @@ export default defineConfig({
       name: "product-chromium",
       testMatch: [
         "product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts",
-        "run-plain-language.spec.ts",
+        "run-plain-language.spec.ts", "matters.spec.ts",
       ],
     },
     // The nightly's project only exists when the nightly's account is in the environment
@@ -31,7 +31,7 @@ export default defineConfig({
       ? [
           {
             name: "live-chromium",
-            testMatch: "live.spec.ts",
+            testMatch: ["live.spec.ts", "matters-live.spec.ts"],
             // A little more patience than the local-engine default: real network latency to a real, cold
             // hosted engine, not a process on localhost.
             timeout: 60_000,

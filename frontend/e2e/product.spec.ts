@@ -24,7 +24,7 @@ const test = base.extend<{ diagnostics: void }>({
 
 const PAGES: Array<[string, string]> = [
   ["/start", "Start"], ["/", "Pravrudhi"], ["/objectives", "Objectives"], ["/progress", "Progress"],
-  ["/memory", "Memory"], ["/catalogue", "Catalogue"], ["/chat", "Chat"], ["/nyaya", "Nyaya"],
+  ["/memory", "Memory"], ["/catalogue", "Catalogue"], ["/chat", "Chat"], ["/nyaya", "Nyaya"], ["/matters", "Matters"],
   ["/runs", "Runs"], ["/models", "Models"], ["/settings", "Settings"], ["/install", "Get it running"],
   ["/signin", "Sign in"],
 ];
