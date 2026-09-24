@@ -1097,3 +1097,62 @@ export async function nyayaRegistryCheck(
     evidence: evidence && Object.keys(evidence).length > 0 ? evidence : null,
   });
 }
+
+// L4 partner API (docs/decisions/LEG-PLAN-2026-09-23.md, pravrudhi api/partner.py): the agentic loop over
+// the same registry contracts, facts in. A DIFFERENT surface from nyayaRegistryCheck above -- the agent
+// judges each element itself (a house judge, quote-checked against the fact it names) rather than taking
+// a person's Met/Not-Met assertions directly.
+
+export interface AnalyseFactsElement {
+  element: string;
+  is_denial: boolean;
+  status: string; // "established" | "not_established"
+  claimed: boolean;
+  p_established: number | null;
+  fact_id: string | null;
+  quote: string | null;
+  start: number | null;
+  end: number | null;
+  quote_check: string | null;
+  attempts: number;
+  occurrences: number;
+  offsets_source: string | null;
+  // Who supplied the quote (e.g. "model") -- shown per element so the element table can name the exact
+  // fact behind each claim, not just the final verdict (LEG-PLAN P3/L4 requirement).
+  quote_source: string | null;
+  error: string | null;
+}
+
+export interface AnalyseFactsContract {
+  contract_id: string;
+  outcome: string; // "PROOF" | "DENIAL" | "ABSTAIN" | "REFER_TO_LAWYER"
+  reason: string;
+  elements: AnalyseFactsElement[];
+  assertions: Record<string, boolean> | null;
+  lean: { verdict: string; denied_claims: string[]; unlicensed_claims: string[]; omitted_claims: string[] } | null;
+  lean_outcome: string | null;
+  uncertain: string[];
+  statute_text_mismatch: boolean | null;
+}
+
+export interface AnalyseFactsResult {
+  run_id: string;
+  judge: string;
+  score_sha256: string;
+  facts: { id: string; text: string; sha256: string }[];
+  contracts: AnalyseFactsContract[];
+  provenance: string;
+}
+
+export async function analyseFacts(
+  facts: string[],
+  contractIds: string[],
+  narrative?: string,
+): Promise<AnalyseFactsResult> {
+  if (IS_DEMO) throw new ApiError(501, "/api/v1/analyse-facts");
+  return postJSON("/api/v1/analyse-facts", {
+    facts,
+    contract_ids: contractIds,
+    narrative: narrative ?? "",
+  });
+}
