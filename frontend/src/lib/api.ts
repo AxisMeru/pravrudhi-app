@@ -51,20 +51,34 @@ function toSignIn(status: number): void {
   window.location.assign(new URL("/signin", window.location.origin).href);
 }
 
+// init.authOptional (2026-09-24): most of the app is signed-in-only, and for those calls a 401 that survives
+// a session renewal genuinely means "go sign in" -- the default, unchanged. But the anonymous surface (the
+// two demo-anon routes, and the identity probe edition() uses to name itself) is reachable by design with NO
+// session at all, so a 401 from THOSE is an ordinary, expected outcome for a real anonymous visitor, not a
+// reason to bounce them off the page they came to use. Real incident (2026-09-24): before this flag existed,
+// every page's Sidebar called edition() -> GET /api/me on mount, that 401's anonymously, and the blanket
+// redirect below fired for EVERY page load with no session -- so /matters (genuinely anonymous-capable)
+// never rendered for an anonymous visitor at all, redirected to /signin before its own content could load.
+export interface EngineFetchInit extends RequestInit {
+  authOptional?: boolean;
+}
+
 // Every call to the engine goes through here (ADR-0051 addendum 3). The bearer token of the signed-in web
 // session is attached when there is one — a local or desktop engine has none and ignores the absence — a stale
 // session is renewed first, a 401 is answered by renewing once and retrying, and a 401 that survives that sends
-// the page to /signin. Page modules that fetched the engine themselves never carried the token, so the first
-// signed-in operator saw "could not reach" on every page whose module was not api.ts (2026-09-12); a spec now
-// refuses any bare engine fetch outside this function.
-export async function engineFetch(input: string, init: RequestInit = {}, retried = false): Promise<Response> {
+// the page to /signin -- UNLESS the caller marked this call `authOptional` (see above), in which case the 401
+// is simply returned like any other response. Page modules that fetched the engine themselves never carried
+// the token, so the first signed-in operator saw "could not reach" on every page whose module was not api.ts
+// (2026-09-12); a spec now refuses any bare engine fetch outside this function.
+export async function engineFetch(input: string, init: EngineFetchInit = {}, retried = false): Promise<Response> {
+  const { authOptional, ...rest } = init;
   const token = await webSessionToken();
-  const headers = new Headers(init.headers);
+  const headers = new Headers(rest.headers);
   if (token && !headers.has("authorization")) headers.set("authorization", `Bearer ${token}`);
-  const res = await fetch(input, { ...init, headers });
+  const res = await fetch(input, { ...rest, headers });
   if (res.status === 401) {
     if (!retried && (await recoverFrom401())) return engineFetch(input, init, true);
-    toSignIn(res.status);
+    if (!authOptional) toSignIn(res.status);
   }
   return res;
 }
@@ -143,8 +157,8 @@ export async function withWorkspace(path: string): Promise<string> {
   return `${path}${sep}workspace=${encodeURIComponent(DEFAULT_WORKSPACE)}`;
 }
 
-async function getJSON<T>(path: string): Promise<T> {
-  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, { cache: "no-store" });
+async function getJSON<T>(path: string, opts: { authOptional?: boolean } = {}): Promise<T> {
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, { cache: "no-store", authOptional: opts.authOptional });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
 }
@@ -158,7 +172,15 @@ let cachedToken: string | null = null;
 export async function localToken(): Promise<string | null> {
   if (cachedToken !== null) return cachedToken;
   try {
-    const res = await engineFetch(`${detectBase()}/api/app-token`, { cache: "no-store" });
+    // authOptional (2026-09-24): this is a same-origin local-write-guard probe, not the user's session --
+    // a hosted engine either doesn't serve this route at all or 401s it for every caller, signed in or not,
+    // and that was never a valid signal that the REAL session is invalid. Before this flag, a 401 here
+    // (silently and correctly treated as "no local token" two lines below) ALSO fired the global /signin
+    // redirect as an unrelated side effect -- on every postJSON/putJSON/deleteJSON call and analyseFacts(),
+    // for every visitor. Real incident: this is what actually bounced an anonymous /matters visit to
+    // /signin mid-request, discovered live-debugging why the edition()/notifications() fixes alone weren't
+    // enough.
+    const res = await engineFetch(`${detectBase()}/api/app-token`, { cache: "no-store", authOptional: true });
     if (!res.ok) return null;
     cachedToken = ((await res.json()) as { token: string }).token;
     return cachedToken;
@@ -364,7 +386,10 @@ export async function health(): Promise<HealthResponse> {
     const d = await (await import("./demo")).demo();
     return { ok: true, version: d.engine.version, kernel: d.engine.version, ledger: true };
   }
-  return getJSON<HealthResponse>("/api/health");
+  // authOptional (2026-09-24): ConnectionBanner polls this every 5s on every page, for every visitor --
+  // "is the engine reachable at all" is a connectivity probe, not something that should ever redirect an
+  // anonymous visitor to /signin, same principle as edition()'s /api/me and notifications()'s poll.
+  return getJSON<HealthResponse>("/api/health", { authOptional: true });
 }
 
 export async function status(): Promise<StatusResponse> {
@@ -1073,7 +1098,9 @@ export interface NyayaRegistryCheckResult {
 
 export async function nyayaRegistryContracts(): Promise<string[]> {
   if (IS_DEMO) return [];
-  return (await getJSON<{ contracts: string[] }>("/api/nyaya/registry/contracts")).contracts;
+  // Part of the demo-anon surface (PRAVRUDHI_DEMO_ANON_PATHS) -- a 401 here from a genuinely anonymous
+  // visitor must not redirect to /signin; it's reported to the caller like any other failure.
+  return (await getJSON<{ contracts: string[] }>("/api/nyaya/registry/contracts", { authOptional: true })).contracts;
 }
 
 export async function nyayaRegistryElements(contractId: string): Promise<string[]> {
@@ -1160,6 +1187,9 @@ async function analyseFactsAttempt(path: string, body: string): Promise<Response
       headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
       body,
       signal: controller.signal,
+      // Part of the demo-anon surface -- a 401 from a genuinely anonymous caller is an ordinary ApiError
+      // below, never a redirect to /signin.
+      authOptional: true,
     });
   } finally {
     clearTimeout(timer);

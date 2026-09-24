@@ -19,8 +19,8 @@ export interface NotificationsSnapshot {
   unread: number;
 }
 
-async function getJSON<T>(path: string): Promise<T> {
-  const res = await engineFetch(`${apiBase()}${path}`, { cache: "no-store" });
+async function getJSON<T>(path: string, opts: { authOptional?: boolean } = {}): Promise<T> {
+  const res = await engineFetch(`${apiBase()}${path}`, { cache: "no-store", authOptional: opts.authOptional });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
 }
@@ -41,7 +41,11 @@ async function postJSON<T>(path: string, body: unknown): Promise<T> {
 
 export async function notifications(n = 30): Promise<NotificationsSnapshot> {
   if (IS_DEMO) return { notifications: [], unread: 0 };
-  return getJSON<NotificationsSnapshot>(`/api/notifications?n=${n}`);
+  // authOptional (2026-09-24): NotificationBell polls this on every page, for every visitor, same as
+  // edition()'s /api/me -- an anonymous 401 here means "no notifications to show", never a reason to
+  // redirect an anonymous visitor to /signin mid-visit (the same real incident class edition() had: a
+  // background shell-level poll bounced a long-running anonymous /matters session to /signin mid-request).
+  return getJSON<NotificationsSnapshot>(`/api/notifications?n=${n}`, { authOptional: true });
 }
 
 // An empty `ids` list marks every unread notification read.
