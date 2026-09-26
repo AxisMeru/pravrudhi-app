@@ -39,7 +39,7 @@ test("a real analyse-facts call against the deployed app, run anonymously, retur
   // The warm-up state must actually render while the real request is in flight -- not asserted after the
   // fact from a screenshot, checked live, before the result can possibly have arrived.
   await expect(
-    page.getByText(/^Warming up the verification engine/),
+    page.getByText(/^Warming up the judge and Lean checker/),
     "the warm-up state must appear while a real cold start is in progress, not a silent/stuck spinner",
   ).toBeVisible({ timeout: 5_000 });
 
@@ -50,7 +50,7 @@ test("a real analyse-facts call against the deployed app, run anonymously, retur
 
   // And the warm-up state is gone once the real result has rendered -- never left stuck on screen alongside
   // a finished result.
-  await expect(page.getByText(/^Warming up the verification engine/)).toHaveCount(0);
+  await expect(page.getByText(/^Warming up the judge and Lean checker/)).toHaveCount(0);
 
   // Every requested contract reached one of the real outcome values analyseFacts()'s own
   // AnalyseFactsContract["outcome"] type allows -- not a placeholder, not a blank card.

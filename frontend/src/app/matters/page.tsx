@@ -1,9 +1,10 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the quoted evidence behind each one, the Lean verdict and the exact
-// score sha that produced it, and a REFER banner when the outcome says a lawyer should look at this rather
-// than the page. Calls POST /api/v1/analyse-facts (L4, docs/decisions/LEG-PLAN-2026-09-23.md) through
+// the house judge found established, the quoted evidence behind each one, Lean's structural check (the right
+// element set, nothing about the facts or quotes themselves) and the exact score sha that produced it, and a
+// REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
+// /api/v1/analyse-facts (L4, docs/decisions/LEG-PLAN-2026-09-23.md) through
 // analyseFacts() in lib/api.ts — the same path an anonymous product-edition visitor uses, at the engine's own
 // shared rate limit; this page adds no auth gate of its own (api.ts's engineFetch already omits the bearer
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
@@ -122,7 +123,14 @@ function ContractResult({ c }: { c: AnalyseFactsContract }) {
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
-          <div className="font-medium text-[var(--color-text)]">Lean verdict: {c.lean_outcome ?? c.lean.verdict}</div>
+          <div className="font-medium text-[var(--color-text)]">
+            Lean structural check: {c.lean_outcome ?? c.lean.verdict}
+          </div>
+          <div className="mt-1 text-[var(--color-text-dim)]">
+            Lean checks that the right elements for this contract were addressed — it does not read the facts
+            or quotes. The element findings above come from the judge and are quote-checked against the facts
+            you supplied.
+          </div>
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
           {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
@@ -258,7 +266,7 @@ export default function MattersPage() {
           </button>
           {loading && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-              Warming up the verification engine — first run can take about 3 minutes.{" "}
+              Warming up the judge and Lean checker — first run can take about 3 minutes.{" "}
               <span className="font-mono">
                 {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
               </span>{" "}
