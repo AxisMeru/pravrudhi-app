@@ -107,15 +107,55 @@ engine runs with identity required: every `/api` call but the health check carri
 Two scheduled checks run on the operator's own box (`pravrudhi-e2e-nightly.timer`, `deploy/e2e-nightly/` in
 `AxisMeru/pravrudhi`), signed in as a real, dedicated, non-admin Supabase account (`gateway-probe@axismeru.com`):
 
-- **The web nightly** (`frontend/e2e/live.spec.ts`, project `live-chromium`) signs in against the real hosted
-  door (`https://pravrudhi-app.vercel.app`) and clicks through every offered page, plus one written-and-removed
-  memory note. This is what proves the hosted engine and the deployed frontend.
+- **The web nightly** (project `live-chromium`) signs in against the real hosted door
+  (`https://pravrudhi-app.vercel.app`) and runs:
+  - `frontend/e2e/live.spec.ts` — clicks through every offered page, plus one written-and-removed memory note.
+  - `frontend/e2e/matters-live.spec.ts` — a real anonymous `analyse-facts` call, asserting the cold-start
+    warm-up UI and a real judged response (run id + score sha).
+  - `frontend/e2e/nyaya-live.spec.ts` (added 2026-09-26, e2e testing against serverless) — the `/nyaya`
+    citation-verification loop: asking a question must resolve to a real verdict badge (one of the page's own
+    five: licensed / unlicensed / invented citation / abstained / no answer) for every vendor checked, or, if
+    this deployment currently offers no reachable vendor at all, the Ask button must honestly stay disabled
+    rather than accept a submit with nothing to ask. Deliberately does not assume any particular vendor is
+    healthy: `available_vendors()`'s own honesty (issue/PR #27, #29) is what this depends on, not a specific
+    vendor's uptime.
+  - `frontend/e2e/partner-api-live.spec.ts` (added 2026-09-26; project `live-api`, no browser -- there is no
+    frontend page for the partner tenancy API at all) — the real `/api/v1/orgs/...` door: no bearer token is
+    401'd, this account (deliberately never provisioned as a tenancy admin) is 403'd, and a small 11-request
+    burst against the (cheap, low-limit) provisioning endpoint gets a real 429 with `Retry-After` -- every
+    request here is refused before it ever reaches a judge, so this costs no GPU/judge spend.
+
+  This is what proves the hosted engine and the deployed frontend.
 - **The desktop nightly** (`desktop/nightly-dist.js`) fetches the latest *released* Linux AppImage, verifies it
   against the release's own `SHA256SUMS`, installs the engine version that release was pinned to, and drives a
   real sign-in / default-workspace / one-run scenario against it via `desktop/lib/nightly-scenario.js`, executed
   inside the packaged shell's own loaded page (the same technique `PRAVRUDHI_DESKTOP_SHOT` already used for a
   screenshot, extended into a full scripted scenario). Its report lands beside the web nightly's, under
   `~/.local/share/pravrudhi-hosted/e2e/`.
+
+### Running the live projects yourself
+
+Needs the same seed, non-admin account the nightly uses (`~/.config/pravrudhi/e2e.env`, never a real client's
+credentials) and, for `partner-api-live.spec.ts`, the Supabase project config (`~/.config/pravrudhi/supabase.env`)
+to sign in directly via the password grant (no browser for that one). Both `live-chromium` and `live-api` only
+exist in the project list when `E2E_EMAIL` is set, so listing/running without it silently skips them -- the
+same guard that keeps CI (which has no such account) from ever being asked to run them.
+
+```bash
+cd frontend
+set -a && source ~/.config/pravrudhi/e2e.env && source ~/.config/pravrudhi/supabase.env && set +a
+npx playwright test --project=live-chromium   # signed-in browser checks, incl. a real analyse-facts call
+npx playwright test --project=live-api        # partner API only, no browser, no judge cost
+```
+
+`LIVE_URL` overrides the Vercel origin `live-chromium` uses (a rehearsal against a preview deployment);
+`LIVE_ENGINE_URL` overrides the Worker origin `live-api` hits directly (there is no `/api/*` rewrite on the
+Vercel origin -- the browser app itself only reaches the Worker via a build-time `NEXT_PUBLIC_API_BASE`, never
+a relative path, which is why the API-only project needs its own base URL rather than sharing `live-chromium`'s).
+
+Keep this modest: `matters-live.spec.ts` and a chosen-vendor branch of `nyaya-live.spec.ts` are real calls
+against the live judge/vendor infrastructure, not free. `partner-api-live.spec.ts` is not -- every request in
+it is refused before reaching a judge.
 
 **The desktop nightly's exact claim, because it is easy to overstate: real account, real auth, released shell,
 fresh local root — not the hosted engine's data.** The desktop shell cannot reach the hosted product engine at
