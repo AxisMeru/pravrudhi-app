@@ -1142,7 +1142,11 @@ export interface AnalyseFactsElement {
   // Which judge's tau the element failed, on a non-established element (#37, second comment). Optional: an
   // engine release before #45 omits the field entirely, and the engine sends null where no leg binds (e.g. a
   // single-judge run).
-  binding_leg?: "primary" | "second" | "both" | null;
+  //
+  // "both" was dropped with operator approval (AxisMeru/pravrudhi#57): the engine cannot reach a state where
+  // both legs bind, so the value was unreachable. Nothing in this repository reads the field -- this
+  // declaration is its only occurrence -- so narrowing the union is inert here.
+  binding_leg?: "primary" | "second" | null;
   claimed: boolean;
   p_established: number | null;
   fact_id: string | null;

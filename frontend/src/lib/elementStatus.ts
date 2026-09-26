@@ -125,9 +125,13 @@ export function elementStatusPresentation(
       // Operator decision, 2026-09-26: its own status and its own presentation, visibly different from BOTH
       // not_established and not_evaluated_second_unavailable. Violet rather than the sky of the second-judge
       // case, so the two "not evaluated" reasons are never confused for one another at a glance.
+      //
+      // Wording: the decision first spelled this "Not evaluated: entailment check unavailable", was then
+      // lowercased, and the reviewer asked for the em-dash separator the fourth status already uses, so the
+      // five labels read as one set. The em-dash form below supersedes both earlier spellings.
       return {
         status: raw,
-        label: "Not evaluated: entailment check unavailable",
+        label: "not evaluated — entailment check unavailable",
         tone: "text-violet-400 border-violet-500/40 bg-violet-500/10",
         verdict: null,
         unknown: false,

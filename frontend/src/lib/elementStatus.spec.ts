@@ -148,7 +148,7 @@ test("elementStatus: not_established, second-unavailable and gate1-unavailable d
 
 test("elementStatus: gate1-unavailable reads as not evaluated, names the entailment check, is no verdict", () => {
   const p = elementStatusPresentation("not_evaluated_gate1_unavailable");
-  assert.equal(p.label, "Not evaluated: entailment check unavailable");
+  assert.equal(p.label, "not evaluated — entailment check unavailable");
   assert.match(p.label, /not evaluated/i);
   assert.match(p.label, /entailment check/i);
   assert.equal(p.verdict, null, "an element Gate 1 never checked must not carry a verdict");
