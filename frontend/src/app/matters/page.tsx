@@ -9,9 +9,10 @@
 // shared rate limit; this page adds no auth gate of its own (api.ts's engineFetch already omits the bearer
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
 
-import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, Upload, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { extractTextFromFile, segmentIntoFacts } from "@/lib/extractFacts";
 import { PageHeader } from "@/components/PageHeader";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
@@ -20,6 +21,13 @@ import { PageHeader } from "@/components/PageHeader";
 // field because that's what the engine actually sends; if the engine later adds a typed field for this, prefer
 // it over the string match.
 const UNCOVERED_REASON_TOKEN = "no_training_statute_text";
+
+// Issue #39's own exact wording (pravrudhi's RETENTION_NOTICE, nyaya_agent.py) — kept as a static string
+// here rather than read from the analyse-facts response, since a retention WARNING has to be visible
+// BEFORE a user types or uploads anything, not only after they get a result back.
+const RETENTION_NOTICE =
+  "Don't submit real names or case details; anonymous submissions are kept up to 7 days for audit and " +
+  "are never used for training or evaluation.";
 
 const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckCircle2 }> = {
   PROOF: { label: "established", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
@@ -152,6 +160,9 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let off = false;
@@ -176,6 +187,29 @@ export default function MattersPage() {
       else next.add(id);
       return next;
     });
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (fileInputRef.current) fileInputRef.current.value = ""; // same file re-selected must still re-fire
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const text = await extractTextFromFile(file);
+      const facts = segmentIntoFacts(text);
+      if (facts.length === 0) {
+        setUploadError("Could not find any usable facts in this document -- try pasting the text directly instead.");
+        return;
+      }
+      // Replaces the draft rather than appending: a document upload is a fresh starting point the user then
+      // reviews and edits, same as typing into the textarea always was -- never auto-submitted.
+      setFactsText(facts.join("\n"));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Could not read this file.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function submit() {
@@ -210,10 +244,31 @@ export default function MattersPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title="Matters" subtitle="Enter the facts of a situation and check them against the registry's compiled contracts." />
       <div className="flex flex-1 flex-col gap-6 p-8">
+        <p
+          role="note"
+          className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs text-[var(--color-text-dim)]"
+        >
+          {RETENTION_NOTICE}
+        </p>
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-          <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
-            Facts (one per line)
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
+              Facts (one per line)
+            </label>
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2 py-1 text-xs text-[var(--color-text-dim)] hover:text-[var(--color-text)]">
+              {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              {uploading ? "Reading…" : "Upload a PDF or DOCX"}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="sr-only"
+                disabled={uploading}
+                onChange={handleFileUpload}
+              />
+            </label>
+          </div>
+          {uploadError && <p className="text-xs text-[var(--color-danger)]">{uploadError}</p>}
           <textarea
             id="matters-facts"
             className="min-h-[120px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
@@ -221,6 +276,10 @@ export default function MattersPage() {
             value={factsText}
             onChange={(e) => setFactsText(e.target.value)}
           />
+          <p className="text-xs text-[var(--color-text-dim)]">
+            Uploading a document fills this in automatically, split into candidate facts you can review and edit
+            before checking -- nothing is sent to the engine until you press Analyse below.
+          </p>
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-narrative">
             Narrative <span className="font-normal text-[var(--color-text-dim)]">(optional, but the judge does better with one)</span>
           </label>
