@@ -10,6 +10,13 @@ const engineURL: string = (process.env.LOCAL_ENGINE_URL ?? "http://127.0.0.1:830
 // account. LIVE_URL overrides for a rehearsal against a preview deployment.
 const liveURL: string = (process.env.LIVE_URL ?? "https://pravrudhi-app.vercel.app").replace(/\/+$/, "");
 
+// The Worker in front of the real engine, reached DIRECTLY (never through the Vercel origin above, which has
+// no /api/* rewrite of its own — the browser app reaches it only via a build-time NEXT_PUBLIC_API_BASE baked
+// into the Vercel deployment, never a relative path). Partner-API specs have no frontend page to click
+// through at all (no /orgs UI exists), so they use Playwright's own `request` fixture directly against this
+// origin rather than a browser. LIVE_ENGINE_URL overrides for a rehearsal against a different Worker/stage.
+const liveEngineURL: string = (process.env.LIVE_ENGINE_URL ?? "https://pravrudhi-app.axismeru.workers.dev").replace(/\/+$/, "");
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 45_000,
@@ -31,11 +38,20 @@ export default defineConfig({
       ? [
           {
             name: "live-chromium",
-            testMatch: ["live.spec.ts", "matters-live.spec.ts"],
+            testMatch: ["live.spec.ts", "matters-live.spec.ts", "nyaya-live.spec.ts"],
             // A little more patience than the local-engine default: real network latency to a real, cold
             // hosted engine, not a process on localhost.
             timeout: 60_000,
             use: { baseURL: liveURL, ...devices["Desktop Chrome"] },
+          },
+          // Pure API specs, no browser: partner-api-live.spec.ts hits the Worker directly with Playwright's
+          // own `request` fixture (see liveEngineURL's own comment for why this can't share live-chromium's
+          // baseURL).
+          {
+            name: "live-api",
+            testMatch: ["partner-api-live.spec.ts"],
+            timeout: 30_000,
+            use: { baseURL: liveEngineURL },
           },
         ]
       : []),
