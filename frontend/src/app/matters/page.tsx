@@ -12,6 +12,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { elementStatusPresentation } from "@/lib/elementStatus";
 import { PageHeader } from "@/components/PageHeader";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
@@ -42,17 +43,17 @@ function OutcomeBadge({ outcome }: { outcome: string }) {
 }
 
 function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
-  const established = el.status === "established";
+  // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
+  // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
+  const status = elementStatusPresentation(el.status);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
       <td className="py-2 pr-3 align-top">
         <span
-          className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium ${
-            established ? "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" : "text-[var(--color-text-dim)] border-[var(--color-border)]"
-          }`}
+          className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium ${status.tone}`}
         >
-          {established ? "established" : "not established"}
+          {status.label}
         </span>
         {el.p_established !== null && (
           <span className="ml-1.5 text-[11px] text-[var(--color-text-dim)]">p={el.p_established.toFixed(2)}</span>
