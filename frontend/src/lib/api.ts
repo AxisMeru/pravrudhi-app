@@ -1133,8 +1133,9 @@ export async function nyayaRegistryCheck(
 export interface AnalyseFactsElement {
   element: string;
   is_denial: boolean;
-  // Four values since AxisMeru/pravrudhi#37: "established" | "not_confirmed" | "not_established" |
-  // "not_evaluated_second_unavailable". Left as `string` because the engine is a separate release train and
+  // Five values since AxisMeru/pravrudhi#37 (the fifth decided by the operator 2026-09-26): "established" |
+  // "not_confirmed" | "not_established" | "not_evaluated_second_unavailable" |
+  // "not_evaluated_gate1_unavailable". Left as `string` because the engine is a separate release train and
   // may send a value this build predates -- lib/elementStatus.ts turns it into a presentation and fails closed
   // on anything it does not recognise, rather than reading an unknown status as a negative finding.
   status: string;
