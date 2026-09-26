@@ -1133,7 +1133,15 @@ export async function nyayaRegistryCheck(
 export interface AnalyseFactsElement {
   element: string;
   is_denial: boolean;
-  status: string; // "established" | "not_established"
+  // Four values since AxisMeru/pravrudhi#37: "established" | "not_confirmed" | "not_established" |
+  // "not_evaluated_second_unavailable". Left as `string` because the engine is a separate release train and
+  // may send a value this build predates -- lib/elementStatus.ts turns it into a presentation and fails closed
+  // on anything it does not recognise, rather than reading an unknown status as a negative finding.
+  status: string;
+  // Which judge's tau the element failed, on a non-established element (#37, second comment). Optional: an
+  // engine release before #45 omits the field entirely, and the engine sends null where no leg binds (e.g. a
+  // single-judge run).
+  binding_leg?: "primary" | "second" | "both" | null;
   claimed: boolean;
   p_established: number | null;
   fact_id: string | null;
