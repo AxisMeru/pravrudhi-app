@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
+import { referReasonPresentation } from "@/lib/referReason";
 import { PageHeader } from "@/components/PageHeader";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
@@ -98,12 +99,20 @@ function ContractResult({ c }: { c: AnalyseFactsContract }) {
         <OutcomeBadge outcome={c.outcome} />
       </header>
 
-      {c.outcome === "REFER_TO_LAWYER" && (
-        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
-          This matter should be reviewed by a lawyer — the judge could not reach a confident established/not-established
-          reading on every element from the facts given.
-        </div>
-      )}
+      {c.outcome === "REFER_TO_LAWYER" && (() => {
+        // R1's finding (2026-09-27): every REFER_TO_LAWYER used to show this same "not confident" sentence,
+        // even for reasons that are not uncertainty at all (second_judge_unavailable, contract_not_validated,
+        // ...). referReasonPresentation names the actual situation; the raw reason code is always shown too,
+        // never hidden or reinterpreted, so a reader (or a reviewer) can always see exactly what the engine
+        // said even if this build's wording is wrong or stale.
+        const referred = referReasonPresentation(c.reason);
+        return (
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+            <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
+            <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
+          </div>
+        );
+      })()}
 
       {c.elements.length > 0 && (
         <table className="w-full border-collapse text-left">
