@@ -1,8 +1,9 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the quoted evidence behind each one, Lean's structural check (the right
-// element set, nothing about the facts or quotes themselves) and the exact score sha that produced it, and a
+// the house judge found established, the verbatim quote each one cites (quote-checked against the submitted
+// facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
+// or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
 // /api/v1/analyse-facts (L4, docs/decisions/LEG-PLAN-2026-09-23.md) through
 // analyseFacts() in lib/api.ts — the same path an anonymous product-edition visitor uses, at the engine's own
@@ -69,7 +70,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
         ) : (
-          <span>no quoted evidence</span>
+          <span>no quote</span>
         )}
       </td>
     </tr>
@@ -120,7 +121,7 @@ function ContractResult({ c }: { c: AnalyseFactsContract }) {
             <tr className="text-xs text-[var(--color-text-dim)]">
               <th className="pb-1 pr-3 font-medium">element</th>
               <th className="pb-1 pr-3 font-medium">status</th>
-              <th className="pb-1 font-medium">quoted evidence</th>
+              <th className="pb-1 font-medium">quote (verbatim from your facts)</th>
             </tr>
           </thead>
           <tbody>
