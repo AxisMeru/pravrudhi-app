@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { apiBase, health } from "@/lib/api";
+import { isHostedBuild } from "@/lib/serviceStatus";
 
 /**
  * What the top of the page says about where its data comes from.
@@ -39,7 +40,13 @@ export function ConnectionBanner() {
     <div className="flex items-center gap-2 border-b border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-5 py-2 text-sm text-[var(--color-danger)]">
       <AlertTriangle size={14} />
       <span>
-        No engine reachable at {apiBase() || window.location.origin}. Start one with <code>pravrudhi app</code>.
+        {isHostedBuild() ? (
+          <>The hosted engine is not answering right now. It may be outside its service hours; try again later.</>
+        ) : (
+          <>
+            No engine reachable at {apiBase() || window.location.origin}. Start one with <code>pravrudhi app</code>.
+          </>
+        )}
       </span>
     </div>
   );

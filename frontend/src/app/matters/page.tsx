@@ -10,11 +10,12 @@
 // shared rate limit; this page adds no auth gate of its own (api.ts's engineFetch already omits the bearer
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { referReasonPresentation } from "@/lib/referReason";
+import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
@@ -163,6 +164,25 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [svc, setSvc] = useState<StatusResult | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const closed = svc?.kind === "ok" && isClosed(svc.status);
+  const offline = svc?.kind === "offline";
+
+  useEffect(() => {
+    let off = false;
+    const poll = () => {
+      fetchServiceStatus().then((r) => {
+        if (!off) setSvc(r);
+      });
+    };
+    poll();
+    const id = window.setInterval(poll, 30_000);
+    return () => {
+      off = true;
+      window.clearInterval(id);
+    };
+  }, []);
 
   useEffect(() => {
     let off = false;
@@ -206,15 +226,24 @@ export default function MattersPage() {
     // workers while we build) means a real cold start here can run ~2.5 minutes (~24s engine start + ~200s
     // judge cold start) -- see the "Warming up" copy below, which reads this same counter.
     const ticker = window.setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+    const ac = new AbortController();
+    abortRef.current = ac;
     try {
-      const r = await analyseFacts(facts, Array.from(selected), narrative);
+      const r = await analyseFacts(facts, Array.from(selected), narrative, ac.signal);
       setResult(r);
     } catch (e) {
-      setError(e instanceof ApiError ? `Could not reach the engine's analyse-facts API (${e.status}).` : "Could not analyse these facts.");
+      const c = classifyAnalyseError(e);
+      setError(c.message);
+      if (c.kind === "outside_window") fetchServiceStatus().then(setSvc);
     } finally {
       window.clearInterval(ticker);
+      abortRef.current = null;
       setLoading(false);
     }
+  }
+
+  function cancel() {
+    abortRef.current?.abort();
   }
 
   return (
@@ -269,12 +298,28 @@ export default function MattersPage() {
           <button
             type="button"
             onClick={submit}
-            disabled={loading}
+            disabled={loading || closed || offline}
             className="mt-2 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Scale size={14} />}
             {loading ? "Analysing…" : "Analyse"}
           </button>
+          {closed && svc?.kind === "ok" && svc.status.service_window && (
+            <p className="text-sm text-amber-400" role="status" data-testid="matters-offline">
+              The hosted demo is offline outside its service hours ({formatNextOpen(svc.status.service_window)}). Nothing is sent
+              while it is closed.
+            </p>
+          )}
+          {offline && (
+            <p className="text-sm text-amber-400" role="status" data-testid="matters-engine-offline">
+              The engine is not answering right now. Nothing is sent until it is back.
+            </p>
+          )}
+          {loading && (
+            <button type="button" onClick={cancel} data-testid="matters-cancel" className="w-fit text-sm text-[var(--color-text-dim)] underline">
+              Cancel
+            </button>
+          )}
           {loading && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
               Warming up the judge and Lean checker — first run can take about 3 minutes.{" "}
