@@ -28,7 +28,9 @@ test("a real analyse-facts round trip, run anonymously, never hangs and never re
   await page.getByRole("button", { name: "Analyse" }).click();
 
   const realSummary = page.getByText(/^run .+ · score sha [0-9a-f]{64}$/);
-  const honestFailure = page.getByText(/^(Could not reach|could not load|failed to)/i);
+  // Every classified failure (timeout, 429, 401, 503 judge_unavailable/outside window, other 5xx, network) renders in
+  // the page's error paragraph; an unclassified silence does not.
+  const honestFailure = page.getByTestId("matters-error").or(page.getByText(/^(Could not reach|could not load|failed to)/i));
   await expect(realSummary.or(honestFailure), "the round trip must end in a real result or an honest failure, not silence").toBeVisible({
     timeout: 45_000,
   });
