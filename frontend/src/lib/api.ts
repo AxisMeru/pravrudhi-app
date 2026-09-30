@@ -96,14 +96,36 @@ function detectDemo(): boolean {
 
 export const IS_DEMO = detectDemo();
 
+export interface ApiErrorDetail {
+  code?: string;
+  retryAfter?: number;
+}
+
 export class ApiError extends Error {
+  readonly code?: string;
+  readonly retryAfter?: number;
   constructor(
     public readonly status: number,
     public readonly path: string,
+    detail: ApiErrorDetail = {},
   ) {
     super(`${path}: HTTP ${status}`);
     this.name = "ApiError";
+    this.code = detail.code;
+    this.retryAfter = detail.retryAfter;
   }
+}
+
+async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
+  let code: string | undefined;
+  try {
+    const body = (await res.clone().json()) as { error?: unknown };
+    if (typeof body.error === "string") code = body.error;
+  } catch {
+    /* not JSON (a gateway error page): status alone */
+  }
+  const ra = Number(res.headers.get("retry-after"));
+  return new ApiError(res.status, path, { code, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
 }
 
 // Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
@@ -1190,10 +1212,13 @@ export interface AnalyseFactsResult {
 // backend could ever have answered -- this exists so that never happens, not to bound wall-clock time.
 export const ANALYSE_FACTS_TIMEOUT_MS = 320_000;
 
-async function analyseFactsAttempt(path: string, body: string): Promise<Response> {
+async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal): Promise<Response> {
   const localTok = await localToken();
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ANALYSE_FACTS_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ANALYSE_FACTS_TIMEOUT_MS);
+  const onAbort = () => controller.abort(signal?.reason ?? new DOMException("cancelled", "AbortError"));
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener("abort", onAbort, { once: true });
   try {
     return await engineFetch(`${detectBase()}${path}`, {
       method: "POST",
@@ -1206,6 +1231,7 @@ async function analyseFactsAttempt(path: string, body: string): Promise<Response
     });
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
   }
 }
 
@@ -1213,25 +1239,21 @@ export async function analyseFacts(
   facts: string[],
   contractIds: string[],
   narrative?: string,
+  signal?: AbortSignal,
 ): Promise<AnalyseFactsResult> {
   const path = "/api/v1/analyse-facts";
   if (IS_DEMO) throw new ApiError(501, path);
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "" });
-  // This route takes no workspace param (partner.py's session-free design) -- called directly, not through
-  // postJSON/withWorkspace, so it can carry its own generous timeout without affecting every other call site.
-  let res: Response;
-  try {
-    res = await analyseFactsAttempt(path, body);
-  } catch {
-    // A network error or our own timeout abort during the cold-start window -- retried once, since that's
-    // exactly the case a warm-up failure looks like from here.
-    res = await analyseFactsAttempt(path, body);
-  }
+  // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
+  // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
+  let res = await analyseFactsAttempt(path, body, signal);
   if (!res.ok) {
-    // A 5xx while the judge is still warming up is retried once too; a real client error (4xx) never is --
-    // retrying a bad request just wastes another cold-start-length wait for the same wrong answer.
-    if (res.status >= 500) res = await analyseFactsAttempt(path, body);
-    if (!res.ok) throw new ApiError(res.status, path);
+    let err = await apiErrorFrom(res, path);
+    if (res.status >= 500 && !err.code) {
+      res = await analyseFactsAttempt(path, body, signal);
+      if (!res.ok) err = await apiErrorFrom(res, path);
+    }
+    if (!res.ok) throw err;
   }
   return (await res.json()) as AnalyseFactsResult;
 }

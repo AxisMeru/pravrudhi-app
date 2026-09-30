@@ -141,24 +141,6 @@ test("analyseFacts: a 503 (judge still warming up) is retried once and succeeds 
   assert.equal(analyseFactsCalls(calls).length, 2, "must have retried exactly once");
 });
 
-test("analyseFacts: a network error (aborted mid-warm-up) is retried once and succeeds on the retry", async () => {
-  const { analyseFacts } = await import("./api");
-  let attempt = 0;
-  const { restore, calls } = mockFetch((url) => {
-    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
-    attempt += 1;
-    if (attempt === 1) throw new Error("network error");
-    return ok(FAKE_RESULT);
-  });
-  try {
-    const result = await analyseFacts(["fact"], ["bns69"]);
-    assert.equal(result.run_id, FAKE_RESULT.run_id);
-  } finally {
-    restore();
-  }
-  assert.equal(analyseFactsCalls(calls).length, 2, "must have retried exactly once");
-});
-
 test("analyseFacts: two consecutive 503s throw the real status, not a silent third attempt", async () => {
   const { analyseFacts, ApiError } = await import("./api");
   const { restore, calls } = mockFetch((url) => {
@@ -202,4 +184,57 @@ test("analyseFacts: its client-side timeout is generous, above RunPod's own 300s
     `timeout (${ANALYSE_FACTS_TIMEOUT_MS}ms) must exceed RunPod LB's own 300s execution ceiling, or a slow ` +
       "cold start gets cut off client-side before the real backend would have answered",
   );
+});
+
+test("analyseFacts: a network error is NOT retried (fail fast to a definite message)", async () => {
+  const { analyseFacts } = await import("./api");
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    throw new Error("network error");
+  });
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"]));
+  } finally { restore(); }
+  assert.equal(analyseFactsCalls(calls).length, 1);
+});
+
+test("analyseFacts: ApiError carries the body error code and Retry-After", async () => {
+  const { analyseFacts, ApiError } = await import("./api");
+  const { restore } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    return new Response(JSON.stringify({ error: "outside_service_window" }), { status: 503, headers: { "retry-after": "120" } });
+  });
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"]), (e: unknown) => {
+      assert.ok(e instanceof ApiError);
+      assert.equal(e.code, "outside_service_window");
+      assert.equal(e.retryAfter, 120);
+      return true;
+    });
+  } finally { restore(); }
+});
+
+test("analyseFacts: an outside-window 503 is never retried", async () => {
+  const { analyseFacts } = await import("./api");
+  const { restore, calls } = mockFetch((url) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    return new Response(JSON.stringify({ error: "outside_service_window" }), { status: 503 });
+  });
+  try { await assert.rejects(() => analyseFacts(["fact"], ["bns69"])); } finally { restore(); }
+  assert.equal(analyseFactsCalls(calls).length, 1);
+});
+
+test("analyseFacts: an already-aborted caller signal rejects with AbortError without a second attempt", async () => {
+  const { analyseFacts } = await import("./api");
+  const ac = new AbortController();
+  const { restore, calls } = mockFetch((url, init) => {
+    if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+    if (init?.signal?.aborted) throw new DOMException("aborted", "AbortError");
+    return ok(FAKE_RESULT);
+  });
+  ac.abort();
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"], undefined, ac.signal), (e: unknown) => (e as Error).name === "AbortError");
+  } finally { restore(); }
+  assert.ok(analyseFactsCalls(calls).length <= 1);
 });
