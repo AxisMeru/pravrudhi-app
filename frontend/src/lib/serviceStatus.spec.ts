@@ -56,10 +56,10 @@ test("isClosed: only an explicit open_now === false closes the form", async () =
 test("formatNextOpen names the viewer's timezone and the window", async () => {
   const { formatNextOpen } = await import("./serviceStatus");
   const w = CLOSED.service_window;
-  const s = formatNextOpen(w, "Asia/Kolkata");
+  const s = formatNextOpen(w, "Asia/Kolkata", new Date("2026-10-01T12:00:00Z"));
   assert.match(s, /13:30/);
   assert.match(s, /Asia\/Kolkata|IST/);
-  assert.match(formatNextOpen(w, "Europe/London"), /09:00/);
+  assert.match(formatNextOpen(w, "Europe/London", new Date("2026-10-01T12:00:00Z")), /09:00/);
 });
 
 test("classifyAnalyseError: each failure has its own message", async () => {
@@ -85,4 +85,22 @@ test("classifyAnalyseError: an unrecognised 5xx is 'server', not 'network'", asy
   const { classifyAnalyseError } = await import("./serviceStatus");
   const { ApiError } = await import("./api");
   assert.equal(classifyAnalyseError(new ApiError(500, "/x")).kind, "server");
+});
+
+test("fetchServiceStatus: old engine cases stay usable (403, 200 non-JSON, 200 JSON without a window key)", async () => {
+  const { fetchServiceStatus } = await import("./serviceStatus");
+  for (const make of [
+    () => new Response("{}", { status: 403 }),
+    () => new Response("<html>app shell</html>", { status: 200 }),
+    () => ok({ detail: "not found" }),
+  ]) {
+    const restore = mockFetch(make);
+    try { assert.equal((await fetchServiceStatus()).kind, "unknown"); } finally { restore(); }
+  }
+});
+
+test("fetchServiceStatus: a 5xx is offline", async () => {
+  const { fetchServiceStatus } = await import("./serviceStatus");
+  const restore = mockFetch(() => new Response("{}", { status: 503 }));
+  try { assert.equal((await fetchServiceStatus()).kind, "offline"); } finally { restore(); }
 });

@@ -24,7 +24,8 @@ export const STATUS_TIMEOUT_MS = 8_000;
 
 // GET /api/v1/status is the single source of truth for whether the hosted engine is inside its service window.
 // A dead network or a gateway error page (not JSON) is "offline"; an engine that predates the route (404) is
-// "unknown" and must never block the form.
+// "unknown" and must never block the form. Only a network failure, a timeout or a 5xx means offline; any other
+// 4xx or a body that is not the status JSON (e.g. an SPA fallback page) is "unknown", so the form stays usable.
 export async function fetchServiceStatus(): Promise<StatusResult> {
   if (IS_DEMO) return { kind: "unknown" };
   try {
@@ -33,9 +34,15 @@ export async function fetchServiceStatus(): Promise<StatusResult> {
       authOptional: true,
       signal: AbortSignal.timeout(STATUS_TIMEOUT_MS),
     });
-    if (res.status === 404) return { kind: "unknown" };
-    if (!res.ok) return { kind: "offline" };
-    return { kind: "ok", status: (await res.json()) as ServiceStatus };
+    if (res.status >= 500) return { kind: "offline" };
+    if (!res.ok) return { kind: "unknown" };
+    try {
+      const body = (await res.json()) as ServiceStatus;
+      if (body === null || typeof body !== "object" || !("service_window" in body)) return { kind: "unknown" };
+      return { kind: "ok", status: body };
+    } catch {
+      return { kind: "unknown" };
+    }
   } catch {
     return { kind: "offline" };
   }
@@ -50,8 +57,8 @@ function hhmmIn(utcIso: string, tz: string): string {
 }
 
 // The service window is configured in the engine's timezone; the visitor sees it in their own.
-export function formatNextOpen(w: ServiceWindowStatus, viewerTz: string = Intl.DateTimeFormat().resolvedOptions().timeZone): string {
-  const day = new Date().toISOString().slice(0, 10);
+export function formatNextOpen(w: ServiceWindowStatus, viewerTz: string = Intl.DateTimeFormat().resolvedOptions().timeZone, now: Date = new Date()): string {
+  const day = now.toISOString().slice(0, 10);
   const wall = (hhmm: string): string => {
     // Resolve today's wall-clock HH:MM in the engine timezone to an instant, then render it in the viewer zone.
     for (let off = -14 * 60; off <= 14 * 60; off += 15) {
