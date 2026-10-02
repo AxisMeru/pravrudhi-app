@@ -98,7 +98,7 @@ export function ContractResult({
   const validated = coverage?.get(c.contract_id) === true;
   const citations = c.citations ?? null;
   const att = c.lean_attestation ?? null;
-  const std = standardLine(standard?.standard, standard?.standard_source);
+  const std = standardLine(standard);
 
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">

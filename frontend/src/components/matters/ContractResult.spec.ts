@@ -69,11 +69,14 @@ test("no copy claims verification or Lean proof", () => {
   assert.doesNotMatch(html, /verified|proven in Lean/i);
 });
 
-test("the standard line sits next to the verdict, defaulting when the engine omits it", () => {
+test("the standard line sits next to the verdict and reads the response object as sent", () => {
   const missing = render(contract({}), null);
-  assert.match(missing, /data-testid="standard-line"[^>]*>standard: proved \(default\)</);
+  assert.match(missing, /data-testid="standard-line"[^>]*>standard: not reported by this engine</);
   const html = renderToStaticMarkup(
-    createElement(ContractResult, { c: contract({}), facts, coverage: null, standard: { standard: "prima_facie_disclosed", standard_source: "posture" } }),
+    createElement(ContractResult, {
+      c: contract({}), facts, coverage: null,
+      standard: { applied: "prima_facie_disclosed", source: "proceeding_posture", proceeding_posture: "quash" },
+    }),
   );
-  assert.match(html, /standard: prima facie disclosed \(from proceeding posture\)/);
+  assert.match(html, /standard: prima facie disclosed \(from proceeding posture: quash\)/);
 });

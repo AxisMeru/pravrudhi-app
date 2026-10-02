@@ -48,23 +48,27 @@ export function shortSha(sha: string): string {
   return sha.length > 12 ? `${sha.slice(0, 12)}…` : sha;
 }
 
+// pravrudhi#220: the response's own `standard` object, read as sent. No inference: a missing object means the
+// engine did not report one, and the line says so rather than assuming a default.
 export interface StandardInfo {
-  standard?: string | null;
-  standard_source?: string | null;
+  applied: string;
+  source: string;
+  proceeding_posture?: string | null;
 }
 
 const STANDARD_LABEL: Record<string, string> = { prima_facie_disclosed: "prima facie disclosed", proved: "proved" };
+const SOURCE_LABEL: Record<string, string> = {
+  proceeding_posture: "from proceeding posture",
+  proceeding_type: "from proceeding type",
+  default: "default",
+};
 
-// The standard line the judge applied and where it came from. The engine may not send either field (a release
-// before pravrudhi#202/#207): absent reads as the engine default "proved", which is what an unset posture means
-// there. An unrecognised value is shown verbatim and marked unknown rather than mapped to a known standard.
-export function standardLine(standard?: string | null, source?: string | null): { text: string; known: boolean } {
-  if (!standard && !source) return { text: "standard: proved (default)", known: false };
-  const name = standard ? STANDARD_LABEL[standard] ?? standard : "proved";
-  const known = !!standard && standard in STANDARD_LABEL && (!source || source === "posture" || source === "default_proved");
-  let suffix: string;
-  if (!source || source === "default_proved") suffix = " (default)";
-  else if (source === "posture") suffix = " (from proceeding posture)";
-  else suffix = ` (source: ${source})`;
-  return { text: `standard: ${name}${suffix}`, known };
+// An unrecognised `applied` or `source` is shown verbatim and marked unknown, never mapped to a known value.
+export function standardLine(std?: StandardInfo | null): { text: string; known: boolean } {
+  if (!std) return { text: "standard: not reported by this engine", known: false };
+  const name = STANDARD_LABEL[std.applied] ?? std.applied;
+  const src = SOURCE_LABEL[std.source] ?? `source: ${std.source}`;
+  const posture = std.proceeding_posture ? `: ${std.proceeding_posture}` : "";
+  const known = std.applied in STANDARD_LABEL && std.source in SOURCE_LABEL;
+  return { text: `standard: ${name} (${src}${std.source === "proceeding_posture" ? posture : ""})`, known };
 }

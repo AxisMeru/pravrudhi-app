@@ -208,7 +208,7 @@ export default function MattersPage() {
               run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
             </div>
             {result.contracts.map((c) => (
-              <ContractResult key={c.contract_id} c={c} facts={result.facts} coverage={coverage} standard={result} />
+              <ContractResult key={c.contract_id} c={c} facts={result.facts} coverage={coverage} standard={result.standard} />
             ))}
           </div>
         )}

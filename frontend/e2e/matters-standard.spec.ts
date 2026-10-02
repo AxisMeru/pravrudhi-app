@@ -1,39 +1,31 @@
 import { expect, test } from "@playwright/test";
 
-// #32: the matter view shows the standard line applied and its source. analyse-facts is mocked so the check
-// is deterministic; the page itself is served by a real local engine ("dev stack (local)", $0).
-const base = {
-  run_id: "r-std", judge: "dev", score_sha256: "a".repeat(64),
-  facts: [{ id: "F1", text: "The cheque was dishonoured on presentment.", sha256: "b".repeat(64) }],
-  contracts: [{
-    contract_id: "ni138", outcome: "PROOF", reason: "all elements established",
-    elements: [{
-      element: "dishonour", is_denial: false, status: "established", claimed: true, p_established: 0.93, fact_id: "F1",
-      quote: "dishonoured", start: 15, end: 26, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "system",
-      quote_source: "model", error: null,
-    }],
-    assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
-  }],
-};
+// #32 / pravrudhi#220: the matter view shows the engine's own `standard` object, unmapped. Runs against a REAL
+// local engine with a real local judge ("dev stack (local)", $0), not a mock, so it needs both:
+// LOCAL_ENGINE_URL (an engine with pravrudhi#222 or later) and REAL_ENGINE_JUDGE=1 (a judge it can reach).
+// Without the judge, analyse-facts returns 503 and there is nothing true to assert, so the test skips.
+test.skip(!process.env.REAL_ENGINE_JUDGE, "needs a real local engine with a reachable judge (REAL_ENGINE_JUDGE=1)");
 
-async function analyse(page: import("@playwright/test").Page, body: object) {
-  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ json: body }));
+test("the standard line equals what the real engine reported in response.standard", async ({ page }) => {
+  test.setTimeout(180_000);
   await page.goto("/matters");
   await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
   const first = page.getByRole("group", { name: "Contracts to check against" }).getByRole("checkbox").first();
   await expect(first).toBeVisible({ timeout: 15_000 });
   await first.click({ force: true });
-  await page.getByLabel("Facts (one per line)").fill("The cheque was dishonoured on presentment.");
-  await page.getByLabel(/^Narrative/).fill("standard line check");
+  await page.getByLabel("Facts (one per line)").fill("TOY: the cheque was dishonoured on presentment.");
+  await page.getByLabel(/^Narrative/).fill("standard line, real engine");
+  const analysed = page.waitForResponse((r) => r.url().includes("/api/v1/analyse-facts"), { timeout: 150_000 });
   await page.getByRole("button", { name: "Analyse" }).click();
-}
-
-test("engine omits the standard: the view says proved (default)", async ({ page }) => {
-  await analyse(page, base);
-  await expect(page.getByTestId("standard-line").first()).toHaveText("standard: proved (default)");
-});
-
-test("engine sends the standard and its source: the view names both", async ({ page }) => {
-  await analyse(page, { ...base, standard: "prima_facie_disclosed", standard_source: "posture" });
-  await expect(page.getByTestId("standard-line").first()).toHaveText("standard: prima facie disclosed (from proceeding posture)");
+  const res = await analysed;
+  expect(res.status()).toBe(200);
+  const std = (await res.json()).standard;
+  expect(std, "engine must send response.standard (pravrudhi#222)").toBeTruthy();
+  const label: Record<string, string> = { proved: "proved", prima_facie_disclosed: "prima facie disclosed" };
+  const src: Record<string, string> = { default: "default", proceeding_posture: "from proceeding posture", proceeding_type: "from proceeding type" };
+  const post = std.source === "proceeding_posture" && std.proceeding_posture ? `: ${std.proceeding_posture}` : "";
+  await expect(page.getByTestId("standard-line").first()).toHaveText(
+    `standard: ${label[std.applied] ?? std.applied} (${src[std.source] ?? `source: ${std.source}`}${post})`,
+    { timeout: 15_000 },
+  );
 });
