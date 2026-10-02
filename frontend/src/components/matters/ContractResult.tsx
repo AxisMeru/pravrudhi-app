@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, HelpCircle, XCircle } from "lucide-react";
 import type { AnalyseFactsContract, AnalyseFactsElement } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
-import { citationLabel, citationState, isUncovered, quoteSegments, shortSha } from "@/lib/matterResults";
+import { citationLabel, citationState, isUncovered, quoteSegments, shortSha, standardLine, type StandardInfo } from "@/lib/matterResults";
 import { referReasonPresentation } from "@/lib/referReason";
 
 type Fact = { id: string; text: string };
@@ -73,10 +73,12 @@ export function ContractResult({
   c,
   facts,
   coverage,
+  standard,
 }: {
   c: AnalyseFactsContract;
   facts: readonly Fact[];
   coverage: Map<string, boolean> | null;
+  standard?: StandardInfo | null;
 }) {
   if (isUncovered(c.contract_id, coverage)) {
     return (
@@ -96,6 +98,7 @@ export function ContractResult({
   const validated = coverage?.get(c.contract_id) === true;
   const citations = c.citations ?? null;
   const att = c.lean_attestation ?? null;
+  const std = standardLine(standard?.standard, standard?.standard_source);
 
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -110,6 +113,7 @@ export function ContractResult({
         </h3>
         <OutcomeBadge outcome={c.outcome} />
       </header>
+      <p data-testid="standard-line" data-known={std.known} className="text-xs text-[var(--color-text-dim)]">{std.text}</p>
 
       {c.outcome === "REFER_TO_LAWYER" && (() => {
         const referred = referReasonPresentation(c.reason);

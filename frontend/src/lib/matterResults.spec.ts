@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { citationLabel, citationState, coverageById, isUncovered, quoteSegments } from "./matterResults";
+import { citationLabel, citationState, coverageById, isUncovered, quoteSegments, standardLine } from "./matterResults";
 
 const facts = [{ id: "F1", text: "The cheque was dishonoured on 3 May." }];
 
@@ -33,4 +33,22 @@ test("citations are marked by corpus membership", () => {
   assert.equal(citationState(bad), "unresolved");
   assert.equal(citationLabel(ok), "NI Act s. 138");
   assert.equal(citationLabel(bad), "BNS");
+});
+
+test("standardLine: missing fields read as the engine default, never as a stronger or weaker standard", () => {
+  assert.deepEqual(standardLine(undefined, undefined), { text: "standard: proved (default)", known: false });
+  assert.deepEqual(standardLine(null, null), { text: "standard: proved (default)", known: false });
+});
+
+test("standardLine names the standard and its source when the engine sends them", () => {
+  assert.equal(standardLine("prima_facie_disclosed", "posture").text, "standard: prima facie disclosed (from proceeding posture)");
+  assert.equal(standardLine("proved", "posture").text, "standard: proved (from proceeding posture)");
+  assert.equal(standardLine("proved", "default_proved").text, "standard: proved (default)");
+  assert.equal(standardLine("prima_facie_disclosed", "posture").known, true);
+});
+
+test("standardLine shows an unrecognised value verbatim instead of guessing", () => {
+  const s = standardLine("beyond_doubt", "operator");
+  assert.equal(s.text, "standard: beyond_doubt (source: operator)");
+  assert.equal(s.known, false);
 });

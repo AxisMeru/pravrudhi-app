@@ -47,3 +47,24 @@ export function citationState(c: AnalyseFactsCitation): CitationState {
 export function shortSha(sha: string): string {
   return sha.length > 12 ? `${sha.slice(0, 12)}…` : sha;
 }
+
+export interface StandardInfo {
+  standard?: string | null;
+  standard_source?: string | null;
+}
+
+const STANDARD_LABEL: Record<string, string> = { prima_facie_disclosed: "prima facie disclosed", proved: "proved" };
+
+// The standard line the judge applied and where it came from. The engine may not send either field (a release
+// before pravrudhi#202/#207): absent reads as the engine default "proved", which is what an unset posture means
+// there. An unrecognised value is shown verbatim and marked unknown rather than mapped to a known standard.
+export function standardLine(standard?: string | null, source?: string | null): { text: string; known: boolean } {
+  if (!standard && !source) return { text: "standard: proved (default)", known: false };
+  const name = standard ? STANDARD_LABEL[standard] ?? standard : "proved";
+  const known = !!standard && standard in STANDARD_LABEL && (!source || source === "posture" || source === "default_proved");
+  let suffix: string;
+  if (!source || source === "default_proved") suffix = " (default)";
+  else if (source === "posture") suffix = " (from proceeding posture)";
+  else suffix = ` (source: ${source})`;
+  return { text: `standard: ${name}${suffix}`, known };
+}

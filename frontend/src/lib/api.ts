@@ -1234,6 +1234,11 @@ export interface AnalyseFactsCitation {
 }
 
 export interface AnalyseFactsResult {
+  // The standard line the judge applied ("prima_facie_disclosed" | "proved") and its source ("posture" |
+  // "default_proved"), from pravrudhi#202/#207. Optional: an engine release before them omits both; the view
+  // then shows the engine default. Not yet on the response as of pravrudhi main (it is in the audit row only).
+  standard?: string | null;
+  standard_source?: string | null;
   run_id: string;
   judge: string;
   score_sha256: string;
