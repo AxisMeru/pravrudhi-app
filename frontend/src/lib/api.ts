@@ -1234,6 +1234,8 @@ export interface AnalyseFactsCitation {
 }
 
 export interface AnalyseFactsResult {
+  // pravrudhi#220: the standard applied, as the engine sent it. Optional: an older engine omits it.
+  standard?: { applied: string; source: string; proceeding_posture?: string | null } | null;
   run_id: string;
   judge: string;
   score_sha256: string;

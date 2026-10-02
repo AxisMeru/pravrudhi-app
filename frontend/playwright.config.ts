@@ -28,7 +28,7 @@ export default defineConfig({
       name: "product-chromium",
       testMatch: [
         "product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts",
-        "run-plain-language.spec.ts", "matters.spec.ts", "matters-outage.spec.ts",
+        "run-plain-language.spec.ts", "matters.spec.ts", "matters-outage.spec.ts", "matters-standard.spec.ts",
       ],
     },
     // The nightly's project only exists when the nightly's account is in the environment

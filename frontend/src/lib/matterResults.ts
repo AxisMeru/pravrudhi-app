@@ -47,3 +47,33 @@ export function citationState(c: AnalyseFactsCitation): CitationState {
 export function shortSha(sha: string): string {
   return sha.length > 12 ? `${sha.slice(0, 12)}…` : sha;
 }
+
+// pravrudhi#220: the response's own `standard` object, read as sent. No inference: a missing object means the
+// engine did not report one, and the line says so rather than assuming a default.
+export interface StandardInfo {
+  applied: string;
+  source: string;
+  proceeding_posture?: string | null;
+  // pravrudhi#222: false = the basis is recorded but the judge's prompt never stated it. Absent on older engines.
+  in_judge_prompt?: boolean;
+}
+
+const STANDARD_LABEL: Record<string, string> = { prima_facie_disclosed: "prima facie disclosed", proved: "proved" };
+const SOURCE_LABEL: Record<string, string> = {
+  proceeding_posture: "from proceeding posture",
+  proceeding_type: "from proceeding type",
+  default: "default",
+};
+
+// An unrecognised `applied` or `source` is shown verbatim and marked unknown, never mapped to a known value.
+export function standardLine(std?: StandardInfo | null): { text: string; known: boolean } {
+  if (!std) return { text: "standard: not reported by this engine", known: false };
+  const name = STANDARD_LABEL[std.applied] ?? std.applied;
+  const src = SOURCE_LABEL[std.source] ?? `source: ${std.source}`;
+  const posture = std.proceeding_posture ? `: ${std.proceeding_posture}` : "";
+  const known = std.applied in STANDARD_LABEL && std.source in SOURCE_LABEL;
+  if (std.in_judge_prompt === false) {
+    return { text: `standard: ${name} (basis stated; not given to the judge)`, known };
+  }
+  return { text: `standard: ${name} (${src}${std.source === "proceeding_posture" ? posture : ""})`, known };
+}
