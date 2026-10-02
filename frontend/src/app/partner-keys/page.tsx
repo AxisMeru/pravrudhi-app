@@ -87,6 +87,13 @@ export default function PartnerKeysPage() {
           <div role="status" className="rounded border border-[var(--color-border)] p-3 text-sm">
             <p>New key secret, shown once. Copy it now.</p>
             <code className="mt-1 block break-all">{created.secret}</code>
+            <button
+              type="button"
+              className="mt-2 rounded border border-[var(--color-border)] px-2 py-1 text-xs"
+              onClick={() => void navigator.clipboard?.writeText(created.secret)}
+            >
+              Copy secret
+            </button>
           </div>
         )}
 
@@ -113,10 +120,10 @@ export default function PartnerKeysPage() {
 
             {view.kind === "empty" && <p className="text-sm text-[var(--color-text-dim)]">No keys yet.</p>}
             {view.kind === "rows" && (
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm" aria-label="Partner keys and usage">
                 <thead>
                   <tr className="text-[var(--color-text-dim)]">
-                    <th>Key</th><th>Status</th><th>Calls (30d)</th><th>Failed</th><th>By day</th><th />
+                    <th scope="col">Key</th><th scope="col">Status</th><th scope="col">Calls (30d)</th><th scope="col">Failed</th><th scope="col">By day</th><th scope="col"><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -129,7 +136,16 @@ export default function PartnerKeysPage() {
                       <td>{r.days.map((d) => `${d.day}: ${d.calls}${d.failed ? ` (${d.failed} failed)` : ""}`).join("; ") || "no calls"}</td>
                       <td>
                         {!r.revoked && (
-                          <button disabled={busy} onClick={() => void revoke(r.keyId)} className="text-red-500">Revoke</button>
+                          <button
+                            disabled={busy}
+                            aria-label={`Revoke key ${r.label || r.keyId}`}
+                            onClick={() => {
+                              if (window.confirm(`Revoke key ${r.label || r.keyId}? Calls using it will stop working.`)) void revoke(r.keyId);
+                            }}
+                            className="text-red-500"
+                          >
+                            Revoke
+                          </button>
                         )}
                       </td>
                     </tr>
