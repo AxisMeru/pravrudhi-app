@@ -1118,11 +1118,33 @@ export interface NyayaRegistryCheckResult {
   provenance: string;
 }
 
-export async function nyayaRegistryContracts(): Promise<string[]> {
-  if (IS_DEMO) return [];
+// One registry contract with its coverage flag (AxisMeru/pravrudhi#143). `validated` is true only for contracts
+// the scorer has a validated judge for; every other id can only ever come back REFER_TO_LAWYER.
+export interface RegistryContractEntry {
+  id: string;
+  validated: boolean;
+  sources?: string[] | null;
+}
+
+export interface RegistryListing {
+  contracts: string[];
+  // Null when the engine predates #143 and sends no `entries`: coverage is then unknown, never assumed.
+  entries: RegistryContractEntry[] | null;
+}
+
+export async function nyayaRegistryListing(): Promise<RegistryListing> {
+  if (IS_DEMO) return { contracts: [], entries: null };
   // Part of the demo-anon surface (PRAVRUDHI_DEMO_ANON_PATHS) -- a 401 here from a genuinely anonymous
   // visitor must not redirect to /signin; it's reported to the caller like any other failure.
-  return (await getJSON<{ contracts: string[] }>("/api/nyaya/registry/contracts", { authOptional: true })).contracts;
+  const body = await getJSON<{ contracts: string[]; entries?: RegistryContractEntry[] | null }>(
+    "/api/nyaya/registry/contracts",
+    { authOptional: true },
+  );
+  return { contracts: body.contracts, entries: Array.isArray(body.entries) && body.entries.length > 0 ? body.entries : null };
+}
+
+export async function nyayaRegistryContracts(): Promise<string[]> {
+  return (await nyayaRegistryListing()).contracts;
 }
 
 export async function nyayaRegistryElements(contractId: string): Promise<string[]> {
@@ -1193,8 +1215,22 @@ export interface AnalyseFactsContract {
   assertions: Record<string, boolean> | null;
   lean: { verdict: string; denied_claims: string[]; unlicensed_claims: string[]; omitted_claims: string[] } | null;
   lean_outcome: string | null;
+  // What the pinned Lean checker was handed and by which binary (AxisMeru/pravrudhi analyse-facts). Optional:
+  // an engine release before it omits the field; null when no Lean call ran.
+  lean_attestation?: { binary_sha256: string; wire_sha256: string; verdict: string } | null;
+  // The contract's statute references with an in-corpus check (AxisMeru/pravrudhi#142). Optional for the same
+  // reason; null means the engine could not read them on this request, which is a gap to show, not an empty list.
+  citations?: AnalyseFactsCitation[] | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
+}
+
+export interface AnalyseFactsCitation {
+  act: string;
+  section: string | null;
+  corpus_id: string | null;
+  in_corpus: boolean;
+  title: string | null;
 }
 
 export interface AnalyseFactsResult {
