@@ -50,3 +50,14 @@ body {
     color: inherit;
   }
 }
+
+@media print {
+  nav,
+  aside {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
