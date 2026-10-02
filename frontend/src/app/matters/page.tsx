@@ -2,7 +2,7 @@
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
 // the house judge found established, the verbatim quote each one cites (quote-checked against the submitted
-// facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
+// facts, highlighted at the engine's returned offsets; not checked for relevance), Lean's structural check (the right element set, nothing about the facts
 // or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
 // /api/v1/analyse-facts (L4, docs/decisions/LEG-PLAN-2026-09-23.md) through
@@ -11,151 +11,16 @@
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
 
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
-import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
-import { elementStatusPresentation } from "@/lib/elementStatus";
-import { referReasonPresentation } from "@/lib/referReason";
+import { Loader2, Scale } from "lucide-react";
+import { analyseFacts, nyayaRegistryListing, ApiError, type AnalyseFactsResult } from "@/lib/api";
+import { coverageById } from "@/lib/matterResults";
+import { ContractResult } from "@/components/matters/ContractResult";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 
-// A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
-// statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
-// 318/217/80/108, bnss187, ni138 among them). Matched on the reason string rather than a separate response
-// field because that's what the engine actually sends; if the engine later adds a typed field for this, prefer
-// it over the string match.
-const UNCOVERED_REASON_TOKEN = "no_training_statute_text";
-
-const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckCircle2 }> = {
-  PROOF: { label: "established", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
-  DENIAL: { label: "not established", tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
-  ABSTAIN: { label: "abstained", tone: "text-sky-400 border-sky-500/40 bg-sky-500/10", Icon: HelpCircle },
-  REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
-};
-
-function isUncovered(c: AnalyseFactsContract): boolean {
-  return c.outcome === "ABSTAIN" && c.reason.includes(UNCOVERED_REASON_TOKEN);
-}
-
-function OutcomeBadge({ outcome }: { outcome: string }) {
-  const o = OUTCOME[outcome] ?? { label: outcome, tone: "text-[var(--color-text-dim)] border-[var(--color-border)]", Icon: HelpCircle };
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${o.tone}`}>
-      <o.Icon size={13} /> {o.label}
-    </span>
-  );
-}
-
-function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
-  // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
-  // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
-  const status = elementStatusPresentation(el.status);
-  return (
-    <tr className="border-t border-[var(--color-border)]">
-      <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
-      <td className="py-2 pr-3 align-top">
-        <span
-          className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium ${status.tone}`}
-        >
-          {status.label}
-        </span>
-        {el.p_established !== null && (
-          <span className="ml-1.5 text-[11px] text-[var(--color-text-dim)]">p={el.p_established.toFixed(2)}</span>
-        )}
-      </td>
-      <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
-        {el.quote ? (
-          <>
-            <span className="italic">&ldquo;{el.quote}&rdquo;</span>
-            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
-          </>
-        ) : el.error ? (
-          <span className="text-red-400">{el.error}</span>
-        ) : (
-          <span>no quote</span>
-        )}
-      </td>
-    </tr>
-  );
-}
-
-function ContractResult({ c }: { c: AnalyseFactsContract }) {
-  if (isUncovered(c)) {
-    return (
-      <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-        <header className="flex items-center justify-between gap-2">
-          <div className="text-sm font-medium text-[var(--color-text)]">{c.contract_id}</div>
-          <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
-        </header>
-        <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-          No judge has been trained on this contract&apos;s statute text yet — this is a gap in coverage, not a
-          failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
-        </p>
-      </article>
-    );
-  }
-
-  return (
-    <article className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-medium text-[var(--color-text)]">{c.contract_id}</div>
-        <OutcomeBadge outcome={c.outcome} />
-      </header>
-
-      {c.outcome === "REFER_TO_LAWYER" && (() => {
-        // R1's finding (2026-09-27): every REFER_TO_LAWYER used to show this same "not confident" sentence,
-        // even for reasons that are not uncertainty at all (second_judge_unavailable, contract_not_validated,
-        // ...). referReasonPresentation names the actual situation; the raw reason code is always shown too,
-        // never hidden or reinterpreted, so a reader (or a reviewer) can always see exactly what the engine
-        // said even if this build's wording is wrong or stale.
-        const referred = referReasonPresentation(c.reason);
-        return (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
-            <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
-            <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
-          </div>
-        );
-      })()}
-
-      {c.elements.length > 0 && (
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="text-xs text-[var(--color-text-dim)]">
-              <th className="pb-1 pr-3 font-medium">element</th>
-              <th className="pb-1 pr-3 font-medium">status</th>
-              <th className="pb-1 font-medium">quote (verbatim from your facts)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {c.elements.map((el, i) => (
-              <ElementRow key={`${el.element}-${i}`} el={el} />
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {c.lean && (
-        <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
-          <div className="font-medium text-[var(--color-text)]">
-            Lean structural check: {c.lean_outcome ?? c.lean.verdict}
-          </div>
-          <div className="mt-1 text-[var(--color-text-dim)]">
-            Lean checks that the right elements for this contract were addressed — it does not read the facts
-            or quotes. The element findings above come from the judge and are quote-checked against the facts
-            you supplied.
-          </div>
-          {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
-          {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
-          {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
-        </div>
-      )}
-
-      {!isUncovered(c) && c.reason && <p className="text-xs text-[var(--color-text-dim)]">{c.reason}</p>}
-    </article>
-  );
-}
-
 export default function MattersPage() {
   const [contracts, setContracts] = useState<string[]>([]);
+  const [coverage, setCoverage] = useState<Map<string, boolean> | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [factsText, setFactsText] = useState("");
   const [narrative, setNarrative] = useState("");
@@ -186,10 +51,11 @@ export default function MattersPage() {
 
   useEffect(() => {
     let off = false;
-    nyayaRegistryContracts()
-      .then((cs) => {
+    nyayaRegistryListing()
+      .then((l) => {
         if (off) return;
-        setContracts(cs);
+        setContracts(l.contracts);
+        setCoverage(coverageById(l.entries));
       })
       .catch((e: unknown) => {
         if (off) return;
@@ -249,7 +115,7 @@ export default function MattersPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <PageHeader title="Matters" subtitle="Enter the facts of a situation and check them against the registry's compiled contracts." />
-      <div className="flex flex-1 flex-col gap-6 p-8">
+      <div className="flex flex-1 flex-col gap-6 p-4 sm:p-8">
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
@@ -342,7 +208,7 @@ export default function MattersPage() {
               run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
             </div>
             {result.contracts.map((c) => (
-              <ContractResult key={c.contract_id} c={c} />
+              <ContractResult key={c.contract_id} c={c} facts={result.facts} coverage={coverage} />
             ))}
           </div>
         )}
