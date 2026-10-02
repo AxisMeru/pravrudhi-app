@@ -1257,3 +1257,51 @@ export async function analyseFacts(
   }
   return (await res.json()) as AnalyseFactsResult;
 }
+
+// Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in
+// admin allowlist and refuses everyone else, so nothing in this app holds a provisioning secret.
+export interface PartnerKey {
+  key_id: string;
+  org_id: string;
+  label: string;
+  created: string;
+  revoked: boolean;
+  revoked_at: string | null;
+  rate_limit_per_minute: number;
+}
+export interface CreatedPartnerKey extends PartnerKey {
+  secret: string;
+}
+export interface PartnerUsageDay {
+  day: string;
+  calls: number;
+  failed: number;
+}
+export interface PartnerKeyUsage {
+  key_id: string;
+  label: string;
+  revoked: boolean;
+  days: PartnerUsageDay[];
+}
+
+const orgPath = (org: string) => `/api/v1/orgs/${encodeURIComponent(org)}`;
+
+export async function partnerKeys(org: string): Promise<PartnerKey[]> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys`);
+  return (await getJSON<{ keys: PartnerKey[] }>(`${orgPath(org)}/keys`)).keys;
+}
+
+export async function createPartnerKey(org: string, label: string): Promise<CreatedPartnerKey> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys`);
+  return postJSON<CreatedPartnerKey>(`${orgPath(org)}/keys`, { label });
+}
+
+export async function revokePartnerKey(org: string, keyId: string): Promise<PartnerKey> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys/${keyId}/revoke`);
+  return postJSON<PartnerKey>(`${orgPath(org)}/keys/${encodeURIComponent(keyId)}/revoke`, {});
+}
+
+export async function partnerUsage(org: string, days = 30): Promise<PartnerKeyUsage[]> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/usage/summary`);
+  return (await getJSON<{ keys: PartnerKeyUsage[] }>(`${orgPath(org)}/usage/summary?days=${days}`)).keys;
+}
