@@ -10,7 +10,7 @@
 // shared rate limit; this page adds no auth gate of its own (api.ts's engineFetch already omits the bearer
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
 
-import { checkFacts, extractText } from "@/lib/factsInput";
+import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
@@ -267,7 +267,16 @@ export default function MattersPage() {
               const file = e.target.files?.[0];
               e.target.value = "";
               if (!file) return;
-              const r = await extractText(file);
+              let parsers = {};
+              if (fileKind(file.name) !== "txt") {
+                try {
+                  parsers = (await import("@/lib/docParsers")).browserParsers;
+                } catch {
+                  setError(UNREADABLE_MESSAGE);
+                  return;
+                }
+              }
+              const r = await extractText(file, parsers);
               if (r.ok) {
                 setFactsText(r.text);
                 setError(null);
