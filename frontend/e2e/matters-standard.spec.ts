@@ -24,8 +24,11 @@ test("the standard line equals what the real engine reported in response.standar
   const label: Record<string, string> = { proved: "proved", prima_facie_disclosed: "prima facie disclosed" };
   const src: Record<string, string> = { default: "default", proceeding_posture: "from proceeding posture", proceeding_type: "from proceeding type" };
   const post = std.source === "proceeding_posture" && std.proceeding_posture ? `: ${std.proceeding_posture}` : "";
+  const basis = std.in_judge_prompt === false
+    ? "basis stated; not given to the judge"
+    : `${src[std.source] ?? `source: ${std.source}`}${post}`;
   await expect(page.getByTestId("standard-line").first()).toHaveText(
-    `standard: ${label[std.applied] ?? std.applied} (${src[std.source] ?? `source: ${std.source}`}${post})`,
+    `standard: ${label[std.applied] ?? std.applied} (${basis})`,
     { timeout: 15_000 },
   );
 });
