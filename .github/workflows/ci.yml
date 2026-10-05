@@ -7,6 +7,17 @@ on:
     branches: [main]
 
 jobs:
+  private-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: guard tests
+        run: node --test scripts/test/*.test.mjs
+      - name: no recorded-looking ids, emails or home paths in fixtures and e2e specs
+        run: node scripts/check-no-private-data.mjs
+
   frontend:
     runs-on: ubuntu-latest
     steps:
