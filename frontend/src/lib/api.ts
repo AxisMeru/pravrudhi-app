@@ -98,11 +98,13 @@ export const IS_DEMO = detectDemo();
 
 export interface ApiErrorDetail {
   code?: string;
+  reason?: string;
   retryAfter?: number;
 }
 
 export class ApiError extends Error {
   readonly code?: string;
+  readonly reason?: string;
   readonly retryAfter?: number;
   constructor(
     public readonly status: number,
@@ -112,20 +114,23 @@ export class ApiError extends Error {
     super(`${path}: HTTP ${status}`);
     this.name = "ApiError";
     this.code = detail.code;
+    this.reason = detail.reason;
     this.retryAfter = detail.retryAfter;
   }
 }
 
 async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
   let code: string | undefined;
+  let reason: string | undefined;
   try {
-    const body = (await res.clone().json()) as { error?: unknown };
+    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown };
     if (typeof body.error === "string") code = body.error;
+    if (typeof body.reason === "string") reason = body.reason;
   } catch {
     /* not JSON (a gateway error page): status alone */
   }
   const ra = Number(res.headers.get("retry-after"));
-  return new ApiError(res.status, path, { code, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
+  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
 }
 
 // Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
@@ -1292,4 +1297,52 @@ export async function analyseFacts(
     if (!res.ok) throw err;
   }
   return (await res.json()) as AnalyseFactsResult;
+}
+
+// Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in
+// admin allowlist and refuses everyone else, so nothing in this app holds a provisioning secret.
+export interface PartnerKey {
+  key_id: string;
+  org_id: string;
+  label: string;
+  created: string;
+  revoked: boolean;
+  revoked_at: string | null;
+  rate_limit_per_minute: number;
+}
+export interface CreatedPartnerKey extends PartnerKey {
+  secret: string;
+}
+export interface PartnerUsageDay {
+  day: string;
+  calls: number;
+  failed: number;
+}
+export interface PartnerKeyUsage {
+  key_id: string;
+  label: string;
+  revoked: boolean;
+  days: PartnerUsageDay[];
+}
+
+const orgPath = (org: string) => `/api/v1/orgs/${encodeURIComponent(org)}`;
+
+export async function partnerKeys(org: string): Promise<PartnerKey[]> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys`);
+  return (await getJSON<{ keys: PartnerKey[] }>(`${orgPath(org)}/keys`)).keys;
+}
+
+export async function createPartnerKey(org: string, label: string): Promise<CreatedPartnerKey> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys`);
+  return postJSON<CreatedPartnerKey>(`${orgPath(org)}/keys`, { label });
+}
+
+export async function revokePartnerKey(org: string, keyId: string): Promise<PartnerKey> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/keys/${keyId}/revoke`);
+  return postJSON<PartnerKey>(`${orgPath(org)}/keys/${encodeURIComponent(keyId)}/revoke`, {});
+}
+
+export async function partnerUsage(org: string, days = 30): Promise<PartnerKeyUsage[]> {
+  if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/usage/summary`);
+  return (await getJSON<{ keys: PartnerKeyUsage[] }>(`${orgPath(org)}/usage/summary?days=${days}`)).keys;
 }

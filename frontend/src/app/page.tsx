@@ -7,6 +7,8 @@
 // See docs/decisions/reports/2026-09-12-s7-product-front-door.md for what used to be here and why it came out.
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { DEMO_HOME, DEMO_PATH } from "@/lib/demoPath";
 import { IS_DEMO } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { ResultBand } from "@/components/home/ResultBand";
@@ -20,8 +22,13 @@ const POLL_MS = 10000;
 
 export default function HomePage() {
   const [data, setData] = useState<HomeData | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
+    if (DEMO_PATH) {
+      router.replace(DEMO_HOME);
+      return;
+    }
     let cancelled = false;
     const refresh = () => loadHome().then((d) => !cancelled && setData(d));
     refresh();
@@ -32,7 +39,7 @@ export default function HomePage() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [router]);
 
   return (
     <div>
