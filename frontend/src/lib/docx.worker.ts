@@ -8,6 +8,9 @@ const scope = self as unknown as {
 
 scope.onmessage = async (e) => {
   try {
+    // Declared sizes are verified by a bounded inflate first, so mammoth never inflates more than was declared.
+    const { verifyDocxInflation } = await import("./docxArchive");
+    await verifyDocxInflation(e.data);
     const mammoth = await import("mammoth");
     const { value } = await mammoth.extractRawText({ arrayBuffer: e.data });
     scope.postMessage({ ok: true, text: value });

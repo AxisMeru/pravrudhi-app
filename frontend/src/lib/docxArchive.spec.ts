@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { checkDocxArchive, MAX_DOCX_ENTRIES, MAX_DOCX_RATIO } from "./docxArchive";
+import { randomBytes } from "node:crypto";
+import { deflateRawSync } from "node:zlib";
+
+import { checkDocxArchive, MAX_DOCX_ENTRIES, MAX_DOCX_RATIO, verifyDocxInflation } from "./docxArchive";
 import { DOCX_WORKER_TIMEOUT_MS, parseDocxInWorker, type DocxWorkerLike } from "./docParsers";
 import { ExtractError } from "./factsInput";
 
@@ -88,4 +91,78 @@ test("a failing worker rejects and is terminated; a bomb never even starts one",
   const bomb = zip([{ name: "word/document.xml", compressed: 10, uncompressed: 10_000_000 }]);
   await assert.rejects(async () => parseDocxInWorker(bomb, () => { created++; return failing; }));
   assert.equal(created, 0);
+});
+
+
+// A real zip (local headers, data, central directory, end record) with true deflate data. `declared` lets a test make a
+// header lie about the size; `comment` pads the end record's comment.
+interface Part { name: string; data: Uint8Array; method?: 0 | 8 | 12; declared?: number }
+function realZip(parts: Part[], comment = 0): ArrayBuffer {
+  const chunks: Buffer[] = [];
+  const central: number[] = [];
+  let length = 0;
+  const push = (b: Buffer | number[]) => {
+    const buf = Buffer.from(b);
+    chunks.push(buf);
+    length += buf.length;
+  };
+  for (const p of parts) {
+    const method = p.method ?? 8;
+    const body = method === 8 ? deflateRawSync(p.data) : Buffer.from(p.data);
+    const name = [...new TextEncoder().encode(p.name)];
+    const declared = p.declared ?? p.data.length;
+    const offset = length;
+    push([...u32(0x04034b50), ...u16(20), ...u16(0), ...u16(method), ...u16(0), ...u16(0), ...u32(0),
+      ...u32(body.length), ...u32(declared), ...u16(name.length), ...u16(0), ...name]);
+    push(body);
+    central.push(...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0), ...u16(method), ...u16(0), ...u16(0), ...u32(0),
+      ...u32(body.length), ...u32(declared), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+      ...u32(0), ...u32(offset), ...name);
+  }
+  const cdOffset = length;
+  push(central);
+  push([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(parts.length), ...u16(parts.length), ...u32(central.length),
+    ...u32(cdOffset), ...u16(comment), ...new Array(comment).fill(65)]);
+  const all = Buffer.concat(chunks);
+  return all.buffer.slice(all.byteOffset, all.byteOffset + all.byteLength) as ArrayBuffer;
+}
+
+test("a real-sized docx (over 100 KB, 300 KB and 2 MB) is accepted, not refused as unreadable", async () => {
+  for (const size of [101 * 1024, 301 * 1024, 2 * 1024 * 1024]) {
+    const doc = realZip([
+      { name: "[Content_Types].xml", data: new TextEncoder().encode("<Types/>") },
+      { name: "word/document.xml", data: new Uint8Array(randomBytes(size)) },
+    ]);
+    assert.ok(doc.byteLength > 100 * 1024);
+    checkDocxArchive(doc);
+    await verifyDocxInflation(doc);
+  }
+});
+
+test("the end record is found whatever the file size and a trailing comment", async () => {
+  const doc = realZip([{ name: "word/document.xml", data: new Uint8Array(randomBytes(400 * 1024)) }], 5000);
+  checkDocxArchive(doc);
+  await verifyDocxInflation(doc);
+});
+
+test("a part that inflates to more than it declares is refused by the bounded inflate (the header lied)", async () => {
+  const lying = realZip([{ name: "word/document.xml", data: new Uint8Array(5 * 1024 * 1024), declared: 100 }]);
+  // The declared sizes look harmless (the check alone is fooled)...
+  assert.doesNotThrow(() => checkDocxArchive(lying));
+  // ...the bounded inflate is not.
+  await assert.rejects(verifyDocxInflation(lying), (e: unknown) => e instanceof ExtractError && /size declarations/.test(e.message));
+});
+
+test("a part that inflates to less than declared, an unsupported method and a stored size mismatch are refused", async () => {
+  const short = realZip([{ name: "a.xml", data: new Uint8Array(1000), declared: 5000 }]);
+  await assert.rejects(verifyDocxInflation(short), (e: unknown) => e instanceof ExtractError);
+  const exotic = realZip([{ name: "a.xml", data: new Uint8Array(10), method: 12 }]);
+  await assert.rejects(verifyDocxInflation(exotic), (e: unknown) => e instanceof ExtractError);
+  const stored = realZip([{ name: "a.xml", data: new Uint8Array(10), method: 0, declared: 20 }]);
+  await assert.rejects(verifyDocxInflation(stored), (e: unknown) => e instanceof ExtractError);
+});
+
+test("the cumulative declared size over the cap is refused even when each part is honest", () => {
+  const parts = Array.from({ length: 6 }, (_, i) => ({ name: `p${i}.xml`, data: new Uint8Array(randomBytes(10 * 1024 * 1024)) }));
+  assert.throws(() => checkDocxArchive(realZip(parts)), (e: unknown) => e instanceof ExtractError && /50 MB/.test(e.message));
 });

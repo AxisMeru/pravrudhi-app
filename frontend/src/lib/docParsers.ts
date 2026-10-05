@@ -2,7 +2,7 @@
 // parsed locally and only the extracted text (after the user reviews it) is ever sent anywhere. PDF parsing runs
 // in pdf.js's own worker in the browser. No OCR: a scanned PDF yields no text and the caller says so.
 
-import { checkDocxArchive } from "./docxArchive";
+import { checkDocxArchive, verifyDocxInflation } from "./docxArchive";
 import { ExtractError, MAX_PDF_PAGES } from "./factsInput";
 
 type PdfJs = typeof import("pdfjs-dist");
@@ -89,6 +89,7 @@ export function parseDocxInWorker(
 export async function parseDocx(data: ArrayBuffer): Promise<string> {
   if (typeof Worker === "undefined") {
     checkDocxArchive(data);
+    await verifyDocxInflation(data);
     return parseDocxDirect(data);
   }
   return parseDocxInWorker(data);
