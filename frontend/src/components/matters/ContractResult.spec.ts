@@ -96,8 +96,9 @@ test("the standard line sits next to the verdict and reads the response object a
   const notGiven = renderToStaticMarkup(
     createElement(ContractResult, {
       c: contract({}), facts, coverage: null,
-      standard: { applied: "prima_facie_disclosed", source: "proceeding_posture", proceeding_posture: "quash", in_judge_prompt: false },
+      standard: { requested: "prima_facie_disclosed", applied: null, source: "proceeding_posture", proceeding_posture: "quash", in_judge_prompt: false },
     }),
   );
-  assert.match(notGiven, /standard: prima facie disclosed \(basis stated; not given to the judge\)/);
+  assert.match(notGiven, /standard requested: prima facie disclosed .*; not applied, the judge was never told it/);
+  assert.doesNotMatch(notGiven, /standard: null|standard: undefined/);
 });

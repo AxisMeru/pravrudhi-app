@@ -48,13 +48,16 @@ export function shortSha(sha: string): string {
   return sha.length > 12 ? `${sha.slice(0, 12)}…` : sha;
 }
 
-// pravrudhi#220: the response's own `standard` object, read as sent. No inference: a missing object means the
-// engine did not report one, and the line says so rather than assuming a default.
+// pravrudhi#220/#222: the response's own `standard` object, read as sent. No inference: a missing object means the
+// engine did not report one, and the line says so rather than assuming a default. `requested` is the standard the
+// posture asks for; `applied` is the standard the judge's prompt actually stated, or null when it stated none. An
+// older engine sends only `applied` (as the standard in force); that shape is still read as before.
 export interface StandardInfo {
-  applied: string;
+  requested?: string;
+  applied?: string | null;
   source: string;
   proceeding_posture?: string | null;
-  // pravrudhi#222: false = the basis is recorded but the judge's prompt never stated it. Absent on older engines.
+  // false = the basis is recorded but the judge's prompt never stated it. Absent on older engines.
   in_judge_prompt?: boolean;
 }
 
@@ -65,15 +68,19 @@ const SOURCE_LABEL: Record<string, string> = {
   default: "default",
 };
 
-// An unrecognised `applied` or `source` is shown verbatim and marked unknown, never mapped to a known value.
+// An unrecognised `requested`, `applied` or `source` is shown verbatim and marked unknown, never mapped to a known
+// value. A standard the judge was never told is never shown as applied, and "null" is never printed.
 export function standardLine(std?: StandardInfo | null): { text: string; known: boolean } {
   if (!std) return { text: "standard: not reported by this engine", known: false };
-  const name = STANDARD_LABEL[std.applied] ?? std.applied;
+  const named = std.requested ?? std.applied;
+  if (named === undefined || named === null) return { text: "standard: not reported by this engine", known: false };
+  const name = STANDARD_LABEL[named] ?? named;
   const src = SOURCE_LABEL[std.source] ?? `source: ${std.source}`;
   const posture = std.proceeding_posture ? `: ${std.proceeding_posture}` : "";
-  const known = std.applied in STANDARD_LABEL && std.source in SOURCE_LABEL;
-  if (std.in_judge_prompt === false) {
-    return { text: `standard: ${name} (basis stated; not given to the judge)`, known };
+  const known = named in STANDARD_LABEL && std.source in SOURCE_LABEL;
+  const basis = `${src}${std.source === "proceeding_posture" ? posture : ""}`;
+  if (std.applied === null || std.in_judge_prompt === false) {
+    return { text: `standard requested: ${name} (${basis}); not applied, the judge was never told it`, known };
   }
-  return { text: `standard: ${name} (${src}${std.source === "proceeding_posture" ? posture : ""})`, known };
+  return { text: `standard: ${name} (${basis})`, known };
 }

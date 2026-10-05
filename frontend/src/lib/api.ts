@@ -1239,8 +1239,15 @@ export interface AnalyseFactsCitation {
 }
 
 export interface AnalyseFactsResult {
-  // pravrudhi#220: the standard applied, as the engine sent it. Optional: an older engine omits it.
-  standard?: { applied: string; source: string; proceeding_posture?: string | null } | null;
+  // pravrudhi#220/#222: the standard requested and the standard actually applied (null when the judge's prompt did
+  // not state one), as the engine sent it. Optional: an older engine omits it, or sends only `applied`.
+  standard?: {
+    requested?: string;
+    applied?: string | null;
+    source: string;
+    proceeding_posture?: string | null;
+    in_judge_prompt?: boolean;
+  } | null;
   run_id: string;
   judge: string;
   score_sha256: string;

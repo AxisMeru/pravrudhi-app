@@ -44,18 +44,29 @@ test("standardLine names the standard, its source and the echoed posture", () =>
   const s = standardLine({ applied: "prima_facie_disclosed", source: "proceeding_posture", proceeding_posture: "quash" });
   assert.equal(s.text, "standard: prima facie disclosed (from proceeding posture: quash)");
   assert.equal(s.known, true);
-  assert.equal(standardLine({ applied: "proved", source: "default", proceeding_posture: null }).text, "standard: proved (default)");
+  assert.equal(standardLine({ requested: "proved", applied: "proved", source: "default", proceeding_posture: null }).text, "standard: proved (default)");
 });
 
-test("standardLine says the judge was not given the standard when in_judge_prompt is false", () => {
-  const std = { applied: "prima_facie_disclosed", source: "proceeding_posture", proceeding_posture: "quash" };
-  assert.equal(standardLine({ ...std, in_judge_prompt: false }).text, "standard: prima facie disclosed (basis stated; not given to the judge)");
-  assert.equal(standardLine({ ...std, in_judge_prompt: true }).text, "standard: prima facie disclosed (from proceeding posture: quash)");
-  assert.equal(standardLine({ ...std }).text, "standard: prima facie disclosed (from proceeding posture: quash)");
+test("standardLine: a requested standard the judge was never told is not shown as applied, and never as null", () => {
+  const std = { requested: "prima_facie_disclosed", applied: null, source: "proceeding_posture", proceeding_posture: "quash", in_judge_prompt: false };
+  const s = standardLine(std);
+  assert.equal(s.text, "standard requested: prima facie disclosed (from proceeding posture: quash); not applied, the judge was never told it");
+  assert.doesNotMatch(s.text, /null|undefined/);
+  assert.equal(s.known, true);
+  const stated = standardLine({ ...std, applied: "prima_facie_disclosed", in_judge_prompt: true });
+  assert.equal(stated.text, "standard: prima facie disclosed (from proceeding posture: quash)");
+});
+
+test("standardLine reads an older engine's applied-only object as before", () => {
+  const old = { applied: "prima_facie_disclosed", source: "proceeding_posture", proceeding_posture: "quash" };
+  assert.equal(standardLine(old).text, "standard: prima facie disclosed (from proceeding posture: quash)");
+  assert.equal(standardLine({ ...old, in_judge_prompt: false }).text,
+    "standard requested: prima facie disclosed (from proceeding posture: quash); not applied, the judge was never told it");
+  assert.equal(standardLine({ applied: null, source: "default" }).text, "standard: not reported by this engine");
 });
 
 test("standardLine shows an unrecognised value verbatim instead of guessing", () => {
-  const s = standardLine({ applied: "beyond_doubt", source: "operator" });
+  const s = standardLine({ requested: "beyond_doubt", applied: "beyond_doubt", source: "operator" });
   assert.equal(s.text, "standard: beyond_doubt (source: operator)");
   assert.equal(s.known, false);
 });
