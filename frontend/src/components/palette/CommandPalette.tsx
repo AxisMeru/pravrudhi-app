@@ -29,6 +29,7 @@ import {
   Flame,
   Rocket,
   Scale,
+  Gavel,
   Search,
   Command,
 } from "lucide-react";
@@ -36,6 +37,7 @@ import { IS_DEMO } from "@/lib/api";
 import { edition, STUDIO } from "@/lib/edition";
 import {
   PALETTE_PAGES,
+  pagesFor,
   GROUP_ORDER,
   buildCatalogue,
   filterResults,
@@ -73,6 +75,7 @@ const PAGE_ICONS: Record<string, ComponentType<{ size?: number; className?: stri
   Flame,
   Rocket,
   Scale,
+  Gavel,
 };
 
 const PAGE_ICON_BY_HREF = new Map(PALETTE_PAGES.map((p) => [p.href, PAGE_ICONS[p.icon]]));
@@ -226,7 +229,7 @@ export function CommandPalette() {
           return;
         }
         if (/^[1-9]$/.test(e.key)) {
-          const page = PALETTE_PAGES.find((p) => p.digit === Number(e.key));
+          const page = pagesFor(isStudio).find((p) => p.digit === Number(e.key));
           if (page) {
             e.preventDefault();
             router.push(page.href);
@@ -263,7 +266,7 @@ export function CommandPalette() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, shortcutsOpen, router, execute, openPalette]);
+  }, [open, shortcutsOpen, router, execute, openPalette, isStudio]);
 
   return (
     <>
