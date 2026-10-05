@@ -37,3 +37,24 @@ export function viewFor(status: number | null, keys: PartnerKey[], usage: Partne
     }),
   };
 }
+
+// A new key's secret is shown once. It is kept on screen only as long as it is needed: cleared when it has been
+// copied, and after this timeout whether or not it was.
+export const SECRET_TTL_MS = 60_000;
+
+export type CopyOutcome = "copied" | "failed";
+
+// A clipboard that is missing (an insecure context) or refuses the write is a visible failure, never a silent one:
+// the caller shows the outcome and keeps the secret on screen so it can be copied by hand.
+export async function copySecret(
+  clipboard: { writeText?: (text: string) => Promise<void> } | undefined | null,
+  secret: string,
+): Promise<CopyOutcome> {
+  if (!clipboard || typeof clipboard.writeText !== "function") return "failed";
+  try {
+    await clipboard.writeText(secret);
+    return "copied";
+  } catch {
+    return "failed";
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ApiError,
   createPartnerKey,
@@ -10,7 +10,7 @@ import {
   type CreatedPartnerKey,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
-import { viewFor, type KeysView } from "@/lib/partnerKeys";
+import { copySecret, SECRET_TTL_MS, viewFor, type CopyOutcome, type KeysView } from "@/lib/partnerKeys";
 
 export default function PartnerKeysPage() {
   const [org, setOrg] = useState("");
@@ -18,6 +18,21 @@ export default function PartnerKeysPage() {
   const [label, setLabel] = useState("");
   const [created, setCreated] = useState<CreatedPartnerKey | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copy, setCopy] = useState<CopyOutcome | null>(null);
+
+  // The secret is shown once and is not kept: it is cleared after a timeout, and as soon as it has been copied.
+  useEffect(() => {
+    if (!created) return;
+    const timer = setTimeout(() => setCreated(null), SECRET_TTL_MS);
+    return () => clearTimeout(timer);
+  }, [created]);
+
+  async function copyCreated() {
+    if (!created) return;
+    const outcome = await copySecret(navigator.clipboard, created.secret);
+    if (outcome === "copied") setCreated(null);
+    setCopy(outcome);
+  }
 
   const load = useCallback(async (o: string) => {
     try {
@@ -31,6 +46,7 @@ export default function PartnerKeysPage() {
   async function create() {
     setBusy(true);
     try {
+      setCopy(null);
       setCreated(await createPartnerKey(org, label.trim()));
       setLabel("");
       await load(org);
@@ -85,16 +101,24 @@ export default function PartnerKeysPage() {
 
         {created && (
           <div role="status" className="rounded border border-[var(--color-border)] p-3 text-sm">
-            <p>New key secret, shown once. Copy it now.</p>
+            <p>New key secret, shown once. Copy it now; it disappears once copied or after a minute.</p>
             <code className="mt-1 block break-all">{created.secret}</code>
             <button
               type="button"
               className="mt-2 rounded border border-[var(--color-border)] px-2 py-1 text-xs"
-              onClick={() => void navigator.clipboard?.writeText(created.secret)}
+              onClick={() => void copyCreated()}
             >
               Copy secret
             </button>
+            {copy === "failed" && (
+              <p role="alert" className="mt-2 text-xs text-red-500">
+                Could not copy to the clipboard. Select the secret above and copy it by hand before it disappears.
+              </p>
+            )}
           </div>
+        )}
+        {!created && copy === "copied" && (
+          <p role="status" className="text-xs text-[var(--color-text-dim)]">Secret copied and cleared from this page.</p>
         )}
 
         {view && view.kind !== "error" && (
