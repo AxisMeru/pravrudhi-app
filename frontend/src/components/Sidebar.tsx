@@ -26,6 +26,8 @@ import { AccountControl } from "@/components/AccountControl";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
+import { IS_DEMO } from "@/lib/api";
+import { canSeeRuns } from "@/lib/runsAccess";
 
 interface NavItem {
   href: string;
@@ -118,6 +120,8 @@ export function Sidebar() {
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
         {NAV.filter(({ href }) => offeredInDemoPath(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
+          .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
+          .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
           .map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
