@@ -20,7 +20,7 @@ Claim tier: written from the code and the engine contract; not yet rehearsed liv
 
 ## Known limits
 - Cold start of up to about 2.5 minutes on the first request after idle.
-- Only validated contracts are offered; do not promise others.
+- The contract list is not limited to validated contracts. A contract the judge has not been validated on returns REFER_TO_LAWYER with the reason `contract_not_validated` instead of a verdict. Do not promise a verdict on any contract outside the validated set, and say that REFER is the engine declining, not a finding.
 - Rate limit 6 requests/min/IP, 2 concurrent. Do not run fixtures in parallel.
 - Wording sensitivity: the same facts in plain and in near-statutory wording can produce different outcomes. Each fixture exists in both wordings; if they diverge on the day, say so and show both. Do not pick the better one silently.
 - Citation checking covers only citations in the loaded index; "not found" means no evidence either way, not that a citation is fake.
