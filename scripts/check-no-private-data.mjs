@@ -19,7 +19,9 @@ const HOME = /\/home\/([A-Za-z_][A-Za-z0-9_-]*)\//g;
 // macOS and Windows home paths: /Users/<name> (no trailing slash needed, a path is often built by joining the
 // rest), and C:\Users\<name>, C:\\Users\\<name> (escaped in a string) or C:/Users/<name>.
 const MAC_HOME = /(?<![A-Za-z0-9_.:\\-])\/Users\/([A-Za-z_][A-Za-z0-9._-]*)/g;
-const WIN_HOME = /\b[A-Za-z]:(?:\\+|\/)Users(?:\\+|\/)([A-Za-z_][A-Za-z0-9._-]*)/g;
+const WIN_HOME = /\b[A-Za-z]:(?:\\+|\/)Users(?:\\+|\/)([A-Za-z_][A-Za-z0-9._-]*)/gi;  // Windows paths are case-insensitive
+// A macOS volume other than the boot one: /Volumes/<volume>/Users/<name>.
+const VOLUME_HOME = /\/Volumes\/[^/"'\n]+\/Users\/([A-Za-z_][A-Za-z0-9._-]*)/g;
 const HOME_OK = new Set(["user", "example", "runner", "me", "x"]);
 const ACCOUNT = /["'](plan_type|account_id|organization_id|org_id|user_id|email)["']\s*:\s*["']([^"']+)["']/g;
 const ACCOUNT_OK = /example|constructed/i;
@@ -39,7 +41,8 @@ export function identifierHits(line) {
   if ((line.match(EMAIL) ?? []).some((m) => !EMAIL_OK.test(m))) hits.push("email address (use @example.com)");
   if ([...line.matchAll(HOME)].some((m) => !HOME_OK.has(m[1]))) hits.push("host home path (use /home/user/)");
   if ([...line.matchAll(MAC_HOME)].some((m) => !HOME_OK.has(m[1]))) hits.push("host home path (use /Users/user)");
-  if ([...line.matchAll(WIN_HOME)].some((m) => !HOME_OK.has(m[1]))) hits.push("host home path (use C:\\Users\\user)");
+  if ([...line.matchAll(VOLUME_HOME)].some((m) => !HOME_OK.has(m[1]))) hits.push("host home path (use /Users/user)");
+  if ([...line.matchAll(WIN_HOME)].some((m) => !HOME_OK.has(m[1].toLowerCase()))) hits.push("host home path (use C:\\Users\\user)");
   if ([...line.matchAll(ACCOUNT)].some((m) => !ACCOUNT_OK.test(m[2]))) hits.push("account/plan field with a non-constructed value (use an example-* value)");
   if ((line.match(TOKEN) ?? []).some((m) => !TOKEN_OK.test(m))) hits.push("token-shaped string (placeholders start sk-test-)");
   return hits;
