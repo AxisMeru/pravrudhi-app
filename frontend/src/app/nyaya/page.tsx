@@ -610,8 +610,8 @@ function CorpusTab() {
     try {
       const r = await nyayaCorpus(text);
       setCount(r.documents);
-      setRecorded(r.sources);
-      setHits(r.hits);
+      setRecorded(Array.isArray(r.sources) ? r.sources : []);
+      setHits(Array.isArray(r.hits) ? r.hits : []);
     } catch {
       setHits([]);
     }

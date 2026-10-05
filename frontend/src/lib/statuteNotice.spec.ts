@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
-import { INDIA_CODE_HOME, STATUTE_NOTICE, sourceLinkFor } from "./statuteNotice";
+import { INDIA_CODE_HOME, STATUTE_NOTICE, isIndiaCodeHost, sourceLinkFor } from "./statuteNotice";
 
 const SOURCES = [
   { work: "Bharatiya Nyaya Sanhita (2023)", site: "indiacode.gov.in", pages: [{ url: "https://indiacode.gov.in/act/abc/sections" }] },
@@ -20,6 +20,25 @@ test("an act with no recorded page falls back to the India Code home page, never
   assert.deepEqual(sourceLinkFor("Indian Penal Code", SOURCES), { href: INDIA_CODE_HOME, recorded: false });
   assert.deepEqual(sourceLinkFor("Unknown Act", SOURCES), { href: INDIA_CODE_HOME, recorded: false });
   assert.deepEqual(sourceLinkFor("", SOURCES), { href: INDIA_CODE_HOME, recorded: false });
+});
+
+test("an engine that omits or mangles `sources` falls back instead of throwing", () => {
+  for (const bad of [undefined, null, "x", 5, {}, [null, 3, "y"]]) {
+    assert.deepEqual(sourceLinkFor("Bharatiya Nyaya Sanhita", bad), { href: INDIA_CODE_HOME, recorded: false });
+  }
+});
+
+test("only India Code hosts are labelled and used as the act's link", () => {
+  assert.equal(isIndiaCodeHost("https://indiacode.gov.in/act/x"), true);
+  assert.equal(isIndiaCodeHost("https://www.indiacode.nic.in/"), true);
+  assert.equal(isIndiaCodeHost("https://evil-indiacode.gov.in.example.com/"), false);
+  assert.equal(isIndiaCodeHost("https://example.com/indiacode.gov.in"), false);
+  assert.equal(isIndiaCodeHost("http://indiacode.gov.in/"), false);
+  assert.equal(isIndiaCodeHost("not a url"), false);
+  const other = [{ work: "Indian Penal Code, 1860", pages: [{ url: "https://example.org/ipc" }] }];
+  assert.deepEqual(sourceLinkFor("Indian Penal Code", other), { href: INDIA_CODE_HOME, recorded: false });
+  const mixed = [{ work: "Indian Penal Code, 1860", pages: [{ url: "https://example.org/ipc" }, { url: "https://indiacode.gov.in/act/ipc" }] }];
+  assert.equal(sourceLinkFor("Indian Penal Code", mixed).href, "https://indiacode.gov.in/act/ipc");
 });
 
 test("a non-https recorded link is not used", () => {
