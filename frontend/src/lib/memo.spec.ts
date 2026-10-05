@@ -145,3 +145,11 @@ test("memo module touches no network", async () => {
   const src = fs.readFileSync(new URL("./memo.ts", import.meta.url), "utf8");
   assert.doesNotMatch(src, /fetch\(|XMLHttpRequest|sendBeacon|WebSocket|engineFetch|^import (?!type)[^\n]*from "\.\/api"/m);
 });
+
+test("buildMemo: states the validation tier of the judge, so a verdict is never read as real-world accuracy", async () => {
+  const { buildMemo, MEMO_VALIDATION_TIER } = await import("./memo");
+  const memo = buildMemo(FIXTURE, { engineVersion: "0.5.42", generatedAt: "2026-10-02T10:00:00Z" });
+  assert.ok(memo.includes(MEMO_VALIDATION_TIER));
+  assert.match(MEMO_VALIDATION_TIER, /constructed, in-distribution sets/);
+  assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
+});

@@ -6,6 +6,10 @@ export const MEMO_DISCLAIMER =
   "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
   "no verdict was reached. A quote is verbatim text from the submitted facts, not proof that it is relevant.";
 
+export const MEMO_VALIDATION_TIER =
+  "Validation tier: the judge behind this memo was validated on constructed, in-distribution sets (pipeline-measured). " +
+  "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
+
 export interface MemoOptions {
   engineVersion: string | null;
   generatedAt: string;
@@ -55,6 +59,8 @@ export function buildMemo(result: AnalyseFactsResult, opts: MemoOptions): string
     "# Analysis memo",
     "",
     `> ${MEMO_DISCLAIMER}`,
+    "",
+    `> ${MEMO_VALIDATION_TIER}`,
     "",
     `- Run id: ${result.run_id}`,
     `- Judge: ${result.judge}`,
