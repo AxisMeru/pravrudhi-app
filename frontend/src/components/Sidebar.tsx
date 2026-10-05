@@ -25,6 +25,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AccountControl } from "@/components/AccountControl";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
+import { offeredInDemoPath } from "@/lib/demoPath";
 
 interface NavItem {
   href: string;
@@ -116,7 +117,7 @@ export function Sidebar() {
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
-        {NAV.filter(({ href }) => whoami.edition === STUDIO || !isStudioOnlyHref(href))
+        {NAV.filter(({ href }) => offeredInDemoPath(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
           .map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (

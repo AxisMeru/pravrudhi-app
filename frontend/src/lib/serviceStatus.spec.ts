@@ -104,3 +104,25 @@ test("fetchServiceStatus: a 5xx is offline", async () => {
   const restore = mockFetch(() => new Response("{}", { status: 503 }));
   try { assert.equal((await fetchServiceStatus()).kind, "offline"); } finally { restore(); }
 });
+
+test("classifyAnalyseError: a judges_warming 503 is its own kind, with the retry wait and no 'nothing scored' claim of failure", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const w = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable", reason: "judges_warming", retryAfter: 30 }));
+  assert.equal(w.kind, "judges_warming");
+  assert.equal(w.retryAfter, 30);
+  assert.match(w.message, /warming up/i);
+  assert.match(w.message, /30 seconds/);
+  assert.match(w.message, /nothing was scored/i);
+  const plain = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
+  assert.equal(plain.kind, "judge_unavailable");
+  assert.notEqual(plain.message, w.message);
+});
+
+test("classifyAnalyseError: judges_warming without a Retry-After still reads sensibly", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const w = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable", reason: "judges_warming" }));
+  assert.equal(w.kind, "judges_warming");
+  assert.doesNotMatch(w.message, /undefined|NaN/);
+});

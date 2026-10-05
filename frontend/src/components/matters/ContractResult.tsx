@@ -69,6 +69,16 @@ function ElementRow({ el, facts }: { el: AnalyseFactsElement; facts: readonly Fa
   );
 }
 
+function ReferLine({ reason }: { reason: string }) {
+  const referred = referReasonPresentation(reason);
+  return (
+    <div data-testid="refer-line" className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+      <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
+      <p className="mt-1 text-xs text-amber-300/70">reason: {reason}</p>
+    </div>
+  );
+}
+
 export function ContractResult({
   c,
   facts,
@@ -91,6 +101,7 @@ export function ContractResult({
           No judge has been validated for this contract yet — this is a gap in coverage, not a failed or wrong answer. Ask about a
           different matter, or check back once this contract is validated.
         </p>
+        {c.outcome === "REFER_TO_LAWYER" && <ReferLine reason={c.reason} />}
       </article>
     );
   }
@@ -107,7 +118,7 @@ export function ContractResult({
           {c.contract_id}
           {validated && (
             <span data-testid="validated-badge" className="ml-2 rounded-md border border-emerald-500/40 px-1.5 py-0.5 text-[11px] font-normal text-emerald-400">
-              judge validated
+              judge validated on constructed, in-distribution sets
             </span>
           )}
         </h3>
@@ -115,15 +126,7 @@ export function ContractResult({
       </header>
       <p data-testid="standard-line" data-known={std.known} className="text-xs text-[var(--color-text-dim)]">{std.text}</p>
 
-      {c.outcome === "REFER_TO_LAWYER" && (() => {
-        const referred = referReasonPresentation(c.reason);
-        return (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
-            <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
-            <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
-          </div>
-        );
-      })()}
+      {c.outcome === "REFER_TO_LAWYER" && <ReferLine reason={c.reason} />}
 
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">

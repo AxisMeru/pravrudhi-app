@@ -64,6 +64,20 @@ test("an unvalidated contract is shown as not yet covered", () => {
   assert.doesNotMatch(html, /<table/);
 });
 
+test("the validated badge carries its tier, so validation is never read as real-world accuracy", () => {
+  const html = render(contract({}), new Map([["ni138", true]]));
+  assert.match(html, /data-testid="validated-badge"[^>]*>judge validated on constructed, in-distribution sets</);
+});
+
+test("a not-yet-covered contract keeps the engine's REFER_TO_LAWYER line and its reason", () => {
+  const html = render(contract({ outcome: "REFER_TO_LAWYER", reason: "contract_not_validated" }), new Map([["ni138", false]]));
+  assert.match(html, /not yet covered/);
+  assert.match(html, /data-testid="refer-line"/);
+  assert.match(html, /reason: contract_not_validated/);
+  const abstain = render(contract({ outcome: "ABSTAIN" }), new Map([["ni138", false]]));
+  assert.doesNotMatch(abstain, /refer-line/);
+});
+
 test("no copy claims verification or Lean proof", () => {
   const html = render(contract({}), new Map([["ni138", true]]));
   assert.doesNotMatch(html, /verified|proven in Lean/i);
