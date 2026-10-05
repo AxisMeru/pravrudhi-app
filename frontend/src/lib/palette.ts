@@ -18,6 +18,7 @@ import {
   type Recipe,
 } from "./api";
 import { fixed } from "./num";
+import { DEMO_PATH, offeredInDemoPath } from "./demoPath";
 
 export interface PalettePage {
   id: string;
@@ -40,8 +41,9 @@ export function isStudioOnlyHref(href: string): boolean {
   return PALETTE_PAGES.some((p) => p.href === href && STUDIO_ONLY_PAGES.has(p.id));
 }
 
-export function pagesFor(isStudio: boolean): PalettePage[] {
-  return isStudio ? PALETTE_PAGES : PALETTE_PAGES.filter((p) => !STUDIO_ONLY_PAGES.has(p.id));
+export function pagesFor(isStudio: boolean, demoPath: boolean = DEMO_PATH): PalettePage[] {
+  const pages = isStudio ? PALETTE_PAGES : PALETTE_PAGES.filter((p) => !STUDIO_ONLY_PAGES.has(p.id));
+  return pages.filter((p) => offeredInDemoPath(p.href, demoPath));
 }
 
 export const PALETTE_PAGES: PalettePage[] = [
@@ -54,6 +56,7 @@ export const PALETTE_PAGES: PalettePage[] = [
   { id: "nyaya", label: "Nyaya", href: "/nyaya", icon: "Scale", digit: 7 },
   { id: "runs", label: "Runs", href: "/runs", icon: "History", digit: 8 },
   { id: "models", label: "Models", href: "/models", icon: "Package", digit: 9 },
+  { id: "matters", label: "Matters", href: "/matters", icon: "Gavel" },
   { id: "catalogue", label: "Catalogue", href: "/catalogue", icon: "Library" },
   { id: "settings", label: "Settings", href: "/settings", icon: "Settings" },
   { id: "install", label: "Install", href: "/install", icon: "Download" },
