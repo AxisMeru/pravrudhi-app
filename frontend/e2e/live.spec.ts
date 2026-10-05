@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * The nightly's real check: not a build artifact, not a local engine — the actual hosted door
  * (deploy/gateway/README.md, https://pravrudhi-app.vercel.app) with a real signed-in account, run by
  * pravrudhi-e2e-nightly.service. E2E_EMAIL and E2E_PASSWORD name a dedicated account created for exactly this
- * (gateway-probe@axismeru.com, confirmed in the Supabase dashboard by the operator); they are never printed,
+ * (a probe account on the team domain, confirmed in the Supabase dashboard by the operator); they are never printed,
  * only handed to Playwright's own form-fill.
  */
 
