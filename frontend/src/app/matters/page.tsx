@@ -19,6 +19,7 @@ import { buildMemo } from "@/lib/memo";
 import { referReasonPresentation } from "@/lib/referReason";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
+import { StatuteNotice } from "@/components/StatuteNotice";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -404,6 +405,7 @@ export default function MattersPage() {
             {result.contracts.map((c) => (
               <ContractResult key={c.contract_id} c={c} />
             ))}
+            <StatuteNotice />
           </div>
         )}
       </div>

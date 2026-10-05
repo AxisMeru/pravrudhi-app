@@ -26,6 +26,8 @@ import {
   type NyayaRegistryCheckResult,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
+import { StatuteNotice } from "@/components/StatuteNotice";
+import { sourceLinkFor } from "@/lib/statuteNotice";
 import {
   CAPABILITY_LABEL,
   CAPABILITY_DESCRIPTION,
@@ -602,11 +604,13 @@ function CorpusTab() {
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<NyayaCorpusHit[]>([]);
   const [count, setCount] = useState<number | null>(null);
+  const [recorded, setRecorded] = useState<Record<string, unknown>[]>([]);
   const search = async (text: string) => {
     setQ(text);
     try {
       const r = await nyayaCorpus(text);
       setCount(r.documents);
+      setRecorded(r.sources);
       setHits(r.hits);
     } catch {
       setHits([]);
@@ -635,6 +639,7 @@ function CorpusTab() {
             </div>
             <div className="mt-1 font-medium text-[var(--color-text)]">{h.title}</div>
             <div className="mt-1 text-[var(--color-text-dim)]">{h.text}</div>
+            <StatuteNotice className="mt-2" href={sourceLinkFor(h.act, recorded).href} />
           </li>
         ))}
       </ul>
@@ -704,6 +709,7 @@ export default function NyayaPage() {
         {tab === "audit" && <AuditTab />}
         {tab === "registry" && <RegistryAuditTab />}
         {tab === "corpus" && <CorpusTab />}
+        {tab !== "corpus" && <StatuteNotice className="mt-4" />}
       </div>
     </div>
   );
