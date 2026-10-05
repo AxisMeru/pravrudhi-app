@@ -98,11 +98,13 @@ export const IS_DEMO = detectDemo();
 
 export interface ApiErrorDetail {
   code?: string;
+  reason?: string;
   retryAfter?: number;
 }
 
 export class ApiError extends Error {
   readonly code?: string;
+  readonly reason?: string;
   readonly retryAfter?: number;
   constructor(
     public readonly status: number,
@@ -112,20 +114,23 @@ export class ApiError extends Error {
     super(`${path}: HTTP ${status}`);
     this.name = "ApiError";
     this.code = detail.code;
+    this.reason = detail.reason;
     this.retryAfter = detail.retryAfter;
   }
 }
 
 async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
   let code: string | undefined;
+  let reason: string | undefined;
   try {
-    const body = (await res.clone().json()) as { error?: unknown };
+    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown };
     if (typeof body.error === "string") code = body.error;
+    if (typeof body.reason === "string") reason = body.reason;
   } catch {
     /* not JSON (a gateway error page): status alone */
   }
   const ra = Number(res.headers.get("retry-after"));
-  return new ApiError(res.status, path, { code, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
+  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
 }
 
 // Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
