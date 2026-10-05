@@ -12,7 +12,7 @@ export interface ServiceWindowStatus {
 export interface ServiceStatus {
   engine_version: string;
   service_window: ServiceWindowStatus | null;
-  judge: { state: "ready" | "unavailable" | "unknown"; checked_at: string | null };
+  judge: { state: "ready" | "warming" | "unavailable" | "unknown"; checked_at: string | null };
 }
 
 export type StatusResult =
@@ -78,6 +78,7 @@ export type AnalyseErrorKind =
   | "rate_limited"
   | "signed_out"
   | "judge_unavailable"
+  | "judges_warming"
   | "outside_window"
   | "server"
   | "network";
@@ -102,6 +103,10 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 401) return { kind: "signed_out", message: "Your session has ended. Sign in again to run an analysis." };
     if (e.status === 503 && e.code === "outside_service_window") {
       return { kind: "outside_window", message: "The hosted demo is outside its service hours.", retryAfter: e.retryAfter };
+    }
+    if (e.status === 503 && e.code === "judge_unavailable" && e.reason === "judges_warming") {
+      const wait = e.retryAfter ? ` Try again in about ${e.retryAfter} seconds.` : " Try again shortly.";
+      return { kind: "judges_warming", message: `The analysis models are warming up. Nothing was scored.${wait}`, retryAfter: e.retryAfter };
     }
     if (e.status === 503 && e.code === "judge_unavailable") {
       return { kind: "judge_unavailable", message: "The analysis model is starting up or unavailable. Nothing was scored. Try again in a minute or two." };

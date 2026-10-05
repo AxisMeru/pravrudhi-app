@@ -10,6 +10,7 @@
 // shared rate limit; this page adds no auth gate of its own (api.ts's engineFetch already omits the bearer
 // token when there is no session, so an anonymous call here is a real anonymous call, not a canned demo).
 
+import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
@@ -210,12 +211,14 @@ export default function MattersPage() {
   }
 
   async function submit() {
-    const facts = factsText
-      .split("\n")
-      .map((f) => f.trim())
-      .filter((f) => f.length > 0);
-    if (facts.length === 0 || selected.size === 0) {
-      setError("Enter at least one fact and select at least one contract.");
+    const check = checkFacts(factsText);
+    if (!check.ok) {
+      setError(check.message);
+      return;
+    }
+    const facts = check.facts;
+    if (selected.size === 0) {
+      setError("Select at least one contract.");
       return;
     }
     setLoading(true);
@@ -254,6 +257,35 @@ export default function MattersPage() {
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
           </label>
+          <input
+            type="file"
+            accept=".txt,.pdf,.docx"
+            aria-label="Load facts from a file"
+            data-testid="facts-file"
+            className="text-sm"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              let parsers = {};
+              if (fileKind(file.name) !== "txt") {
+                try {
+                  parsers = (await import("@/lib/docParsers")).browserParsers;
+                } catch {
+                  setError(UNREADABLE_MESSAGE);
+                  return;
+                }
+              }
+              const r = await extractText(file, parsers);
+              if (r.ok) {
+                setFactsText(r.text);
+                setError(null);
+              } else setError(r.message);
+            }}
+          />
+          <p className="text-xs text-[var(--color-text-dim)]">
+            Files are read in your browser and never uploaded. Review and edit the text before analysing.
+          </p>
           <textarea
             id="matters-facts"
             className="min-h-[120px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
