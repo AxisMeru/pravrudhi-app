@@ -42,6 +42,17 @@ test("home paths", () => {
   assert.equal(repo({ "desktop/test/a.js": "/home/ss/projects" }).length, 1);
   assert.deepEqual(repo({ "desktop/test/a.js": "/home/user/projects /home/x/y" }), []);
 });
+test("macOS and Windows home paths", () => {
+  assert.equal(repo({ "desktop/test/a.js": "const home = '/Users/someone'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "path.join('/Users/someone', 'x')" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = 'C:\\Users\\someone\\AppData'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = 'C:\\\\Users\\\\someone'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = 'D:/Users/someone/x'" }).length, 1);
+  assert.deepEqual(repo({ "desktop/test/a.js": "/Users/user /Users/x/y C:\\Users\\user C:/Users/example/z" }), []);
+});
+test("a path that merely contains Users is not a home path", () => {
+  assert.deepEqual(repo({ "desktop/test/a.js": "see /api/Users/list and C:\\Program Files\\Users" }), []);
+});
 test("account fields", () => {
   assert.equal(repo({ "frontend/fixtures/a.json": '{"plan_type": "plus"}' }).length, 1);
   assert.deepEqual(repo({ "frontend/fixtures/a.json": '{"plan_type": "example-plan", "email": ""}' }), []);
