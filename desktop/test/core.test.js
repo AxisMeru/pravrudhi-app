@@ -36,8 +36,8 @@ test('discovery finds a Windows-shaped venv (Scripts/ with a .exe suffix) via PA
   // separator behaviour even though it runs on Linux CI -- notably, a Windows drive letter's `:` would
   // otherwise collide with path.posix.delimiter and wrongly split 'C:\...' into two PATH entries.
   const win = path.win32;
-  const home = 'C:\\Users\\op';
-  const scriptsDir = 'C:\\Users\\op\\.venv\\Scripts';
+  const home = 'C:\\Users\\user';
+  const scriptsDir = 'C:\\Users\\user\\.venv\\Scripts';
   const pathExe = win.join(scriptsDir, 'pravrudhi.exe');
   let found = await discoverEngine({env: {PATH: scriptsDir}, home, pathImpl: win, executable: async p => p === pathExe});
   assert.equal(found, pathExe);
@@ -76,7 +76,7 @@ test('discovery skips directories and non-executable files on disk', async t => 
   assert.equal(await discoverEngine({env:{PRAVRUDHI_BIN:home},home,saved:good}),good);
 });
 test('Finder launch discovers the Mac release without shell PATH configuration', async () => {
-  const home = '/Users/sharath';
+  const home = '/Users/user';
   const binary = path.join(home, 'pravrudhi/.pravrudhi/releases/current/.venv/bin/pravrudhi');
   assert.equal(await discoverEngine({home, env:{PATH:'/usr/bin:/bin'}, executable:async p => p === binary}), binary);
 });
