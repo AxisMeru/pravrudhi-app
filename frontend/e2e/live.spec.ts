@@ -26,10 +26,18 @@ async function signIn(page: import("@playwright/test").Page) {
   await page.goto("/signin");
   await page.getByLabel("Email", { exact: true }).fill(E2E_EMAIL!);
   await page.getByLabel("Password", { exact: true }).fill(E2E_PASSWORD!);
+  // The engine's answer to the first authenticated call is the only proof it accepts this session yet. Leaving
+  // "/" with that call still in flight put the next hard navigation's requests ahead of it, and a 401 there
+  // bounces the page to /signin (#27). Arm the wait before the click: the call fires as soon as "/" renders.
+  const sessionAccepted = page.waitForResponse(
+    (r) => new URL(r.url()).pathname === "/api/workspaces" && r.request().method() === "POST" && r.ok(),
+    { timeout: 30_000 },
+  );
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL((url) => url.pathname === "/", { timeout: 20_000 });
   // Real proof of a real session, not just "we left /signin": the account control shows this exact address.
   await expect(page.getByText(E2E_EMAIL!, { exact: true })).toBeVisible();
+  await sessionAccepted;
 }
 
 test("signed in for real, every offered page renders — no failure paragraph, no stuck Loading…", async ({ page }) => {
