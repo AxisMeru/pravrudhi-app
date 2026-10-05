@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, Sparkles, Square, Star, Wrench } from "lucide-react";
 import { ApiError, run, runs, stopRun, streamRun, type RunEvent, type RunHandle } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
+import { isOperatorOnly, OPERATOR_ONLY_MESSAGE } from "@/lib/runsAccess";
 
 // RunHandle only guarantees `id` — everything else is whatever the engine's run view sends. These
 // helpers narrow the unknown extras defensively instead of trusting the shape.
@@ -255,6 +256,8 @@ export default function RunsPage() {
   // next succeeds. Left unset before 2026-09-12, so any such failure fell through the catch block silently and
   // `rows` stayed null forever — the page never left "Loading…" on the very outage this exists to report.
   const [failed, setFailed] = useState(false);
+  // The engine refused the run routes for this caller (401/403): runs are the operator's, so say so and stop polling.
+  const [operatorOnly, setOperatorOnly] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [eventsByRun, setEventsByRun] = useState<Record<string, RunEvent[]>>({});
   const [streamFailed, setStreamFailed] = useState<Record<string, boolean>>({});
@@ -275,6 +278,11 @@ export default function RunsPage() {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) {
           setUnsupported(true);
+          return;
+        }
+        if (isOperatorOnly(err)) {
+          setOperatorOnly(true);
+          clearInterval(id);
           return;
         }
         setFailed(true);
@@ -354,11 +362,12 @@ export default function RunsPage() {
     <div>
       <PageHeader title="Runs" subtitle="Every run the engine has started, newest first." />
       <div className="space-y-3 p-8">
+        {operatorOnly && <p role="status" className="text-sm text-[var(--color-text-dim)]">{OPERATOR_ONLY_MESSAGE}</p>}
         {unsupported && <p className="text-sm text-[var(--color-text-dim)]">engine does not report runs yet.</p>}
-        {!unsupported && failed && rows === null && (
+        {!operatorOnly && !unsupported && failed && rows === null && (
           <p className="text-sm text-[var(--color-text-dim)]">Could not reach the engine&apos;s runs API.</p>
         )}
-        {!unsupported && !failed && rows === null && <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>}
+        {!operatorOnly && !unsupported && !failed && rows === null && <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>}
         {!unsupported && rows !== null && rows.length === 0 && (
           <p className="text-sm text-[var(--color-text-dim)]">No runs yet — start one from Improve.</p>
         )}

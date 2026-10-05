@@ -10,6 +10,8 @@ import { IS_DEMO, apiBase, engineFetch } from "@/lib/api";
 export interface Edition {
   edition: string;
   tagline: string;
+  // The engine's word for who is asking: "admin" (the operator), "member" or "none". Absent from an older engine.
+  access?: string;
 }
 
 // The name the engine reports when this install is the one that builds Pravrudhi itself. Compared against
@@ -35,6 +37,7 @@ export async function edition(): Promise<Edition> {
     return {
       edition: body.edition || PRODUCT.edition,
       tagline: body.tagline || PRODUCT.tagline,
+      access: typeof body.access === "string" ? body.access : undefined,
     };
   } catch {
     // An engine that cannot be reached is not a reason to show no name at all.
