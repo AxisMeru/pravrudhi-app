@@ -43,3 +43,20 @@ test("no provisioning secret or header exists in the app source", () => {
     assert.ok(!/PROVISION_SECRET|x-pravrudhi-tenancy-secret/i.test(text), f);
   }
 });
+
+test("copySecret reports a copy, and reports a missing or refusing clipboard as a failure", async () => {
+  const { copySecret } = await import("./partnerKeys");
+  const written: string[] = [];
+  assert.equal(await copySecret({ writeText: async (t) => void written.push(t) }, "sk-test-secret"), "copied");
+  assert.deepEqual(written, ["sk-test-secret"]);
+  assert.equal(await copySecret(undefined, "x"), "failed");
+  assert.equal(await copySecret(null, "x"), "failed");
+  assert.equal(await copySecret({}, "x"), "failed");
+  assert.equal(await copySecret({ writeText: async () => { throw new Error("NotAllowedError"); } }, "x"), "failed");
+  assert.equal(await copySecret({ writeText: () => Promise.reject(new Error("denied")) }, "x"), "failed");
+});
+
+test("the one-time secret has a finite lifetime", async () => {
+  const { SECRET_TTL_MS } = await import("./partnerKeys");
+  assert.ok(SECRET_TTL_MS > 0 && SECRET_TTL_MS <= 120_000);
+});
