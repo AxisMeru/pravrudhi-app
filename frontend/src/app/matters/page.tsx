@@ -15,9 +15,21 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Scale } from "lucide-react";
 import { analyseFacts, nyayaRegistryListing, ApiError, type AnalyseFactsResult } from "@/lib/api";
 import { coverageById } from "@/lib/matterResults";
+import { buildMemo } from "@/lib/memo";
 import { ContractResult } from "@/components/matters/ContractResult";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
+
+// Built in the browser from the result already on screen; nothing is sent anywhere.
+function downloadMemo(result: AnalyseFactsResult, engineVersion: string | null): void {
+  const md = buildMemo(result, { engineVersion, generatedAt: new Date().toISOString() });
+  const url = URL.createObjectURL(new Blob([md], { type: "text/markdown;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `analysis-memo-${result.run_id}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function MattersPage() {
   const [contracts, setContracts] = useState<string[]>([]);
@@ -238,6 +250,22 @@ export default function MattersPage() {
           <div className="flex flex-col gap-4">
             <div className="text-xs text-[var(--color-text-dim)]">
               run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
+            </div>
+            <div className="flex gap-2 print:hidden" data-testid="memo-actions">
+              <button
+                type="button"
+                className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs"
+                onClick={() => downloadMemo(result, svc?.kind === "ok" ? svc.status.engine_version : null)}
+              >
+                Download memo (.md)
+              </button>
+              <button
+                type="button"
+                className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs"
+                onClick={() => window.print()}
+              >
+                Print / save as PDF
+              </button>
             </div>
             {result.contracts.map((c) => (
               <ContractResult key={c.contract_id} c={c} facts={result.facts} coverage={coverage} />
