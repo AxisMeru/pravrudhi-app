@@ -95,3 +95,63 @@ test("the recorded public demo (no engine, no account) is shown as it always was
   assert.equal(gateDecision("/progress", "product", true, false, true), "allow");
   assert.equal(gateDecision("/progress", null, true, false, true), "allow");
 });
+
+import { readdirSync, statSync } from "node:fs";
+import { join as pjoin } from "node:path";
+import { normalizePath, surfaceOpen } from "./demoPath";
+
+const VARIANTS = ["/nyaya.html", "/chat.html", "/memory.html", "/runs.html", "/index.html", "//nyaya", "/Nyaya", "/NYAYA/", "/nyaya/index.html",
+  "/objectives.html", "/objectives/detail.html", "/runs/view.html", "/start.html", "///runs//", "/models/?x=1", "/install#top"];
+
+test("every spelling of a hidden page is closed to a member, and waits while the edition is unknown", () => {
+  for (const v of VARIANTS) {
+    const loop = studioOnlyPath(v);
+    const want = v === "/index.html" ? "redirect-home" : "block";
+    assert.equal(gateDecision(v, "product", loop, false), want, v);
+    assert.equal(gateDecision(v, null, loop, false), "wait", v);
+    assert.equal(gateDecision(v, "studio", loop, false), "allow", v);
+  }
+});
+
+test("a page nobody listed is closed to a member by default", () => {
+  for (const v of ["/anything", "/api", "/runs/xyz", "/_next/x"]) assert.equal(gateDecision(v, "product", false, false), "block", v);
+});
+
+test("every spelling of an open page is open to a member", () => {
+  for (const v of ["/matters", "/matters.html", "/Matters/", "//matters", "/settings.html", "/signin", "/partner-keys.html"]) {
+    assert.equal(gateDecision(v, "product", false, false), "allow", v);
+    assert.equal(surfaceOpen(v), true, v);
+  }
+});
+
+test("normalisation folds every spelling of a page to one path", () => {
+  assert.equal(normalizePath("/NYAYA/"), "/nyaya");
+  assert.equal(normalizePath("//nyaya"), "/nyaya");
+  assert.equal(normalizePath("/nyaya.html"), "/nyaya");
+  assert.equal(normalizePath("/index.html"), "/");
+  assert.equal(normalizePath("/runs/view.html"), "/runs/view");
+  assert.equal(normalizePath(""), "/");
+  assert.equal(normalizePath(null), "/");
+});
+
+function pageRoutes(dir: string, base = ""): string[] {
+  const out: string[] = [];
+  for (const name of readdirSync(dir)) {
+    const full = pjoin(dir, name);
+    if (statSync(full).isDirectory()) out.push(...pageRoutes(full, `${base}/${name}`));
+    else if (name === "page.tsx") out.push(base === "" ? "/" : base);
+  }
+  return out;
+}
+
+test("every page.tsx route is either open on the surface or on the hide list: no page is unclassified", () => {
+  const routes = pageRoutes(pjoin(__dirname, "..", "app")).map((r) => r.replace(/\[[^\]]+\]/g, "x"));
+  assert.ok(routes.length >= 17, `found ${routes.length} page routes`);
+  for (const r of routes) {
+    // "/" is both the surface's redirect and the Studio home; every other route must be in exactly one list.
+    const open = SURFACE_ROUTES.includes(r);
+    const hidden = studioOnlyPath(r);
+    assert.ok(open || hidden, `${r} is neither in SURFACE_ROUTES nor on the hide list`);
+    if (r !== "/") assert.ok(!(open && hidden), `${r} is in both lists`);
+  }
+});
