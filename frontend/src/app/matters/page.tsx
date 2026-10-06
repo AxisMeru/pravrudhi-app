@@ -16,7 +16,7 @@ import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from
 import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
-import { referReasonPresentation } from "@/lib/referReason";
+import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
@@ -74,6 +74,11 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
         </span>
         {el.p_established !== null && (
           <span className="ml-1.5 text-[11px] text-[var(--color-text-dim)]">p={el.p_established.toFixed(2)}</span>
+        )}
+        {status.explanation && status.verdict === null && (
+          <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="status-explanation">
+            {status.explanation}
+          </div>
         )}
       </td>
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
@@ -142,7 +147,9 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
         const referred = referReasonPresentation(c.reason);
         return (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
-            <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
+            <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
+            <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
+            {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-amber-300/70" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
             <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
           </div>
         );

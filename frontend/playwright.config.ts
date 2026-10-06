@@ -33,7 +33,7 @@ export default defineConfig({
       name: "product-chromium",
       testMatch: [
         "product.spec.ts", "signin-guards.spec.ts",
-        "matters.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts",
+        "matters.spec.ts", "refer-strings.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts",
       ],
     },
     {

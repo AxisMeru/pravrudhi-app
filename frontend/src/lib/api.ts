@@ -1274,6 +1274,10 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
   }
 }
 
+// The engine's coded 503s (pravrudhi #319) for a busy or briefly unavailable agent. Before the codes existed these were uncoded 503s, which
+// were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
+const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
@@ -1288,7 +1292,7 @@ export async function analyseFacts(
   let res = await analyseFactsAttempt(path, body, signal);
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
-    if (res.status >= 500 && !err.code) {
+    if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
       res = await analyseFactsAttempt(path, body, signal);
       if (!res.ok) err = await apiErrorFrom(res, path);
     }

@@ -118,7 +118,9 @@ test("buildMemo: a quote with a pipe cannot break the element table; an element 
 test("buildMemo: REFER and ABSTAIN state the reason in plain language and make no finding", async () => {
   const { buildMemo } = await import("./memo");
   const md = buildMemo(FIXTURE, OPTS);
-  assert.match(md, /second check was temporarily unavailable/);
+  assert.match(md, /Referred to a lawyer/);
+  assert.match(md, /The second judge was unavailable, so we give a referral, not an answer\./);
+  assert.doesNotMatch(md, /must decide this matter/);
   assert.match(md, /No verdict was reached/i);
   assert.match(md, /judge_error/);
   const refer = md.split("## ").find((s) => s.startsWith("toy_refer"))!;

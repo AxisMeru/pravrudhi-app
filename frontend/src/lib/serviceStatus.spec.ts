@@ -111,8 +111,8 @@ test("classifyAnalyseError: a judges_warming 503 is its own kind, with the retry
   const w = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable", reason: "judges_warming", retryAfter: 30 }));
   assert.equal(w.kind, "judges_warming");
   assert.equal(w.retryAfter, 30);
-  assert.match(w.message, /warming up/i);
-  assert.match(w.message, /30 seconds/);
+  assert.match(w.message, /starting up/i);
+  assert.match(w.message, /Seconds to wait: 30/);
   assert.match(w.message, /nothing was scored/i);
   const plain = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
   assert.equal(plain.kind, "judge_unavailable");

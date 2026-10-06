@@ -1,5 +1,11 @@
 {
- "source": "pravrudhi docs/api/reason-codes.md at e2c07e29 (origin/main), copied verbatim; the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly",
+ "source": {
+  "path": "docs/api/reason-codes.md (pravrudhi engine repository)",
+  "ref": "origin/main",
+  "engine_sha": "e2c07e2948bd08cb827b91fe89ddce68e8b4aebb",
+  "file_sha256": "6d3ec402afcb794cf714ac02a5369641943d592b678abf819c39cb41cd87b9db",
+  "note": "Copied verbatim; the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
+ },
  "reasons": {
   "all_elements_established": {
    "text": "The judge found every condition this provision requires in words quoted from your facts, and found no fact that defeats the claim.",

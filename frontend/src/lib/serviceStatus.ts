@@ -1,4 +1,5 @@
 import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
+import { SERVICE_ERROR_TEXT } from "./signedStrings";
 
 export interface ServiceWindowStatus {
   timezone: string;
@@ -78,6 +79,7 @@ export type AnalyseErrorKind =
   | "rate_limited"
   | "signed_out"
   | "judge_unavailable"
+  | "service_config_missing"
   | "judges_offline"
   | "judges_warming"
   | "outside_window"
@@ -98,23 +100,30 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
   if (e instanceof ApiError) {
     if (e.status === 429) {
-      const wait = e.retryAfter ? ` Try again in ${e.retryAfter} seconds.` : " Try again shortly.";
-      return { kind: "rate_limited", message: `Too many requests.${wait}`, retryAfter: e.retryAfter };
+      // Signed sentence verbatim; the seconds the engine asked for follow it, since the signed text says "the number of seconds shown".
+      const wait = e.retryAfter ? ` Seconds to wait: ${e.retryAfter}.` : "";
+      return { kind: "rate_limited", message: `${SERVICE_ERROR_TEXT.rate_limited}${wait}`, retryAfter: e.retryAfter };
     }
     if (e.status === 401) return { kind: "signed_out", message: "Your session has ended. Sign in again to run an analysis." };
     if (e.status === 503 && e.code === "outside_service_window") {
-      return { kind: "outside_window", message: "The hosted demo is outside its service hours.", retryAfter: e.retryAfter };
+      return { kind: "outside_window", message: SERVICE_ERROR_TEXT.outside_service_window, retryAfter: e.retryAfter };
     }
     // The engine reads the judges' endpoint limit and says so (pravrudhi #312): parked on purpose, so nothing to wait for.
     if (e.status === 503 && e.code === "judges_offline") {
-      return { kind: "judges_offline", message: "The analysis models are switched off at the moment. Nothing was scored. Try again later." };
+      return { kind: "judges_offline", message: SERVICE_ERROR_TEXT.judges_offline };
     }
     if (e.status === 503 && e.code === "judge_unavailable" && e.reason === "judges_warming") {
-      const wait = e.retryAfter ? ` Try again in about ${e.retryAfter} seconds.` : " Try again shortly.";
-      return { kind: "judges_warming", message: `The analysis models are warming up. Nothing was scored.${wait}`, retryAfter: e.retryAfter };
+      // Signed: "... Try again after the number of seconds shown." With no Retry-After there is no number to show, so the
+      // two sentences before it are used alone.
+      const full = SERVICE_ERROR_TEXT.judges_warming;
+      const message = e.retryAfter ? `${full} Seconds to wait: ${e.retryAfter}.` : full.slice(0, full.indexOf(" Try again after")).trim();
+      return { kind: "judges_warming", message, retryAfter: e.retryAfter };
     }
     if (e.status === 503 && e.code === "judge_unavailable") {
-      return { kind: "judge_unavailable", message: "The analysis models are not available right now. Nothing was scored. Try again later." };
+      return { kind: "judge_unavailable", message: SERVICE_ERROR_TEXT.judge_unavailable };
+    }
+    if (e.status === 503 && e.code === "service_config_missing") {
+      return { kind: "service_config_missing", message: SERVICE_ERROR_TEXT.service_config_missing };
     }
     return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). Nothing was scored.` };
   }
