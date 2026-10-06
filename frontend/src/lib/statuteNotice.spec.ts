@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
-import { INDIA_CODE_HOME, STATUTE_NOTICE, hitSourceLink, isIndiaCodeHost, sourceLinkFor } from "./statuteNotice";
+import { INDIA_CODE_HOME, STATUTE_NOTICE, hitSourceLink, isIndiaCodeHost, sourceLinkFor, sourceLinkLabel } from "./statuteNotice";
 
 const SOURCES = [
   { work: "Bharatiya Nyaya Sanhita (2023)", site: "indiacode.gov.in", pages: [{ url: "https://indiacode.gov.in/act/abc/sections" }] },
@@ -99,6 +99,9 @@ test("hitSourceLink: a source_url that is not a plain https India Code link is n
     "https://indiacode.gov.in/x)",
     " https://indiacode.gov.in/x",
     "javascript:alert(1)",
+    "https://indiacode.gov.in/x\u0000",
+    "https://indiacode.gov.in/x\u200b",
+    "https://indiacode.gov.in/\u00e9",
     "https://indiacode.gov.in.evil.example/x",
     "https://indiacode.gov.in/x?next=https://evil.example/y",
     "https://indiacode.gov.in/x/https://evil.example",
@@ -110,4 +113,13 @@ test("hitSourceLink: a source_url that is not a plain https India Code link is n
   for (const odd of [5, {}, ["https://indiacode.gov.in/x"]]) {
     assert.equal(hitSourceLink({ act: "Indian Penal Code", source_url: odd }, SOURCES).recorded, false);
   }
+});
+
+test("sourceLinkLabel: a recorded India Code page is 'Source on India Code'; the home-page fallback is not called a source", () => {
+  assert.equal(sourceLinkLabel("https://www.indiacode.gov.in/show-data?actid=AC_CEN_5_23"), "Source on India Code");
+  assert.equal(sourceLinkLabel(INDIA_CODE_HOME), "India Code (home page)");
+  assert.equal(sourceLinkLabel("https://example.org/x"), "Source");
+  // an act with no recorded page (the IPC, the Constitution) ends up with the home-page label end to end
+  assert.equal(sourceLinkLabel(hitSourceLink({ act: "Indian Penal Code", source_url: null }, SOURCES).href), "India Code (home page)");
+  assert.equal(sourceLinkLabel(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: "https://www.indiacode.gov.in/x" }, SOURCES).href), "Source on India Code");
 });
