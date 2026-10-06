@@ -17,11 +17,11 @@ One page. Invented facts only; no evaluation items, host paths or private data. 
 For each of three fixtures, in a plain and in a near-statutory wording, three runs in one window (`DEMO_LIVE_REPEATS`, default 3):
 1. `proof-path` (bns69, validated): facts of a promise to marry made with no intention of keeping it.
 2. `abstain-path` (bns85, validated): facts that show none of the required conditions.
-3. `refer-path` (bns316_misappropriation, not validated): always referred.
+3. `refer-path` (bns316_misappropriation, not validated): a referral, not a proof or denial.
 Each run: sign in, open Matters, tick the contract, paste the facts, Analyse, wait for the result. The spec checks the real response: a card per contract, element rows, every established element's quote word for word in the submitted facts, citations, 64-hex hashes, the retention notice, the outcome against the recorded expectation (binding only after 3 recorded runs), what the page shows against the response, and the downloaded memo. By hand, for a partner: load the example from "How it works", read the safety record last.
 
 ## What to say when
-- **REFER:** "The tool refers anything it is not sure of, or has not validated, to a lawyer instead of guessing; the reason is shown." A contract marked "not validated, verify" is always referred. Never describe a REFER as a failure.
+- **REFER:** "The tool refers anything it is not sure of, or has not validated, to a lawyer instead of guessing; the reason is shown." On a provision that is not on the validated list it never gives a proof or denial; it gives a referral instead. Never describe a REFER as a failure.
 - **ABSTAIN:** the engine did not reach a verdict; nothing is a finding.
 - **The service is offline or the judges are warming:** say so; do not retry in a loop. A first run after idle can take about three minutes (the page shows a counter).
 - **Never say:** anything compared with another product, coverage or time-saved figures, "verified", "hallucination-free", legal correctness, anything about cheque-dishonour proofs. The only figures are on the Safety record page, with their label.
