@@ -9,14 +9,18 @@
 // cannot tell "the model wasn't sure" from "we couldn't reach a second opinion" from "this provision isn't
 // cleared yet" -- three very different situations that call for three different reactions from a reader.
 //
-// The engine's own nyaya_agent.py (`_run_contract`) currently produces EIGHT distinct REFER_TO_LAWYER
-// reasons, not the three R1's own report named -- mapping only three and letting the other five fall into
-// the generic "unknown reason" fallback would just be a smaller version of the same bug this file exists to
-// fix, so all eight known reasons get their own message below.
+// The engine's own nyaya_agent.py (`_run_contract`) currently produces NINE distinct REFER_TO_LAWYER
+// reasons, not the three R1's own report named -- mapping only some and letting the rest fall into the
+// generic "unknown reason" fallback would just be a smaller version of the same bug this file exists to
+// fix, so all nine known reasons get their own message below. (This file was written when the engine had eight;
+// `second_judge_defeater_disagreement` was missed, so a split on a defeater read as "not one this app
+// recognises yet". src/lib/fixtures/engineContractReasons.json is the engine's own list, copied with its source,
+// and referReason.spec.ts holds this list equal to it.)
 export const REFER_REASONS = [
   "denial_unquotable",
   "uncertain",
   "uncertain_second_judge",
+  "second_judge_defeater_disagreement",
   "second_judge_unavailable",
   "gate1_unavailable",
   "gate1_not_entailed",
@@ -65,7 +69,7 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
   switch (raw) {
     case "uncertain":
       // The primary judge's own p_established landed in the refer band on at least one element -- genuine
-      // model uncertainty, the only one of the eight reasons the OLD banner text was ever actually true for.
+      // model uncertainty, the only one of the nine reasons the OLD banner text was ever actually true for.
       return { reason: raw, message: "an element couldn't be judged confidently from these facts", unknown: false };
     case "uncertain_second_judge":
       // Config C only: the second judge answered, but its own logit-distance band fired -- a second opinion
@@ -74,6 +78,15 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
       return {
         reason: raw,
         message: "the second check couldn't confirm this confidently from these facts",
+        unknown: false,
+      };
+    case "second_judge_defeater_disagreement":
+      // Config C only: a defeater (a fact that would defeat the claim) was judged by both judges and they split. The
+      // contract is referred, never proved: an unresolved defeater cannot be waved through.
+      return {
+        reason: raw,
+        message:
+          "the first and second judges disagree on whether a fact defeats this claim, so we refer it to a lawyer",
         unknown: false,
       };
     case "second_judge_unavailable":
