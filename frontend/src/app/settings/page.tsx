@@ -18,7 +18,12 @@ import {
   type UpdateConfig,
   type UpdateStatus,
 } from "@/lib/api";
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
+import { AccountControl } from "@/components/AccountControl";
+import { DEMO_PATH } from "@/lib/demoPath";
+import { edition } from "@/lib/edition";
+import { canSeeApiKeys } from "@/lib/runsAccess";
 
 interface RowState {
   pending: boolean;
@@ -400,7 +405,40 @@ function TelegramSection() {
   );
 }
 
+function SurfaceSettings() {
+  // The law-firm surface: the account and, for an organisation admin, the API keys and usage entry. The model-provider,
+  // notification and update panels belong to the improvement loop and are not displayed here.
+  const [access, setAccess] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    let off = false;
+    edition().then((e) => !off && setAccess(e.access)).catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
+  return (
+    <div>
+      <PageHeader title="Settings" subtitle="Your account." />
+      <div className="space-y-6 p-8" data-testid="surface-settings">
+        <div>
+          <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Account</h2>
+          <AccountControl />
+        </div>
+        {canSeeApiKeys(access) && (
+          <div>
+            <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">API access</h2>
+            <Link href="/partner-keys" className="text-sm underline">
+              API keys and usage
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
+  if (DEMO_PATH) return <SurfaceSettings />;
   return (
     <div>
       <PageHeader title="Settings" subtitle="Your providers, notifications and update channel." />

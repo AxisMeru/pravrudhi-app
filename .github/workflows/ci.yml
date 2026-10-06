@@ -110,8 +110,15 @@ jobs:
           PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$ROOT" --no-browser --port 8301 --host 127.0.0.1 > "$RUNNER_TEMP/engine.log" 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8301/api/health > /dev/null && break; sleep 1; done
           curl -sf http://127.0.0.1:8301/api/me
-          LOCAL_ENGINE_URL=http://127.0.0.1:8301 npx playwright test
+          # A second engine as the Studio edition (loopback only, no credentials) for the specs that drive the
+          # improvement loop's pages, which are closed to a member on the product edition (#525).
+          STUDIO_ROOT="$RUNNER_TEMP/studio-root"; mkdir -p "$STUDIO_ROOT"
+          "$ENGINE" init --root "$STUDIO_ROOT"
+          PRAVRUDHI_EDITION=studio PRAVRUDHI_STUDIO_LOOPBACK_ONLY=1 PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$STUDIO_ROOT" --no-browser --port 8302 --host 127.0.0.1 > "$RUNNER_TEMP/engine-studio.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8302/api/health > /dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:8302/api/me
+          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test
 
       - name: engine log on failure
         if: failure()
-        run: cat "$RUNNER_TEMP/engine.log" || true
+        run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true

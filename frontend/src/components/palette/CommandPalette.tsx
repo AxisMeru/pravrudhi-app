@@ -34,6 +34,7 @@ import {
   Command,
 } from "lucide-react";
 import { IS_DEMO } from "@/lib/api";
+import { DEMO_PATH } from "@/lib/demoPath";
 import { edition, STUDIO } from "@/lib/edition";
 import {
   PALETTE_PAGES,
@@ -114,7 +115,7 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || DEMO_PATH) return; // the law-firm surface indexes no objectives, runs, models or recipes
     let cancelled = false;
     loadPaletteIndex().then((next) => {
       if (!cancelled) setIndex(next);
