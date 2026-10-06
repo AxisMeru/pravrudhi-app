@@ -92,7 +92,7 @@ export interface ClassifiedError {
 export function classifyAnalyseError(e: unknown): ClassifiedError {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") {
-    return { kind: "timeout", message: "The analysis took longer than the time we allow and was stopped. The engine may be warming up; try again in a minute." };
+    return { kind: "timeout", message: "The analysis models did not answer in time, so it was stopped. They may be switched off at the moment. Nothing was scored. Try again later." };
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
   if (e instanceof ApiError) {
@@ -109,7 +109,7 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
       return { kind: "judges_warming", message: `The analysis models are warming up. Nothing was scored.${wait}`, retryAfter: e.retryAfter };
     }
     if (e.status === 503 && e.code === "judge_unavailable") {
-      return { kind: "judge_unavailable", message: "The analysis model is starting up or unavailable. Nothing was scored. Try again in a minute or two." };
+      return { kind: "judge_unavailable", message: "The analysis models are not available right now. Nothing was scored. Try again later." };
     }
     return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). Nothing was scored.` };
   }

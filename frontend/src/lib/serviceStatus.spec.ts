@@ -126,3 +126,15 @@ test("classifyAnalyseError: judges_warming without a Retry-After still reads sen
   assert.equal(w.kind, "judges_warming");
   assert.doesNotMatch(w.message, /undefined|NaN/);
 });
+
+test("classifyAnalyseError: a timeout or a plain judge_unavailable says the models may be off, never 'a minute or two'", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const t = classifyAnalyseError(new DOMException("aborted", "TimeoutError"));
+  const j = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
+  assert.match(t.message, /switched off/i);
+  assert.match(t.message, /nothing was scored/i);
+  assert.match(j.message, /not available right now/i);
+  assert.match(j.message, /nothing was scored/i);
+  for (const x of [t, j]) assert.doesNotMatch(x.message, /minute/i);
+});
