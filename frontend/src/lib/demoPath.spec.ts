@@ -15,13 +15,13 @@ test("with the flag on, only the demo path is offered, and the demo home is on i
 
 test("the US-case Nyaya page is absent from the demo navigation and the palette", () => {
   assert.equal(offeredInDemoPath("/nyaya", true), false);
-  const hrefs = pagesFor(false, true).map((p) => p.href);
+  const hrefs = pagesFor(true, true).map((p) => p.href);
   assert.ok(!hrefs.includes("/nyaya"));
   assert.ok(hrefs.includes("/matters"));
 });
 
-test("the palette is unchanged with the flag off", () => {
-  assert.deepEqual(pagesFor(false, false).map((p) => p.id), PALETTE_PAGES.map((p) => p.id));
+test("the palette is unchanged for Studio with the flag off", () => {
+  assert.deepEqual(pagesFor(true, false).map((p) => p.id), PALETTE_PAGES.map((p) => p.id));
 });
 
 import { SURFACE_ROUTES, routeAllowedOnSurface } from "./demoPath";
@@ -60,4 +60,38 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
 test("API keys and usage are offered to an admin only", () => {
   assert.equal(canSeeApiKeys("admin"), true);
   for (const other of ["member", "none", "", undefined, "Admin"]) assert.equal(canSeeApiKeys(other), false);
+});
+
+import { gateDecision } from "./demoPath";
+import { studioOnlyPath } from "./palette";
+
+test("the gate closes the loop's pages for anyone not known to be Studio, and waits while the edition is unknown", () => {
+  for (const path of ["/runs", "/objectives/detail", "/nyaya", "/start", "/models"]) {
+    const loop = studioOnlyPath(path);
+    assert.equal(gateDecision(path, "product", loop, false), "block", path);
+    assert.equal(gateDecision(path, null, loop, false), "wait", path);
+    assert.equal(gateDecision(path, "studio", loop, false), "allow", path);
+  }
+});
+
+test("the home page of a non-Studio user goes to Matters; Studio keeps it", () => {
+  assert.equal(gateDecision("/", "product", true, false), "redirect-home");
+  assert.equal(gateDecision("/", null, true, false), "wait");
+  assert.equal(gateDecision("/", "studio", true, false), "allow");
+});
+
+test("kept pages are open to everyone, whatever the edition says", () => {
+  for (const ed of ["studio", "product", null] as const) {
+    for (const path of ["/matters", "/settings", "/signin", "/partner-keys"]) assert.equal(gateDecision(path, ed, studioOnlyPath(path), false), "allow", path);
+  }
+});
+
+test("a law-firm build blocks every route it does not offer, even for Studio", () => {
+  assert.equal(gateDecision("/runs", "studio", true, true), "block");
+  assert.equal(gateDecision("/matters", "product", false, true), "allow");
+});
+
+test("the recorded public demo (no engine, no account) is shown as it always was", () => {
+  assert.equal(gateDecision("/progress", "product", true, false, true), "allow");
+  assert.equal(gateDecision("/progress", null, true, false, true), "allow");
 });

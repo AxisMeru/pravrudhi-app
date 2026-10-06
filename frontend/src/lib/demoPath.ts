@@ -28,3 +28,25 @@ export function routeAllowedOnSurface(pathname: string | null | undefined, on: b
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return SURFACE_ROUTES.includes(path);
 }
+
+export type GateDecision = "allow" | "block" | "wait" | "redirect-home";
+
+/**
+ * What the page-level gate does for one path. `edition` is "studio", "product" or null while it is not known yet.
+ * A path that belongs to the improvement loop is never rendered for anyone who is not known to be Studio: while the
+ * edition is unknown it waits (renders nothing of the page), and the home page of a non-Studio user goes to Matters.
+ * The recorded public demo (IS_DEMO) has no engine and no account and is shown as it always was.
+ */
+export function gateDecision(
+  pathname: string | null | undefined,
+  edition: "studio" | "product" | null,
+  loopPath: boolean,
+  surface: boolean = DEMO_PATH,
+  isDemo: boolean = false,
+): GateDecision {
+  if (isDemo) return surface && !routeAllowedOnSurface(pathname, true) ? "block" : "allow";
+  if (surface && !routeAllowedOnSurface(pathname, true)) return "block";
+  if (!loopPath || edition === "studio") return "allow";
+  if (edition === null) return "wait";
+  return pathname === "/" ? "redirect-home" : "block";
+}

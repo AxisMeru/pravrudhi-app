@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+// The pages this spec drives (the improvement loop's) are closed to a member on the law-firm product (#525, 2026-10-06);
+// run it against a Studio-edition engine when it is reinstated as its own project.
+test.skip(true, "improvement-loop pages are Studio-only on the product edition");
+
 /**
  * The BYOK provider-key surface on /settings. Before this test existed, the frontend's `ProviderKeyResult` type
  * declared `{ok, reason}` -- a shape the engine never sent. `set_provider_key` (AxisMeru/pravrudhi's
