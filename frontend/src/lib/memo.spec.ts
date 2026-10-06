@@ -153,3 +153,19 @@ test("buildMemo: states the validation tier of the judge, so a verdict is never 
   assert.match(MEMO_VALIDATION_TIER, /constructed, in-distribution sets/);
   assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
 });
+
+test("buildMemo: an abstention carries the plain sentence for its reason beside the engine's code, and an unknown reason is not reworded", async () => {
+  const { buildMemo } = await import("./memo");
+  const { NON_REFER_REASON_TEXT } = await import("./reasonText");
+  const r = structuredClone(FIXTURE);
+  const abstain = r.contracts.find((c) => c.outcome === "ABSTAIN");
+  assert.ok(abstain, "the fixture has an abstaining contract");
+  abstain.reason = "judge_error";
+  const md = buildMemo(r, OPTS);
+  assert.ok(md.includes(NON_REFER_REASON_TEXT.judge_error));
+  assert.ok(md.includes("Engine reason code: judge_error"));
+  abstain.reason = "something_new";
+  const odd = buildMemo(r, OPTS);
+  assert.ok(odd.includes("Engine reason code: something_new"));
+  assert.doesNotMatch(odd, /A judge call failed/);
+});
