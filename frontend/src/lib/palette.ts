@@ -30,10 +30,22 @@ export interface PalettePage {
   digit?: number;
 }
 
-// This is the product edition of Pravrudhi, built from ADR-0049:
-// The product never serves Studio pages — they are not in this list, and the engine's /api/roles.py::gate
-// refuses them entirely. See https://github.com/AxisMeru/pravrudhi/blob/main/docs/decisions/ADR-0049-three-altitudes-studio-product-artifact.md §6.
-export const STUDIO_ONLY_PAGES: ReadonlySet<string> = new Set();
+// Which pages are the improvement loop's own, not the law-firm product's (Lead-2 decision on #525, 2026-10-06, binding:
+// "hidden" means CLOSED). A caller who is not the Studio edition is shown none of them: not in the sidebar, not in the
+// palette, and not by a typed URL (EditionGate). The kept pages are Matters, Settings (account), sign-in, the citation
+// check and the admin-only API keys page. The engine refuses the same surfaces on its own side (src/pravrudhi/api/roles.py).
+export const STUDIO_ONLY_PAGES: ReadonlySet<string> = new Set([
+  "start", "improve", "objectives", "progress", "memory", "catalogue", "chat", "nyaya", "runs", "models", "install",
+]);
+
+/** The hrefs behind STUDIO_ONLY_PAGES, plus the nested pages under them (`/objectives/detail`, `/runs/<id>`). */
+export function studioOnlyPath(pathname: string | null | undefined): boolean {
+  if (!pathname) return false;
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return PALETTE_PAGES.some(
+    (p) => STUDIO_ONLY_PAGES.has(p.id) && (p.href === "/" ? path === "/" : path === p.href || path.startsWith(`${p.href}/`)),
+  );
+}
 
 // The sidebar keeps its own copy of this list, so the rule lives here and both ask it rather than each
 // carrying its own idea of which pages are Studio's.
@@ -135,8 +147,8 @@ export async function loadPaletteIndex(showRuns: boolean = true): Promise<Palett
 
 const DEMO_REASON = "Demo mode — actions are disabled on this recording";
 
-function pageResults(isStudio: boolean, showRuns: boolean): PaletteResult[] {
-  return pagesFor(isStudio, DEMO_PATH, showRuns).map((p) => ({
+function pageResults(isStudio: boolean, showRuns: boolean, surface: boolean = DEMO_PATH): PaletteResult[] {
+  return pagesFor(isStudio, surface, showRuns).map((p) => ({
     id: `page:${p.id}`,
     group: "Pages",
     title: p.label,
@@ -230,7 +242,11 @@ function recipeResults(items: Recipe[]): PaletteResult[] {
 // involved are all small (an operator's own objectives/candidates/runs, not a public dataset).
 export function buildCatalogue(
   index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false, showRuns: boolean = true,
+  surface: boolean = DEMO_PATH,
 ): PaletteResult[] {
+  // The law-firm surface lists its own pages only: no actions (start a night, dispatch, stop) and no records of the
+  // improvement loop (objectives, runs, models, recipes) -- they would be links to pages this surface does not offer.
+  if (surface) return pageResults(isStudio, showRuns, surface);
   return [
     ...pageResults(isStudio, showRuns),
     ...globalActions(),

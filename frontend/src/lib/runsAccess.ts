@@ -15,3 +15,20 @@ export function isOperatorOnly(err: unknown): boolean {
   const status = (err as { status?: unknown } | null)?.status;
   return status === 401 || status === 403;
 }
+
+// The law-firm surface shows the API keys and usage entry to an organisation admin only (the engine's word "admin");
+// a missing value from an older engine hides it, and the engine refuses regardless.
+export function canSeeApiKeys(access: string | undefined): boolean {
+  return access === "admin";
+}
+
+// The notification bell and the workspace bootstrap are the operator's: the engine closes /api/notifications and
+// /api/workspaces to members (Lead-2's #548 decision), so a member's interface neither shows the bell (no polling) nor
+// provisions a workspace. The recorded public demo shows the bell as it always did.
+export function canSeeNotifications(access: string | undefined, isDemo: boolean = false): boolean {
+  return isDemo || access === "admin";
+}
+
+export function shouldBootstrapWorkspace(access: string | undefined, isDemo: boolean = false): boolean {
+  return !isDemo && access === "admin";
+}

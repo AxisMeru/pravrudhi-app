@@ -151,3 +151,54 @@ test("ensureDefaultWorkspace: provisions the 'default' slug exactly once per ses
   }
   assert.equal(posts, 1, "concurrent and repeat calls in the same session must only provision once");
 });
+
+
+const status = (code: number) => new Response(JSON.stringify({ detail: "closed" }), { status: code, headers: { "content-type": "application/json" } });
+
+test("ensureDefaultWorkspace: a member's 403 (and an anonymous 401) resolves quietly, is not asked again, and logs nothing", async () => {
+  for (const code of [403, 401]) {
+    const api = await import("./api");
+    api.resetWorkspaceBootstrapForTests();
+    let posts = 0; // POSTs to /api/workspaces only (the transport may add its own token or refresh calls)
+    const errors: unknown[][] = [];
+    const realError = console.error;
+    console.error = (...a: unknown[]) => void errors.push(a);
+    const { restore } = mockFetch((url, init) => {
+      if (init?.method === "POST" && /\/api\/workspaces$/.test(url)) posts += 1;
+      return status(code);
+    });
+    let afterFirst = 0;
+    try {
+      await api.ensureDefaultWorkspace(); // must not reject
+      afterFirst = posts;
+      await api.ensureDefaultWorkspace();
+      await api.ensureDefaultWorkspace();
+    } finally {
+      restore();
+      console.error = realError;
+    }
+    assert.ok(afterFirst >= 1, `${code}: it did ask once`);
+    assert.equal(posts, afterFirst, `${code}: a closed route is not asked again on later calls (navigation)`);
+    assert.deepEqual(errors, [], `${code}: nothing is logged`);
+  }
+});
+
+test("ensureDefaultWorkspace: any other failure still rejects and is retried on the next call", async () => {
+  const api = await import("./api");
+  api.resetWorkspaceBootstrapForTests();
+  let posts = 0;
+  const { restore } = mockFetch((url, init) => {
+    if (init?.method === "POST" && /\/api\/workspaces$/.test(url)) posts += 1;
+    return status(500);
+  });
+  let afterFirst = 0;
+  try {
+    await assert.rejects(api.ensureDefaultWorkspace());
+    afterFirst = posts;
+    await assert.rejects(api.ensureDefaultWorkspace());
+  } finally {
+    restore();
+    api.resetWorkspaceBootstrapForTests();
+  }
+  assert.ok(posts > afterFirst, "a real failure is retried on the next call");
+});

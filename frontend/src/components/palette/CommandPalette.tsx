@@ -34,6 +34,7 @@ import {
   Command,
 } from "lucide-react";
 import { IS_DEMO } from "@/lib/api";
+import { DEMO_PATH } from "@/lib/demoPath";
 import { edition, STUDIO } from "@/lib/edition";
 import { useCanSeeRuns } from "@/lib/useCanSeeRuns";
 import {
@@ -115,8 +116,19 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const showRuns = useCanSeeRuns();
 
+  // Which edition this engine is, so the palette does not offer pages a product install answers 404 for.
+  // NOT Studio until the engine says so: "hidden means closed" (#525), so the palette is the law-firm one until
+  // the engine names the Studio edition (a Studio palette that is trimmed for a moment costs nothing).
+  const [isStudio, setIsStudio] = useState(false);
   useEffect(() => {
-    if (!open) return;
+    let off = false;
+    edition().then((e) => !off && setIsStudio(e.edition === STUDIO)).catch(() => {});
+    return () => { off = true; };
+  }, []);
+
+  useEffect(() => {
+    // The law-firm surface (the flag, or any caller who is not Studio) indexes no objectives, runs, models or recipes.
+    if (!open || DEMO_PATH || (!IS_DEMO && !isStudio)) return;
     let cancelled = false;
     loadPaletteIndex(showRuns).then((next) => {
       if (!cancelled) setIndex(next);
@@ -124,7 +136,7 @@ export function CommandPalette() {
     return () => {
       cancelled = true;
     };
-  }, [open, showRuns]);
+  }, [open, isStudio, showRuns]);
 
   useEffect(() => {
     if (!open) return;
@@ -143,17 +155,10 @@ export function CommandPalette() {
     setOpen(true);
   }, []);
 
-  // Which edition this engine is, so the palette does not offer pages a product install answers 404 for.
-  // Studio until the engine says otherwise: this checkout is Studio, and a momentary wrong answer that hides
-  // a page is worse than one that shows it.
-  const [isStudio, setIsStudio] = useState(true);
-  useEffect(() => {
-    let off = false;
-    edition().then((e) => !off && setIsStudio(e.edition === STUDIO)).catch(() => {});
-    return () => { off = true; };
-  }, []);
-
-  const catalogue = useMemo(() => buildCatalogue(index, IS_DEMO, isStudio, showRuns), [index, isStudio, showRuns]);
+  const catalogue = useMemo(
+    () => buildCatalogue(index, IS_DEMO, isStudio, showRuns, DEMO_PATH || (!IS_DEMO && !isStudio)),
+    [index, isStudio, showRuns],
+  );
   const filtered = useMemo(() => filterResults(catalogue, query), [catalogue, query]);
 
   const sections = useMemo<Section[]>(() => {

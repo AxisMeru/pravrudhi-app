@@ -18,7 +18,12 @@ import {
   type UpdateConfig,
   type UpdateStatus,
 } from "@/lib/api";
+import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
+import { AccountControl } from "@/components/AccountControl";
+import { DEMO_PATH } from "@/lib/demoPath";
+import { edition, STUDIO } from "@/lib/edition";
+import { canSeeApiKeys } from "@/lib/runsAccess";
 
 interface RowState {
   pending: boolean;
@@ -400,7 +405,54 @@ function TelegramSection() {
   );
 }
 
+function SurfaceSettings() {
+  // The law-firm surface: the account and, for an organisation admin, the API keys and usage entry. The model-provider,
+  // notification and update panels belong to the improvement loop and are not displayed here.
+  const [access, setAccess] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    let off = false;
+    edition().then((e) => !off && setAccess(e.access)).catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
+  return (
+    <div>
+      <PageHeader title="Settings" subtitle="Your account." />
+      <div className="space-y-6 p-8" data-testid="surface-settings">
+        <div>
+          <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Account</h2>
+          <AccountControl />
+        </div>
+        {canSeeApiKeys(access) && (
+          <div>
+            <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">API access</h2>
+            <Link href="/partner-keys" className="text-sm underline">
+              API keys and usage
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
+  // Account-only for anyone who is not Studio (and on the law-firm build): the providers, notification and update panels
+  // belong to the improvement loop (#525). While the edition is unknown nothing of them is rendered. The recorded demo has
+  // no engine and is shown as before.
+  const [ed, setEd] = useState<"studio" | "product" | null>(null);
+  useEffect(() => {
+    let off = false;
+    edition().then((e) => !off && setEd(e.edition === STUDIO ? "studio" : "product")).catch(() => !off && setEd("product"));
+    return () => {
+      off = true;
+    };
+  }, []);
+  if (!IS_DEMO) {
+    if (DEMO_PATH || ed === "product") return <SurfaceSettings />;
+    if (ed === null) return <div className="p-8" data-testid="gate-wait" aria-busy="true" />;
+  }
   return (
     <div>
       <PageHeader title="Settings" subtitle="Your providers, notifications and update channel." />
