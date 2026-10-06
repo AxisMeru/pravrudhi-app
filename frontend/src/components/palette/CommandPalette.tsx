@@ -114,8 +114,19 @@ export function CommandPalette() {
   const [pending, setPending] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Which edition this engine is, so the palette does not offer pages a product install answers 404 for.
+  // NOT Studio until the engine says so: "hidden means closed" (#525), so the palette is the law-firm one until
+  // the engine names the Studio edition (a Studio palette that is trimmed for a moment costs nothing).
+  const [isStudio, setIsStudio] = useState(false);
   useEffect(() => {
-    if (!open || DEMO_PATH) return; // the law-firm surface indexes no objectives, runs, models or recipes
+    let off = false;
+    edition().then((e) => !off && setIsStudio(e.edition === STUDIO)).catch(() => {});
+    return () => { off = true; };
+  }, []);
+
+  useEffect(() => {
+    // The law-firm surface (the flag, or any caller who is not Studio) indexes no objectives, runs, models or recipes.
+    if (!open || DEMO_PATH || (!IS_DEMO && !isStudio)) return;
     let cancelled = false;
     loadPaletteIndex().then((next) => {
       if (!cancelled) setIndex(next);
@@ -123,7 +134,7 @@ export function CommandPalette() {
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, isStudio]);
 
   useEffect(() => {
     if (!open) return;
@@ -142,17 +153,7 @@ export function CommandPalette() {
     setOpen(true);
   }, []);
 
-  // Which edition this engine is, so the palette does not offer pages a product install answers 404 for.
-  // Studio until the engine says otherwise: this checkout is Studio, and a momentary wrong answer that hides
-  // a page is worse than one that shows it.
-  const [isStudio, setIsStudio] = useState(true);
-  useEffect(() => {
-    let off = false;
-    edition().then((e) => !off && setIsStudio(e.edition === STUDIO)).catch(() => {});
-    return () => { off = true; };
-  }, []);
-
-  const catalogue = useMemo(() => buildCatalogue(index, IS_DEMO, isStudio), [index, isStudio]);
+  const catalogue = useMemo(() => buildCatalogue(index, IS_DEMO, isStudio, DEMO_PATH || (!IS_DEMO && !isStudio)), [index, isStudio]);
   const filtered = useMemo(() => filterResults(catalogue, query), [catalogue, query]);
 
   const sections = useMemo<Section[]>(() => {
