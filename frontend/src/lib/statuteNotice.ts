@@ -67,7 +67,7 @@ export interface HitSourceFields {
 }
 
 function recordedUrl(u: unknown): string | null {
-  if (typeof u !== "string" || u !== u.trim() || /[\\\s<>()[\]]/.test(u)) return null;
+  if (typeof u !== "string" || u !== u.trim() || /[\\\s<>()[\]]/.test(u) || u.split("://").length !== 2) return null;
   const url = parseHttps(u);
   if (!url || url.username || url.password || url.port || !INDIA_CODE_HOSTS.has(url.hostname.toLowerCase())) return null;
   return url.href;

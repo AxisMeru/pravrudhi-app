@@ -100,6 +100,8 @@ test("hitSourceLink: a source_url that is not a plain https India Code link is n
     " https://indiacode.gov.in/x",
     "javascript:alert(1)",
     "https://indiacode.gov.in.evil.example/x",
+    "https://indiacode.gov.in/x?next=https://evil.example/y",
+    "https://indiacode.gov.in/x/https://evil.example",
     "",
     "not a url",
   ]) {
