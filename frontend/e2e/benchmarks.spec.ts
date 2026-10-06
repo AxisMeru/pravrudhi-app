@@ -1,37 +1,17 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 
 /**
  * The benchmarks page (#638). The shipped data file has every block pending, so the default page shows "Result pending" and no
- * figure. A reviewed block is exercised with an INVENTED fixture served by page.route (test data, not results); a block that
- * fails the contract (a number without its interval) must stay pending even when the file says reviewed.
+ * figure. A reviewed block is exercised with the INVENTED fixture src/lib/fixtures/benchmarkExample.json (which the real validator
+ * accepts; see benchmarks.spec.ts) served by page.route: test data, not results. A block that fails the runtime contract stays pending.
  */
-const reviewed = (over: Record<string, unknown> = {}) => ({
-  id: "bbl",
-  status: "reviewed",
-  reviewer_clear: { reviewer: "R1", head_sha: "abc1234", date: "2026-10-07" },
-  kind_chip: "Model legal knowledge (MCQ), not the harness",
-  data_chip: "Public benchmark",
-  what_it_is: "A test item set.",
-  what_it_is_not: "Not a claim about real matters.",
-  limits: "Test data only.",
-  run: { model_ids: ["model-x"], revisions: ["rev-1"], dataset_revision: "data-1", scorer_sha256: "a".repeat(64), date: "2026-10-06" },
-  tables: [
-    {
-      title: "Accuracy by language",
-      columns: ["arm", "group"],
-      chance: 0.25,
-      rows: [
-        { arm: "first", group: "English", n: 100, correct: 60, accuracy: 0.6, ci95: [0.5, 0.69], invalid: 1 },
-        { arm: "second", group: "English", n: 100, correct: 55, accuracy: 0.55, ci95: [0.45, 0.65], invalid: 0 },
-      ],
-    },
-  ],
-  paired: [{ pair: "first vs second", only_first_correct: 12, only_second_correct: 7, p: 0.36, label: "no separation" }],
-  leaderboard: null,
-  ...over,
-});
-const serve = async (page: import("@playwright/test").Page, blocks: unknown[]) => {
-  await page.route("**/benchmark_results.json", (r) => r.fulfill({ json: { generated_at: "2026-10-06", page_version: "t", blocks } }));
+const FIXTURE = JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "benchmarkExample.json"), "utf8")) as { blocks: Record<string, any>[] }; // eslint-disable-line @typescript-eslint/no-explicit-any
+const serve = async (page: import("@playwright/test").Page, mutate?: (blocks: Record<string, any>[]) => void) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+  const doc = structuredClone(FIXTURE);
+  mutate?.(doc.blocks);
+  await page.route("**/benchmark_results.json", (r) => r.fulfill({ json: doc }));
 };
 
 test("by default every block is pending and the page shows no figure", async ({ page }) => {
@@ -45,70 +25,63 @@ test("by default every block is pending and the page shows no figure", async ({ 
   await expect(page.getByTestId("block-bbl").getByText(/%/)).toHaveCount(0);
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
   await expect(page.getByTestId("fixed-label-bbl")).toHaveText(/Not the proof harness\. Our models were not trained for this test\./);
+  await expect(page.getByTestId("chip-kind-citation")).toHaveText("Own study, design not yet registered");
 });
 
-test("a reviewed block shows its chips, label before number, interval chart with a text alternative, the table, and the pairing", async ({ page }) => {
-  await serve(page, [reviewed()]);
+test("a reviewed block shows its chips and outcome, label before number, an interval chart with a text alternative, the table, the pairing and the generated sentences", async ({ page }) => {
+  await serve(page);
   await page.goto("/benchmarks");
   const block = page.getByTestId("block-bbl");
   await expect(page.getByTestId("status-bbl")).toHaveText("Reviewed");
+  await expect(page.getByTestId("outcome-bbl")).toHaveText("Descriptive");
   await expect(page.getByTestId("chip-kind-bbl")).toHaveText("Model legal knowledge (MCQ), not the harness");
   await expect(page.getByTestId("chip-data-bbl")).toHaveText("Public benchmark");
-  await expect(page.getByTestId("what-it-is-not-bbl")).toContainText("Not a claim about real matters.");
-  // the label comes before the figures
+  await expect(page.getByTestId("what-it-is-not-bbl")).toContainText("Not a result about any real model.");
   const labelY = (await page.getByTestId("fixed-label-bbl").boundingBox())!.y;
   const chartY = (await block.getByTestId("interval-chart").boundingBox())!.y;
   expect(labelY).toBeLessThan(chartY);
-  const chart = block.getByTestId("interval-chart");
-  await expect(chart).toHaveAttribute("aria-label", /first, English: 60\.0%, 95% interval 50\.0% to 69\.0%, n 100/);
+  await expect(block.getByTestId("interval-chart")).toHaveAttribute("aria-label", /arm A, English: 60\.0%, 95% interval 49\.7% to 69\.7%, n 100/);
   await expect(block.getByTestId("chance-line")).toHaveCount(1);
   const rows = block.getByTestId("result-table-values").locator("tbody tr");
   await expect(rows).toHaveCount(2);
-  await expect(rows.first()).toContainText("60.0% (50.0% to 69.0%)");
-  await expect(rows.first()).toContainText("100");
+  await expect(rows.first()).toContainText("60.0% (49.7% to 69.7%)");
   await expect(block.getByTestId("paired-label")).toHaveText("no separation");
-  await expect(block.getByTestId("paired")).toContainText("12");
+  await expect(block.getByTestId("paired")).toContainText("only arm A right");
+  await expect(page.getByTestId("sentences-bbl")).toContainText("No separation: only arm A right 12, only arm B right 7");
   await expect(page.getByTestId("benchmarks-footer")).toContainText("scorer sha256 " + "a".repeat(64));
 });
 
 test("a block that says reviewed but carries a number without its interval stays pending with no figure", async ({ page }) => {
-  const bad = reviewed({ tables: [{ title: "T", columns: [], rows: [{ arm: "first", group: "English", n: 100, correct: 60, accuracy: 0.6, invalid: 0 }] }] });
-  await serve(page, [bad]);
+  await serve(page, (blocks) => {
+    delete blocks[0].tables[0].rows[0].ci95;
+  });
   await page.goto("/benchmarks");
   await expect(page.getByTestId("status-bbl")).toHaveText("Result pending");
-  await expect(page.getByTestId("result-table")).toHaveCount(0);
+  await expect(page.getByTestId("block-bbl").getByTestId("result-table")).toHaveCount(0);
   await expect(page.getByText(/60\.0%/)).toHaveCount(0);
 });
 
-test("a block with banned wording stays pending", async ({ page }) => {
-  await serve(page, [reviewed({ what_it_is: "A test where our model beats the rest." })]);
+test("a block with only one reviewer stays pending", async ({ page }) => {
+  await serve(page, (blocks) => {
+    blocks[0].reviews = blocks[0].reviews.slice(0, 1);
+  });
   await page.goto("/benchmarks");
   await expect(page.getByTestId("status-bbl")).toHaveText("Result pending");
-  await expect(page.getByText("beats")).toHaveCount(0);
+  await expect(page.getByTestId("block-bbl").getByTestId("sentences-bbl")).toHaveCount(0);
 });
 
-test("an inconclusive citation block says so in its title and shows no figure", async ({ page }) => {
-  await serve(page, [{ id: "citation", status: "inconclusive" }]);
+test("an inconclusive citation result says so in its title and shows its bound, categories and sentence", async ({ page }) => {
+  await serve(page);
   await page.goto("/benchmarks");
   await expect(page.getByRole("heading", { name: "Does our citation checker catch wrong citations? (Inconclusive)" })).toBeVisible();
-  await expect(page.getByTestId("result-table")).toHaveCount(0);
-});
-
-test("the citation block draws its proportion bar capped at the bound", async ({ page }) => {
-  const c = reviewed({
-    id: "citation",
-    kind_chip: "Harness, our own pre-registered study",
-    data_chip: "Model-generated questions",
-    tables: [{ title: "Wrong citations shown as verified", columns: [], rows: [{ arm: "model-x", group: "P1", n: 80, correct: 2, accuracy: 0.025, ci95: [0.0, 0.088], invalid: 0 }] }],
-    paired: [],
-  });
-  await serve(page, [c]);
-  await page.goto("/benchmarks");
-  await expect(page.getByTestId("proportion-bar").getByRole("img")).toHaveAttribute("aria-label", /upper end of the 95% interval 8\.8%/);
+  await expect(page.getByTestId("outcome-citation")).toHaveText("Inconclusive");
+  await expect(page.getByTestId("bound-bar").getByRole("img")).toHaveAttribute("aria-label", /Toy upper bound: 8\.8%, n 80, one sided upper/);
+  await expect(page.getByTestId("categories-citation")).toContainText("Toy category: 4");
+  await expect(page.getByTestId("sentences-citation")).toContainText("Toy upper bound: 0.088 (one sided upper, exact 95%, n = 80; toy answers).");
 });
 
 test("the page works at phone width: no horizontal scroll of the page", async ({ page }) => {
-  await serve(page, [reviewed()]);
+  await serve(page);
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/benchmarks");
   await expect(page.getByTestId("block-bbl").getByTestId("interval-chart")).toBeVisible();

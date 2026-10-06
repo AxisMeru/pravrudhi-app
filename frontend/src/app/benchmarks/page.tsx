@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { PairedView, ProportionBar, ResultTableView } from "@/components/benchmarks/ResultTableView";
+import { BoundBar, PairedView, ResultTableView } from "@/components/benchmarks/ResultTableView";
 import { PageHeader } from "@/components/PageHeader";
 import {
   FOOTER_TEXT,
@@ -11,16 +11,19 @@ import {
   PAGE_SUBTITLE,
   PAGE_TITLE,
   PENDING_TEXT,
-  KIND_CHIP,
+  RANK_LINK_TEXT,
   parseBenchmarkResults,
   titleFor,
   type BlockView,
   type ParsedResults,
 } from "@/lib/benchmarks";
 
-// The page reads one data file beside the app (like demo.json) and shows a figure only from a reviewed block that passed the
-// contract in lib/benchmarks.ts. Until then every block says "Result pending" and shows no number.
+// The page reads one data file beside the app (like demo.json) and shows a figure only from a reviewed block that passed the contract
+// (lib/benchmarks.ts at runtime; the vendored validator in CI). Until then every block says "Result pending" and shows no number.
+// Every result sentence is read from the data, where the validator has regenerated it from the numbers by template.
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+const chip = "rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs";
 
 function Block({ v }: { v: BlockView }) {
   const f = v.figures;
@@ -28,17 +31,22 @@ function Block({ v }: { v: BlockView }) {
     <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid={`block-${v.id}`}>
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-base font-medium text-[var(--color-text)]">{titleFor(v)}</h2>
-        <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text)]" data-testid={`chip-kind-${v.id}`}>
-          {KIND_CHIP[v.id]}
+        <span className={`${chip} text-[var(--color-text)]`} data-testid={`chip-kind-${v.id}`}>
+          {v.kindChip}
         </span>
-        {f && (
-          <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]" data-testid={`chip-data-${v.id}`}>
-            {f.data_chip}
+        {v.dataChip && (
+          <span className={`${chip} text-[var(--color-text-dim)]`} data-testid={`chip-data-${v.id}`}>
+            {v.dataChip}
           </span>
         )}
-        <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]" data-testid={`status-${v.id}`}>
+        <span className={`${chip} text-[var(--color-text-dim)]`} data-testid={`status-${v.id}`}>
           {v.statusLabel}
         </span>
+        {v.outcomeLabel && (
+          <span className={`${chip} text-[var(--color-text)]`} data-testid={`outcome-${v.id}`}>
+            {v.outcomeLabel}
+          </span>
+        )}
       </div>
       {v.fixedLabel && (
         <p className="text-sm text-[var(--color-text)]" data-testid={`fixed-label-${v.id}`}>
@@ -47,7 +55,7 @@ function Block({ v }: { v: BlockView }) {
       )}
       {!f && (
         <p className="text-sm text-[var(--color-text-dim)]" data-testid={`pending-${v.id}`}>
-          {v.status === "pending" ? PENDING_TEXT : v.statusLabel}. {NO_FIGURE_TEXT}
+          {PENDING_TEXT}. {NO_FIGURE_TEXT}
         </p>
       )}
       {f && (
@@ -60,25 +68,39 @@ function Block({ v }: { v: BlockView }) {
             <span className="font-medium">What it is not: </span>
             {f.what_it_is_not}
           </p>
-          {f.tables.map((t, i) =>
-            v.id === "citation" ? (
-              <div key={i} className="space-y-3">
-                <h4 className="text-sm font-medium text-[var(--color-text)]">{t.title}</h4>
-                {t.rows.map((r, j) => (
-                  <ProportionBar key={j} row={r} label={`${r.arm} · ${r.group}`} />
-                ))}
-                <ResultTableView table={t} />
-              </div>
-            ) : (
-              <ResultTableView key={i} table={t} />
-            ),
-          )}
+          {f.copy.map((c) => (
+            <p key={c.id} className="text-sm text-[var(--color-text)]" data-testid={`copy-${v.id}`}>
+              {c.text}
+            </p>
+          ))}
+          {f.tables.map((t, i) => (
+            <ResultTableView key={i} table={t} />
+          ))}
+          {f.bounds.map((bd, i) => (
+            <BoundBar key={i} bound={bd} />
+          ))}
           {f.paired.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {f.paired.map((p, i) => (
                 <PairedView key={i} pair={p} />
               ))}
             </div>
+          )}
+          {f.categories.length > 0 && (
+            <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--color-text)]" data-testid={`categories-${v.id}`}>
+              {f.categories.map((c) => (
+                <li key={c.label}>
+                  {c.label}: {c.count}
+                </li>
+              ))}
+            </ul>
+          )}
+          {f.sentences.length > 0 && (
+            <ul className="space-y-1 text-sm text-[var(--color-text)]" data-testid={`sentences-${v.id}`}>
+              {f.sentences.map((s, i) => (
+                <li key={i}>{s.text}</li>
+              ))}
+            </ul>
           )}
           <p className="text-xs text-[var(--color-text-dim)]" data-testid={`limits-${v.id}`}>
             <span className="font-medium">Limits: </span>
@@ -88,7 +110,7 @@ function Block({ v }: { v: BlockView }) {
             <p className="text-sm text-[var(--color-text)]" data-testid={`leaderboard-${v.id}`}>
               Rank {f.leaderboard.rank} on {f.leaderboard.name} as of {f.leaderboard.as_of}, submitted by {f.leaderboard.submitted_by}.{" "}
               <a href={f.leaderboard.url} target="_blank" rel="noopener noreferrer" className="underline">
-                Leaderboard page
+                {RANK_LINK_TEXT}
               </a>
             </p>
           )}

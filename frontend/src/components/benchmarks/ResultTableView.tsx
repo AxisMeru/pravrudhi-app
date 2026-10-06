@@ -1,4 +1,4 @@
-import { chartAlt, type PairedResult, type ResultTable } from "@/lib/benchmarks";
+import { chartAlt, pairNames, type BoundResult, type PairedResult, type ResultTable } from "@/lib/benchmarks";
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -84,44 +84,43 @@ export function ResultTableView({ table }: { table: ResultTable }) {
   );
 }
 
-/** A paired comparison: how many questions only one arm got right, the label, and the p value in small text. */
+/** A paired comparison: how many questions only one arm got right, the label, and the p value in small text (the sentence is read from the data). */
 export function PairedView({ pair }: { pair: PairedResult }) {
+  const [first, second] = pairNames(pair.pair);
   return (
     <div className="rounded-md border border-[var(--color-border)] p-3 text-sm" data-testid="paired">
       <div className="font-medium text-[var(--color-text)]">{pair.pair}</div>
       <div className="mt-2 grid grid-cols-2 gap-2 text-center">
         <div>
           <div className="text-lg text-[var(--color-text)]">{pair.only_first_correct}</div>
-          <div className="text-[11px] text-[var(--color-text-dim)]">only the first right</div>
+          <div className="text-[11px] text-[var(--color-text-dim)]">only {first} right</div>
         </div>
         <div>
           <div className="text-lg text-[var(--color-text)]">{pair.only_second_correct}</div>
-          <div className="text-[11px] text-[var(--color-text-dim)]">only the second right</div>
+          <div className="text-[11px] text-[var(--color-text-dim)]">only {second} right</div>
         </div>
       </div>
       <div className="mt-2 text-center text-sm text-[var(--color-text)]" data-testid="paired-label">
         {pair.label}
       </div>
-      <div className="text-center text-[11px] text-[var(--color-text-dim)]">exact two-sided p = {pair.p.toPrecision(2)}</div>
+      <div className="text-center text-[11px] text-[var(--color-text-dim)]">
+        exact McNemar p = {pair.p.toPrecision(3)}
+        {pair.holm_adjusted_p != null ? `; Holm-adjusted p = ${pair.holm_adjusted_p.toPrecision(3)}` : ""}
+      </div>
+      {pair.label_note && <div className="mt-1 text-center text-[11px] text-[var(--color-text-dim)]">{pair.label_note}</div>}
     </div>
   );
 }
 
-/** The citation block's proportion: a bar to the point value, capped by a mark at the upper bound; the share beside it is a second row. */
-export function ProportionBar({ row, label }: { row: ResultTable["rows"][number]; label: string }) {
+/** One proportion with its bound: a bar to the value, capped by a mark at the value for an upper bound (the bound IS the figure). */
+export function BoundBar({ bound }: { bound: BoundResult }) {
+  const v = Math.min(1, Math.max(0, bound.value));
   return (
-    <div className="space-y-1" data-testid="proportion-bar">
-      <div className="text-sm text-[var(--color-text)]">{label}</div>
-      <div
-        className="relative h-3 w-full rounded bg-[var(--color-border)]"
-        role="img"
-        aria-label={`${label}: ${pct(row.accuracy)}, upper end of the 95% interval ${pct(row.ci95[1])}, n ${row.n}`}
-      >
-        <div className="absolute inset-y-0 left-0 rounded bg-[var(--color-accent)]" style={{ width: `${row.accuracy * 100}%` }} />
-        <div className="absolute inset-y-[-3px] w-[2px] bg-[var(--color-text)]" style={{ left: `${row.ci95[1] * 100}%` }} />
-      </div>
-      <div className="text-[11px] text-[var(--color-text-dim)]">
-        {pct(row.accuracy)}, bound {pct(row.ci95[1])}, n {row.n}
+    <div className="space-y-1" data-testid="bound-bar">
+      <div className="text-sm text-[var(--color-text)]">{bound.name}</div>
+      <div className="relative h-3 w-full rounded bg-[var(--color-border)]" role="img" aria-label={`${bound.name}: ${pct(bound.value)}, n ${bound.n}, ${bound.kind.replace(/_/g, " ")}`}>
+        <div className="absolute inset-y-0 left-0 rounded bg-[var(--color-accent)]" style={{ width: `${v * 100}%` }} />
+        <div className="absolute inset-y-[-3px] w-[2px] bg-[var(--color-text)]" style={{ left: `${v * 100}%` }} />
       </div>
     </div>
   );
