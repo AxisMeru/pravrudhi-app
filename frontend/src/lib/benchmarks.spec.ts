@@ -34,10 +34,10 @@ test("the fixture of invented numbers satisfies the REAL validator, and the ship
   assert.equal(r.status, 0, r.stdout + r.stderr);
 });
 
-test("the vendored tools' own 27 tests pass", () => {
+test("the vendored tools' own 31 tests pass", () => {
   const r = spawnSync("python3", ["-m", "unittest"], { cwd: SCRIPTS, encoding: "utf8", env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" } });
   assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stderr, /Ran 27 tests/);
+  assert.match(r.stderr, /Ran 31 tests/);
 });
 
 test("planted violations FAIL the validator (the CI gate): unreviewed numbers, one reviewer, a wrong interval, a wrong label, a banned word, a tampered sentence", () => {
@@ -75,10 +75,9 @@ test("the page's fixed strings (titles, labels, chips, how-we-test, footer) pass
   assert.equal(spawnSync("python3", [join(SCRIPTS, "lint_copy.py"), file], { encoding: "utf8" }).status, 1);
 });
 
-test("the placeholder arm names appear only in the labelled illustrative fixture, never in the shipped data file", () => {
-  assert.equal(blockOf(example(), "bbl").limits, "Illustrative layout only: arm A and arm B are placeholders, not results.");
-  assert.doesNotMatch(readFileSync(PUBLIC, "utf8"), /arm [AB]\b/);
-  assert.match(readFileSync(join(FIXTURES, "benchmarkExample.json"), "utf8"), /Illustrative layout only: arm A and arm B are placeholders, not results\./);
+test("the placeholder arm names (arm A, arm B) appear in neither the validated fixture nor the shipped data file (the validator rejects them outside an illustrative fixture)", () => {
+  assert.doesNotMatch(readFileSync(PUBLIC, "utf8"), /arm [AB]\b/i);
+  assert.doesNotMatch(readFileSync(join(FIXTURES, "benchmarkExample.json"), "utf8"), /arm [AB]\b/i);
 });
 
 test("no page string or fixed text carries a digit (no figure lives in the page)", () => {
@@ -186,6 +185,6 @@ test("a chart's text alternative lists every row with its interval and n in the 
   assert.ok(alt.indexOf("second") < alt.indexOf("first"), "rows are never sorted by value");
   assert.match(alt, /50\.0%, 95% interval 40\.0% to 60\.0%, n 100/);
   assert.match(alt, /Chance level 25\.0%/);
-  assert.deepEqual(pairNames("arm A vs arm B"), ["arm A", "arm B"]);
+  assert.deepEqual(pairNames("alpha vs beta"), ["alpha", "beta"]);
   assert.deepEqual(pairNames("single"), ["single", "second arm"]);
 });

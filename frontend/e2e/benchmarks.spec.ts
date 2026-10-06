@@ -40,14 +40,14 @@ test("a reviewed block shows its chips and outcome, label before number, an inte
   const labelY = (await page.getByTestId("fixed-label-bbl").boundingBox())!.y;
   const chartY = (await block.getByTestId("interval-chart").boundingBox())!.y;
   expect(labelY).toBeLessThan(chartY);
-  await expect(block.getByTestId("interval-chart")).toHaveAttribute("aria-label", /arm A, English: 60\.0%, 95% interval 49\.7% to 69\.7%, n 100/);
+  await expect(block.getByTestId("interval-chart")).toHaveAttribute("aria-label", /alpha, English: 60\.0%, 95% interval 49\.7% to 69\.7%, n 100/);
   await expect(block.getByTestId("chance-line")).toHaveCount(1);
   const rows = block.getByTestId("result-table-values").locator("tbody tr");
   await expect(rows).toHaveCount(2);
   await expect(rows.first()).toContainText("60.0% (49.7% to 69.7%)");
   await expect(block.getByTestId("paired-label")).toHaveText("no separation");
-  await expect(block.getByTestId("paired")).toContainText("only arm A right");
-  await expect(page.getByTestId("sentences-bbl")).toContainText("No separation: only arm A right 12, only arm B right 7");
+  await expect(block.getByTestId("paired")).toContainText("only alpha right");
+  await expect(page.getByTestId("sentences-bbl")).toContainText("No separation: only alpha right 12, only beta right 7");
   await expect(page.getByTestId("benchmarks-footer")).toContainText("scorer sha256 " + "a".repeat(64));
 });
 

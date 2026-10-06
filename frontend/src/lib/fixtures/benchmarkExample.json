@@ -26,7 +26,7 @@
    "data_chip": "Public benchmark",
    "what_it_is": "A toy item set used to test the page.",
    "what_it_is_not": "Not a result about any real model.",
-   "limits": "Illustrative layout only: arm A and arm B are placeholders, not results.",
+   "limits": "Invented numbers for tests only.",
    "copy": [],
    "run": {
     "model_ids": [
@@ -49,7 +49,7 @@
      "chance": 0.25,
      "rows": [
       {
-       "arm": "arm A",
+       "arm": "alpha",
        "group": "English",
        "n": 100,
        "correct": 60,
@@ -62,7 +62,7 @@
        "protocol": "log_likelihood"
       },
       {
-       "arm": "arm B",
+       "arm": "beta",
        "group": "English",
        "n": 100,
        "correct": 55,
@@ -79,7 +79,7 @@
    ],
    "paired": [
     {
-     "pair": "arm A vs arm B",
+     "pair": "alpha vs beta",
      "only_first_correct": 12,
      "only_second_correct": 7,
      "p": 0.359,
@@ -95,15 +95,15 @@
    "sentences": [
     {
      "template_id": "accuracy",
-     "text": "arm A, English: 60 of 100 correct (60.0%; exact 95% interval 49.7% to 69.7%)."
+     "text": "alpha, English: 60 of 100 correct (60.0%; exact 95% interval 49.7% to 69.7%)."
     },
     {
      "template_id": "accuracy",
-     "text": "arm B, English: 55 of 100 correct (55.0%; exact 95% interval 44.7% to 65.0%)."
+     "text": "beta, English: 55 of 100 correct (55.0%; exact 95% interval 44.7% to 65.0%)."
     },
     {
      "template_id": "paired_no_separation",
-     "text": "No separation: only arm A right 12, only arm B right 7 (exact McNemar p = 0.359)."
+     "text": "No separation: only alpha right 12, only beta right 7 (exact McNemar p = 0.359)."
     }
    ]
   },

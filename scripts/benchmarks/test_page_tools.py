@@ -64,6 +64,15 @@ class SignedUnits(unittest.TestCase):
             self.assertTrue(L.lint_items([mk("the harness reduces false proofs and is better than everything")], d))   # under a do-not-say heading
             self.assertTrue(L.lint_items([mk("We outperform everyone, safer and better than all the rest of them here")], d))
             self.assertTrue(L.lint_items([mk(good[:-1] + " and safer")], d))                      # an edited sentence is not the signed one
+    def test_direction_words_flagged(self):
+        for w in ["G lower or higher", "stronger than the base", "weaker on Hindi", "greater accuracy", "ahead of the base", "above chance", "below the base"]:
+            self.assertTrue(L.lint(w), w)
+        self.assertFalse(L.lint("only A right 3, only B right 4"))
+    def test_leaderboard_allowed_but_leader_claims_banned(self):
+        for ok in ["Not a placement on any leaderboard", "Our entry on the BhashaBench leaderboard", "Two leaderboards were read"]:
+            self.assertFalse(L.lint(ok), ok)
+        for bad in ["a leading legal AI", "leader in legal AI", "industry-leading accuracy", "it leads the field", "market leaders"]:
+            self.assertTrue(L.lint(bad), bad)
     def test_wins_flagged(self):
         for w in ["wins", "winner", "winners"]: self.assertTrue(L.lint(f"our arm {w}"), w)
 
@@ -134,6 +143,21 @@ class Validate(unittest.TestCase):
             self.assertTrue(any("bad format" in e for e in self.v(b2, d)))
             b3 = block(copy=[{"id": "x", "text": "ok", "signed_source": {"file": "we beat everyone", "sha256": "0" * 64}}])
             self.assertTrue(any("bad format" in e for e in self.v(b3, d)))
+    def test_placeholder_arm_names_only_in_illustrative_fixtures(self):
+        with tempfile.TemporaryDirectory() as d:
+            row_a = dict(ROW, arm="arm A"); row_b = dict(ROW, arm="Arm-B")
+            pending = block(tables=[{"title": "t", "rows": [row_a]}])
+            self.assertTrue(any("pending block carries numbers" in e for e in self.v(pending, d)))   # pending blocks carry no numbers anyway
+            rev = reviewed(d, tables=[{"title": "t", "rows": [row_a, row_b]}])
+            self.assertTrue(any("placeholder arm names" in e for e in self.v(rev, d)))
+            fx = reviewed(d, tables=[{"title": "t", "rows": [row_a]}]); fx["fixture"] = "illustrative"
+            self.assertTrue(any("reviewed block can never be a fixture" in e for e in self.v(fx, d)))
+            only_fx = block(fixture="illustrative")
+            self.assertEqual(self.v(only_fx, d), [])
+            pair = reviewed(d, paired=[dict(PAIR, pair="arm A vs arm B")])
+            self.assertTrue(any("placeholder arm names" in e for e in self.v(pair, d)))
+    def test_market_leader_still_fails(self):
+        self.assertTrue(L.lint("a market leader")); self.assertFalse(L.lint("the BhashaBench leaderboards"))
     def test_inconclusive_shows_numbers(self):
         with tempfile.TemporaryDirectory() as d:
             b = reviewed(d, bounds=[dict(BOUND, name="bound at the n reached", n=5)]); b["outcome"] = "inconclusive"

@@ -46,7 +46,7 @@ export const FIXED_LABEL: Readonly<Partial<Record<BlockId, string>>> = {
   citation:
     "Model-generated questions; Supreme Court judgments index only; a citation is checked for existence and metadata, not for whether the case supports a stated point. Questions were written by Anthropic Haiku and answered by Anthropic Sonnet.",
   legalbench:
-    "United States law (public benchmark). A test of whether an element-by-element harness changes accuracy on a public rule-application task. Not the Indian-law claim. Not a placement on any public ranking.",
+    "United States law (public benchmark). A test of whether an element-by-element harness changes accuracy on a public rule-application task. Not the Indian-law claim. Not a placement on any leaderboard.",
 };
 
 export const PAGE_TITLE = "Benchmarks";

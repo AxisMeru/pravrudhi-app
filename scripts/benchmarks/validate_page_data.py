@@ -75,6 +75,13 @@ def validate(doc, root="."):
         rs, oc = b.get("review_status"), b.get("outcome")
         if rs not in REVIEW: e(f"review_status must be one of {sorted(REVIEW)}")
         if oc not in OUTCOME: e(f"outcome must be one of {sorted(OUTCOME)}")
+        # placeholder arm names ("arm A", "arm B") are allowed only in a fixture marked illustrative, and a reviewed block can never be a fixture
+        fixture = b.get("fixture")
+        if fixture not in (None, "illustrative"): e("fixture, when present, must be 'illustrative'")
+        if fixture and rs == "reviewed": e("a reviewed block can never be a fixture")
+        names = [row.get("arm") for t in b.get("tables", []) for row in t.get("rows", [])] + [x for p in b.get("paired", []) for x in str(p.get("pair", "")).split(" vs ")]
+        if not fixture and any(re.sub(r"[\s_-]+", " ", str(n or "").strip().lower()) in ("arm a", "arm b") for n in names):
+            e("placeholder arm names ('arm A' / 'arm B') outside a fixture marked illustrative")
         numbers = [k for k in ("tables", "paired", "bounds", "categories") if b.get(k)]
         if rs == "pending":
             if numbers: e(f"pending block carries numbers: {numbers}")

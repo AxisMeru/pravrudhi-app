@@ -1,10 +1,10 @@
-Vendored from the research notes repository (explorer's benchmark page guard tools, cleared by R1), source commit 8813449f
+Vendored from the research notes repository (explorer's benchmark page guard tools, cleared by R1), source commit 2dbb7b4c
 (research/explorations/benchmarks/). Copied unchanged; do not edit here. To update, copy the files from a newer cleared commit and record
-the new sha256 values and the commit below.
+the new sha256 values and the commit below. (Previous: 8813449f.)
 
 5b04aa567fc885379976e558f42768e1dda5e6b13a73e75735822c27eec7bfe4  bench_tables.py
-c4131b0e46e6485e828dbb475231f7596f08e75d9d016b04c75d598eab2cf9d3  lint_copy.py
+7b3342190693a3558f535bd82344099bc05aa80cf1b8a3eff4a88ab07422df9d  lint_copy.py
 a89acbc0289e089815a3bb80bbec30d9a2930a7fad1dec1e04eb16586ac26ac0  page_templates.py
 d834847b0150c3d89426ba0a1140094e93b4f1dc0bf695f2a165c31773e5a2b9  test_bench_tables.py
-e7a1237c0b245cd2da5a4bad6b22574bb5ceeef80424ebff3fe9867e59cb6b27  test_page_tools.py
-f8f803886271fff5c91d97a1ac6e12078e0cb5af27cd9a94d1ffd8819a7f605d  validate_page_data.py
+af3574fb56cfc603edec6699c9ae99be7fe2d0c9543ab993fce32404360cdd42  test_page_tools.py
+e1a673edef576152a8d1a5d717119b32d7546725af3ccb87775ebf69105abbc3  validate_page_data.py

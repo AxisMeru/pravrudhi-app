@@ -9,11 +9,12 @@ import hashlib, json, re, sys
 from pathlib import Path
 
 STEMS = ["outperform", "improv", "beat", "valid", "winn", "win", "wins", "winner", "winners", "won", "trend", "reliab", "superior", "gain", "safe", "safer", "safest", "safety", "equivalen", "comparab",
-         "accurate", "accurately", "robust", "proven", "certif", "guarantee", "leading", "leader", "top", "best", "better", "worse", "parity", "slightly", "tends", "tend to"]
-PHRASES = ["state of the art", "sota", "best in class", "on par", "as good as", "matches", "first", "lift"]
+         "accurate", "accurately", "robust", "proven", "certif", "guarantee", "top", "leading", "leader", "leaders", "leads", "best", "better", "worse", "parity", "slightly", "tends", "tend to"]
+DIRECTION = ["higher", "lower", "stronger", "weaker", "greater", "ahead", "above", "below"]   # a direction in free text is never allowed; directions come from the generated sentences
+PHRASES = DIRECTION + ["state of the art", "sota", "best in class", "on par", "as good as", "matches", "first", "lift"]
 SPECIAL = {"#1": re.compile(r"(?<!\w)#\s*1(?!\d)")}
 NAMED_TEST = re.compile(r"mcnemar", re.I)
-EXACT_ONLY = {"win", "wins", "winner", "winners", "won", "top", "first", "lift", "leading", "tends"}   # whole word only (avoid window, topic, lifting ...)
+EXACT_ONLY = {"win", "wins", "winner", "winners", "won", "top", "first", "lift", "leading", "leader", "leaders", "leads", "tends"}   # whole word only: "leaderboard(s)" is a noun we need and stays allowed   # whole word only (avoid window, topic, lifting ...)
 
 def norm(t):
     return re.sub(r"\s+", " ", t.lower().replace("-", " ").replace("‑", " ").replace("–", " ").replace("_", " "))
