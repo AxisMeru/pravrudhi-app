@@ -24,7 +24,7 @@ test("with the e2e account and LIVE_E2E_GO=1 the live projects are enabled", () 
 const FRONTEND = join(__dirname, "..", "..");
 function playwright(args: string[], env: Record<string, string>): { code: number; out: string } {
   try {
-    const out = execFileSync("npx", ["playwright", "test", ...args], { cwd: FRONTEND, env: { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "", ...env }, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    const out = execFileSync("npx", ["playwright", "test", ...args], { cwd: FRONTEND, env: { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "", ...env } as NodeJS.ProcessEnv, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
     return { code: 0, out };
   } catch (e) {
     const err = e as { status?: number; stdout?: string; stderr?: string };
