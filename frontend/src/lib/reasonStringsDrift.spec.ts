@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -7,7 +7,8 @@ import { ELEMENT_STATUSES, elementStatusPresentation } from "./elementStatus";
 import { NON_REFER_REASON_TEXT, QUOTE_CHECK_TEXT } from "./reasonText";
 import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { classifyAnalyseError } from "./serviceStatus";
-import { ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT } from "./signedStrings";
+import { MEMO_DISCLAIMER } from "./memo";
+import { ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { ApiError } from "./api";
 
 // The app's reason, quote-check, status and service-error strings are the SIGNED wording, word for word. This file holds them to
@@ -24,6 +25,7 @@ const TABLE = read("reasonCodesTable.json") as {
   quote_check: Record<string, string>;
 };
 const GAP = read("signedGapStrings.json") as { source: string; strings: Record<string, string> };
+const APP_SIGNED = read("appSignedStrings.json") as { source: string; strings: Record<string, string> };
 const ENGINE = read("engineCodes.json") as {
   quote_check: string[];
   element_status: string[];
@@ -156,4 +158,20 @@ test("the allow-list is honest: only engine codes, each with a reason, and none 
     assert.ok(why.length > 0);
     assert.ok(!inApp.has(code), `${code} now has an app string: remove it from the allow-list`);
   }
+});
+
+test("the app-specific signed strings (web session 401, memo disclaimer) are verbatim, and the 401 is what the page shows", () => {
+  assert.match(APP_SIGNED.source, /R1/);
+  assert.equal(norm(SESSION_401_TEXT), norm(APP_SIGNED.strings.session_401));
+  assert.equal(norm(MEMO_DISCLAIMER), norm(APP_SIGNED.strings.memo_disclaimer));
+  assert.equal(norm(classifyAnalyseError(new ApiError(401, "/x")).message), norm(APP_SIGNED.strings.session_401));
+});
+
+test("no source file in the app says a REFER 'means a lawyer must decide' or 'must decide this matter'", () => {
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(join(dir, d.name)) : [join(dir, d.name)]));
+  const src = join(__dirname, "..");
+  const files = walk(src).filter((f) => /\.(ts|tsx)$/.test(f) && !/\.spec\.ts$/.test(f));
+  assert.ok(files.length > 50);
+  for (const f of files) assert.doesNotMatch(readFileSync(f, "utf8"), /means a lawyer must decide|must decide this matter/i, f);
 });

@@ -22,3 +22,8 @@ export const SERVICE_ERROR_TEXT = {
   service_config_missing: "The service is not fully set up. Nothing was scored.",
   rate_limited: "Too many requests. Wait the number of seconds shown before trying again. Nothing was scored.",
 } as const;
+
+/** App-specific strings signed by R1 (6 Oct 2026; fixtures/appSignedStrings.json): the web session 401 and the memo disclaimer. */
+export const SESSION_401_TEXT = "You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.";
+export const MEMO_DISCLAIMER_TEXT =
+  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome is a referral, not an answer: the system reached no verdict, and a lawyer should look at the matter. A quote is verbatim text from the submitted facts, not proof that it is relevant.";

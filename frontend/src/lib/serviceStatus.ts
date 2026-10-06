@@ -1,5 +1,5 @@
 import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
-import { SERVICE_ERROR_TEXT } from "./signedStrings";
+import { SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export interface ServiceWindowStatus {
   timezone: string;
@@ -104,7 +104,7 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
       const wait = e.retryAfter ? ` Seconds to wait: ${e.retryAfter}.` : "";
       return { kind: "rate_limited", message: `${SERVICE_ERROR_TEXT.rate_limited}${wait}`, retryAfter: e.retryAfter };
     }
-    if (e.status === 401) return { kind: "signed_out", message: "Your session has ended. Sign in again to run an analysis." };
+    if (e.status === 401) return { kind: "signed_out", message: SESSION_401_TEXT };
     if (e.status === 503 && e.code === "outside_service_window") {
       return { kind: "outside_window", message: SERVICE_ERROR_TEXT.outside_service_window, retryAfter: e.retryAfter };
     }

@@ -2,10 +2,9 @@ import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } fr
 import { elementStatusPresentation } from "./elementStatus";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
+import { MEMO_DISCLAIMER_TEXT } from "./signedStrings";
 
-export const MEMO_DISCLAIMER =
-  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
-  "no verdict was reached. A quote is verbatim text from the submitted facts, not proof that it is relevant.";
+export const MEMO_DISCLAIMER = MEMO_DISCLAIMER_TEXT;
 
 export const MEMO_VALIDATION_TIER =
   "Validation tier: the judge behind this memo was validated on constructed, in-distribution sets (pipeline-measured). " +
