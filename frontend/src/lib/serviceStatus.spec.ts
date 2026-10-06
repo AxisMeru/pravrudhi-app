@@ -138,3 +138,16 @@ test("classifyAnalyseError: a timeout or a plain judge_unavailable says the mode
   assert.match(j.message, /nothing was scored/i);
   for (const x of [t, j]) assert.doesNotMatch(x.message, /minute/i);
 });
+
+test("classifyAnalyseError: the engine's judges_offline 503 is its own kind and says the models are switched off", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const o = classifyAnalyseError(new ApiError(503, "/x", { code: "judges_offline" }));
+  assert.equal(o.kind, "judges_offline");
+  assert.match(o.message, /switched off/i);
+  assert.match(o.message, /nothing was scored/i);
+  assert.doesNotMatch(o.message, /minute|warming|starting/i);
+  assert.equal(o.retryAfter, undefined);
+  // the existing mappings stay as the fallback when the engine cannot read the limit
+  assert.equal(classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" })).kind, "judge_unavailable");
+});

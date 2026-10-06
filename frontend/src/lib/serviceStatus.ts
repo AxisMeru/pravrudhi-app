@@ -78,6 +78,7 @@ export type AnalyseErrorKind =
   | "rate_limited"
   | "signed_out"
   | "judge_unavailable"
+  | "judges_offline"
   | "judges_warming"
   | "outside_window"
   | "server"
@@ -103,6 +104,10 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 401) return { kind: "signed_out", message: "Your session has ended. Sign in again to run an analysis." };
     if (e.status === 503 && e.code === "outside_service_window") {
       return { kind: "outside_window", message: "The hosted demo is outside its service hours.", retryAfter: e.retryAfter };
+    }
+    // The engine reads the judges' endpoint limit and says so (pravrudhi #312): parked on purpose, so nothing to wait for.
+    if (e.status === 503 && e.code === "judges_offline") {
+      return { kind: "judges_offline", message: "The analysis models are switched off at the moment. Nothing was scored. Try again later." };
     }
     if (e.status === 503 && e.code === "judge_unavailable" && e.reason === "judges_warming") {
       const wait = e.retryAfter ? ` Try again in about ${e.retryAfter} seconds.` : " Try again shortly.";
