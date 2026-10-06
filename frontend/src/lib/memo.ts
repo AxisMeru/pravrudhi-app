@@ -17,7 +17,7 @@ export const PROVISION_HEADING = "Provision text (for reference)";
 export const PROVISION_ELEMENTS_LINE =
   "The conditions above (and any defences) come from the contract this tool uses for the provision. They were not extracted from the text below, and the contract is this tool's reading of the provision.";
 export const PROVISION_MISMATCH_LINE =
-  "The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version:";
+  "The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version, which may be cut short:";
 
 export interface MemoOptions {
   engineVersion: string | null;
