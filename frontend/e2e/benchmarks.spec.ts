@@ -88,3 +88,14 @@ test("the page works at phone width: no horizontal scroll of the page", async ({
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+test("the benchmarks page and the demo page link NyayaSiddhi with its status line, and show no figure for it", async ({ page }) => {
+  for (const path of ["/benchmarks", "/demo"]) {
+    await page.goto(path);
+    const link = page.getByTestId("nyayasiddhi-link");
+    await expect(link).toHaveText("NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)");
+    await expect(link).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
+    await expect(page.getByTestId("nyayasiddhi-status")).toHaveText("development benchmark; descriptive; no ranking");
+    await expect(page.getByTestId("nyayasiddhi")).not.toContainText(/\d+(\.\d+)?%/);
+  }
+});

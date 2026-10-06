@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { BoundBar, PairedView, ResultTableView } from "@/components/benchmarks/ResultTableView";
+import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { PageHeader } from "@/components/PageHeader";
 import {
   FOOTER_TEXT,
@@ -145,6 +146,10 @@ export default function BenchmarksPage() {
         {blocks.map((b) => (
           <Block key={b.id} v={b} />
         ))}
+        <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-nyayasiddhi">
+          <h2 className="text-base font-medium text-[var(--color-text)]">NyayaSiddhi</h2>
+          <NyayaSiddhiLink />
+        </section>
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-how">
           <h2 className="text-base font-medium text-[var(--color-text)]">How we test</h2>
           <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--color-text)]">

@@ -65,6 +65,11 @@ export const HOW_WE_TEST: readonly string[] = [
 /** Link text for a placement on the benchmark's own Space (the copy lint bans the stem of the usual word for it). */
 export const RANK_LINK_TEXT = "Page of the Space";
 
+/** NyayaSiddhi (the open development benchmark, #638): a link and a status line, no figure. Strings exactly as signed; both pass the vendored lint. */
+export const NYAYASIDDHI_URL = "https://huggingface.co/datasets/AxisMeru/nyayasiddhi";
+export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)";
+export const NYAYASIDDHI_STATUS = "development benchmark; descriptive; no ranking";
+
 export const FOOTER_TEXT = "Research results, not legal advice.";
 
 export interface ResultRow {
@@ -347,6 +352,8 @@ export function fixedPageStrings(): { id: string; text: string }[] {
   add("subtitle", PAGE_SUBTITLE);
   add("footer", FOOTER_TEXT);
   add("rank-link", RANK_LINK_TEXT);
+  add("nyayasiddhi-link", NYAYASIDDHI_LINK_TEXT);
+  add("nyayasiddhi-status", NYAYASIDDHI_STATUS);
   add("no-figure", NO_FIGURE_TEXT);
   add("pending", PENDING_TEXT);
   add("reviewed", REVIEWED_TEXT);

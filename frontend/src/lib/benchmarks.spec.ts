@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { BLOCK_IDS, BLOCK_TITLE, chartAlt, fixedPageStrings, pairNames, parseBenchmarkResults, titleFor } from "./benchmarks";
+import { NYAYASIDDHI_LINK_TEXT, NYAYASIDDHI_STATUS, NYAYASIDDHI_URL, BLOCK_IDS, BLOCK_TITLE, chartAlt, fixedPageStrings, pairNames, parseBenchmarkResults, titleFor } from "./benchmarks";
 
 // The page's runtime contract (lib/benchmarks.ts) and the CI gate (the vendored validator and copy-lint) are tested together on one
 // fixture of INVENTED numbers (fixtures/benchmarkExample.json: test data, never results): the fixture must satisfy the real validator, and
@@ -81,7 +81,8 @@ test("the placeholder arm names (arm A, arm B) appear in neither the validated f
 });
 
 test("no page string or fixed text carries a digit (no figure lives in the page)", () => {
-  for (const s of fixedPageStrings()) assert.doesNotMatch(s.text, /\d/, s.text);
+  // The dataset's own name carries a version ("v0"): a name, not a figure.
+  for (const s of fixedPageStrings()) assert.doesNotMatch(s.text.replace("NyayaSiddhi v0", "NyayaSiddhi"), /\d/, s.text);
 });
 
 test("a file with no blocks, or no file, gives four pending blocks in the page order and no figure", () => {
@@ -187,4 +188,15 @@ test("a chart's text alternative lists every row with its interval and n in the 
   assert.match(alt, /Chance level 25\.0%/);
   assert.deepEqual(pairNames("alpha vs beta"), ["alpha", "beta"]);
   assert.deepEqual(pairNames("single"), ["single", "second arm"]);
+});
+
+test("NyayaSiddhi: the link text and status line are exactly as signed, the link is the dataset's URL, and both pass the vendored lint", () => {
+  assert.equal(NYAYASIDDHI_LINK_TEXT, "NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)");
+  assert.equal(NYAYASIDDHI_STATUS, "development benchmark; descriptive; no ranking");
+  assert.equal(NYAYASIDDHI_URL, "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
+  const dir = mkdtempSync(join(tmpdir(), "bench-"));
+  const file = join(dir, "items.json");
+  writeFileSync(file, JSON.stringify([{ id: "link", text: NYAYASIDDHI_LINK_TEXT }, { id: "status", text: NYAYASIDDHI_STATUS }]));
+  assert.equal(spawnSync("python3", [join(SCRIPTS, "lint_copy.py"), file], { encoding: "utf8" }).status, 0);
+  assert.ok(fixedPageStrings().some((s) => s.text === NYAYASIDDHI_LINK_TEXT));
 });
