@@ -1,4 +1,4 @@
-import { CAVEATS } from "@/lib/surfaceCopy";
+import { CAVEATS, WARMING_NOTE } from "@/lib/surfaceCopy";
 
 // One strip, always shown on the surface's result pages. The retention notice is the engine's own text, shown verbatim
 // once a result carries it; the warming line appears only while the judges report they are warming.
@@ -14,7 +14,7 @@ export function CaveatStrip({ retentionNotice, warming }: { retentionNotice?: st
           <li key={c.id}>{c.text}</li>
         ))}
         {retentionNotice && <li data-testid="retention-notice">{retentionNotice}</li>}
-        {warming && <li data-testid="warming-note">The analysis models are warming up; the first run can take a few minutes.</li>}
+        {warming && <li data-testid="warming-note">{WARMING_NOTE}</li>}
       </ul>
     </aside>
   );

@@ -22,7 +22,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StatuteBeside } from "@/components/StatuteBeside";
-import { NOT_VALIDATED_LABEL, showNotValidated, validatedById } from "@/lib/surfaceCopy";
+import { validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -84,7 +84,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   );
 }
 
-function ContractResult({ c, notValidated }: { c: AnalyseFactsContract; notValidated?: boolean }) {
+function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: ValidationMark }) {
   if (isUncovered(c)) {
     return (
       <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -105,9 +105,9 @@ function ContractResult({ c, notValidated }: { c: AnalyseFactsContract; notValid
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-medium text-[var(--color-text)]">
           {c.contract_id}
-          {notValidated && (
+          {mark && validationLabel(mark) && (
             <span className="ml-2 rounded border border-amber-500/40 px-1.5 py-0.5 text-[11px] font-normal text-amber-300" data-testid="not-validated-badge">
-              {NOT_VALIDATED_LABEL}
+              {validationLabel(mark)}
             </span>
           )}
         </div>
@@ -190,7 +190,8 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
-  const [validated, setValidated] = useState<Map<string, boolean>>(new Map());
+  // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
+  const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
@@ -215,7 +216,7 @@ export default function MattersPage() {
     let off = false;
     nyayaRegistryEntries()
       .then((entries) => !off && setValidated(validatedById(entries)))
-      .catch(() => {}); // the mark is advisory display: a failed read shows no badge, the engine still refers unvalidated contracts
+      .catch(() => !off && setValidated(null)); // a failed read is SHOWN as "validation status unavailable, verify"
     return () => {
       off = true;
     };
@@ -358,7 +359,9 @@ export default function MattersPage() {
                   >
                     <input type="checkbox" className="sr-only" checked={selected.has(id)} onChange={() => toggleContract(id)} />
                     {id}
-                    {showNotValidated(validated, id) && <span className="text-amber-300">({NOT_VALIDATED_LABEL})</span>}
+                    {validationLabel(validationMark(validated, id)) && (
+                      <span className="text-amber-300">({validationLabel(validationMark(validated, id))})</span>
+                    )}
                   </label>
                 ))}
               </div>
@@ -428,7 +431,7 @@ export default function MattersPage() {
               </button>
             </div>
             {result.contracts.map((c) => (
-              <ContractResult key={c.contract_id} c={c} notValidated={showNotValidated(validated, c.contract_id)} />
+              <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} />
             ))}
             <StatuteNotice />
           </div>

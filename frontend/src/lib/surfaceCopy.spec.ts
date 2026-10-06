@@ -3,7 +3,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { CAVEATS, DO_NOT_CLAIM, NOT_VALIDATED_LABEL, citationQuery, pickCorpusHit, showNotValidated, validatedById } from "./surfaceCopy";
+import {
+  CAVEATS, DO_NOT_CLAIM, NOT_VALIDATED_LABEL, VALIDATION_UNAVAILABLE_LABEL, WARMING_NOTE, citationQuery, pickCorpusHit,
+  validatedById, validationLabel, validationMark,
+} from "./surfaceCopy";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
 test("the caveat strip says what a reviewer needs: a model reads the facts, the two-part stack, the mark, the statute notice", () => {
@@ -17,7 +20,7 @@ test("the caveat strip says what a reviewer needs: a model reads the facts, the 
 });
 
 test("no copy on the surface makes a claim on the do-not-claim list, and none carries a count of contracts", () => {
-  const copy = [...CAVEATS.map((c) => c.text), NOT_VALIDATED_LABEL];
+  const copy = [...CAVEATS.map((c) => c.text), NOT_VALIDATED_LABEL, VALIDATION_UNAVAILABLE_LABEL, WARMING_NOTE];
   // The page's visible strings: its source with whole-line comments dropped (a developer comment is not copy).
   const page = readFileSync(join(__dirname, "..", "app", "matters", "page.tsx"), "utf8")
     .split("\n")
@@ -27,19 +30,35 @@ test("no copy on the surface makes a claim on the do-not-claim list, and none ca
     for (const s of copy) assert.doesNotMatch(s, re, s);
     assert.doesNotMatch(page, re, String(re));
   }
+  // The figures pattern (time saved, percentages) is held against the copy (it would also match CSS fractions in the page).
+  for (const s of copy) assert.doesNotMatch(s, DO_NOT_CLAIM[3], s);
   for (const s of copy) assert.doesNotMatch(s, /\d+ (of|out of) \d+|\b\d+ contracts\b/i);
 });
 
-test("the not-validated mark is read from the registry: only a positively validated contract goes unmarked", () => {
+test("the validation mark is read from the registry: only a positively validated contract goes unmarked", () => {
   const v = validatedById([{ id: "bns69", validated: true }, { id: "bns302", validated: false }, { id: "x", validated: undefined as never }]);
-  assert.equal(showNotValidated(v, "bns69"), false);
-  assert.equal(showNotValidated(v, "bns302"), true);
-  assert.equal(showNotValidated(v, "x"), true);
-  assert.equal(showNotValidated(v, "unlisted"), true);
+  assert.equal(validationMark(v, "bns69"), "none");
+  assert.equal(validationMark(v, "bns302"), "not-validated");
+  assert.equal(validationMark(v, "x"), "not-validated");
+  assert.equal(validationMark(v, "unlisted"), "not-validated");
+  assert.equal(validationLabel("none"), null);
+  assert.equal(validationLabel("not-validated"), NOT_VALIDATED_LABEL);
 });
 
-test("with no registry read at all there is no mark (the engine still refers unvalidated contracts)", () => {
-  for (const bad of [undefined, null, [], "x" as never, {} as never]) assert.equal(showNotValidated(validatedById(bad), "bns69"), false);
+test("a registry that was not read, or listed nothing, reads as UNAVAILABLE: a missing mark never means validated", () => {
+  for (const bad of [undefined, null, [], "x" as never, {} as never]) {
+    const mark = validationMark(bad === undefined || bad === null ? null : validatedById(bad), "bns69");
+    assert.equal(mark, "unavailable");
+    assert.equal(validationLabel(mark), VALIDATION_UNAVAILABLE_LABEL);
+  }
+  assert.equal(validationMark(null, "bns69"), "unavailable");
+});
+
+test("the strip defines validated in words and names the failure state; the stack line says two judge models and a Lean check", () => {
+  const text = CAVEATS.map((c) => c.text).join(" ");
+  assert.match(text, /"Validated" means the contract is on the engine registry's list of validated contracts/);
+  assert.match(text, /validation status unavailable, verify/);
+  assert.match(text, /two judge models and a Lean check/);
 });
 
 test("a statute is looked up by the section the contract names, and only the matching hit is used", () => {

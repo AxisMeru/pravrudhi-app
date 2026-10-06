@@ -12,19 +12,24 @@ export const CAVEATS: readonly { id: string; text: string }[] = [
   {
     id: "stack",
     text:
-      "Two parts work on each contract: a judge model reads your facts and quotes the passages it relies on, and a Lean " +
-      "structural check confirms the right elements were addressed. The Lean check does not read your facts or the quotes.",
+      "Each contract is handled by two judge models and a Lean check: the judge models read your facts and quote the " +
+      "passages they rely on, and the Lean check confirms the right elements were addressed. The Lean check does not read " +
+      "your facts or the quotes.",
   },
   {
     id: "validated",
     text:
-      "A contract marked \"not validated, verify\" has not been validated; its answer is referred to a lawyer. The mark is " +
-      "read from the engine's registry when this page loads.",
+      "\"Validated\" means the contract is on the engine registry's list of validated contracts. A contract that is not on " +
+      "that list always returns a referral to a lawyer, and is marked \"not validated, verify\". The mark is read from the " +
+      "registry when this page loads; if the registry cannot be read, every contract is marked \"validation status " +
+      "unavailable, verify\".",
   },
   { id: "statute", text: STATUTE_NOTICE },
 ];
 
 export const NOT_VALIDATED_LABEL = "not validated, verify";
+export const VALIDATION_UNAVAILABLE_LABEL = "validation status unavailable, verify";
+export const WARMING_NOTE = "The analysis models are warming up; the first run can take a few minutes.";
 
 export interface RegistryEntry {
   id: string;
@@ -41,9 +46,20 @@ export function validatedById(entries: readonly RegistryEntry[] | undefined | nu
   return out;
 }
 
-/** Whether to mark a contract "not validated, verify": anything the registry did not positively list as validated. */
-export function showNotValidated(validated: ReadonlyMap<string, boolean>, contractId: string): boolean {
-  return validated.size > 0 && validated.get(contractId) !== true;
+export type ValidationMark = "none" | "not-validated" | "unavailable";
+
+/**
+ * What to show beside a contract. Only a contract the registry positively lists as validated goes unmarked. A registry
+ * that was not read (null: the read failed or has not finished) or that listed nothing is "unavailable": a missing mark
+ * must never read as "validated" (R1, #51): the failure is shown, not hidden.
+ */
+export function validationMark(validated: ReadonlyMap<string, boolean> | null, contractId: string): ValidationMark {
+  if (validated === null || validated.size === 0) return "unavailable";
+  return validated.get(contractId) === true ? "none" : "not-validated";
+}
+
+export function validationLabel(mark: ValidationMark): string | null {
+  return mark === "not-validated" ? NOT_VALIDATED_LABEL : mark === "unavailable" ? VALIDATION_UNAVAILABLE_LABEL : null;
 }
 
 export interface CitationRef {
