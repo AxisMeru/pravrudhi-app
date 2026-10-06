@@ -3,9 +3,9 @@
 One page. Invented facts only; no evaluation items, host paths or private data. Objective and metrics: pravrudhi-app#18.
 
 ## Before anything runs in production
-- **A production run needs Lead-2's written go, and the nightly-surface fix (pravrudhi-app#59) must be merged first.** Without #59 the sign-in step of the live specs waits for a route the engine closes to a member.
-- The scripted E2E (`frontend/e2e/demo-live.spec.ts`) is skipped unless `DEMO_LIVE_GO=1`. Set it only for the window the go covers, and only with the e2e (member) account in the environment (`E2E_EMAIL`, `E2E_PASSWORD`; never printed, never an admin account).
-- Run exactly: `cd frontend && DEMO_LIVE_GO=1 npx playwright test demo-live.spec.ts --project=live-chromium`. **Never** `-- demo-live.spec.ts` (the `--` drops the file filter and runs the whole live project against production).
+- **A production run needs Lead-2's written go, and BOTH the nightly-surface fix (pravrudhi-app#59) and the live-project guard (pravrudhi-app#61) must be merged first.** Without #59 the sign-in step of the live specs waits for a route the engine closes to a member; without #61 nothing stops the live project from being reached by accident.
+- The live projects refuse to load unless `LIVE_E2E_GO=1` is set whenever the e2e account is in the environment, and the scripted E2E (`frontend/e2e/demo-live.spec.ts`) is also skipped unless `DEMO_LIVE_GO=1`. Set both only for the window the go covers, and only with the e2e (member) account in the environment (`E2E_EMAIL`, `E2E_PASSWORD`; never printed, never an admin account).
+- Run exactly: `cd frontend && LIVE_E2E_GO=1 DEMO_LIVE_GO=1 npx playwright test demo-live.spec.ts --project=live-chromium`. **Never** `-- demo-live.spec.ts` (the `--` drops the file filter and runs the whole live project against production).
 - The recorded fixtures and the assertions are unit-tested without any engine: `npm test` (`src/lib/demo/liveCheck.spec.ts`).
 
 ## Pre-flight (two minutes)
