@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { liveProjectsEnabled } from "./playwright.live-guard";
 
 // The product's own interface, served by a running engine (LOCAL_ENGINE_URL; see README "Testing"). This
 // repository ships one edition and one interface, so one project: every product page renders on a live engine
@@ -44,7 +45,7 @@ export default defineConfig({
     // The nightly's project only exists when the nightly's account is in the environment
     // (pravrudhi-e2e-nightly.service's EnvironmentFile): CI runs every project it can see and has no such
     // account, and a live door is not something a pull request should be able to fail on.
-    ...(process.env.E2E_EMAIL
+    ...(liveProjectsEnabled(process.env)
       ? [
           {
             name: "live-chromium",
