@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-10-06",
+  "page_version": "0",
+  "blocks": [
+    { "id": "bbl", "status": "pending" },
+    { "id": "citation", "status": "pending" },
+    { "id": "legalbench", "status": "pending" },
+    { "id": "sealed_court", "status": "pending" }
+  ]
+}
