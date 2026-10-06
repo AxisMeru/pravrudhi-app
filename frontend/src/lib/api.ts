@@ -1234,6 +1234,14 @@ export interface AnalyseFactsCitation {
   title: string | null;
 }
 
+export interface AnalyseFactsStandardOut {
+  requested: string;
+  applied: string | null;
+  source: string;
+  proceeding_posture?: string | null;
+  in_judge_prompt: boolean;
+}
+
 export interface AnalyseFactsResult {
   run_id: string;
   judge: string;
@@ -1241,6 +1249,8 @@ export interface AnalyseFactsResult {
   facts: { id: string; text: string; sha256: string }[];
   contracts: AnalyseFactsContract[];
   provenance: string;
+  // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
+  standard?: AnalyseFactsStandardOut | null;
   // The engine's own retention notice: shown verbatim wherever a result is shown.
   retention_notice?: string;
 }

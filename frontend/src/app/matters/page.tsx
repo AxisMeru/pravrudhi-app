@@ -17,6 +17,7 @@ import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, t
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { referReasonPresentation } from "@/lib/referReason";
+import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -437,6 +438,16 @@ export default function MattersPage() {
             <div className="text-xs text-[var(--color-text-dim)]">
               run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
             </div>
+            {(() => {
+              // The standard of proof applied, next to the verdict (#32): from the engine's `standard` field, else its default.
+              const std = standardLine(result.standard);
+              return (
+                <div className="text-xs text-[var(--color-text-dim)]" data-testid="standard-line">
+                  <div>{std.text}</div>
+                  {std.notice && <div data-testid="standard-notice">{std.notice}</div>}
+                </div>
+              );
+            })()}
             <div className="flex gap-2 print:hidden" data-testid="memo-actions">
               <button
                 type="button"
