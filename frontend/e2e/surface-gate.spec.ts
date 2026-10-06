@@ -56,3 +56,17 @@ test("a member's navigation offers only the kept pages", async ({ page }) => {
 test("the walk covers every route", () => {
   expect(new Set(ROUTES).size).toBe(ROUTES.length);
 });
+
+test("a member's Settings is the account only, even on a build without the partner flag", async ({ page }) => {
+  await asEdition(page, "Pravrudhi", "member");
+  await page.goto("/settings");
+  await expect(page.getByTestId("surface-settings")).toBeVisible();
+  await expect(page.getByText("Model providers")).toHaveCount(0);
+  await expect(page.getByText("Telegram notifications")).toHaveCount(0);
+});
+
+test("an admin's Settings is the full page", async ({ page }) => {
+  await asEdition(page, "Pravrudhi Studio", "admin");
+  await page.goto("/settings");
+  await expect(page.getByText("Model providers")).toBeVisible();
+});

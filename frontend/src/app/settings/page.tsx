@@ -22,7 +22,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { AccountControl } from "@/components/AccountControl";
 import { DEMO_PATH } from "@/lib/demoPath";
-import { edition } from "@/lib/edition";
+import { edition, STUDIO } from "@/lib/edition";
 import { canSeeApiKeys } from "@/lib/runsAccess";
 
 interface RowState {
@@ -438,7 +438,21 @@ function SurfaceSettings() {
 }
 
 export default function SettingsPage() {
-  if (DEMO_PATH) return <SurfaceSettings />;
+  // Account-only for anyone who is not Studio (and on the law-firm build): the providers, notification and update panels
+  // belong to the improvement loop (#525). While the edition is unknown nothing of them is rendered. The recorded demo has
+  // no engine and is shown as before.
+  const [ed, setEd] = useState<"studio" | "product" | null>(null);
+  useEffect(() => {
+    let off = false;
+    edition().then((e) => !off && setEd(e.edition === STUDIO ? "studio" : "product")).catch(() => !off && setEd("product"));
+    return () => {
+      off = true;
+    };
+  }, []);
+  if (!IS_DEMO) {
+    if (DEMO_PATH || ed === "product") return <SurfaceSettings />;
+    if (ed === null) return <div className="p-8" data-testid="gate-wait" aria-busy="true" />;
+  }
   return (
     <div>
       <PageHeader title="Settings" subtitle="Your providers, notifications and update channel." />
