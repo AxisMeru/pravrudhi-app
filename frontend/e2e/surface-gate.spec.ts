@@ -70,3 +70,21 @@ test("an admin's Settings is the full page", async ({ page }) => {
   await page.goto("/settings");
   await expect(page.getByText("Model providers")).toBeVisible();
 });
+
+// R2 (#50): the static export serves one page under several spellings; each must be closed to a member exactly as the
+// canonical path is (the gate is an allow-list over the normalised path).
+const VARIANTS = ["/nyaya.html", "/chat.html", "/memory.html", "/runs.html", "/objectives.html", "//nyaya", "/Nyaya", "/NYAYA/", "/nyaya/index.html"];
+for (const path of VARIANTS) {
+  test(`a member who types ${path} does not get the page`, async ({ page }) => {
+    await asEdition(page, "Pravrudhi", "member");
+    await page.goto(path);
+    await expect(page.getByTestId("not-on-this-surface")).toBeVisible();
+    await expect(page.locator("main").getByRole("heading", { name: /Objectives|Runs|Chat|Nyaya|Memory/ })).toHaveCount(0);
+  });
+}
+
+test("a member who types /index.html (the Studio home) lands on Matters", async ({ page }) => {
+  await asEdition(page, "Pravrudhi", "member");
+  await page.goto("/index.html");
+  await page.waitForURL(/\/matters/);
+});
