@@ -187,8 +187,9 @@ test("buildMemo: no mismatch note unless the engine sent the judge's own version
   const withJudge = structuredClone(noJudge);
   withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
   const md = buildMemo(withJudge, OPTS);
-  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version:"));
+  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version:"));
   assert.doesNotMatch(md, /rest on this version|official text above/);
+  assert.doesNotMatch(md.split("### ").filter((b) => b.startsWith("Provision text")).join(""), /\bofficial\b(?! version on India Code)/i, "the word official is never used for provision text");
   assert.ok(md.includes(`> ${TOY_JUDGED}`));
   assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
 });

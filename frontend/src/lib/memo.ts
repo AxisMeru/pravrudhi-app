@@ -17,7 +17,7 @@ export const PROVISION_HEADING = "Provision text (for reference)";
 export const PROVISION_ELEMENTS_LINE =
   "The conditions above (and any defences) come from the contract this tool uses for the provision. They were not extracted from the text below, and the contract is this tool's reading of the provision.";
 export const PROVISION_MISMATCH_LINE =
-  "The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version:";
+  "The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version:";
 
 export interface MemoOptions {
   engineVersion: string | null;
@@ -38,11 +38,11 @@ const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `>
 // One block per contract, only when the engine sent the provision text; nothing is invented or fetched. Under the heading, the
 // line that says the conditions are the tool's own list; after the text, the unofficial-text notice with its source link (the
 // licence condition on showing statute text). The judge's own version appears only when the engine sent one (it differs from or is shorter than the
-// official text), with the line that says its findings rest on that version.
+// provision text above), with the line that says its findings were made against that version.
 function provisionBlock(c: AnalyseFactsContract): string[] {
-  const official = (c.rule_text ?? "").trim();
-  if (!official) return [];
-  const lines = [`### ${PROVISION_HEADING}`, "", PROVISION_ELEMENTS_LINE, "", ...quoteBlock(official), ""];
+  const text = (c.rule_text ?? "").trim();
+  if (!text) return [];
+  const lines = [`### ${PROVISION_HEADING}`, "", PROVISION_ELEMENTS_LINE, "", ...quoteBlock(text), ""];
   const source = (c.rule_text_source ?? "").trim();
   if (source) lines.push(`Recorded source: ${cell(source)}`, "");
   // The notice AND a source link always travel together (the licence condition on showing statute text).
