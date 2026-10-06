@@ -187,9 +187,9 @@ test("buildMemo: no mismatch note unless the engine sent the judge's own version
   const withJudge = structuredClone(noJudge);
   withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
   const md = buildMemo(withJudge, OPTS);
-  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version, which may be cut short:"));
+  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:"));
   assert.doesNotMatch(md, /rest on this version|official text above/);
-  assert.doesNotMatch(md.split("### ").filter((b) => b.startsWith("Provision text")).join(""), /\bofficial\b(?! version on India Code)/i, "the word official is never used for provision text");
+  assert.doesNotMatch(md.split("### ").filter((b) => b.startsWith("Provision text")).join(""), /\bofficial\b(?! version)/i, "official is used only for the India Code version, never for provision text");
   assert.ok(md.includes(`> ${TOY_JUDGED}`));
   assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
 });
@@ -230,7 +230,7 @@ test("buildMemo: the notice and a source link ALWAYS travel with the provision t
     r.contracts[0].rule_text = TOY_OFFICIAL;
     r.contracts[0].rule_text_source = source;
     const md = buildMemo(r, OPTS);
-    assert.ok(md.includes(`${STATUTE_NOTICE} Source: ${link}`), `${source}: the notice and its link are one line`);
-    assert.equal((md.match(/Source: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
+    assert.ok(md.includes(`${STATUTE_NOTICE} Official version: ${link}`), `${source}: the notice and its link are one line`);
+    assert.equal((md.match(/Official version: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
   }
 });

@@ -17,7 +17,7 @@ export const PROVISION_HEADING = "Provision text (for reference)";
 export const PROVISION_ELEMENTS_LINE =
   "The conditions above (and any defences) come from the contract this tool uses for the provision. They were not extracted from the text below, and the contract is this tool's reading of the provision.";
 export const PROVISION_MISMATCH_LINE =
-  "The judge was shown this version of the provision, which is shorter or different from the provision text above (from India Code); its findings were made against this version, which may be cut short:";
+  "The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:";
 
 export interface MemoOptions {
   engineVersion: string | null;
@@ -46,7 +46,7 @@ function provisionBlock(c: AnalyseFactsContract): string[] {
   const source = (c.rule_text_source ?? "").trim();
   if (source) lines.push(`Recorded source: ${cell(source)}`, "");
   // The notice AND a source link always travel together (the licence condition on showing statute text).
-  lines.push(`${STATUTE_NOTICE} Source: ${provisionSourceLink(source)}`, "");
+  lines.push(`${STATUTE_NOTICE} Official version: ${provisionSourceLink(source)}`, "");
   const judged = (c.judge_rule_text ?? "").trim();
   if (judged) lines.push(PROVISION_MISMATCH_LINE, "", ...quoteBlock(judged), "");
   return lines;
