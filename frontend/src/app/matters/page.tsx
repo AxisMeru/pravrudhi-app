@@ -431,7 +431,7 @@ export default function MattersPage() {
           {loading && elapsedSeconds >= SLOW_START_SECONDS && (
             <p className="text-sm text-amber-400" role="status" data-testid="matters-slow-start">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel
-              and try again later; nothing is scored until they answer.
+              and try again later; no result is returned until they answer.
             </p>
           )}
           {error && (

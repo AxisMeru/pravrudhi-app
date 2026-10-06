@@ -133,7 +133,7 @@ test("classifyAnalyseError: a timeout or a plain judge_unavailable says the mode
   const t = classifyAnalyseError(new DOMException("aborted", "TimeoutError"));
   const j = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
   assert.match(t.message, /switched off/i);
-  assert.match(t.message, /nothing was scored/i);
+  assert.match(t.message, /no result was returned/i);
   assert.match(j.message, /not available right now/i);
   assert.match(j.message, /nothing was scored/i);
   for (const x of [t, j]) assert.doesNotMatch(x.message, /minute/i);

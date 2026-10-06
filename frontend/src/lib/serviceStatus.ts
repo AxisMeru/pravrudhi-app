@@ -93,7 +93,7 @@ export interface ClassifiedError {
 export function classifyAnalyseError(e: unknown): ClassifiedError {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") {
-    return { kind: "timeout", message: "The analysis models did not answer in time, so it was stopped. They may be switched off at the moment. Nothing was scored. Try again later." };
+    return { kind: "timeout", message: "The analysis models did not answer in time, so we stopped waiting. They may be switched off at the moment. No result was returned. Try again later." };
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
   if (e instanceof ApiError) {
