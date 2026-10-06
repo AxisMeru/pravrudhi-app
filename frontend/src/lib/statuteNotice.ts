@@ -58,3 +58,29 @@ export function sourceLinkFor(act: string, sources: unknown): { href: string; re
   }
   return { href: INDIA_CODE_HOME, recorded: false };
 }
+
+/** The fields of a corpus hit that decide its source link (the engine's `source_url` and `source_fallback_url`, pravrudhi #313). */
+export interface HitSourceFields {
+  act: string;
+  source_url?: unknown;
+  source_fallback_url?: unknown;
+}
+
+function recordedUrl(u: unknown): string | null {
+  if (typeof u !== "string" || u !== u.trim() || /[\\\s<>()[\]]/.test(u)) return null;
+  const url = parseHttps(u);
+  if (!url || url.username || url.password || url.port || !INDIA_CODE_HOSTS.has(url.hostname.toLowerCase())) return null;
+  return url.href;
+}
+
+/**
+ * The link for one corpus hit: the engine's per-hit `source_url` when it sent one (a page the corpus recorded, never
+ * constructed; checked again here as an https India Code link), else, for an engine that predates the field, the
+ * act's recorded page from `sources`, else the India Code home page.
+ */
+export function hitSourceLink(hit: HitSourceFields, sources: unknown): { href: string; recorded: boolean } {
+  const url = recordedUrl(hit.source_url);
+  if (url) return { href: url, recorded: true };
+  if (hit.source_url === null || typeof hit.source_url === "string") return { href: INDIA_CODE_HOME, recorded: false };
+  return sourceLinkFor(hit.act, sources);
+}
