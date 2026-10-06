@@ -1,7 +1,7 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
 import { elementStatusPresentation } from "./elementStatus";
 import { referReasonPresentation } from "./referReason";
-import { STATUTE_NOTICE } from "./statuteNotice";
+import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
 
 export const MEMO_DISCLAIMER =
   "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
@@ -12,9 +12,12 @@ export const MEMO_VALIDATION_TIER =
   "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
 
 export const PROVISION_HEADING = "Provision text (for reference)";
-export const PROVISION_ELEMENTS_LINE = "The conditions above are the contract's elements, not extracted from this text.";
+// R1's wording (6 Oct): "contract" can read as a legal term, and the judge sees only its own configured text, so the line says
+// whose list the conditions are and that they were not extracted from the text below; "findings were made against".
+export const PROVISION_ELEMENTS_LINE =
+  "The conditions above (and any defences) come from the contract this tool uses for the provision. They were not extracted from the text below, and the contract is this tool's reading of the provision.";
 export const PROVISION_MISMATCH_LINE =
-  "The judge was shown this version of the provision, which is shorter or different from the official text above; its findings rest on this version:";
+  "The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version:";
 
 export interface MemoOptions {
   engineVersion: string | null;
@@ -32,17 +35,18 @@ function elementRow(e: AnalyseFactsElement): string {
 
 const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `> ${l}`);
 
-// One block per contract, only when the engine sent the provision text; nothing is invented or fetched. Always with the
-// unofficial-text notice (the licence condition on showing statute text), and the line that says the elements are the
-// contract's own. The judge's own version appears only when the engine sent one (it differs from or is shorter than the
+// One block per contract, only when the engine sent the provision text; nothing is invented or fetched. Under the heading, the
+// line that says the conditions are the tool's own list; after the text, the unofficial-text notice with its source link (the
+// licence condition on showing statute text). The judge's own version appears only when the engine sent one (it differs from or is shorter than the
 // official text), with the line that says its findings rest on that version.
 function provisionBlock(c: AnalyseFactsContract): string[] {
   const official = (c.rule_text ?? "").trim();
   if (!official) return [];
-  const lines = [`### ${PROVISION_HEADING}`, "", ...quoteBlock(official), ""];
+  const lines = [`### ${PROVISION_HEADING}`, "", PROVISION_ELEMENTS_LINE, "", ...quoteBlock(official), ""];
   const source = (c.rule_text_source ?? "").trim();
-  if (source) lines.push(`Source: ${cell(source)}`, "");
-  lines.push(STATUTE_NOTICE, "", PROVISION_ELEMENTS_LINE, "");
+  if (source) lines.push(`Recorded source: ${cell(source)}`, "");
+  // The notice AND a source link always travel together (the licence condition on showing statute text).
+  lines.push(`${STATUTE_NOTICE} Source: ${provisionSourceLink(source)}`, "");
   const judged = (c.judge_rule_text ?? "").trim();
   if (judged) lines.push(PROVISION_MISMATCH_LINE, "", ...quoteBlock(judged), "");
   return lines;

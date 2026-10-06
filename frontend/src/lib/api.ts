@@ -1222,7 +1222,7 @@ export interface AnalyseFactsContract {
   lean_outcome: string | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
-  // The provision text, for reference (engine: pravrudhi#308; absent from an older engine). `rule_text` is the official
+  // The provision text, for reference (engine: pravrudhi#308; absent from an older engine). `rule_text` is the provision
   // text from the contract's own source; `judge_rule_text` is present only when the judge was shown a different or
   // shorter version (statute_text_mismatch, or its text was cut); `rule_text_source` names where `rule_text` came from.
   rule_text?: string | null;

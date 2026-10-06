@@ -168,10 +168,13 @@ test("buildMemo: a contract whose engine result carries rule_text gets one 'Prov
   const md = buildMemo(withText, OPTS);
   assert.equal(md.split(`### ${PROVISION_HEADING}`).length - 1, 1, "exactly one block for the one contract that has text");
   assert.ok(md.includes(`> ${TOY_OFFICIAL}`));
-  assert.ok(md.includes("Source: Toy Act, section 1"));
+  assert.ok(md.includes("Recorded source: Toy Act, section 1"));
   assert.ok(md.includes(STATUTE_NOTICE), "the unofficial-text notice always travels with the provision text");
-  assert.ok(md.includes("The conditions above are the contract's elements, not extracted from this text."));
-  assert.equal(PROVISION_ELEMENTS_LINE, "The conditions above are the contract's elements, not extracted from this text.");
+  assert.ok(md.includes(PROVISION_ELEMENTS_LINE));
+  assert.match(PROVISION_ELEMENTS_LINE, /not extracted from the text below/);
+  assert.match(PROVISION_ELEMENTS_LINE, /this tool's reading of the provision/);
+  // The line sits between the heading and the text, so "the text below" is true.
+  assert.ok(md.indexOf(PROVISION_HEADING) < md.indexOf(PROVISION_ELEMENTS_LINE) && md.indexOf(PROVISION_ELEMENTS_LINE) < md.indexOf(`> ${TOY_OFFICIAL}`));
   // The block sits AFTER that contract's element table (no restructure) and before the next contract.
   assert.ok(md.indexOf("| Element |") < md.indexOf(`### ${PROVISION_HEADING}`));
 });
@@ -184,7 +187,8 @@ test("buildMemo: no mismatch note unless the engine sent the judge's own version
   const withJudge = structuredClone(noJudge);
   withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
   const md = buildMemo(withJudge, OPTS);
-  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the official text above; its findings rest on this version:"));
+  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version:"));
+  assert.doesNotMatch(md, /rest on this version|official text above/);
   assert.ok(md.includes(`> ${TOY_JUDGED}`));
   assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
 });
@@ -205,4 +209,27 @@ test("buildMemo: provision text with newlines stays inside its quote block", asy
   two.contracts[0].rule_text = "TOY line one\nTOY line two";
   const md = buildMemo(two, OPTS);
   assert.ok(md.includes("> TOY line one\n> TOY line two"));
+});
+
+test("buildMemo: the notice and a source link ALWAYS travel with the provision text; never a constructed or foreign link", async () => {
+  const { buildMemo } = await import("./memo");
+  const { STATUTE_NOTICE, INDIA_CODE_HOME } = await import("./statuteNotice");
+  const cases: [string | null | undefined, string][] = [
+    [undefined, INDIA_CODE_HOME],
+    [null, INDIA_CODE_HOME],
+    ["Toy Act, section 1", INDIA_CODE_HOME],
+    ["https://indiacode.gov.in/act/toy/sections", "https://indiacode.gov.in/act/toy/sections"],
+    ["Toy Act (https://www.indiacode.nic.in/handle/1/2)", "https://www.indiacode.nic.in/handle/1/2"],
+    ["https://example.com/toy-act", INDIA_CODE_HOME],
+    ["http://indiacode.gov.in/insecure", INDIA_CODE_HOME],
+    ["https://evil-indiacode.gov.in.example.com/x", INDIA_CODE_HOME],
+  ];
+  for (const [source, link] of cases) {
+    const r = structuredClone(FIXTURE);
+    r.contracts[0].rule_text = TOY_OFFICIAL;
+    r.contracts[0].rule_text_source = source;
+    const md = buildMemo(r, OPTS);
+    assert.ok(md.includes(`${STATUTE_NOTICE} Source: ${link}`), `${source}: the notice and its link are one line`);
+    assert.equal((md.match(/Source: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
+  }
 });

@@ -58,3 +58,16 @@ export function sourceLinkFor(act: string, sources: unknown): { href: string; re
   }
   return { href: INDIA_CODE_HOME, recorded: false };
 }
+
+/**
+ * The link that travels with provision text where the page has no corpus source records to resolve (the memo is a pure
+ * function of one engine result): the engine's own recorded source if it IS an https India Code URL, else the India Code
+ * home page. Never a constructed deep link, and never a URL on another host.
+ */
+export function provisionSourceLink(source: string | null | undefined): string {
+  for (const token of (source ?? "").split(/\s+/)) {
+    const url = token.replace(/^[(<\[]+|[)>\].,;]+$/g, "");
+    if (/^https:\/\//i.test(url) && isIndiaCodeHost(url)) return url;
+  }
+  return INDIA_CODE_HOME;
+}
