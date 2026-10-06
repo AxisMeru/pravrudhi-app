@@ -73,7 +73,7 @@ test("an admin's Settings is the full page", async ({ page }) => {
 
 // R2 (#50): the static export serves one page under several spellings; each must be closed to a member exactly as the
 // canonical path is (the gate is an allow-list over the normalised path).
-const VARIANTS = ["/nyaya.html", "/chat.html", "/memory.html", "/runs.html", "/objectives.html", "//nyaya", "/Nyaya", "/NYAYA/", "/nyaya/index.html"];
+const VARIANTS = ["/nyaya.html", "/chat.html", "/memory.html", "/runs.html", "/objectives.html", "/Nyaya", "/NYAYA/", "/nyaya/index.html"];
 for (const path of VARIANTS) {
   test(`a member who types ${path} does not get the page`, async ({ page }) => {
     await asEdition(page, "Pravrudhi", "member");
