@@ -40,6 +40,9 @@ const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckC
   REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
 };
 
+// A normal cold start is about three minutes (the line above); past it the page says the models may be off, instead of counting on.
+const SLOW_START_SECONDS = 200;
+
 function isUncovered(c: AnalyseFactsContract): boolean {
   return c.outcome === "ABSTAIN" && c.reason.includes(UNCOVERED_REASON_TOKEN);
 }
@@ -438,11 +441,17 @@ export default function MattersPage() {
           )}
           {loading && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-              Warming up the judge and Lean checker — first run can take about 3 minutes.{" "}
+              Warming up the judge and Lean checker — a first run after idle can take about 3 minutes.{" "}
               <span className="font-mono">
                 {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
               </span>{" "}
               elapsed.
+            </p>
+          )}
+          {loading && elapsedSeconds >= SLOW_START_SECONDS && (
+            <p className="text-sm text-amber-400" role="status" data-testid="matters-slow-start">
+              This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel
+              and try again later; no result is returned until they answer.
             </p>
           )}
           {error && (
