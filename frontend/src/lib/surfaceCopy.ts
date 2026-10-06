@@ -20,7 +20,7 @@ export const CAVEATS: readonly { id: string; text: string }[] = [
     id: "validated",
     text:
       "\"Validated\" means the contract is on the engine registry's list of validated contracts. A contract that is not on " +
-      "that list always returns a referral to a lawyer, and is marked \"not validated, verify\". The mark is read from the " +
+      "that list may refer to a lawyer or abstain, so verify; it is marked \"not validated, verify\". The mark is read from the " +
       "registry when this page loads; if the registry cannot be read, every contract is marked \"validation status " +
       "unavailable, verify\".",
   },

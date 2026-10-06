@@ -58,6 +58,8 @@ test("the strip defines validated in words and names the failure state; the stac
   const text = CAVEATS.map((c) => c.text).join(" ");
   assert.match(text, /"Validated" means the contract is on the engine registry's list of validated contracts/);
   assert.match(text, /validation status unavailable, verify/);
+  assert.match(text, /may refer to a lawyer or abstain, so verify/);
+  assert.doesNotMatch(text, /always returns a referral/);
   assert.match(text, /two judge models and a Lean check/);
 });
 
