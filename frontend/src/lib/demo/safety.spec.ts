@@ -39,3 +39,9 @@ test("every figure names the record it rests on, at a commit", () => {
     assert.ok(r.repo && r.path);
   }
 });
+
+test("the false-proof figure is stated as an upper bound, never as an observed count of 2", () => {
+  const text = SAFETY_COPY.join(" ");
+  assert.match(text, /0 of 290; 95% upper bound 1\.03% \(worst case if 2 ERROR items were false proofs: upper bound 2\.15%\)/);
+  assert.doesNotMatch(text, /\b2 of 290\b/);
+});

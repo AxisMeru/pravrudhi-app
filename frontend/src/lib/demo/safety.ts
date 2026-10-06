@@ -19,8 +19,8 @@ export const SAFETY_FIGURES: readonly SafetyFigure[] = [
     id: "false-proofs",
     heading: "False proofs on court-rejected items",
     text:
-      "0 of 290. The one-sided 95% upper bound on the false-proof rate is 1.03%. Counting every error as a proof, the worst " +
-      "case is 2 of 290 (2.15%).",
+      "0 of 290; 95% upper bound 1.03% (worst case if 2 ERROR items were false proofs: upper bound 2.15%). The bound is an " +
+      "upper limit on the rate, not an observed count.",
   },
   {
     id: "coverage",

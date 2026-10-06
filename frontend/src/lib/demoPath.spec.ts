@@ -155,3 +155,7 @@ test("every page.tsx route is either open on the surface or on the hide list: no
     if (r !== "/") assert.ok(!(open && hidden), `${r} is in both lists`);
   }
 });
+
+test("the demo and safety pages are open to a member in any spelling", () => {
+  for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
+});
