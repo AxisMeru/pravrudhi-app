@@ -66,8 +66,22 @@ export function sourceLinkFor(act: string, sources: unknown): { href: string; re
  */
 export function provisionSourceLink(source: string | null | undefined): { href: string; recorded: boolean } {
   for (const token of (source ?? "").split(/\s+/)) {
-    const url = token.replace(/^[(<\[]+|[)>\].,;]+$/g, "");
-    if (/^https:\/\//i.test(url) && isIndiaCodeHost(url)) return { href: url, recorded: true };
+    const candidate = token.replace(/^[(<\[]+|[)>\].,;]+$/g, "");
+    if (!/^https:\/\//i.test(candidate)) continue;
+    let url: URL;
+    try {
+      url = new URL(candidate);
+    } catch {
+      continue;
+    }
+    // https only, an India Code host exactly, and no user-info (`https://indiacode.gov.in\@evil.com` is host-ambiguous in
+    // viewers that do not follow the WHATWG parser). Return the PARSED href, never the raw token, with the characters that
+    // can break out of a markdown link percent-escaped.
+    if (url.protocol !== "https:" || url.username !== "" || url.password !== "" || !isIndiaCodeHost(url.href)) continue;
+    // A second URL smuggled into the path, query or fragment is not a link to India Code: use the fallback instead.
+    if (/:\/\//.test(url.pathname + url.search + url.hash)) continue;
+    const href = url.href.replace(/[()[\]<>]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`);
+    return { href, recorded: true };
   }
   return { href: INDIA_CODE_HOME, recorded: false };
 }

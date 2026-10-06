@@ -238,6 +238,11 @@ test("buildMemo: the notice and a source link ALWAYS travel with the provision t
     ["https://example.com/toy-act", INDIA_CODE_HOME, "India Code (home page)"],
     ["http://indiacode.gov.in/insecure", INDIA_CODE_HOME, "India Code (home page)"],
     ["https://evil-indiacode.gov.in.example.com/x", INDIA_CODE_HOME, "India Code (home page)"],
+    // R2: host-ambiguous and markdown-breaking inputs. The PARSED href is returned, never the raw token.
+    ["https://indiacode.gov.in\\@evil.com", "https://indiacode.gov.in/@evil.com", "India Code"],
+    ["https://user:pw@indiacode.gov.in/x", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://indiacode.gov.in/x)](https://evil.com)", INDIA_CODE_HOME, "India Code (home page)"], // a smuggled second URL: fallback
+    ["https://indiacode.gov.in/a<b>c[d]", "https://indiacode.gov.in/a%3Cb%3Ec%5Bd", "India Code"], // trailing "]" is punctuation, stripped
   ];
   for (const [source, link, label] of cases) {
     const r = structuredClone(FIXTURE);
@@ -246,5 +251,14 @@ test("buildMemo: the notice and a source link ALWAYS travel with the provision t
     const md = buildMemo(r, OPTS);
     assert.ok(md.includes(`${STATUTE_NOTICE} ${label}: ${link}`), `${source}: the notice and its link are one line`);
     assert.equal((md.match(/India Code(?: \(home page\))?: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
+  }
+});
+
+test("provisionSourceLink: a link never carries a character that can break out of a markdown link, and never a second URL", async () => {
+  const { provisionSourceLink } = await import("./statuteNotice");
+  for (const hostile of ["https://indiacode.gov.in/x)](https://evil.com)", "https://indiacode.gov.in/<script>", "https://indiacode.gov.in\\@evil.com", "https://indiacode.gov.in/a b"]) {
+    const { href } = provisionSourceLink(hostile);
+    assert.doesNotMatch(href, /[()[\]<>\s\\]/, hostile);
+    assert.equal((href.match(/https:\/\//g) ?? []).length, 1, `${hostile}: exactly one URL in ${href}`);
   }
 });
