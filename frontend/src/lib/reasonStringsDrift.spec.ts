@@ -7,9 +7,8 @@ import { ELEMENT_STATUSES, elementStatusPresentation } from "./elementStatus";
 import { NON_REFER_REASON_TEXT, QUOTE_CHECK_TEXT } from "./reasonText";
 import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { classifyAnalyseError } from "./serviceStatus";
-import { streamErrorText } from "./streamError";
 import { MEMO_DISCLAIMER } from "./memo";
-import { CODED_ERROR_TEXT, ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
+import { ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { ApiError } from "./api";
 
 // The app's reason, quote-check, status and service-error strings are the SIGNED wording, word for word. This file holds them to
@@ -27,7 +26,6 @@ const TABLE = read("reasonCodesTable.json") as {
 };
 const GAP = read("signedGapStrings.json") as { source: string; strings: Record<string, string> };
 const APP_SIGNED = read("appSignedStrings.json") as { source: string; strings: Record<string, string> };
-const CODED = read("codedErrorStrings.json") as { source: { head: string; file_sha256: string; file: string }; strings: Record<string, string> };
 const ENGINE = read("engineCodes.json") as {
   quote_check: string[];
   element_status: string[];
@@ -47,9 +45,11 @@ const NO_APP_SURFACE_FOLLOW_UP: Record<string, string> = {
   verify_timeout: "citation-check route has no app surface",
   verify_at_capacity: "citation-check route has no app surface",
   citation_index_unavailable: "citation-check route has no app surface",
-  checker_unavailable: "signed (note head e65e5ffc) but no app surface: the admin-only Nyaya audit page shows only the HTTP status",
-  registry_checker_unavailable: "signed (note head e65e5ffc) but no app surface: the admin-only Nyaya registry pages show only the HTTP status",
-  vendor_not_allowed: "signed (note head e65e5ffc), coded 403 of POST /api/nyaya/ask: no app surface, the admin-only Nyaya page shows only the HTTP status",
+  agent_at_capacity: "coded 503 (pravrudhi #319): no signed string yet; the app shows its generic engine-error message, and retries once",
+  agent_unavailable: "coded 503 (pravrudhi #319): no signed string yet; the app shows its generic engine-error message, and retries once",
+  checker_unavailable: "coded 503 (pravrudhi #319), Nyaya audit route: no signed string yet",
+  registry_checker_unavailable: "coded 503 (pravrudhi #319), Nyaya registry route: no signed string yet",
+  chat_endpoint_unreachable: "coded 503 (pravrudhi #319), chat route: shown through the stream's detail text, no signed string yet",
   // The uncoded free-text 503s (agent at capacity, agent unavailable with exception text) have no code to compare yet; they
   // land here when Track C's stable codes arrive (pravrudhi #318) and get a string in a follow-up.
 };
@@ -135,7 +135,6 @@ test("every engine code is in the table, in the app, or in the named no-app-surf
     ...Object.keys(QUOTE_CHECK_TEXT),
     ...ELEMENT_STATUSES,
     ...Object.keys(SERVICE_ERROR_TEXT),
-    ...Object.keys(CODED_ERROR_TEXT),
   ]);
   const covered = (code: string) => inTable.has(code) || inApp.has(code) || code in NO_APP_SURFACE_FOLLOW_UP;
   const engineCodes = [
@@ -152,8 +151,8 @@ test("every engine code is in the table, in the app, or in the named no-app-surf
 });
 
 test("the allow-list is honest: only engine codes, each with a reason, and none of them already has an app string", () => {
-  const engine = new Set([...ENGINE.service_error_503, ...((ENGINE as { http_403_coded?: string[] }).http_403_coded ?? []), ...ENGINE_REASONS.all, ...ENGINE.quote_check, ...ENGINE.element_status]);
-  const inApp = new Set<string>([...Object.keys(SERVICE_ERROR_TEXT), ...Object.keys(CODED_ERROR_TEXT), ...Object.keys(NON_REFER_REASON_TEXT), ...Object.keys(QUOTE_CHECK_TEXT), ...REFER_REASONS]);
+  const engine = new Set([...ENGINE.service_error_503, ...ENGINE_REASONS.all, ...ENGINE.quote_check, ...ENGINE.element_status]);
+  const inApp = new Set<string>([...Object.keys(SERVICE_ERROR_TEXT), ...Object.keys(NON_REFER_REASON_TEXT), ...Object.keys(QUOTE_CHECK_TEXT), ...REFER_REASONS]);
   for (const [code, why] of Object.entries(NO_APP_SURFACE_FOLLOW_UP)) {
     assert.ok(engine.has(code), `${code} is not an engine code`);
     assert.ok(why.length > 0);
@@ -175,16 +174,4 @@ test("no source file in the app says a REFER 'means a lawyer must decide' or 'mu
   const files = walk(src).filter((f) => /\.(ts|tsx)$/.test(f) && !/\.spec\.ts$/.test(f));
   assert.ok(files.length > 50);
   for (const f of files) assert.doesNotMatch(readFileSync(f, "utf8"), /means a lawyer must decide|must decide this matter/i, f);
-});
-
-test("the coded-error strings (pravrudhi #319) are the signed wording verbatim, from a header that names the note, head and sha256", () => {
-  assert.match(CODED.source.head, /^e65e5ffc$/);
-  assert.match(CODED.source.file_sha256, /^[0-9a-f]{64}$/);
-  for (const [code, text] of Object.entries(CODED_ERROR_TEXT)) assert.equal(norm(text), norm(CODED.strings[code]), code);
-  assert.equal(norm(streamErrorText({ type: "error", error: "chat_endpoint_unreachable", detail: "x" })), norm(CODED.strings.chat_endpoint_unreachable));
-  const shown = (e: ApiError) => norm(classifyAnalyseError(e).message);
-  assert.equal(shown(new ApiError(503, "/x", { code: "agent_at_capacity" })), norm(CODED.strings.agent_at_capacity));
-  assert.equal(shown(new ApiError(503, "/x", { code: "agent_unavailable" })), norm(CODED.strings.agent_unavailable));
-  // every signed coded string is either surfaced by the app or in the named allow-list
-  for (const code of Object.keys(CODED.strings)) assert.ok(code in CODED_ERROR_TEXT || code in NO_APP_SURFACE_FOLLOW_UP, `${code} has neither an app surface nor an allow-list entry`);
 });

@@ -1,5 +1,5 @@
 {
- "_source": "Copied from the engine, which the app cannot import. pravrudhi origin/main e2c07e29 (0.5.45): nyaya_quote.py `Reason` (quote_check), nyaya_agent.py `ElementStatus`, and every `\"error\": \"<code>\"` body in api/partner.py (the coded 503s); judge_unavailable carries reason judges_warming. Update this file in the same PR as any app change when the engine adds a code. The five codes agent_at_capacity, agent_unavailable, checker_unavailable, registry_checker_unavailable and chat_endpoint_unreachable are from pravrudhi PR #319 (api/errors.py) at head 52011a44 (it was 719c02e5 earlier), R2-signed, not yet merged; confirm against main when it lands.",
+ "_source": "Copied from the engine, which the app cannot import. pravrudhi origin/main e2c07e29 (0.5.45): nyaya_quote.py `Reason` (quote_check), nyaya_agent.py `ElementStatus`, and every `\"error\": \"<code>\"` body in api/partner.py (the coded 503s); judge_unavailable carries reason judges_warming. Update this file in the same PR as any app change when the engine adds a code. The five codes agent_at_capacity, agent_unavailable, checker_unavailable, registry_checker_unavailable and chat_endpoint_unreachable are from pravrudhi PR #319 (api/errors.py) at head 719c02e5, R2-signed, not yet merged; confirm against main when it lands.",
  "quote_check": [
   "ok",
   "not_established",
@@ -33,8 +33,5 @@
  ],
  "service_error_503_reason": [
   "judges_warming"
- ],
- "http_403_coded": [
-  "vendor_not_allowed"
  ]
 }

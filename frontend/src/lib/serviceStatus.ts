@@ -1,5 +1,5 @@
 import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
-import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
+import { SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export interface ServiceWindowStatus {
   timezone: string;
@@ -80,8 +80,6 @@ export type AnalyseErrorKind =
   | "signed_out"
   | "judge_unavailable"
   | "service_config_missing"
-  | "agent_at_capacity"
-  | "agent_unavailable"
   | "judges_offline"
   | "judges_warming"
   | "outside_window"
@@ -124,8 +122,6 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 503 && e.code === "judge_unavailable") {
       return { kind: "judge_unavailable", message: SERVICE_ERROR_TEXT.judge_unavailable };
     }
-    if (e.status === 503 && e.code === "agent_at_capacity") return { kind: "agent_at_capacity", message: CODED_ERROR_TEXT.agent_at_capacity };
-    if (e.status === 503 && e.code === "agent_unavailable") return { kind: "agent_unavailable", message: CODED_ERROR_TEXT.agent_unavailable };
     if (e.status === 503 && e.code === "service_config_missing") {
       return { kind: "service_config_missing", message: SERVICE_ERROR_TEXT.service_config_missing };
     }
