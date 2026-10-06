@@ -3,9 +3,9 @@ import test from "node:test";
 
 import { STANDARD_MISSING_TEXT, STANDARD_NOT_IN_PROMPT_NOTICE, standardLine } from "./standardLine";
 
-test("a missing standard shows the engine's default, stated as default", () => {
-  for (const missing of [undefined, null]) assert.deepEqual(standardLine(missing), { text: "standard: proved (default)", notice: null });
-  assert.equal(STANDARD_MISSING_TEXT, "standard: proved (default)");
+test("a missing standard says the engine reported none and names the default without claiming it was applied", () => {
+  for (const missing of [undefined, null]) assert.deepEqual(standardLine(missing), { text: "standard: not reported by this engine (the default is proved)", notice: null });
+  assert.equal(STANDARD_MISSING_TEXT, "standard: not reported by this engine (the default is proved)");
   assert.deepEqual(standardLine({ requested: "  ", applied: null, source: "default", in_judge_prompt: false }), { text: STANDARD_MISSING_TEXT, notice: null });
 });
 
@@ -26,5 +26,5 @@ test("when the judge was not told the standard, the line says so; when it was, t
   const notTold = standardLine({ requested: "prima_facie_disclosed", applied: null, source: "proceeding_posture", proceeding_posture: "quash", in_judge_prompt: false });
   assert.equal(notTold.notice, STANDARD_NOT_IN_PROMPT_NOTICE);
   assert.match(STANDARD_NOT_IN_PROMPT_NOTICE, /did not shape this result/);
-  assert.equal(notTold.text, "standard: prima_facie_disclosed (from the proceeding posture: quash)", "the recorded standard is still shown, honestly labelled");
+  assert.equal(notTold.text, "standard requested: prima_facie_disclosed (from the proceeding posture: quash)", "the recorded standard is still shown, honestly labelled");
 });

@@ -28,9 +28,9 @@ async function runWith(page: import("@playwright/test").Page, standard: unknown)
   await expect(page.getByTestId("standard-line")).toBeVisible({ timeout: 15_000 });
 }
 
-test("a response without a standard shows the engine's default", async ({ page }) => {
+test("a response without a standard says the engine reported none", async ({ page }) => {
   await runWith(page, undefined);
-  await expect(page.getByTestId("standard-line")).toHaveText("standard: proved (default)");
+  await expect(page.getByTestId("standard-line")).toHaveText("standard: not reported by this engine (the default is proved)");
   await expect(page.getByTestId("standard-notice")).toHaveCount(0);
 });
 
@@ -43,4 +43,5 @@ test("a posture-derived standard shows its value and source", async ({ page }) =
 test("a standard the judge was not told says so", async ({ page }) => {
   await runWith(page, { requested: "prima_facie_disclosed", applied: null, source: "proceeding_posture", proceeding_posture: "quash", in_judge_prompt: false });
   await expect(page.getByTestId("standard-notice")).toContainText("did not shape this result");
+  await expect(page.getByTestId("standard-line")).toContainText("standard requested: prima_facie_disclosed");
 });

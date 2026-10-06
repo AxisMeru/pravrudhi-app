@@ -12,13 +12,13 @@ export interface AnalyseFactsStandard {
 }
 
 export interface StandardLine {
-  /** e.g. "standard: proved (default)". */
+  /** e.g. "standard: proved (default)", or "standard requested: ..." when the judge was not told it. */
   text: string;
   /** Shown beneath the line when the judge was NOT told the standard; null otherwise. */
   notice: string | null;
 }
 
-export const STANDARD_MISSING_TEXT = "standard: proved (default)";
+export const STANDARD_MISSING_TEXT = "standard: not reported by this engine (the default is proved)";
 export const STANDARD_NOT_IN_PROMPT_NOTICE =
   "The judge was not told this standard, so it did not shape this result; the standard is recorded for the audit only.";
 
@@ -41,8 +41,10 @@ export function standardLine(standard: AnalyseFactsStandard | null | undefined):
     default:
       origin = `source: ${String(standard.source ?? "not stated")}`;
   }
+  // "standard: X" only when the judge was told it; otherwise it is what was requested, not what was applied.
+  const told = standard.in_judge_prompt !== false;
   return {
-    text: `standard: ${requested} (${origin})`,
+    text: `${told ? "standard" : "standard requested"}: ${requested} (${origin})`,
     notice: standard.in_judge_prompt === false ? STANDARD_NOT_IN_PROMPT_NOTICE : null,
   };
 }
