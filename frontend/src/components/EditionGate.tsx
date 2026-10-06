@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { edition, STUDIO } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
+import { routeAllowedOnSurface } from "@/lib/demoPath";
 
 /**
  * The page-level half of edition separation. The sidebar hides Studio's pages from a product install, but a
@@ -28,6 +29,18 @@ export function EditionGate({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // The law-firm surface (build flag): a typed URL to any page this surface does not offer gets the same plain answer.
+  if (!routeAllowedOnSurface(pathname)) {
+    return (
+      <div className="mx-auto max-w-xl p-8 text-[var(--color-text)]" data-testid="not-on-this-surface">
+        <h1 className="text-lg font-semibold tracking-tight">Not part of this edition</h1>
+        <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+          This edition offers the matter analysis, the statute text beside it and the citation check. Nothing is broken;
+          this page is not offered here.
+        </p>
+      </div>
+    );
+  }
   if (isStudio === false && pathname && isStudioOnlyHref(pathname)) {
     return (
       <div className="mx-auto max-w-xl p-8 text-[var(--color-text)]">

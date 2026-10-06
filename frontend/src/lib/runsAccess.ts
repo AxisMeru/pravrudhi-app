@@ -15,3 +15,9 @@ export function isOperatorOnly(err: unknown): boolean {
   const status = (err as { status?: unknown } | null)?.status;
   return status === 401 || status === 403;
 }
+
+// The law-firm surface shows the API keys and usage entry to an organisation admin only (the engine's word "admin");
+// a missing value from an older engine hides it, and the engine refuses regardless.
+export function canSeeApiKeys(access: string | undefined): boolean {
+  return access === "admin";
+}

@@ -134,8 +134,8 @@ export async function loadPaletteIndex(): Promise<PaletteIndex> {
 
 const DEMO_REASON = "Demo mode — actions are disabled on this recording";
 
-function pageResults(isStudio: boolean): PaletteResult[] {
-  return pagesFor(isStudio).map((p) => ({
+function pageResults(isStudio: boolean, surface: boolean = DEMO_PATH): PaletteResult[] {
+  return pagesFor(isStudio, surface).map((p) => ({
     id: `page:${p.id}`,
     group: "Pages",
     title: p.label,
@@ -228,8 +228,11 @@ function recipeResults(items: Recipe[]): PaletteResult[] {
 // The full, unfiltered catalogue for one render pass. Cheap to rebuild on every index change — the arrays
 // involved are all small (an operator's own objectives/candidates/runs, not a public dataset).
 export function buildCatalogue(
-  index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false,
+  index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false, surface: boolean = DEMO_PATH,
 ): PaletteResult[] {
+  // The law-firm surface lists its own pages only: no actions (start a night, dispatch, stop) and no records of the
+  // improvement loop (objectives, runs, models, recipes) -- they would be links to pages this surface does not offer.
+  if (surface) return pageResults(isStudio, surface);
   return [
     ...pageResults(isStudio),
     ...globalActions(),
