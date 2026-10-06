@@ -52,7 +52,7 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
   };
   const surface = buildCatalogue(index, false, false, true, true);
   assert.ok(surface.length > 0 && surface.every((r) => r.group === "Pages"));
-  assert.deepEqual(surface.map((r) => r.href).sort(), ["/matters", "/settings"]);
+  assert.deepEqual(surface.map((r) => r.href).sort(), ["/demo", "/matters", "/safety", "/settings"]);
   const normal = buildCatalogue(index, false, true, true, false);
   assert.ok(normal.some((r) => r.group === "Actions") && normal.some((r) => r.group === "Objectives"));
 });
@@ -167,4 +167,8 @@ test("the notification bell and the workspace bootstrap are the operator's: a me
   assert.equal(shouldBootstrapWorkspace("admin"), true);
   assert.equal(canSeeNotifications("member", true), true); // the recorded demo keeps its bell
   assert.equal(shouldBootstrapWorkspace("admin", true), false); // and provisions nothing
+});
+
+test("the demo and safety pages are open to a member in any spelling", () => {
+  for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
 });
