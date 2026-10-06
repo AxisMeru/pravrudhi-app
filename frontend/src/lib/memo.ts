@@ -1,6 +1,7 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
 import { elementStatusPresentation } from "./elementStatus";
 import { referReasonPresentation } from "./referReason";
+import { nonReferReasonText } from "./reasonText";
 
 export const MEMO_DISCLAIMER =
   "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
@@ -30,8 +31,10 @@ function contractSection(c: AnalyseFactsContract): string {
     const r = referReasonPresentation(c.reason);
     lines.push(`A lawyer must decide this matter: ${r.message}. No verdict was reached.`, `Engine reason code: ${c.reason || "none"}`, "");
   } else if (c.outcome === "ABSTAIN") {
+    const plain = nonReferReasonText(c.reason);
     lines.push(
       "The engine did not reach a verdict on this contract. No verdict was reached and nothing here is a finding.",
+      ...(plain ? [plain] : []),
       `Engine reason code: ${c.reason || "none"}`,
       "",
     );
