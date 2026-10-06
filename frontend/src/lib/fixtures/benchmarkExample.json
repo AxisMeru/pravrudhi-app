@@ -26,7 +26,7 @@
    "data_chip": "Public benchmark",
    "what_it_is": "A toy item set used to test the page.",
    "what_it_is_not": "Not a result about any real model.",
-   "limits": "Invented numbers for tests only.",
+   "limits": "Illustrative layout only: arm A and arm B are placeholders, not results.",
    "copy": [],
    "run": {
     "model_ids": [

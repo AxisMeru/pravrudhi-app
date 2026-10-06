@@ -75,6 +75,12 @@ test("the page's fixed strings (titles, labels, chips, how-we-test, footer) pass
   assert.equal(spawnSync("python3", [join(SCRIPTS, "lint_copy.py"), file], { encoding: "utf8" }).status, 1);
 });
 
+test("the placeholder arm names appear only in the labelled illustrative fixture, never in the shipped data file", () => {
+  assert.equal(blockOf(example(), "bbl").limits, "Illustrative layout only: arm A and arm B are placeholders, not results.");
+  assert.doesNotMatch(readFileSync(PUBLIC, "utf8"), /arm [AB]\b/);
+  assert.match(readFileSync(join(FIXTURES, "benchmarkExample.json"), "utf8"), /Illustrative layout only: arm A and arm B are placeholders, not results\./);
+});
+
 test("no page string or fixed text carries a digit (no figure lives in the page)", () => {
   for (const s of fixedPageStrings()) assert.doesNotMatch(s.text, /\d/, s.text);
 });

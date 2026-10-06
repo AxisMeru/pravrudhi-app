@@ -58,7 +58,7 @@ export const HOW_WE_TEST: readonly string[] = [
   "Items are real court-derived or labelled constructed.",
   "Sealed sets are never used for tuning.",
   "Every number is checked by a second reviewer.",
-  'Where two arms cannot be told apart the result is called "no separation", never a direction.',
+  'When a paired exact McNemar comparison does not separate two arms, we call it "no separation" and state no direction; that is not evidence that the arms are equal.',
   "Numbers are dated.",
 ];
 
