@@ -159,3 +159,16 @@ test("every page.tsx route is either open on the surface or on the hide list: no
 test("the demo and safety pages are open to a member in any spelling", () => {
   for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
 });
+
+import { canSeeNotifications, shouldBootstrapWorkspace } from "./runsAccess";
+
+test("the notification bell and the workspace bootstrap are the operator's: a member gets neither (no 403 polling)", () => {
+  for (const member of ["member", "none", "", undefined, "Admin"]) {
+    assert.equal(canSeeNotifications(member), false, String(member));
+    assert.equal(shouldBootstrapWorkspace(member), false, String(member));
+  }
+  assert.equal(canSeeNotifications("admin"), true);
+  assert.equal(shouldBootstrapWorkspace("admin"), true);
+  assert.equal(canSeeNotifications("member", true), true); // the recorded demo keeps its bell
+  assert.equal(shouldBootstrapWorkspace("admin", true), false); // and provisions nothing
+});

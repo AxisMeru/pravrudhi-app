@@ -28,7 +28,8 @@ export default function SafetyPage() {
           <p className="mt-1 text-sm text-[var(--color-text-dim)]">{SAFETY_STACK}</p>
         </section>
         <section>
-          <h2 className="text-sm font-medium text-[var(--color-text)]">Records</h2>
+          <h2 className="text-sm font-medium text-[var(--color-text)]">Where these figures come from</h2>
+          <p className="mt-1 text-xs text-[var(--color-text-dim)]">Internal records of a private repository: not public, available from the team on request.</p>
           <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-[var(--color-text-dim)]">
             {SAFETY_RECORDS.map((r) => (
               <li key={r.figure}>

@@ -45,3 +45,8 @@ test("the false-proof figure is stated as an upper bound, never as an observed c
   assert.match(text, /0 of 290; 95% upper bound 1\.03% \(worst case if 2 ERROR items were false proofs: upper bound 2\.15%\)/);
   assert.doesNotMatch(text, /\b2 of 290\b/);
 });
+
+test("the material explains the 51 exclusions in words and does not state a section number", () => {
+  assert.match(SAFETY_COPY.join(" "), /51 were set aside because the design sends them straight to a lawyer without a judgment \(46 court-rejected, 5 court-established\)/);
+  assert.doesNotMatch(SAFETY_COPY.join(" "), /section 482|s\.\s*482|\b482\b/i);
+});

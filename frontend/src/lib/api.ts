@@ -264,11 +264,25 @@ async function deleteJSON<T>(path: string): Promise<T> {
 // already renders on ApiError, so no separate error surface is needed.
 let workspaceBootstrap: Promise<void> | null = null;
 
+// A route the engine CLOSES to this account (403, or 401 with no session) is not a failure to retry: the account is a
+// member of the law-firm product, which has no workspace to provision (Lead-2's #548 decision: /api/workspaces is
+// operator-only). It resolves, once, and is not tried again this session, so navigating never repeats it and nothing
+// throws. Any other failure still rejects and is retried on the next call, as before.
+function isClosedToThisAccount(e: unknown): boolean {
+  const status = (e as { status?: unknown } | null)?.status;
+  return status === 403 || status === 401;
+}
+
+export function resetWorkspaceBootstrapForTests(): void {
+  workspaceBootstrap = null;
+}
+
 export function ensureDefaultWorkspace(): Promise<void> {
   if (!workspaceBootstrap) {
     workspaceBootstrap = postJSON<{ slug: string; path: string }>("/api/workspaces", { slug: DEFAULT_WORKSPACE })
       .then(() => undefined)
       .catch((e) => {
+        if (isClosedToThisAccount(e)) return undefined; // remembered: the promise stays resolved
         workspaceBootstrap = null;
         throw e;
       });

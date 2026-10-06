@@ -32,9 +32,10 @@ export const SAFETY_FIGURES: readonly SafetyFigure[] = [
 ];
 
 export const SAFETY_MATERIAL =
-  "A sealed set of 372 real court items. 51 were forced to a referral and excluded, leaving 321 judged: 290 court-rejected " +
-  "and 31 court-established. The court-rejected items are drawn predominantly from section 482 quash-petition orders " +
-  "(cruelty, cheating and breach-of-trust families). This is not a statement about trial or appellate conviction judgments.";
+  "A sealed set of 372 real court items. 51 were set aside because the design sends them straight to a lawyer without a " +
+  "judgment (46 court-rejected, 5 court-established), leaving 321 judged: 290 court-rejected and 31 court-established. The " +
+  "court-rejected items are drawn predominantly from orders on petitions to quash criminal proceedings (cruelty, cheating and " +
+  "breach-of-trust families). This is not a statement about trial or appellate conviction judgments.";
 
 export const SAFETY_STACK =
   "Production configuration C: a 4B element judge (threshold 0.74) and a 32B judge (threshold 0.97) that both have to agree. " +
@@ -48,7 +49,8 @@ export interface SafetyRecord {
   path: string;
 }
 
-// Where each figure comes from. A reader (or a reviewer) can open the record at the commit.
+// Where each figure comes from: the team's internal records (a private repository). Shown as provenance, not as links: a visitor
+// cannot open them, and the page says so.
 export const SAFETY_RECORDS: readonly SafetyRecord[] = [
   {
     figure: "false proofs, upper bound, worst case",
@@ -80,5 +82,5 @@ export const SAFETY_COPY: readonly string[] = [
 
 // Every number the page may show. A number outside this list is a figure nobody sourced.
 export const SAFETY_NUMBERS: ReadonlySet<string> = new Set([
-  "0", "290", "95", "1.03", "2", "2.15", "31", "372", "51", "321", "482", "4", "32", "0.74", "0.97", "1",
+  "0", "290", "95", "1.03", "2", "2.15", "31", "372", "51", "46", "5", "321", "4", "32", "0.74", "0.97", "1",
 ]);
