@@ -12,6 +12,7 @@ export const MEMO_VALIDATION_TIER =
   "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
 
 export const PROVISION_HEADING = "Provision text (for reference)";
+export const PROVISION_HEADING_NO_SOURCE = "Provision text (source not stated)";
 // R1's wording (6 Oct): "contract" can read as a legal term, and the judge sees only its own configured text, so the line says
 // whose list the conditions are and that they were not extracted from the text below; "findings were made against".
 export const PROVISION_ELEMENTS_LINE =
@@ -42,11 +43,13 @@ const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `>
 function provisionBlock(c: AnalyseFactsContract): string[] {
   const text = (c.rule_text ?? "").trim();
   if (!text) return [];
-  const lines = [`### ${PROVISION_HEADING}`, "", PROVISION_ELEMENTS_LINE, "", ...quoteBlock(text), ""];
   const source = (c.rule_text_source ?? "").trim();
+  // Provenance comes ONLY from the engine's `rule_text_source`; nothing here names a source the engine did not (Lead-2, 6 Oct).
+  const lines = [`### ${source ? PROVISION_HEADING : PROVISION_HEADING_NO_SOURCE}`, "", PROVISION_ELEMENTS_LINE, "", ...quoteBlock(text), ""];
   if (source) lines.push(`Recorded source: ${cell(source)}`, "");
   // The notice AND a source link always travel together (the licence condition on showing statute text).
-  lines.push(`${STATUTE_NOTICE} Official version: ${provisionSourceLink(source)}`, "");
+  const link = provisionSourceLink(source);
+  lines.push(`${STATUTE_NOTICE} ${link.recorded ? "India Code" : "India Code (home page)"}: ${link.href}`, "");
   const judged = (c.judge_rule_text ?? "").trim();
   if (judged) lines.push(PROVISION_MISMATCH_LINE, "", ...quoteBlock(judged), "");
   return lines;

@@ -194,6 +194,20 @@ test("buildMemo: no mismatch note unless the engine sent the judge's own version
   assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
 });
 
+test("buildMemo: provenance only from rule_text_source: no source stated says so, and nothing names India Code as the text's source", async () => {
+  const { buildMemo, PROVISION_HEADING, PROVISION_HEADING_NO_SOURCE } = await import("./memo");
+  const none = structuredClone(FIXTURE);
+  none.contracts[0].rule_text = TOY_OFFICIAL;
+  const md = buildMemo(none, OPTS);
+  assert.ok(md.includes(`### ${PROVISION_HEADING_NO_SOURCE}`) && !md.includes(`### ${PROVISION_HEADING}`));
+  assert.ok(!md.includes("Recorded source:"));
+  assert.doesNotMatch(md, /from India Code|source: India Code/i);
+  const withSource = structuredClone(none);
+  withSource.contracts[0].rule_text_source = "Toy Act, section 1";
+  const md2 = buildMemo(withSource, OPTS);
+  assert.ok(md2.includes(`### ${PROVISION_HEADING}`) && md2.includes("Recorded source: Toy Act, section 1"));
+});
+
 test("buildMemo: without rule_text (an older engine, or none sent) the memo is exactly what it was: nothing is invented", async () => {
   const { buildMemo, PROVISION_HEADING } = await import("./memo");
   const md = buildMemo(FIXTURE, OPTS);
@@ -215,22 +229,22 @@ test("buildMemo: provision text with newlines stays inside its quote block", asy
 test("buildMemo: the notice and a source link ALWAYS travel with the provision text; never a constructed or foreign link", async () => {
   const { buildMemo } = await import("./memo");
   const { STATUTE_NOTICE, INDIA_CODE_HOME } = await import("./statuteNotice");
-  const cases: [string | null | undefined, string][] = [
-    [undefined, INDIA_CODE_HOME],
-    [null, INDIA_CODE_HOME],
-    ["Toy Act, section 1", INDIA_CODE_HOME],
-    ["https://indiacode.gov.in/act/toy/sections", "https://indiacode.gov.in/act/toy/sections"],
-    ["Toy Act (https://www.indiacode.nic.in/handle/1/2)", "https://www.indiacode.nic.in/handle/1/2"],
-    ["https://example.com/toy-act", INDIA_CODE_HOME],
-    ["http://indiacode.gov.in/insecure", INDIA_CODE_HOME],
-    ["https://evil-indiacode.gov.in.example.com/x", INDIA_CODE_HOME],
+  const cases: [string | null | undefined, string, string][] = [
+    [undefined, INDIA_CODE_HOME, "India Code (home page)"],
+    [null, INDIA_CODE_HOME, "India Code (home page)"],
+    ["Toy Act, section 1", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://indiacode.gov.in/act/toy/sections", "https://indiacode.gov.in/act/toy/sections", "India Code"],
+    ["Toy Act (https://www.indiacode.nic.in/handle/1/2)", "https://www.indiacode.nic.in/handle/1/2", "India Code"],
+    ["https://example.com/toy-act", INDIA_CODE_HOME, "India Code (home page)"],
+    ["http://indiacode.gov.in/insecure", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://evil-indiacode.gov.in.example.com/x", INDIA_CODE_HOME, "India Code (home page)"],
   ];
-  for (const [source, link] of cases) {
+  for (const [source, link, label] of cases) {
     const r = structuredClone(FIXTURE);
     r.contracts[0].rule_text = TOY_OFFICIAL;
     r.contracts[0].rule_text_source = source;
     const md = buildMemo(r, OPTS);
-    assert.ok(md.includes(`${STATUTE_NOTICE} Official version: ${link}`), `${source}: the notice and its link are one line`);
-    assert.equal((md.match(/Official version: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
+    assert.ok(md.includes(`${STATUTE_NOTICE} ${label}: ${link}`), `${source}: the notice and its link are one line`);
+    assert.equal((md.match(/India Code(?: \(home page\))?: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
   }
 });
