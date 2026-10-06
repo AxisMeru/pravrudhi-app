@@ -6,6 +6,7 @@ One page. Invented facts only; no evaluation items, host paths or private data. 
 - **A production run needs Lead-2's written go, and BOTH the nightly-surface fix (pravrudhi-app#59) and the live-project guard (pravrudhi-app#61) must be merged first.** Without #59 the sign-in step of the live specs waits for a route the engine closes to a member; without #61 nothing stops the live project from being reached by accident.
 - The live projects refuse to load unless `LIVE_E2E_GO=1` is set whenever the e2e account is in the environment, and the scripted E2E (`frontend/e2e/demo-live.spec.ts`) is also skipped unless `DEMO_LIVE_GO=1`. Set both only for the window the go covers, and only with the e2e (member) account in the environment (`E2E_EMAIL`, `E2E_PASSWORD`; never printed, never an admin account).
 - Run exactly: `cd frontend && LIVE_E2E_GO=1 DEMO_LIVE_GO=1 npx playwright test demo-live.spec.ts --project=live-chromium`. **Never** `-- demo-live.spec.ts` (the `--` drops the file filter and runs the whole live project against production).
+- **The go names the call count and the $ cap.** One window is 18 real analyse-facts calls (3 fixtures x 2 wordings x 3 runs), and the written go states that number and the $ cap for the window; the go text is quoted in the run record. A 429 or 503 fails that run and consumes the go: do not re-run under the same go, ask for a new one.
 - The recorded fixtures and the assertions are unit-tested without any engine: `npm test` (`src/lib/demo/liveCheck.spec.ts`).
 
 ## Pre-flight (two minutes)
@@ -31,4 +32,5 @@ Each run: sign in, open Matters, tick the contract, paste the facts, Analyse, wa
 - Rate limit: 6 calls per minute per IP, 2 running at once; the spec's three runs are serial.
 - Which contracts are validated is read live from the registry; the page marks the others "not validated, verify". No count is quoted.
 - **Wording sensitivity:** a judge's reading can change between a plain and a near-statutory wording of the same facts. That is why every fixture runs in both and the outcomes are recorded for each; a difference between wordings is a finding to report, not a flake to retry. The recorded expectation is per fixture and wording only after the 3 recorded runs.
+- **What is recorded when the 3 runs disagree:** an outcome is recorded for a fixture and wording only when all 3 runs gave the identical outcome; otherwise record null and report the split (for example 2 PROOF, 1 ABSTAIN) on the issue.
 - Results from these fixtures are pipeline-measured on invented facts: they are not evidence about real matters and are not quoted anywhere outside the issue.

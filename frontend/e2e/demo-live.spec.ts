@@ -12,7 +12,7 @@ import { checkDemoResult, checkMemoText, type DemoFixture } from "../src/lib/dem
  * submitted facts, citations, hashes, retention notice, the recorded outcome once it binds, and the downloaded memo.
  *
  * NOT RUN BY DEFAULT. A production run needs Lead-2's written go (set DEMO_LIVE_GO=1 for the window it was granted for) and the
- * nightly's e2e account in the environment (E2E_EMAIL / E2E_PASSWORD). Objective and metrics are on #18. It must not run before
+ * e2e member account in the environment (E2E_EMAIL / E2E_PASSWORD). Objective and metrics are on #18. It must not run before
  * the nightly-surface fix (pravrudhi-app#59) is merged. It is SKIPPED, not failed, outside the service window, with the reason.
  *
  * Each fixture/wording is run DEMO_LIVE_REPEATS times (default 3) in the one window, so the outcomes and run ids can be
@@ -73,9 +73,9 @@ for (const fixture of FIXTURES) {
 
         // What the page shows matches that response.
         await expect(page.getByText(new RegExp(`^run ${result.run_id} · score sha ${result.score_sha256}$`))).toBeVisible({ timeout: 30_000 });
-        await expect(page.locator("article")).toHaveCount(result.contracts.length);
+        await expect(page.locator("main article")).toHaveCount(result.contracts.length);
         for (const c of result.contracts) {
-          const card = page.locator("article").filter({ hasText: c.contract_id }).first();
+          const card = page.locator("main article").filter({ hasText: c.contract_id }).first();
           await expect(card.locator("tbody tr")).toHaveCount(c.elements.length);
         }
 
