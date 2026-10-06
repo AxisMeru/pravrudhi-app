@@ -1123,6 +1123,14 @@ export interface NyayaRegistryCheckResult {
   provenance: string;
 }
 
+export async function nyayaRegistryEntries(): Promise<{ id: string; validated: boolean; sources?: string[] | null }[]> {
+  if (IS_DEMO) return [];
+  const r = await getJSON<{ entries?: { id: string; validated: boolean; sources?: string[] | null }[] }>("/api/nyaya/registry/contracts", {
+    authOptional: true,
+  });
+  return Array.isArray(r.entries) ? r.entries : [];
+}
+
 export async function nyayaRegistryContracts(): Promise<string[]> {
   if (IS_DEMO) return [];
   // Part of the demo-anon surface (PRAVRUDHI_DEMO_ANON_PATHS) -- a 401 here from a genuinely anonymous
@@ -1200,6 +1208,16 @@ export interface AnalyseFactsContract {
   lean_outcome: string | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
+  // The provisions this contract is about (the engine derives them from the contract's own sources; no text here).
+  citations?: AnalyseFactsCitation[] | null;
+}
+
+export interface AnalyseFactsCitation {
+  act: string;
+  section: string | null;
+  corpus_id: string | null;
+  in_corpus: boolean;
+  title: string | null;
 }
 
 export interface AnalyseFactsResult {
@@ -1209,6 +1227,8 @@ export interface AnalyseFactsResult {
   facts: { id: string; text: string; sha256: string }[];
   contracts: AnalyseFactsContract[];
   provenance: string;
+  // The engine's own retention notice: shown verbatim wherever a result is shown.
+  retention_notice?: string;
 }
 
 // 320s: a generous margin above RunPod LB's own ~300s execution ceiling and the ~2.5 minute worst-case cold

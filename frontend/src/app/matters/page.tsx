@@ -13,13 +13,16 @@
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
-import { analyseFacts, nyayaRegistryContracts, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { referReasonPresentation } from "@/lib/referReason";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
+import { CaveatStrip } from "@/components/CaveatStrip";
+import { StatuteBeside } from "@/components/StatuteBeside";
+import { NOT_VALIDATED_LABEL, showNotValidated, validatedById } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -81,7 +84,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   );
 }
 
-function ContractResult({ c }: { c: AnalyseFactsContract }) {
+function ContractResult({ c, notValidated }: { c: AnalyseFactsContract; notValidated?: boolean }) {
   if (isUncovered(c)) {
     return (
       <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -100,7 +103,14 @@ function ContractResult({ c }: { c: AnalyseFactsContract }) {
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-medium text-[var(--color-text)]">{c.contract_id}</div>
+        <div className="text-sm font-medium text-[var(--color-text)]">
+          {c.contract_id}
+          {notValidated && (
+            <span className="ml-2 rounded border border-amber-500/40 px-1.5 py-0.5 text-[11px] font-normal text-amber-300" data-testid="not-validated-badge">
+              {NOT_VALIDATED_LABEL}
+            </span>
+          )}
+        </div>
         <OutcomeBadge outcome={c.outcome} />
       </header>
 
@@ -135,6 +145,8 @@ function ContractResult({ c }: { c: AnalyseFactsContract }) {
           </tbody>
         </table>
       )}
+
+      <StatuteBeside citations={c.citations} />
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
@@ -178,6 +190,7 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [validated, setValidated] = useState<Map<string, boolean>>(new Map());
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
@@ -195,6 +208,16 @@ export default function MattersPage() {
     return () => {
       off = true;
       window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    let off = false;
+    nyayaRegistryEntries()
+      .then((entries) => !off && setValidated(validatedById(entries)))
+      .catch(() => {}); // the mark is advisory display: a failed read shows no badge, the engine still refers unvalidated contracts
+    return () => {
+      off = true;
     };
   }, []);
 
@@ -264,8 +287,9 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Enter the facts of a situation and check them against the registry's compiled contracts." />
+      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element is tied to a verbatim quote from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
+        <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
@@ -302,7 +326,7 @@ export default function MattersPage() {
           <textarea
             id="matters-facts"
             className="min-h-[120px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
-            placeholder={"The cheque for Rs. 50,000 was dishonoured on presentment.\nThe payee sent a demand notice within 30 days of the return memo."}
+            placeholder={"TOY: Kiran was engaged to Lata and told her he would marry her in the spring.\nTOY: Kiran had already decided never to marry Lata when he made that promise."}
             value={factsText}
             onChange={(e) => setFactsText(e.target.value)}
           />
@@ -334,6 +358,7 @@ export default function MattersPage() {
                   >
                     <input type="checkbox" className="sr-only" checked={selected.has(id)} onChange={() => toggleContract(id)} />
                     {id}
+                    {showNotValidated(validated, id) && <span className="text-amber-300">({NOT_VALIDATED_LABEL})</span>}
                   </label>
                 ))}
               </div>
@@ -403,7 +428,7 @@ export default function MattersPage() {
               </button>
             </div>
             {result.contracts.map((c) => (
-              <ContractResult key={c.contract_id} c={c} />
+              <ContractResult key={c.contract_id} c={c} notValidated={showNotValidated(validated, c.contract_id)} />
             ))}
             <StatuteNotice />
           </div>
