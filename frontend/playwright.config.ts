@@ -8,6 +8,11 @@ const engineURL: string = (process.env.LOCAL_ENGINE_URL ?? "http://127.0.0.1:830
 // The nightly's target: the real hosted door (deploy/gateway/README.md's Worker in front of the real engine),
 // not a local one — the one project in this repository that runs against production, signed in as a real
 // account. LIVE_URL overrides for a rehearsal against a preview deployment.
+// A second engine started as the Studio edition (the operator's own: loopback only, no credentials): the improvement
+// loop's pages are closed to a member on the law-firm product, so the specs that drive them run here. See
+// .github/workflows/ci.yml for the command.
+const studioEngineURL: string = (process.env.STUDIO_ENGINE_URL ?? "http://127.0.0.1:8302").replace(/\/+$/, "");
+
 const liveURL: string = (process.env.LIVE_URL ?? "https://pravrudhi-app.vercel.app").replace(/\/+$/, "");
 
 // The Worker in front of the real engine, reached DIRECTLY (never through the Vercel origin above, which has
@@ -27,9 +32,14 @@ export default defineConfig({
     {
       name: "product-chromium",
       testMatch: [
-        "product.spec.ts", "signin-guards.spec.ts", "settings-byok.spec.ts", "models-providers.spec.ts",
-        "run-plain-language.spec.ts", "matters.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts",
+        "product.spec.ts", "signin-guards.spec.ts",
+        "matters.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts",
       ],
+    },
+    {
+      name: "studio-chromium",
+      testMatch: ["settings-byok.spec.ts", "models-providers.spec.ts", "run-plain-language.spec.ts"],
+      use: { baseURL: studioEngineURL },
     },
     // The nightly's project only exists when the nightly's account is in the environment
     // (pravrudhi-e2e-nightly.service's EnvironmentFile): CI runs every project it can see and has no such
