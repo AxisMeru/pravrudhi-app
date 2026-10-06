@@ -4,7 +4,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { PALETTE_PAGES, STUDIO_ONLY_PAGES, pagesFor } from "./palette";
+import { EMPTY_INDEX, PALETTE_PAGES, STUDIO_ONLY_PAGES, buildCatalogue, pagesFor } from "./palette";
 
 test("the product serves all its configured pages", () => {
   const all = pagesFor(false);
@@ -22,4 +22,16 @@ test("the product keeps what belongs to its own user", () => {
   for (const kept of ["start", "objectives", "progress", "memory", "chat", "nyaya", "runs", "models", "catalogue", "settings", "install"]) {
     assert.ok(ids.has(kept), `${kept} vanished from the product pages`);
   }
+});
+
+test("a caller the engine does not call admin is never offered Runs: not the page, not a run record", () => {
+  assert.ok(pagesFor(false, false, true).some((p) => p.href === "/runs"));
+  assert.ok(!pagesFor(false, false, false).some((p) => p.href === "/runs"));
+  assert.ok(!pagesFor(true, false, false).some((p) => p.href === "/runs"));
+  const index = { ...EMPTY_INDEX, runs: [{ id: "run-1", status: "done", target: "model" }] as never };
+  const shown = buildCatalogue(index, false, false, true);
+  const hidden = buildCatalogue(index, false, false, false);
+  assert.ok(shown.some((r) => r.group === "Runs"));
+  assert.ok(!hidden.some((r) => r.group === "Runs" || r.href === "/runs"));
+  assert.ok(hidden.length > 0, "the rest of the palette is untouched");
 });

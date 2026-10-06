@@ -50,6 +50,17 @@ test("macOS and Windows home paths", () => {
   assert.equal(repo({ "desktop/test/a.js": "p = 'D:/Users/someone/x'" }).length, 1);
   assert.deepEqual(repo({ "desktop/test/a.js": "/Users/user /Users/x/y C:\\Users\\user C:/Users/example/z" }), []);
 });
+test("Windows home paths are matched case-insensitively and the constructed name is too", () => {
+  assert.equal(repo({ "desktop/test/a.js": "p = 'c:\\users\\someone'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = 'C:\\USERS\\someone\\x'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = 'D:/users/someone'" }).length, 1);
+  assert.deepEqual(repo({ "desktop/test/a.js": "p = 'c:\\users\\User' and 'C:\\USERS\\EXAMPLE'" }), []);
+});
+test("a home path on another macOS volume is flagged", () => {
+  assert.equal(repo({ "desktop/test/a.js": "p = '/Volumes/Macintosh HD/Users/someone'" }).length, 1);  // a volume name may hold spaces
+  assert.equal(repo({ "desktop/test/a.js": "p = '/Volumes/Data/Users/someone/x'" }).length, 1);
+  assert.equal(repo({ "desktop/test/a.js": "p = '/Volumes/Data/Users/user'" }).length, 0);
+});
 test("a path that merely contains Users is not a home path", () => {
   assert.deepEqual(repo({ "desktop/test/a.js": "see /api/Users/list and C:\\Program Files\\Users" }), []);
 });
