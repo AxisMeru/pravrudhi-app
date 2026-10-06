@@ -27,7 +27,7 @@ import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
 import { IS_DEMO } from "@/lib/api";
-import { canSeeRuns } from "@/lib/runsAccess";
+import { canSeeNotifications, canSeeRuns } from "@/lib/runsAccess";
 
 interface NavItem {
   href: string;
@@ -106,7 +106,7 @@ export function Sidebar() {
       <div className="border-b border-[var(--color-border)] px-5 py-5">
         <div className="flex items-center justify-between gap-2">
           <div className="text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
-          <NotificationBell />
+          {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
         </div>
         <p className="mt-1 text-xs leading-snug text-[var(--color-text-dim)]">
           {whoami.tagline}
