@@ -6,6 +6,7 @@ import { BenchmarkChart } from "@/components/charts/BenchmarkChart";
 import { NightsPanel } from "@/components/charts/NightsPanel";
 import { ObjectiveCard } from "@/components/charts/ObjectiveCard";
 import { CapabilitiesPanel } from "@/components/charts/CapabilitiesPanel";
+import { useCanSeeRuns } from "@/lib/useCanSeeRuns";
 import { groupBenchmarkSeries } from "@/components/charts/groupExternal";
 import type { DemoSnapshot } from "@/components/charts/types";
 
@@ -51,6 +52,7 @@ export default function ProgressPage() {
 }
 
 function ProgressBody({ data }: { data: DemoSnapshot }) {
+  const showRuns = useCanSeeRuns();
   const benchmarkGroups = groupBenchmarkSeries(data.external);
   const nightsByTrack = new Map<string, typeof data.nights>();
   for (const n of data.nights) {
@@ -105,7 +107,7 @@ function ProgressBody({ data }: { data: DemoSnapshot }) {
       </section>
 
       <section>
-        <CapabilitiesPanel engineVersion={data.engine.version} recipes={data.recipes} modelsWithAdapters={modelsWithAdapters} />
+        <CapabilitiesPanel engineVersion={data.engine.version} recipes={data.recipes} modelsWithAdapters={modelsWithAdapters} showRuns={showRuns} />
       </section>
     </>
   );

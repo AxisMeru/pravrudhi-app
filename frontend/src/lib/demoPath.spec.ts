@@ -50,10 +50,10 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
     models: [{ id: "m1", track: "t", night: 1 }] as never,
     recipes: [{ id: "x", title: "T", capability: "c", available: true }] as never,
   };
-  const surface = buildCatalogue(index, false, false, true);
+  const surface = buildCatalogue(index, false, false, true, true);
   assert.ok(surface.length > 0 && surface.every((r) => r.group === "Pages"));
   assert.deepEqual(surface.map((r) => r.href).sort(), ["/matters", "/settings"]);
-  const normal = buildCatalogue(index, false, false, false);
+  const normal = buildCatalogue(index, false, true, true, false);
   assert.ok(normal.some((r) => r.group === "Actions") && normal.some((r) => r.group === "Objectives"));
 });
 

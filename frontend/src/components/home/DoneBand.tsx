@@ -17,10 +17,10 @@ function Tile({ href, value, label }: { href: string; value: number; label: stri
   );
 }
 
-export function DoneBand({ strip }: { strip: DoneStrip }) {
+export function DoneBand({ strip, showRuns = true }: { strip: DoneStrip; showRuns?: boolean }) {
   const tiles: Array<{ href: string; value: number; label: string }> = [];
   if (strip.objectivesStated !== null) tiles.push({ href: "/objectives", value: strip.objectivesStated, label: "objectives stated" });
-  if (strip.runsCompleted !== null) tiles.push({ href: "/runs", value: strip.runsCompleted, label: "runs completed" });
+  if (showRuns && strip.runsCompleted !== null) tiles.push({ href: "/runs", value: strip.runsCompleted, label: "runs completed" });
   if (strip.nyayaAsksAnswered !== null) tiles.push({ href: "/nyaya", value: strip.nyayaAsksAnswered, label: "nyaya asks answered" });
 
   if (tiles.length === 0) return null;
