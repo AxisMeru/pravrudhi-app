@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { ResultBand } from "@/components/home/ResultBand";
 import { NowBand } from "@/components/home/NowBand";
 import { DoneBand } from "@/components/home/DoneBand";
+import { useCanSeeRuns } from "@/lib/useCanSeeRuns";
 import { NyayaBand } from "@/components/home/NyayaBand";
 import { StartBand } from "@/components/home/StartBand";
 import { loadHome, biggestResult, runningRun, doneStrip, type HomeData } from "@/lib/home";
@@ -22,6 +23,7 @@ const POLL_MS = 10000;
 
 export default function HomePage() {
   const [data, setData] = useState<HomeData | null>(null);
+  const showRuns = useCanSeeRuns();
   const router = useRouter();
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function HomePage() {
           <>
             <ResultBand result={biggestResult(data.objectives)} />
             <NowBand running={runningRun(data.runHandles)} />
-            <DoneBand strip={doneStrip(data)} />
+            <DoneBand strip={doneStrip(data)} showRuns={showRuns} />
             <NyayaBand asks={data.nyayaAsks} />
           </>
         ) : (

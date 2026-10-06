@@ -4,7 +4,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { PALETTE_PAGES, STUDIO_ONLY_PAGES, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
+import { EMPTY_INDEX, PALETTE_PAGES, STUDIO_ONLY_PAGES, buildCatalogue, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
 
 test("a non-Studio caller is offered Matters and Settings, nothing of the improvement loop", () => {
   assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["demo", "matters", "safety", "settings"]);
@@ -27,4 +27,16 @@ test("nested and trailing-slash paths under a hidden page are hidden too; kept p
   for (const open of ["/matters", "/matters/", "/settings", "/signin", "/partner-keys", "/citations", "/anything-else", null, undefined]) {
     assert.equal(studioOnlyPath(open), false, String(open));
   }
+});
+
+test("a caller the engine does not call admin is never offered Runs: not the page, not a run record", () => {
+  assert.ok(pagesFor(true, false, true).some((p) => p.href === "/runs"));
+  assert.ok(!pagesFor(true, false, false).some((p) => p.href === "/runs"));
+  assert.ok(!pagesFor(false, false, true).some((p) => p.href === "/runs"), "and a non-Studio caller never gets the page at all");
+  const index = { ...EMPTY_INDEX, runs: [{ id: "run-1", status: "done", target: "model" }] as never };
+  const shown = buildCatalogue(index, false, true, true, false);
+  const hidden = buildCatalogue(index, false, true, false, false);
+  assert.ok(shown.some((r) => r.group === "Runs"));
+  assert.ok(!hidden.some((r) => r.group === "Runs" || r.href === "/runs"));
+  assert.ok(hidden.length > 0, "the rest of the palette is untouched");
 });

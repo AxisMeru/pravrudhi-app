@@ -53,9 +53,10 @@ export function isStudioOnlyHref(href: string): boolean {
   return PALETTE_PAGES.some((p) => p.href === href && STUDIO_ONLY_PAGES.has(p.id));
 }
 
-export function pagesFor(isStudio: boolean, demoPath: boolean = DEMO_PATH): PalettePage[] {
+// Runs are the operator's (pravrudhi#249): `showRuns` false drops the page from every palette surface.
+export function pagesFor(isStudio: boolean, demoPath: boolean = DEMO_PATH, showRuns: boolean = true): PalettePage[] {
   const pages = isStudio ? PALETTE_PAGES : PALETTE_PAGES.filter((p) => !STUDIO_ONLY_PAGES.has(p.id));
-  return pages.filter((p) => offeredInDemoPath(p.href, demoPath));
+  return pages.filter((p) => offeredInDemoPath(p.href, demoPath) && (showRuns || p.id !== "runs"));
 }
 
 export const PALETTE_PAGES: PalettePage[] = [
@@ -129,11 +130,11 @@ function settled<T>(result: PromiseSettledResult<T>, fallback: T): T {
 
 // Every fetch here can fail independently (no engine, an older build missing an endpoint) — Promise.allSettled
 // so one missing surface never blanks out the rest of the palette.
-export async function loadPaletteIndex(): Promise<PaletteIndex> {
+export async function loadPaletteIndex(showRuns: boolean = true): Promise<PaletteIndex> {
   const [objectivesRes, runsRes, modelsRes, recipesRes] =
     await Promise.allSettled([
       fetchObjectives(),
-      fetchRuns(),
+      showRuns ? fetchRuns() : Promise.resolve([] as RunHandle[]),
       fetchModels(),
       recipeLibrary(),
     ]);
@@ -148,8 +149,8 @@ export async function loadPaletteIndex(): Promise<PaletteIndex> {
 
 const DEMO_REASON = "Demo mode — actions are disabled on this recording";
 
-function pageResults(isStudio: boolean, surface: boolean = DEMO_PATH): PaletteResult[] {
-  return pagesFor(isStudio, surface).map((p) => ({
+function pageResults(isStudio: boolean, showRuns: boolean, surface: boolean = DEMO_PATH): PaletteResult[] {
+  return pagesFor(isStudio, surface, showRuns).map((p) => ({
     id: `page:${p.id}`,
     group: "Pages",
     title: p.label,
@@ -242,16 +243,17 @@ function recipeResults(items: Recipe[]): PaletteResult[] {
 // The full, unfiltered catalogue for one render pass. Cheap to rebuild on every index change — the arrays
 // involved are all small (an operator's own objectives/candidates/runs, not a public dataset).
 export function buildCatalogue(
-  index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false, surface: boolean = DEMO_PATH,
+  index: PaletteIndex, isDemo: boolean = IS_DEMO, isStudio: boolean = false, showRuns: boolean = true,
+  surface: boolean = DEMO_PATH,
 ): PaletteResult[] {
   // The law-firm surface lists its own pages only: no actions (start a night, dispatch, stop) and no records of the
   // improvement loop (objectives, runs, models, recipes) -- they would be links to pages this surface does not offer.
-  if (surface) return pageResults(isStudio, surface);
+  if (surface) return pageResults(isStudio, showRuns, surface);
   return [
-    ...pageResults(isStudio),
+    ...pageResults(isStudio, showRuns),
     ...globalActions(),
     ...objectiveResults(index.objectives, isDemo),
-    ...runResults(index.runs, isDemo),
+    ...(showRuns ? runResults(index.runs, isDemo) : []),
     ...modelResults(index.models),
     ...recipeResults(index.recipes),
   ];

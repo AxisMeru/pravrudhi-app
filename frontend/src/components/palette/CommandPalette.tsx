@@ -36,6 +36,7 @@ import {
 import { IS_DEMO } from "@/lib/api";
 import { DEMO_PATH } from "@/lib/demoPath";
 import { edition, STUDIO } from "@/lib/edition";
+import { useCanSeeRuns } from "@/lib/useCanSeeRuns";
 import {
   PALETTE_PAGES,
   pagesFor,
@@ -113,6 +114,7 @@ export function CommandPalette() {
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [pending, setPending] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const showRuns = useCanSeeRuns();
 
   // Which edition this engine is, so the palette does not offer pages a product install answers 404 for.
   // NOT Studio until the engine says so: "hidden means closed" (#525), so the palette is the law-firm one until
@@ -128,13 +130,13 @@ export function CommandPalette() {
     // The law-firm surface (the flag, or any caller who is not Studio) indexes no objectives, runs, models or recipes.
     if (!open || DEMO_PATH || (!IS_DEMO && !isStudio)) return;
     let cancelled = false;
-    loadPaletteIndex().then((next) => {
+    loadPaletteIndex(showRuns).then((next) => {
       if (!cancelled) setIndex(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [open, isStudio]);
+  }, [open, isStudio, showRuns]);
 
   useEffect(() => {
     if (!open) return;
@@ -153,7 +155,10 @@ export function CommandPalette() {
     setOpen(true);
   }, []);
 
-  const catalogue = useMemo(() => buildCatalogue(index, IS_DEMO, isStudio, DEMO_PATH || (!IS_DEMO && !isStudio)), [index, isStudio]);
+  const catalogue = useMemo(
+    () => buildCatalogue(index, IS_DEMO, isStudio, showRuns, DEMO_PATH || (!IS_DEMO && !isStudio)),
+    [index, isStudio, showRuns],
+  );
   const filtered = useMemo(() => filterResults(catalogue, query), [catalogue, query]);
 
   const sections = useMemo<Section[]>(() => {
@@ -231,7 +236,7 @@ export function CommandPalette() {
           return;
         }
         if (/^[1-9]$/.test(e.key)) {
-          const page = pagesFor(isStudio).find((p) => p.digit === Number(e.key));
+          const page = pagesFor(isStudio, undefined, showRuns).find((p) => p.digit === Number(e.key));
           if (page) {
             e.preventDefault();
             router.push(page.href);
@@ -268,7 +273,7 @@ export function CommandPalette() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, shortcutsOpen, router, execute, openPalette, isStudio]);
+  }, [open, shortcutsOpen, router, execute, openPalette, isStudio, showRuns]);
 
   return (
     <>

@@ -50,10 +50,10 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
     models: [{ id: "m1", track: "t", night: 1 }] as never,
     recipes: [{ id: "x", title: "T", capability: "c", available: true }] as never,
   };
-  const surface = buildCatalogue(index, false, false, true);
+  const surface = buildCatalogue(index, false, false, true, true);
   assert.ok(surface.length > 0 && surface.every((r) => r.group === "Pages"));
   assert.deepEqual(surface.map((r) => r.href).sort(), ["/demo", "/matters", "/safety", "/settings"]);
-  const normal = buildCatalogue(index, false, false, false);
+  const normal = buildCatalogue(index, false, true, true, false);
   assert.ok(normal.some((r) => r.group === "Actions") && normal.some((r) => r.group === "Objectives"));
 });
 
@@ -156,10 +156,6 @@ test("every page.tsx route is either open on the surface or on the hide list: no
   }
 });
 
-test("the demo and safety pages are open to a member in any spelling", () => {
-  for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
-});
-
 import { canSeeNotifications, shouldBootstrapWorkspace } from "./runsAccess";
 
 test("the notification bell and the workspace bootstrap are the operator's: a member gets neither (no 403 polling)", () => {
@@ -171,4 +167,8 @@ test("the notification bell and the workspace bootstrap are the operator's: a me
   assert.equal(shouldBootstrapWorkspace("admin"), true);
   assert.equal(canSeeNotifications("member", true), true); // the recorded demo keeps its bell
   assert.equal(shouldBootstrapWorkspace("admin", true), false); // and provisions nothing
+});
+
+test("the demo and safety pages are open to a member in any spelling", () => {
+  for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
 });

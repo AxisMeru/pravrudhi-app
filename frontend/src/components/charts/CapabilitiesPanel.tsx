@@ -18,10 +18,12 @@ export function CapabilitiesPanel({
   engineVersion,
   recipes,
   modelsWithAdapters,
+  showRuns = true,
 }: {
   engineVersion: string;
   recipes: Recipe[];
   modelsWithAdapters: string[];
+  showRuns?: boolean;
 }) {
   const skills = [...new Set(recipes.map((r) => r.skill))].sort();
 
@@ -60,7 +62,7 @@ export function CapabilitiesPanel({
         </p>
       )}
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-[var(--color-border)] pt-3">
-        {PAGES.map((p) => (
+        {PAGES.filter((p) => showRuns || p.href !== "/runs").map((p) => (
           <Link
             key={p.href}
             href={p.href}
