@@ -1,6 +1,7 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
 import { elementStatusPresentation } from "./elementStatus";
 import { referReasonPresentation } from "./referReason";
+import { STATUTE_NOTICE } from "./statuteNotice";
 
 export const MEMO_DISCLAIMER =
   "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
@@ -9,6 +10,11 @@ export const MEMO_DISCLAIMER =
 export const MEMO_VALIDATION_TIER =
   "Validation tier: the judge behind this memo was validated on constructed, in-distribution sets (pipeline-measured). " +
   "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
+
+export const PROVISION_HEADING = "Provision text (for reference)";
+export const PROVISION_ELEMENTS_LINE = "The conditions above are the contract's elements, not extracted from this text.";
+export const PROVISION_MISMATCH_LINE =
+  "The judge was shown this version of the provision, which is shorter or different from the official text above; its findings rest on this version:";
 
 export interface MemoOptions {
   engineVersion: string | null;
@@ -22,6 +28,24 @@ function elementRow(e: AnalyseFactsElement): string {
   const p = e.p_established === null ? "n/a" : e.p_established.toFixed(2);
   const quote = e.quote ? `"${cell(e.quote)}"${e.fact_id ? ` (${cell(e.fact_id)})` : ""}` : "no supporting quote";
   return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${p} | ${quote} |`;
+}
+
+const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `> ${l}`);
+
+// One block per contract, only when the engine sent the provision text; nothing is invented or fetched. Always with the
+// unofficial-text notice (the licence condition on showing statute text), and the line that says the elements are the
+// contract's own. The judge's own version appears only when the engine sent one (it differs from or is shorter than the
+// official text), with the line that says its findings rest on that version.
+function provisionBlock(c: AnalyseFactsContract): string[] {
+  const official = (c.rule_text ?? "").trim();
+  if (!official) return [];
+  const lines = [`### ${PROVISION_HEADING}`, "", ...quoteBlock(official), ""];
+  const source = (c.rule_text_source ?? "").trim();
+  if (source) lines.push(`Source: ${cell(source)}`, "");
+  lines.push(STATUTE_NOTICE, "", PROVISION_ELEMENTS_LINE, "");
+  const judged = (c.judge_rule_text ?? "").trim();
+  if (judged) lines.push(PROVISION_MISMATCH_LINE, "", ...quoteBlock(judged), "");
+  return lines;
 }
 
 function contractSection(c: AnalyseFactsContract): string {
@@ -51,6 +75,7 @@ function contractSection(c: AnalyseFactsContract): string {
       "",
     );
   }
+  lines.push(...provisionBlock(c));
   return lines.join("\n");
 }
 

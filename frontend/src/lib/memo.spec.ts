@@ -153,3 +153,56 @@ test("buildMemo: states the validation tier of the judge, so a verdict is never 
   assert.match(MEMO_VALIDATION_TIER, /constructed, in-distribution sets/);
   assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
 });
+
+// -- "Provision text (for reference)" (Lead-2, 6 Oct; engine fields rule_text / judge_rule_text / rule_text_source) -------
+// Toy provision text only (invented words, not a real provision).
+const TOY_OFFICIAL = "TOY provision: whoever induces another by deceit to part with property commits the toy offence.";
+const TOY_JUDGED = "TOY provision (shortened): whoever induces another by deceit commits the toy offence.";
+
+test("buildMemo: a contract whose engine result carries rule_text gets one 'Provision text (for reference)' block, with the notice and the elements line", async () => {
+  const { buildMemo, PROVISION_HEADING, PROVISION_ELEMENTS_LINE } = await import("./memo");
+  const { STATUTE_NOTICE } = await import("./statuteNotice");
+  const withText = structuredClone(FIXTURE);
+  withText.contracts[0].rule_text = TOY_OFFICIAL;
+  withText.contracts[0].rule_text_source = "Toy Act, section 1";
+  const md = buildMemo(withText, OPTS);
+  assert.equal(md.split(`### ${PROVISION_HEADING}`).length - 1, 1, "exactly one block for the one contract that has text");
+  assert.ok(md.includes(`> ${TOY_OFFICIAL}`));
+  assert.ok(md.includes("Source: Toy Act, section 1"));
+  assert.ok(md.includes(STATUTE_NOTICE), "the unofficial-text notice always travels with the provision text");
+  assert.ok(md.includes("The conditions above are the contract's elements, not extracted from this text."));
+  assert.equal(PROVISION_ELEMENTS_LINE, "The conditions above are the contract's elements, not extracted from this text.");
+  // The block sits AFTER that contract's element table (no restructure) and before the next contract.
+  assert.ok(md.indexOf("| Element |") < md.indexOf(`### ${PROVISION_HEADING}`));
+});
+
+test("buildMemo: no mismatch note unless the engine sent the judge's own version", async () => {
+  const { buildMemo, PROVISION_MISMATCH_LINE } = await import("./memo");
+  const noJudge = structuredClone(FIXTURE);
+  noJudge.contracts[0].rule_text = TOY_OFFICIAL;
+  assert.ok(!buildMemo(noJudge, OPTS).includes(PROVISION_MISMATCH_LINE));
+  const withJudge = structuredClone(noJudge);
+  withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
+  const md = buildMemo(withJudge, OPTS);
+  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the official text above; its findings rest on this version:"));
+  assert.ok(md.includes(`> ${TOY_JUDGED}`));
+  assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
+});
+
+test("buildMemo: without rule_text (an older engine, or none sent) the memo is exactly what it was: nothing is invented", async () => {
+  const { buildMemo, PROVISION_HEADING } = await import("./memo");
+  const md = buildMemo(FIXTURE, OPTS);
+  assert.ok(!md.includes(PROVISION_HEADING));
+  const blank = structuredClone(FIXTURE);
+  blank.contracts[0].rule_text = "   ";
+  blank.contracts[0].judge_rule_text = "x"; // a judge text alone, with no official text, is not shown either
+  assert.equal(buildMemo(blank, OPTS), md);
+});
+
+test("buildMemo: provision text with newlines stays inside its quote block", async () => {
+  const { buildMemo } = await import("./memo");
+  const two = structuredClone(FIXTURE);
+  two.contracts[0].rule_text = "TOY line one\nTOY line two";
+  const md = buildMemo(two, OPTS);
+  assert.ok(md.includes("> TOY line one\n> TOY line two"));
+});
