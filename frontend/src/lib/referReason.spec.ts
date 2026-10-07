@@ -6,17 +6,20 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { REFER_REASONS, referReasonPresentation, isReferReason } from "./referReason";
 
-test("referReason: every canonical reason has a mapping (trips if a ninth is added without one)", () => {
+test("referReason: every canonical reason has a mapping (trips if a tenth is added without one)", () => {
   for (const reason of REFER_REASONS) {
     assert.doesNotThrow(() => referReasonPresentation(reason), `${reason} has no message mapping`);
     assert.equal(isReferReason(reason), true);
   }
-  assert.equal(REFER_REASONS.length, 8, "the canonical reason list changed — review the mapping and these tests");
+  assert.equal(REFER_REASONS.length, 9, "the canonical reason list changed — review the mapping and these tests");
 });
 
-test("referReason: the eight canonical reasons each get a distinct, non-empty message", () => {
+test("referReason: the nine canonical reasons each get a distinct, non-empty message", () => {
   const messages = new Set<string>();
   for (const reason of REFER_REASONS) {
     const p = referReasonPresentation(reason);
@@ -42,7 +45,7 @@ test("referReason: second_judge_unavailable reads as an availability gap, not un
 
 test("referReason: contract_not_validated reads as a coverage gate, not uncertainty or unavailability", () => {
   const p = referReasonPresentation("contract_not_validated");
-  assert.equal(p.message, "this provision isn't yet cleared for automatic decisions");
+  assert.equal(p.message, "this provision is not on the validated list, so we give a referral, not a proof or denial");
   assert.doesNotMatch(p.message, /confiden(t|tly)/);
   assert.doesNotMatch(p.message, /unavailable/);
 });
@@ -93,4 +96,41 @@ test("referReason: whitespace around an otherwise-valid reason is tolerated (sam
   const p = referReasonPresentation("  uncertain  ");
   assert.equal(p.reason, "uncertain");
   assert.equal(p.unknown, false);
+});
+
+// The engine's own lists, copied with their source into a checked-in fixture (the app cannot import the engine):
+// see the fixture's `_source` for the file, commit and lines. A drift in either direction fails here.
+const ENGINE = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineContractReasons.json"), "utf8")) as {
+  all: string[];
+  refer: string[];
+};
+
+test("referReason: the app's REFER reasons equal the engine's REFER reasons, no more and no fewer", () => {
+  assert.deepEqual([...REFER_REASONS].sort(), [...ENGINE.refer].sort());
+});
+
+test("referReason: every engine REFER reason is a known reason of the engine's own list", () => {
+  assert.equal(new Set(ENGINE.all).size, ENGINE.all.length);
+  for (const r of ENGINE.refer) assert.ok(ENGINE.all.includes(r), `${r} is not in the engine's reason list`);
+});
+
+test("referReason: second_judge_defeater_disagreement is recognised and says what the judges did", () => {
+  const p = referReasonPresentation("second_judge_defeater_disagreement");
+  assert.equal(p.unknown, false);
+  assert.equal(p.reason, "second_judge_defeater_disagreement");
+  assert.match(p.message, /first and second judges disagree on whether a fact defeats this claim/);
+  assert.match(p.message, /refer it to a lawyer/);
+  assert.doesNotMatch(p.message, /not one this app recognises/);
+});
+
+test("referReason: R2's final wording for the two strings, and partner-facing text never says 'config C'", () => {
+  assert.equal(
+    referReasonPresentation("gate1_not_entailed").message,
+    "the entailment check (a separate check of the quoted words against the claim) did not find enough support for it",
+  );
+  assert.equal(
+    referReasonPresentation("contract_not_validated").message,
+    "this provision is not on the validated list, so we give a referral, not a proof or denial",
+  );
+  for (const r of REFER_REASONS) assert.doesNotMatch(referReasonPresentation(r).message, /config(uration)? c\b/i, r);
 });

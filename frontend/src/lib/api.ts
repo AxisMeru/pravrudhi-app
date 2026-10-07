@@ -1088,6 +1088,10 @@ export interface NyayaAsk {
 export interface NyayaCorpusHit extends NyayaSource {
   score: number;
   text: string;
+  /** The page the corpus recorded for this act on India Code, or null; absent on an engine that predates it (pravrudhi #313). */
+  source_url?: string | null;
+  /** Always the India Code home page on an engine that sends it; a fallback, never a deep link. */
+  source_fallback_url?: string;
 }
 
 export async function nyayaVendors(): Promise<NyayaVendor[]> {
@@ -1222,6 +1226,12 @@ export interface AnalyseFactsContract {
   lean_outcome: string | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
+  // The provision text, for reference (engine: pravrudhi#308; absent from an older engine). `rule_text` is the provision
+  // text from the contract's own source; `judge_rule_text` is present only when the judge was shown a different or
+  // shorter version (statute_text_mismatch, or its text was cut); `rule_text_source` names where `rule_text` came from.
+  rule_text?: string | null;
+  judge_rule_text?: string | null;
+  rule_text_source?: string | null;
   // The provisions this contract is about (the engine derives them from the contract's own sources; no text here).
   citations?: AnalyseFactsCitation[] | null;
 }
@@ -1234,6 +1244,14 @@ export interface AnalyseFactsCitation {
   title: string | null;
 }
 
+export interface AnalyseFactsStandardOut {
+  requested: string;
+  applied: string | null;
+  source: string;
+  proceeding_posture?: string | null;
+  in_judge_prompt: boolean;
+}
+
 export interface AnalyseFactsResult {
   run_id: string;
   judge: string;
@@ -1241,6 +1259,8 @@ export interface AnalyseFactsResult {
   facts: { id: string; text: string; sha256: string }[];
   contracts: AnalyseFactsContract[];
   provenance: string;
+  // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
+  standard?: AnalyseFactsStandardOut | null;
   // The engine's own retention notice: shown verbatim wherever a result is shown.
   retention_notice?: string;
 }
