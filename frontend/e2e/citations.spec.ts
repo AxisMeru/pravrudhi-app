@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
 const NOTES: Record<string, string> = {
   VERIFIED: "The citation resolves to an indexed case and the quote appears in its text.",
   EXISTS_QUOTE_NOT_FOUND: "The citation resolves to an indexed case but the quote was not found in its text.",
-  NOT_IN_INDEX: "The index holds no evidence either way: this is not a finding that the citation is fake.",
+  NOT_IN_INDEX: "The case was not found in our index. That does not show whether the citation is real: the index does not hold every judgment.",
   MALFORMED: "Exactly one parseable citation is required.",
   CONFLICT: "The citation maps to conflicting indexed cases; verify by hand.",
 };
@@ -22,7 +22,9 @@ async function run(page: import("@playwright/test").Page): Promise<void> {
 test("the page carries the preview label and says what the check is not", async ({ page }) => {
   await page.goto("/citations");
   await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: accuracy study pending (#529)");
-  await expect(page.getByTestId("citation-limits")).toContainText("It does not say whether the case supports a point.");
+  await expect(page.getByTestId("citation-limits")).toHaveText(
+    "The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does not show whether the citation is real, because the index does not hold every judgment.",
+  );
   await expect(page.getByText(/\bfake\b/i)).toHaveCount(0);
 });
 
@@ -41,6 +43,13 @@ for (const [status, note] of Object.entries(NOTES)) {
     expect(body).toEqual({ citation: "(2020) 3 SCC 456", quote: "a quoted passage" });
   });
 }
+
+test("an engine note carrying the word \"fake\" is withheld, the status still shown", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "NOT_IN_INDEX", note: "Not a finding that the citation is fake." } }));
+  await run(page);
+  await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
+  await expect(page.getByTestId("citation-note")).toHaveCount(0);
+});
 
 test("the coded refusals show the signed wording", async ({ page }) => {
   const cases: Array<[string, number, Record<string, string>, string]> = [

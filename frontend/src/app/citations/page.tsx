@@ -57,8 +57,9 @@ export default function CitationsPage() {
           {PREVIEW_LABEL}
         </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
-          The check looks for the case in the index and for the quote in its text. It does not say whether the case supports a point. A result of
-          NOT_IN_INDEX means the index holds no evidence either way.
+          The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and
+          spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does
+          not show whether the citation is real, because the index does not hold every judgment.
         </p>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
