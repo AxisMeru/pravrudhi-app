@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { ApiError } from "./api";
 import {
   CITATION_MAX,
@@ -73,13 +76,11 @@ test("the inputs are checked against the engine's limits before a request is sen
 
 // -- the product status wording (#533): wired, OFF by default ------------------------------------------------------------------
 
-const PRODUCT = {
-  VERIFIED: { result: "VERIFIED", status: "verified", label: "Verified: the citation resolves to an indexed case and the exact quote appears in its text.", preview: true, verified: true },
-  EXISTS_QUOTE_NOT_FOUND: { result: "EXISTS_QUOTE_NOT_FOUND", status: "quote_not_found", label: "quote not found in the record", preview: true, verified: false },
-  NOT_IN_INDEX: { result: "NOT_IN_INDEX", status: "not_in_index", label: "not in index", preview: true, verified: false },
-  CONFLICT: { result: "CONFLICT", status: "conflict", label: "conflict", preview: true, verified: false },
-  MALFORMED: { result: "MALFORMED", status: "malformed", label: "Exactly one parseable citation is required.", preview: true, verified: false },
-};
+// The engine's own five labels, copied verbatim from citation_status.py (fixtures/engineCitationLabels.json, with its source and sha), never invented ones.
+const ENGINE_LABELS = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineCitationLabels.json"), "utf8")).labels as Record<string, { status: string; label: string }>;
+const PRODUCT = Object.fromEntries(
+  Object.entries(ENGINE_LABELS).map(([result, a]) => [result, { result, ...a, preview: true, verified: result === "VERIFIED" }]),
+) as Record<"VERIFIED" | "EXISTS_QUOTE_NOT_FOUND" | "NOT_IN_INDEX" | "CONFLICT" | "MALFORMED", { result: string; status: string; label: string; preview: boolean; verified: boolean }>;
 
 test("the product status is OFF in this build by default, and off shows only the engine's status and note", () => {
   assert.equal(PRODUCT_STATUS_ENABLED, false);
@@ -115,6 +116,14 @@ test("fail closed: no positive wording from anything but a real verified result"
   assert.equal(productStatus({ ...PRODUCT.NOT_IN_INDEX, result: "VERIFIED", note: "n" }, true), null);
   // banned words in a label
   for (const w of ["fake", "fabricated", "hallucinated", "invalid", "false"]) assert.equal(on({ status: "conflict", label: `this is ${w}` }), null, w);
+});
+
+test("every one of the engine's real labels passes the guards when switched on (R2 on #76: the real conflict label was refused)", () => {
+  assert.deepEqual(Object.keys(ENGINE_LABELS).sort(), [...VERIFY_STATUSES].sort());
+  for (const [result, a] of Object.entries(ENGINE_LABELS)) {
+    const p = productStatus({ result, note: "n", ...a, preview: true, verified: result === "VERIFIED" }, true);
+    assert.deepEqual(p, { status: a.status, label: a.label, preview: true }, result);
+  }
 });
 
 test("fail closed (#75): a positive-claim word anywhere in a label, in any case or width, is refused on every status but verified", () => {

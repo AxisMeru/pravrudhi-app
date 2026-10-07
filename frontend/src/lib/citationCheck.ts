@@ -41,7 +41,7 @@ const RESULT_TO_STATUS: Record<string, string> = {
   MALFORMED: "malformed",
 };
 /** Positive-claim words; a label carrying one anywhere is refused on every status but "verified". */
-const LABEL_POSITIVE = /\b(verif\w*|confirm\w*|authentic\w*|genuine|valid|correct|accurate|real|exists?|resolves?|matches|appears)\b/;
+const LABEL_POSITIVE = /\b(verif\w*|confirm\w*|authentic\w*|genuine|valid|correct|accurate|real|exists?|resolves?|appears)\b/;
 /** Case, width and invisible-character tricks must not slip a banned or positive word past the guards. */
 const foldLabel = (label: string): string => label.normalize("NFKC").replace(/[\p{Cf}]/gu, "").toLowerCase();
 
