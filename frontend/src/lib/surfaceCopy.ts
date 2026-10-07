@@ -97,3 +97,7 @@ export const FILE_NOTE =
   "A file is read in your browser and is never uploaded. The text it gives you, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
 // Under a result, only where the Citation check is offered (its nav flag).
 export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
+// Citation check (read from the engine's verify endpoint by Lead-2-assistant, v0.5.46, not tested live): the citation and quote are not stored; only a keyed API call
+// records its result label and status.
+export const CITATION_RETENTION =
+  "We do not store the citation or quote you enter; a keyed API call records only its result label and status for 90 days.";

@@ -47,3 +47,10 @@ test("with the nav flag on, the result links to the citation check", async ({ pa
   await analyse(page);
   await expect(page.getByTestId("citation-next-step").getByRole("link", { name: "To check a citation, use Citation check." })).toHaveAttribute("href", /\/citations/);
 });
+
+test("the citation check says what is and is not stored, before anything is entered", async ({ page }) => {
+  await page.goto("/citations");
+  await expect(page.getByTestId("citation-retention")).toHaveText(
+    "We do not store the citation or quote you enter; a keyed API call records only its result label and status for 90 days.",
+  );
+});
