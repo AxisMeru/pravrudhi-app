@@ -1368,3 +1368,31 @@ export async function partnerUsage(org: string, days = 30): Promise<PartnerKeyUs
   if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/usage/summary`);
   return (await getJSON<{ keys: PartnerKeyUsage[] }>(`${orgPath(org)}/usage/summary?days=${days}`)).keys;
 }
+
+/** The citation check (#539): one citation and the quote to look for; the engine answers a status and a fixed note (pravrudhi #181). */
+export const VERIFY_CITATION_TIMEOUT_MS = 20_000;
+
+export async function verifyCitation(citation: string, quote: string, signal?: AbortSignal): Promise<{ result: string; note: string }> {
+  const path = "/api/v1/verify-citations";
+  if (IS_DEMO) throw new ApiError(501, path);
+  const localTok = await localToken();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), VERIFY_CITATION_TIMEOUT_MS);
+  const onAbort = () => controller.abort(signal?.reason ?? new DOMException("cancelled", "AbortError"));
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    const res = await engineFetch(`${detectBase()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
+      body: JSON.stringify({ citation, quote }),
+      signal: controller.signal,
+      authOptional: true,
+    });
+    if (!res.ok) throw await apiErrorFrom(res, path);
+    return (await res.json()) as { result: string; note: string };
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+  }
+}

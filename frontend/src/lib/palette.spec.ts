@@ -7,7 +7,7 @@ import test from "node:test";
 import { EMPTY_INDEX, PALETTE_PAGES, STUDIO_ONLY_PAGES, buildCatalogue, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
 
 test("a non-Studio caller is offered Matters and Settings, nothing of the improvement loop", () => {
-  assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["benchmarks", "demo", "matters", "safety", "settings"]);
+  assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["benchmarks", "citations", "demo", "matters", "safety", "settings"]);
 });
 
 test("Studio is offered every page", () => {

@@ -6,10 +6,11 @@ import test from "node:test";
 import { ELEMENT_STATUSES, elementStatusPresentation } from "./elementStatus";
 import { NON_REFER_REASON_TEXT, QUOTE_CHECK_TEXT } from "./reasonText";
 import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING, TWO_JUDGES_ONLY_LABEL } from "./referReason";
+import { classifyVerifyError } from "./citationCheck";
 import { classifyAnalyseError } from "./serviceStatus";
 import { streamErrorText } from "./streamError";
 import { MEMO_DISCLAIMER } from "./memo";
-import { CODED_ERROR_TEXT, ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
+import { CITATION_ERROR_TEXT, CODED_ERROR_TEXT, ELEMENT_STATUS_EXPLANATION, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { ApiError } from "./api";
 
 // The app's reason, quote-check, status and service-error strings are the SIGNED wording, word for word. This file holds them to
@@ -44,9 +45,6 @@ const norm = (s: string): string => s.replace(/\s+/g, " ").trim();
  * reason, and a later surface for it must move it out of this list (the test below fails if a listed code gains an app string).
  */
 const NO_APP_SURFACE_FOLLOW_UP: Record<string, string> = {
-  verify_timeout: "citation-check route has no app surface",
-  verify_at_capacity: "citation-check route has no app surface",
-  citation_index_unavailable: "citation-check route has no app surface",
   checker_unavailable: "signed (note head e65e5ffc) but no app surface: the admin-only Nyaya audit page shows only the HTTP status",
   registry_checker_unavailable: "signed (note head e65e5ffc) but no app surface: the admin-only Nyaya registry pages show only the HTTP status",
   vendor_not_allowed: "signed (note head e65e5ffc), coded 403 of POST /api/nyaya/ask: no app surface, the admin-only Nyaya page shows only the HTTP status",
@@ -136,6 +134,7 @@ test("every engine code is in the table, in the app, or in the named no-app-surf
     ...ELEMENT_STATUSES,
     ...Object.keys(SERVICE_ERROR_TEXT),
     ...Object.keys(CODED_ERROR_TEXT),
+    ...Object.keys(CITATION_ERROR_TEXT),
   ]);
   const covered = (code: string) => inTable.has(code) || inApp.has(code) || code in NO_APP_SURFACE_FOLLOW_UP;
   const engineCodes = [
@@ -153,7 +152,7 @@ test("every engine code is in the table, in the app, or in the named no-app-surf
 
 test("the allow-list is honest: only engine codes, each with a reason, and none of them already has an app string", () => {
   const engine = new Set([...ENGINE.service_error_503, ...((ENGINE as { http_403_coded?: string[] }).http_403_coded ?? []), ...ENGINE_REASONS.all, ...ENGINE.quote_check, ...ENGINE.element_status]);
-  const inApp = new Set<string>([...Object.keys(SERVICE_ERROR_TEXT), ...Object.keys(CODED_ERROR_TEXT), ...Object.keys(NON_REFER_REASON_TEXT), ...Object.keys(QUOTE_CHECK_TEXT), ...REFER_REASONS]);
+  const inApp = new Set<string>([...Object.keys(SERVICE_ERROR_TEXT), ...Object.keys(CODED_ERROR_TEXT), ...Object.keys(CITATION_ERROR_TEXT), ...Object.keys(NON_REFER_REASON_TEXT), ...Object.keys(QUOTE_CHECK_TEXT), ...REFER_REASONS]);
   for (const [code, why] of Object.entries(NO_APP_SURFACE_FOLLOW_UP)) {
     assert.ok(engine.has(code), `${code} is not an engine code`);
     assert.ok(why.length > 0);
@@ -187,4 +186,12 @@ test("the coded-error strings (pravrudhi #319) are the signed wording verbatim, 
   assert.equal(shown(new ApiError(503, "/x", { code: "agent_unavailable" })), norm(CODED.strings.agent_unavailable));
   // every signed coded string is either surfaced by the app or in the named allow-list
   for (const code of Object.keys(CODED.strings)) assert.ok(code in CODED_ERROR_TEXT || code in NO_APP_SURFACE_FOLLOW_UP, `${code} has neither an app surface nor an allow-list entry`);
+});
+
+test("the citation check's error strings are the signed wording verbatim, and the page shows them", () => {
+  for (const [code, text] of Object.entries(CITATION_ERROR_TEXT)) assert.equal(norm(text), norm(GAP.strings[code]), code);
+  const shown = (e: ApiError) => norm(classifyVerifyError(e).message);
+  assert.equal(shown(new ApiError(503, "/x", { code: "verify_timeout" })), norm(GAP.strings.verify_timeout));
+  assert.equal(shown(new ApiError(503, "/x", { code: "verify_at_capacity" })), norm(GAP.strings.verify_at_capacity));
+  assert.equal(shown(new ApiError(503, "/x", { code: "citation_index_unavailable" })), norm(GAP.strings.citation_index_unavailable));
 });
