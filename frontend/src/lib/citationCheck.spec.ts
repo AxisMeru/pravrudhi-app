@@ -117,6 +117,27 @@ test("fail closed: no positive wording from anything but a real verified result"
   for (const w of ["fake", "fabricated", "hallucinated", "invalid", "false"]) assert.equal(on({ status: "conflict", label: `this is ${w}` }), null, w);
 });
 
+test("fail closed (#75): a positive-claim word anywhere in a label, in any case or width, is refused on every status but verified", () => {
+  const on = (r: object) => productStatus({ result: "CONFLICT", note: "n", ...r } as never, true);
+  for (const label of ["conflict: citation VERIFIED elsewhere", "Not Verified", "the case exists", "ｖｅｒｉｆｉｅｄ", "ver\u200Bified", "authentic", "quote confirmed", "this is correct"]) {
+    assert.equal(on({ status: "conflict", label }), null, label);
+  }
+  // the engine's own wording for the other four still shows
+  for (const k of ["EXISTS_QUOTE_NOT_FOUND", "NOT_IN_INDEX", "CONFLICT", "MALFORMED"] as const) assert.ok(productStatus({ ...PRODUCT[k], note: "n" }, true), k);
+});
+
+test("fail closed (#75): result and status must be the engine's own pair, and `verified` must agree", () => {
+  const swapped = [
+    { ...PRODUCT.CONFLICT, result: "NOT_IN_INDEX" },
+    { ...PRODUCT.NOT_IN_INDEX, result: "EXISTS_QUOTE_NOT_FOUND" },
+    { ...PRODUCT.MALFORMED, result: "CONFLICT" },
+    { ...PRODUCT.EXISTS_QUOTE_NOT_FOUND, result: "MALFORMED" },
+    { ...PRODUCT.CONFLICT, result: "something_new" },
+    { ...PRODUCT.CONFLICT, verified: true },
+  ];
+  for (const r of swapped) assert.equal(productStatus({ ...r, note: "n" }, true), null, `${r.result}/${r.status}/${r.verified}`);
+});
+
 test("the preview flag defaults to shown unless the engine says false explicitly", () => {
   assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: undefined, note: "n" }, true)?.preview, true);
   assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: false, note: "n" }, true)?.preview, false);

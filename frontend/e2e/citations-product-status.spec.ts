@@ -41,3 +41,9 @@ test("a contradictory or unknown product status falls back to the engine's statu
   await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
   await expect(page.getByText("Verified: all good")).toHaveCount(0);
 });
+
+test("with the nav flag on, the citation check is in the nav", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", "needs a build with NEXT_PUBLIC_CITATION_NAV=1");
+  await page.goto("/matters");
+  await expect(page.getByRole("link", { name: "Citation check" })).toBeVisible();
+});
