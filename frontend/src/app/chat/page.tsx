@@ -4,6 +4,7 @@
 // call this turn returned it, and every such number carries the ledger row that justifies it. Anything the
 // model's draft stated that no tool backed comes back in `refusals` instead of quietly vanishing.
 
+import { streamErrorText } from "@/lib/streamError";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Send, Plus } from "lucide-react";
 import {
@@ -319,7 +320,7 @@ function LiveChat() {
             return copy;
           });
         } else if (type === "error") {
-          setSendError(event.error as string);
+          setSendError(streamErrorText(event));
           hasError = true;
           break;
         }

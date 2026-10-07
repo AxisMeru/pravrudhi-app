@@ -238,3 +238,39 @@ test("analyseFacts: an already-aborted caller signal rejects with AbortError wit
   } finally { restore(); }
   assert.ok(analyseFactsCalls(calls).length <= 1);
 });
+
+test("analyseFacts: the coded 503s from the engine (error code + fixed detail) are read from `error`: judges_offline is final, a busy agent is retried once", async () => {
+  const { analyseFacts, ApiError } = await import("./api");
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const coded = (code: string, detail: string) => new Response(JSON.stringify({ error: code, detail }), { status: 503 });
+  // judges_offline: one attempt, the code and the signed message
+  {
+    const { restore, calls } = mockFetch((url) => (url.includes("/api/v1/analyse-facts") ? coded("judges_offline", "fixed text") : ok({ token: "t" })));
+    try {
+      await assert.rejects(() => analyseFacts(["fact"], ["bns69"]), (e: unknown) => {
+        assert.ok(e instanceof ApiError);
+        assert.equal((e as InstanceType<typeof ApiError>).code, "judges_offline");
+        assert.match(classifyAnalyseError(e).message, /switched off/i);
+        return true;
+      });
+    } finally {
+      restore();
+    }
+    assert.equal(analyseFactsCalls(calls).length, 1, "a coded refusal is final");
+  }
+  // agent_at_capacity: retried once, then succeeds
+  {
+    let attempt = 0;
+    const { restore, calls } = mockFetch((url) => {
+      if (!url.includes("/api/v1/analyse-facts")) return ok({ token: "t" });
+      attempt += 1;
+      return attempt === 1 ? coded("agent_at_capacity", "the nyaya agent is at capacity; retry shortly") : ok(FAKE_RESULT);
+    });
+    try {
+      assert.equal((await analyseFacts(["fact"], ["bns69"])).run_id, FAKE_RESULT.run_id);
+    } finally {
+      restore();
+    }
+    assert.equal(analyseFactsCalls(calls).length, 2);
+  }
+});
