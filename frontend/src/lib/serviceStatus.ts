@@ -78,6 +78,7 @@ export type AnalyseErrorKind =
   | "rate_limited"
   | "signed_out"
   | "judge_unavailable"
+  | "judges_offline"
   | "judges_warming"
   | "outside_window"
   | "server"
@@ -92,7 +93,7 @@ export interface ClassifiedError {
 export function classifyAnalyseError(e: unknown): ClassifiedError {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") {
-    return { kind: "timeout", message: "The analysis took longer than the time we allow and was stopped. The engine may be warming up; try again in a minute." };
+    return { kind: "timeout", message: "The analysis models did not answer in time, so we stopped waiting. They may be switched off at the moment. No result was returned. Try again later." };
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
   if (e instanceof ApiError) {
@@ -104,12 +105,16 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 503 && e.code === "outside_service_window") {
       return { kind: "outside_window", message: "The hosted demo is outside its service hours.", retryAfter: e.retryAfter };
     }
+    // The engine reads the judges' endpoint limit and says so (pravrudhi #312): parked on purpose, so nothing to wait for.
+    if (e.status === 503 && e.code === "judges_offline") {
+      return { kind: "judges_offline", message: "The analysis models are switched off at the moment. Nothing was scored. Try again later." };
+    }
     if (e.status === 503 && e.code === "judge_unavailable" && e.reason === "judges_warming") {
       const wait = e.retryAfter ? ` Try again in about ${e.retryAfter} seconds.` : " Try again shortly.";
       return { kind: "judges_warming", message: `The analysis models are warming up. Nothing was scored.${wait}`, retryAfter: e.retryAfter };
     }
     if (e.status === 503 && e.code === "judge_unavailable") {
-      return { kind: "judge_unavailable", message: "The analysis model is starting up or unavailable. Nothing was scored. Try again in a minute or two." };
+      return { kind: "judge_unavailable", message: "The analysis models are not available right now. Nothing was scored. Try again later." };
     }
     return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). Nothing was scored.` };
   }

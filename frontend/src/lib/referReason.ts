@@ -7,16 +7,20 @@
 // REFER_TO_LAWYER, including `second_judge_unavailable` and `contract_not_validated`, neither of which is
 // uncertainty at all. That is misleading in the same shape #37 already fixed for element statuses: a reader
 // cannot tell "the model wasn't sure" from "we couldn't reach a second opinion" from "this provision isn't
-// cleared yet" -- three very different situations that call for three different reactions from a reader.
+// on the validated list yet" -- three very different situations that call for three different reactions from a reader.
 //
-// The engine's own nyaya_agent.py (`_run_contract`) currently produces EIGHT distinct REFER_TO_LAWYER
-// reasons, not the three R1's own report named -- mapping only three and letting the other five fall into
-// the generic "unknown reason" fallback would just be a smaller version of the same bug this file exists to
-// fix, so all eight known reasons get their own message below.
+// The engine's own nyaya_agent.py (`_run_contract`) currently produces NINE distinct REFER_TO_LAWYER
+// reasons, not the three R1's own report named -- mapping only some and letting the rest fall into the
+// generic "unknown reason" fallback would just be a smaller version of the same bug this file exists to
+// fix, so all nine known reasons get their own message below. (This file was written when the engine had eight;
+// `second_judge_defeater_disagreement` was missed, so a split on a defeater read as "not one this app
+// recognises yet". src/lib/fixtures/engineContractReasons.json is the engine's own list, copied with its source,
+// and referReason.spec.ts holds this list equal to it.)
 export const REFER_REASONS = [
   "denial_unquotable",
   "uncertain",
   "uncertain_second_judge",
+  "second_judge_defeater_disagreement",
   "second_judge_unavailable",
   "gate1_unavailable",
   "gate1_not_entailed",
@@ -65,15 +69,24 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
   switch (raw) {
     case "uncertain":
       // The primary judge's own p_established landed in the refer band on at least one element -- genuine
-      // model uncertainty, the only one of the eight reasons the OLD banner text was ever actually true for.
+      // model uncertainty, the only one of the nine reasons the OLD banner text was ever actually true for.
       return { reason: raw, message: "an element couldn't be judged confidently from these facts", unknown: false };
     case "uncertain_second_judge":
-      // Config C only: the second judge answered, but its own logit-distance band fired -- a second opinion
+      // Deployments that use two judges only: the second judge answered, but its own logit-distance band fired -- a second opinion
       // was reached, and it wasn't confident either. Distinct from `second_judge_unavailable`, where no
       // second opinion was reached AT ALL.
       return {
         reason: raw,
         message: "the second check couldn't confirm this confidently from these facts",
+        unknown: false,
+      };
+    case "second_judge_defeater_disagreement":
+      // Deployments that use two judges only: a defeater (a fact that would defeat the claim) was judged by both judges and they split. The
+      // contract is referred, never proved: an unresolved defeater cannot be waved through.
+      return {
+        reason: raw,
+        message:
+          "the first and second judges disagree on whether a fact defeats this claim, so we refer it to a lawyer",
         unknown: false,
       };
     case "second_judge_unavailable":
@@ -102,7 +115,7 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
     case "gate1_not_entailed":
       return {
         reason: raw,
-        message: "the facts as given didn't clearly support this element's reading of the law",
+        message: "the entailment check (a separate check of the quoted words against the claim) did not find enough support for it",
         unknown: false,
       };
     case "gate1_contradiction":
@@ -112,7 +125,11 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
         unknown: false,
       };
     case "contract_not_validated":
-      return { reason: raw, message: "this provision isn't yet cleared for automatic decisions", unknown: false };
+      return {
+        reason: raw,
+        message: "this provision is not on the validated list, so we give a referral, not a proof or denial",
+        unknown: false,
+      };
     default:
       return unhandledReason(raw);
   }
