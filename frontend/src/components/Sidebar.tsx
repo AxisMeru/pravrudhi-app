@@ -45,6 +45,7 @@ const NAV: NavItem[] = [
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/nyaya", label: "Nyaya", icon: Scale },
   { href: "/matters", label: "Matters", icon: Gavel },
+  { href: "/citations", label: "Citation check", icon: Library },
   { href: "/demo", label: "How it works", icon: Scale },
   { href: "/safety", label: "Safety record", icon: Gavel },
   { href: "/benchmarks", label: "Benchmarks", icon: LineChart },
