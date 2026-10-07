@@ -17,7 +17,7 @@ import {
 } from "@/lib/citationCheck";
 
 // The citation check (#539): one citation and the quote to look for. The status the engine answers is shown verbatim with its note; the page
-// is labelled as a preview until the accuracy study (#529) reports, and says what a status is not (it checks existence and the quote, not
+// is labelled as a preview until the accuracy study reports, and says what a status is not (it checks existence and the quote, not
 // whether the case supports a point).
 export default function CitationsPage() {
   const [citation, setCitation] = useState("");
@@ -51,7 +51,7 @@ export default function CitationsPage() {
 
   return (
     <div>
-      <PageHeader title={CITATION_CHECK_TITLE} subtitle="Look up one citation and check that a quote appears in the case." />
+      <PageHeader title={CITATION_CHECK_TITLE} subtitle="Look up one citation and check that a quote appears in its text." />
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
         <p className="w-fit rounded-md border border-amber-500/40 px-2 py-0.5 text-xs text-amber-300" data-testid="citation-preview-label">
           {PREVIEW_LABEL}

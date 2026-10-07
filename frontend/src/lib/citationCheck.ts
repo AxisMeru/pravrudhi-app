@@ -1,12 +1,11 @@
 // The citation check (#539): POST /api/v1/verify-citations answers one of five fixed statuses and a fixed note. The status is shown VERBATIM as the
-// engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study (#529)
-// reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
+// engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
 
 import { ApiError } from "./api";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
-export const PREVIEW_LABEL = "preview: accuracy study pending (#529)";
+export const PREVIEW_LABEL = "preview: accuracy not yet measured";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
 export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;

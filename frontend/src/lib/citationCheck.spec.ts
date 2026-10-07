@@ -13,7 +13,7 @@ import {
 } from "./citationCheck";
 
 test("the preview label is exactly the decided wording", () => {
-  assert.equal(PREVIEW_LABEL, "preview: accuracy study pending (#529)");
+  assert.equal(PREVIEW_LABEL, "preview: accuracy not yet measured");
 });
 
 test("the five statuses the engine can answer are shown verbatim and known", () => {

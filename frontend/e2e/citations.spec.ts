@@ -21,7 +21,7 @@ async function run(page: import("@playwright/test").Page): Promise<void> {
 
 test("the page carries the preview label and says what the check is not", async ({ page }) => {
   await page.goto("/citations");
-  await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: accuracy study pending (#529)");
+  await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: accuracy not yet measured");
   await expect(page.getByTestId("citation-limits")).toHaveText(
     "The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does not show whether the citation is real, because the index does not hold every judgment.",
   );
