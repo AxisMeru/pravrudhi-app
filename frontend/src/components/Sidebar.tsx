@@ -47,6 +47,7 @@ const NAV: NavItem[] = [
   { href: "/matters", label: "Matters", icon: Gavel },
   { href: "/demo", label: "How it works", icon: Scale },
   { href: "/safety", label: "Safety record", icon: Gavel },
+  { href: "/benchmarks", label: "Benchmarks", icon: LineChart },
   { href: "/runs", label: "Runs", icon: History },
   { href: "/models", label: "Models", icon: Package },
   { href: "/settings", label: "Settings", icon: Settings },

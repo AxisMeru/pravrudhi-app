@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-10-06",
+  "page_version": "0",
+  "blocks": [
+    { "id": "bbl", "review_status": "pending", "outcome": "n/a", "kind_chip": "Model legal knowledge (MCQ), not the harness", "data_chip": "Public benchmark" },
+    { "id": "citation", "review_status": "pending", "outcome": "n/a", "kind_chip": "Own study, design not yet registered", "data_chip": "Model-generated questions" },
+    { "id": "legalbench", "review_status": "pending", "outcome": "n/a", "kind_chip": "Harness vs the same model alone; United States law", "data_chip": "Public benchmark" },
+    { "id": "sealed_court", "review_status": "pending", "outcome": "n/a", "kind_chip": "Sealed Indian court test, reviewed result", "data_chip": "Real court-derived" }
+  ]
+}
