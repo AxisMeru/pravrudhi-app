@@ -114,6 +114,10 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 503 && e.code === "judges_offline") {
       return { kind: "judges_offline", message: SERVICE_ERROR_TEXT.judges_offline };
     }
+    // The engine reads the judges' endpoint limit and says so (pravrudhi #312): parked on purpose, so nothing to wait for.
+    if (e.status === 503 && e.code === "judges_offline") {
+      return { kind: "judges_offline", message: "The analysis models are switched off at the moment. Nothing was scored. Try again later." };
+    }
     if (e.status === 503 && e.code === "judge_unavailable" && e.reason === "judges_warming") {
       // Signed: "... Try again after the number of seconds shown." With no Retry-After there is no number to show, so the
       // two sentences before it are used alone.
