@@ -35,14 +35,14 @@ export const REVIEWED_TEXT = "Reviewed";
 /** Block titles (spec 2.1, items 2 to 5). */
 export const BLOCK_TITLE: Readonly<Record<BlockId, string>> = {
   bbl: "Our models on an Indian legal-knowledge test",
-  citation: "Does our citation checker catch wrong citations?",
+  citation: "How often does our citation checker mark a wrong citation as verified?",
   legalbench: "Rule application on a public benchmark",
   sealed_court: "What the sealed Indian court tests found",
 };
 
 /** The fixed label shown on a block (spec 1.1 to 1.3); the sealed-court block carries the signed sentences from the data's `copy`. */
 export const FIXED_LABEL: Readonly<Partial<Record<BlockId, string>>> = {
-  bbl: "Model legal knowledge (multiple choice). Not the proof harness. Our models were not trained for this test.",
+  bbl: "Model legal knowledge (multiple choice). Not the proof harness. Our judge models are trained for a different task; a score on this test is not a measure of what our product does.",
   citation:
     "Model-generated questions; Supreme Court judgments index only; a citation is checked for existence and metadata, not for whether the case supports a stated point. Questions were written by Anthropic Haiku and answered by Anthropic Sonnet.",
   legalbench:
@@ -65,10 +65,10 @@ export const HOW_WE_TEST: readonly string[] = [
 /** Link text for a placement on the benchmark's own Space (the copy lint bans the stem of the usual word for it). */
 export const RANK_LINK_TEXT = "Page of the Space";
 
-/** NyayaSiddhi (the open development benchmark, #638): a link and a status line, no figure. Strings exactly as signed; both pass the vendored lint. */
+/** NyayaSiddhi (the open development benchmark, #638): a link and a short blurb under it, no figure. The blurb is a shorter form than the signed standing line (the dataset page carries the full line); it is not "the status line". Strings exactly as relayed; both pass the vendored lint. */
 export const NYAYASIDDHI_URL = "https://huggingface.co/datasets/AxisMeru/nyayasiddhi";
 export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)";
-export const NYAYASIDDHI_STATUS = "development benchmark; descriptive; no ranking";
+export const NYAYASIDDHI_BLURB = "development benchmark; descriptive; no ranking";
 
 export const FOOTER_TEXT = "Research results, not legal advice.";
 
@@ -353,7 +353,7 @@ export function fixedPageStrings(): { id: string; text: string }[] {
   add("footer", FOOTER_TEXT);
   add("rank-link", RANK_LINK_TEXT);
   add("nyayasiddhi-link", NYAYASIDDHI_LINK_TEXT);
-  add("nyayasiddhi-status", NYAYASIDDHI_STATUS);
+  add("nyayasiddhi-blurb", NYAYASIDDHI_BLURB);
   add("no-figure", NO_FIGURE_TEXT);
   add("pending", PENDING_TEXT);
   add("reviewed", REVIEWED_TEXT);

@@ -24,7 +24,7 @@ test("by default every block is pending and the page shows no figure", async ({ 
   await expect(page.getByTestId("result-table")).toHaveCount(0);
   await expect(page.getByTestId("block-bbl").getByText(/%/)).toHaveCount(0);
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
-  await expect(page.getByTestId("fixed-label-bbl")).toHaveText(/Not the proof harness\. Our models were not trained for this test\./);
+  await expect(page.getByTestId("fixed-label-bbl")).toHaveText(/Not the proof harness\. Our judge models are trained for a different task; a score on this test is not a measure of what our product does\./);
   await expect(page.getByTestId("chip-kind-citation")).toHaveText("Own study, design not yet registered");
 });
 
@@ -73,7 +73,7 @@ test("a block with only one reviewer stays pending", async ({ page }) => {
 test("an inconclusive citation result says so in its title and shows its bound, categories and sentence", async ({ page }) => {
   await serve(page);
   await page.goto("/benchmarks");
-  await expect(page.getByRole("heading", { name: "Does our citation checker catch wrong citations? (Inconclusive)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How often does our citation checker mark a wrong citation as verified? (Inconclusive)" })).toBeVisible();
   await expect(page.getByTestId("outcome-citation")).toHaveText("Inconclusive");
   await expect(page.getByTestId("bound-bar").getByRole("img")).toHaveAttribute("aria-label", /Toy upper bound: 8\.8%, n 80, one sided upper/);
   await expect(page.getByTestId("categories-citation")).toContainText("Toy category: 4");
@@ -89,13 +89,13 @@ test("the page works at phone width: no horizontal scroll of the page", async ({
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test("the benchmarks page and the demo page link NyayaSiddhi with its status line, and show no figure for it", async ({ page }) => {
+test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and show no figure for it", async ({ page }) => {
   for (const path of ["/benchmarks", "/demo"]) {
     await page.goto(path);
     const link = page.getByTestId("nyayasiddhi-link");
     await expect(link).toHaveText("NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)");
     await expect(link).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
-    await expect(page.getByTestId("nyayasiddhi-status")).toHaveText("development benchmark; descriptive; no ranking");
+    await expect(page.getByTestId("nyayasiddhi-blurb")).toHaveText("development benchmark; descriptive; no ranking");
     await expect(page.getByTestId("nyayasiddhi")).not.toContainText(/\d+(\.\d+)?%/);
   }
 });

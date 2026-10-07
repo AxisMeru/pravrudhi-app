@@ -1,12 +1,11 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
 import { elementStatusPresentation } from "./elementStatus";
-import { referReasonPresentation } from "./referReason";
+import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
+import { MEMO_DISCLAIMER_TEXT } from "./signedStrings";
 import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
 
-export const MEMO_DISCLAIMER =
-  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome means a lawyer must decide; " +
-  "no verdict was reached. A quote is verbatim text from the submitted facts, not proof that it is relevant.";
+export const MEMO_DISCLAIMER = MEMO_DISCLAIMER_TEXT;
 
 export const MEMO_VALIDATION_TIER =
   "Validation tier: the judge behind this memo was validated on constructed, in-distribution sets (pipeline-measured). " +
@@ -60,7 +59,16 @@ function contractSection(c: AnalyseFactsContract): string {
   const lines = [`## ${c.contract_id}`, "", `Outcome: ${c.outcome}`, ""];
   if (c.outcome === "REFER_TO_LAWYER") {
     const r = referReasonPresentation(c.reason);
-    lines.push(`A lawyer must decide this matter: ${r.message}. No verdict was reached.`, `Engine reason code: ${c.reason || "none"}`, "");
+    lines.push(
+      `**${REFERRED_HEADING}**`,
+      "",
+      r.message,
+      ...(r.twoJudgesOnly ? [TWO_JUDGES_ONLY_LABEL] : []),
+      "",
+      "No verdict was reached.",
+      `Engine reason code: ${c.reason || "none"}`,
+      "",
+    );
   } else if (c.outcome === "ABSTAIN") {
     const plain = nonReferReasonText(c.reason);
     lines.push(
@@ -70,9 +78,9 @@ function contractSection(c: AnalyseFactsContract): string {
       "",
     );
   } else if (c.outcome === "PROOF") {
-    lines.push("Every element was judged established from the submitted facts, each with a quote.", "");
+    lines.push(nonReferReasonText(c.reason) ?? "Every element was judged established from the submitted facts, each with a quote.", "");
   } else if (c.outcome === "DENIAL") {
-    lines.push("A defence element was judged established from the submitted facts, with a quote.", "");
+    lines.push(nonReferReasonText(c.reason) ?? "A defence element was judged established from the submitted facts, with a quote.", "");
   } else {
     lines.push(`The engine sent an outcome ("${c.outcome}") that is not an outcome this app recognises. Treat it as no verdict.`, "");
   }
