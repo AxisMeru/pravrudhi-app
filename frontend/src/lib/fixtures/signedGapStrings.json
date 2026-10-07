@@ -1,0 +1,21 @@
+{
+ "source": "the signed #619 reason-string note, REASON_STRING_AUDIT_619_2026-10-06.md section 5, R1-signed head 8757dd2b; sha256 of that file at that head: 2b931c5ba77999f3b0b8584b4c361751a0a9f44ccd68ab98915e6899f07b7db4. Strings copied verbatim.",
+ "strings": {
+  "established": "The judge said this condition is shown and quoted words from your facts that passed the quote check.",
+  "not_established": "The judge did not find this condition shown in your facts.",
+  "not_confirmed": "The judge leaned towards 'shown', but its confidence did not reach the level we require, so this condition is not counted as shown.",
+  "not_evaluated_second_unavailable": "The second judge did not answer, so this condition was not confirmed.",
+  "not_evaluated_gate1_unavailable": "This condition was not evaluated because the entailment check (a separate check of the quoted words against the claim) was unavailable.",
+  "judges_offline": "The analysis models are switched off at the moment. Nothing was scored. Try again later.",
+  "judges_warming": "The analysis models may still be starting up. Nothing was scored. Try again after the number of seconds shown.",
+  "judge_unavailable": "The analysis models are not available right now. Nothing was scored. Try again later.",
+  "outside_service_window": "The service is outside its service hours. Nothing was scored.",
+  "service_config_missing": "The service is not fully set up. Nothing was scored.",
+  "verify_timeout": "The citation check did not finish in time, so no result was returned. Try again later.",
+  "verify_at_capacity": "The citation check is busy, so no result was returned. Try again in a few seconds (Retry-After 5).",
+  "citation_index_unavailable": "The citation index is not available, so this citation was not checked.",
+  "http_401": "Your API key was not accepted (it is invalid or revoked). Nothing was scored.",
+  "http_429": "Too many requests. Wait the number of seconds shown before trying again. Nothing was scored.",
+  "http_429_jobs": "Too many unfinished jobs for this key; wait for some to finish. Nothing was scored."
+ }
+}

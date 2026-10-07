@@ -16,8 +16,9 @@ import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from
 import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
-import { referReasonPresentation } from "@/lib/referReason";
+import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
+import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -39,6 +40,9 @@ const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckC
   ABSTAIN: { label: "abstained", tone: "text-sky-400 border-sky-500/40 bg-sky-500/10", Icon: HelpCircle },
   REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
 };
+
+// A normal cold start is about three minutes (the line above); past it the page says the models may be off, instead of counting on.
+const SLOW_START_SECONDS = 200;
 
 function isUncovered(c: AnalyseFactsContract): boolean {
   return c.outcome === "ABSTAIN" && c.reason.includes(UNCOVERED_REASON_TOKEN);
@@ -71,6 +75,11 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
         </span>
         {el.p_established !== null && (
           <span className="ml-1.5 text-[11px] text-[var(--color-text-dim)]">p={el.p_established.toFixed(2)}</span>
+        )}
+        {status.explanation && status.verdict === null && (
+          <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="status-explanation">
+            {status.explanation}
+          </div>
         )}
       </td>
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
@@ -139,7 +148,9 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
         const referred = referReasonPresentation(c.reason);
         return (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
-            <p>This matter should be reviewed by a lawyer — {referred.message}.</p>
+            <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
+            <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
+            {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-amber-300/70" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
             <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
           </div>
         );
@@ -438,11 +449,17 @@ export default function MattersPage() {
           )}
           {loading && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-              Warming up the judge and Lean checker — first run can take about 3 minutes.{" "}
+              Warming up the judge and Lean checker — a first run after idle can take about 3 minutes.{" "}
               <span className="font-mono">
                 {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
               </span>{" "}
               elapsed.
+            </p>
+          )}
+          {loading && elapsedSeconds >= SLOW_START_SECONDS && (
+            <p className="text-sm text-amber-400" role="status" data-testid="matters-slow-start">
+              This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel
+              and try again later; no result is returned until they answer.
             </p>
           )}
           {error && (
@@ -457,6 +474,16 @@ export default function MattersPage() {
             <div className="text-xs text-[var(--color-text-dim)]">
               run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
             </div>
+            {(() => {
+              // The standard of proof applied, next to the verdict (#32): from the engine's `standard` field, else its default.
+              const std = standardLine(result.standard);
+              return (
+                <div className="text-xs text-[var(--color-text-dim)]" data-testid="standard-line">
+                  <div>{std.text}</div>
+                  {std.notice && <div data-testid="standard-notice">{std.notice}</div>}
+                </div>
+              );
+            })()}
             <div className="flex gap-2 print:hidden" data-testid="memo-actions">
               <button
                 type="button"

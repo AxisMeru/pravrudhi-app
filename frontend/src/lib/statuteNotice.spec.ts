@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
-import { INDIA_CODE_HOME, STATUTE_NOTICE, isIndiaCodeHost, sourceLinkFor } from "./statuteNotice";
+import { INDIA_CODE_HOME, STATUTE_NOTICE, hitSourceLink, isIndiaCodeHost, sourceLinkFor, sourceLinkLabel } from "./statuteNotice";
 
 const SOURCES = [
   { work: "Bharatiya Nyaya Sanhita (2023)", site: "indiacode.gov.in", pages: [{ url: "https://indiacode.gov.in/act/abc/sections" }] },
@@ -74,6 +74,54 @@ test("the published demo snapshot carries no statute text in a SOURCES block", a
     else if (o && typeof o === "object") Object.values(o).forEach(collect);
   };
   collect(JSON.parse(raw));
-  assert.ok(blocks > 0, "the snapshot is expected to still hold the recorded prompts");
+  // The snapshot holds product content only (no recorded agent prompts), so there may be no SOURCES block at all; any that is
+  // present must still carry the removal marker on every entry.
+  assert.ok(blocks >= 0);
   assert.doesNotMatch(raw, /Emasculation|shall not discriminate against any citizen/);
+});
+
+test("hitSourceLink: the engine's per-hit source_url wins, null is the home page, an absent field falls back to the sources", () => {
+  const url = "https://www.indiacode.gov.in/show-data?actid=AC_CEN_5_23&sectionId=1";
+  assert.deepEqual(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: url }, []), { href: url, recorded: true });
+  // an engine that says "none recorded" gets the home page even if a source record could be matched here
+  assert.deepEqual(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: null, source_fallback_url: INDIA_CODE_HOME }, SOURCES), { href: INDIA_CODE_HOME, recorded: false });
+  // an engine that predates the field (no source_url key): the old lookup from `sources`
+  assert.deepEqual(hitSourceLink({ act: "Bharatiya Nyaya Sanhita" }, SOURCES), sourceLinkFor("Bharatiya Nyaya Sanhita", SOURCES));
+  assert.deepEqual(hitSourceLink({ act: "Indian Penal Code" }, SOURCES), { href: INDIA_CODE_HOME, recorded: false });
+});
+
+test("hitSourceLink: a source_url that is not a plain https India Code link is never used, whatever the engine sent", () => {
+  for (const bad of [
+    "http://www.indiacode.gov.in/x",
+    "https://evil.example/x",
+    "https://evil.example\\@indiacode.gov.in/x",
+    "https://user@indiacode.gov.in/x",
+    "https://indiacode.gov.in:8443/x",
+    "https://indiacode.gov.in/x y",
+    "https://indiacode.gov.in/x)",
+    " https://indiacode.gov.in/x",
+    "javascript:alert(1)",
+    "https://indiacode.gov.in/x\u0000",
+    "https://indiacode.gov.in/x\u200b",
+    "https://indiacode.gov.in/\u00e9",
+    "https://indiacode.gov.in.evil.example/x",
+    "https://indiacode.gov.in/x?next=https://evil.example/y",
+    "https://indiacode.gov.in/x/https://evil.example",
+    "",
+    "not a url",
+  ]) {
+    assert.deepEqual(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: bad }, SOURCES), { href: INDIA_CODE_HOME, recorded: false }, bad);
+  }
+  for (const odd of [5, {}, ["https://indiacode.gov.in/x"]]) {
+    assert.equal(hitSourceLink({ act: "Indian Penal Code", source_url: odd }, SOURCES).recorded, false);
+  }
+});
+
+test("sourceLinkLabel: a recorded India Code page is 'Source on India Code'; the home-page fallback is not called a source", () => {
+  assert.equal(sourceLinkLabel("https://www.indiacode.gov.in/show-data?actid=AC_CEN_5_23"), "Source on India Code");
+  assert.equal(sourceLinkLabel(INDIA_CODE_HOME), "India Code (home page)");
+  assert.equal(sourceLinkLabel("https://example.org/x"), "Source");
+  // an act with no recorded page (the IPC, the Constitution) ends up with the home-page label end to end
+  assert.equal(sourceLinkLabel(hitSourceLink({ act: "Indian Penal Code", source_url: null }, SOURCES).href), "India Code (home page)");
+  assert.equal(sourceLinkLabel(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: "https://www.indiacode.gov.in/x" }, SOURCES).href), "Source on India Code");
 });

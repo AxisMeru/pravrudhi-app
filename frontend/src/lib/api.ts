@@ -1088,6 +1088,10 @@ export interface NyayaAsk {
 export interface NyayaCorpusHit extends NyayaSource {
   score: number;
   text: string;
+  /** The page the corpus recorded for this act on India Code, or null; absent on an engine that predates it (pravrudhi #313). */
+  source_url?: string | null;
+  /** Always the India Code home page on an engine that sends it; a fallback, never a deep link. */
+  source_fallback_url?: string;
 }
 
 export async function nyayaVendors(): Promise<NyayaVendor[]> {
@@ -1222,6 +1226,12 @@ export interface AnalyseFactsContract {
   lean_outcome: string | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
+  // The provision text, for reference (engine: pravrudhi#308; absent from an older engine). `rule_text` is the provision
+  // text from the contract's own source; `judge_rule_text` is present only when the judge was shown a different or
+  // shorter version (statute_text_mismatch, or its text was cut); `rule_text_source` names where `rule_text` came from.
+  rule_text?: string | null;
+  judge_rule_text?: string | null;
+  rule_text_source?: string | null;
   // The provisions this contract is about (the engine derives them from the contract's own sources; no text here).
   citations?: AnalyseFactsCitation[] | null;
 }
@@ -1234,6 +1244,14 @@ export interface AnalyseFactsCitation {
   title: string | null;
 }
 
+export interface AnalyseFactsStandardOut {
+  requested: string;
+  applied: string | null;
+  source: string;
+  proceeding_posture?: string | null;
+  in_judge_prompt: boolean;
+}
+
 export interface AnalyseFactsResult {
   run_id: string;
   judge: string;
@@ -1241,6 +1259,8 @@ export interface AnalyseFactsResult {
   facts: { id: string; text: string; sha256: string }[];
   contracts: AnalyseFactsContract[];
   provenance: string;
+  // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
+  standard?: AnalyseFactsStandardOut | null;
   // The engine's own retention notice: shown verbatim wherever a result is shown.
   retention_notice?: string;
 }
@@ -1274,6 +1294,10 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
   }
 }
 
+// The engine's coded 503s (pravrudhi #319) for a busy or briefly unavailable agent. Before the codes existed these were uncoded 503s, which
+// were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
+const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
@@ -1288,7 +1312,7 @@ export async function analyseFacts(
   let res = await analyseFactsAttempt(path, body, signal);
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
-    if (res.status >= 500 && !err.code) {
+    if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
       res = await analyseFactsAttempt(path, body, signal);
       if (!res.ok) err = await apiErrorFrom(res, path);
     }
@@ -1343,4 +1367,36 @@ export async function revokePartnerKey(org: string, keyId: string): Promise<Part
 export async function partnerUsage(org: string, days = 30): Promise<PartnerKeyUsage[]> {
   if (IS_DEMO) throw new ApiError(501, `${orgPath(org)}/usage/summary`);
   return (await getJSON<{ keys: PartnerKeyUsage[] }>(`${orgPath(org)}/usage/summary?days=${days}`)).keys;
+}
+
+/** The citation check (#539): one citation and the quote to look for; the engine answers a status and a fixed note (pravrudhi #181). */
+export const VERIFY_CITATION_TIMEOUT_MS = 20_000;
+
+export async function verifyCitation(
+  citation: string,
+  quote: string,
+  signal?: AbortSignal,
+): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean }> {
+  const path = "/api/v1/verify-citations";
+  if (IS_DEMO) throw new ApiError(501, path);
+  const localTok = await localToken();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), VERIFY_CITATION_TIMEOUT_MS);
+  const onAbort = () => controller.abort(signal?.reason ?? new DOMException("cancelled", "AbortError"));
+  if (signal?.aborted) onAbort();
+  else signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    const res = await engineFetch(`${detectBase()}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
+      body: JSON.stringify({ citation, quote }),
+      signal: controller.signal,
+      authOptional: true,
+    });
+    if (!res.ok) throw await apiErrorFrom(res, path);
+    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean };
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+  }
 }

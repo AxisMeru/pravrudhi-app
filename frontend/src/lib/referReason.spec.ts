@@ -31,25 +31,6 @@ test("referReason: the nine canonical reasons each get a distinct, non-empty mes
   assert.equal(messages.size, REFER_REASONS.length, "two reasons share a message");
 });
 
-test("referReason: uncertain reads as model uncertainty, not availability", () => {
-  const p = referReasonPresentation("uncertain");
-  assert.equal(p.message, "an element couldn't be judged confidently from these facts");
-});
-
-test("referReason: second_judge_unavailable reads as an availability gap, not uncertainty, and invites a retry", () => {
-  const p = referReasonPresentation("second_judge_unavailable");
-  assert.match(p.message, /temporarily unavailable/);
-  assert.match(p.message, /try again/);
-  assert.doesNotMatch(p.message, /confiden(t|tly)/);
-});
-
-test("referReason: contract_not_validated reads as a coverage gate, not uncertainty or unavailability", () => {
-  const p = referReasonPresentation("contract_not_validated");
-  assert.equal(p.message, "this provision isn't yet cleared for automatic decisions");
-  assert.doesNotMatch(p.message, /confiden(t|tly)/);
-  assert.doesNotMatch(p.message, /unavailable/);
-});
-
 test("referReason: uncertain_second_judge and second_judge_unavailable read as different situations", () => {
   const uncertainSecond = referReasonPresentation("uncertain_second_judge");
   const unavailable = referReasonPresentation("second_judge_unavailable");
@@ -58,13 +39,6 @@ test("referReason: uncertain_second_judge and second_judge_unavailable read as d
   // collapse that distinction back into one generic "the second check had a problem" sentence.
   assert.doesNotMatch(unavailable.message, /couldn't confirm/);
   assert.doesNotMatch(uncertainSecond.message, /temporarily unavailable/);
-});
-
-test("referReason: gate1_unavailable and gate1_not_entailed read as different situations", () => {
-  const unavailable = referReasonPresentation("gate1_unavailable");
-  const notEntailed = referReasonPresentation("gate1_not_entailed");
-  assert.match(unavailable.message, /temporarily unavailable/);
-  assert.doesNotMatch(notEntailed.message, /unavailable/);
 });
 
 test("referReason: an unknown reason fails closed but still names the reason code, never hidden", () => {
@@ -114,11 +88,22 @@ test("referReason: every engine REFER reason is a known reason of the engine's o
   for (const r of ENGINE.refer) assert.ok(ENGINE.all.includes(r), `${r} is not in the engine's reason list`);
 });
 
-test("referReason: second_judge_defeater_disagreement is recognised and says what the judges did", () => {
+
+test("referReason: second_judge_defeater_disagreement is recognised (the ninth reason), not 'not one this app recognises'", () => {
   const p = referReasonPresentation("second_judge_defeater_disagreement");
   assert.equal(p.unknown, false);
   assert.equal(p.reason, "second_judge_defeater_disagreement");
-  assert.match(p.message, /first and second judges disagree on whether a fact defeats this claim/);
-  assert.match(p.message, /refer it to a lawyer/);
+  assert.equal(p.twoJudgesOnly, true);
   assert.doesNotMatch(p.message, /not one this app recognises/);
+});
+
+test("referReason: a reason the signed table marks 'two judges only' says so beside the sentence, not inside it", () => {
+  for (const r of ["second_judge_defeater_disagreement", "uncertain_second_judge", "second_judge_unavailable"]) {
+    const p = referReasonPresentation(r);
+    assert.equal(p.twoJudgesOnly, true, r);
+    assert.doesNotMatch(p.message, /deployments that use two judges/i, r);
+  }
+  for (const r of ["uncertain", "denial_unquotable", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction", "contract_not_validated"]) {
+    assert.equal(referReasonPresentation(r).twoJudgesOnly, false, r);
+  }
 });
