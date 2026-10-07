@@ -17,6 +17,7 @@ import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, t
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { referReasonPresentation } from "@/lib/referReason";
+import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -56,6 +57,9 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
+  // Why a quote was rejected (the engine's quote check), and which judge's threshold a non-established element failed.
+  const quoteCheck = quoteCheckPresentation(el.quote_check);
+  const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
@@ -79,6 +83,17 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
           <span className="text-red-400">{el.error}</span>
         ) : (
           <span>no quote</span>
+        )}
+        {quoteCheck?.show && (
+          <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="quote-check-cause">
+            {quoteCheck.text}
+            {!quoteCheck.unknown && el.quote_check && <span className="ml-1 text-[11px]">({el.quote_check})</span>}
+          </div>
+        )}
+        {leg && (
+          <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="binding-leg">
+            {leg}
+          </div>
         )}
       </td>
     </tr>
@@ -165,7 +180,12 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
         </div>
       )}
 
-      {!isUncovered(c) && c.reason && <p className="text-xs text-[var(--color-text-dim)]">{c.reason}</p>}
+      {!isUncovered(c) && c.outcome !== "REFER_TO_LAWYER" && c.reason && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="reason-text">
+          {nonReferReasonText(c.reason) ?? "The engine gave a reason this app does not recognise yet."}{" "}
+          <span className="text-[11px]">(reason: {c.reason})</span>
+        </p>
+      )}
     </article>
   );
 }
