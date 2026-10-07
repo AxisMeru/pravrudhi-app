@@ -29,6 +29,7 @@ const TABLE = read("reasonCodesTable.json") as {
 const GAP = read("signedGapStrings.json") as { source: string; strings: Record<string, string> };
 const APP_SIGNED = read("appSignedStrings.json") as { source: string; strings: Record<string, string> };
 const CODED = read("codedErrorStrings.json") as { source: { head: string; file_sha256: string; file: string }; strings: Record<string, string> };
+const AMEND = read("signedCitationAmendments.json") as { source: string; supersedes: Record<string, string>; strings: Record<string, string> };
 const ENGINE = read("engineCodes.json") as {
   quote_check: string[];
   element_status: string[];
@@ -189,9 +190,14 @@ test("the coded-error strings (pravrudhi #319) are the signed wording verbatim, 
 });
 
 test("the citation check's error strings are the signed wording verbatim, and the page shows them", () => {
-  for (const [code, text] of Object.entries(CITATION_ERROR_TEXT)) assert.equal(norm(text), norm(GAP.strings[code]), code);
+  // R1's later replacement wins where it exists; the superseded wording is kept in the amendments fixture and must differ from the live one.
+  const signed = (code: string): string => AMEND.strings[code] ?? GAP.strings[code];
+  for (const [code, text] of Object.entries(CITATION_ERROR_TEXT)) assert.equal(norm(text), norm(signed(code)), code);
+  assert.equal(norm(AMEND.supersedes.verify_at_capacity), norm(GAP.strings.verify_at_capacity));
+  assert.notEqual(norm(CITATION_ERROR_TEXT.verify_at_capacity), norm(GAP.strings.verify_at_capacity));
+  assert.doesNotMatch(CITATION_ERROR_TEXT.verify_at_capacity, /Retry-After/);
   const shown = (e: ApiError) => norm(classifyVerifyError(e).message);
   assert.equal(shown(new ApiError(503, "/x", { code: "verify_timeout" })), norm(GAP.strings.verify_timeout));
-  assert.equal(shown(new ApiError(503, "/x", { code: "verify_at_capacity" })), norm(GAP.strings.verify_at_capacity));
+  assert.equal(shown(new ApiError(503, "/x", { code: "verify_at_capacity" })), norm(AMEND.strings.verify_at_capacity));
   assert.equal(shown(new ApiError(503, "/x", { code: "citation_index_unavailable" })), norm(GAP.strings.citation_index_unavailable));
 });

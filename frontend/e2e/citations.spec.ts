@@ -54,7 +54,7 @@ test("an engine note carrying the word \"fake\" is withheld, the status still sh
 test("the coded refusals show the signed wording", async ({ page }) => {
   const cases: Array<[string, number, Record<string, string>, string]> = [
     ["verify_timeout", 503, {}, "The citation check did not finish in time, so no result was returned. Try again later."],
-    ["verify_at_capacity", 503, { "retry-after": "5" }, "The citation check is busy, so no result was returned. Try again in a few seconds (Retry-After 5)."],
+    ["verify_at_capacity", 503, { "retry-after": "5" }, "The citation check is busy, so no result was returned. Try again in about 5 seconds."],
     ["citation_index_unavailable", 503, {}, "The citation index is not available, so this citation was not checked."],
   ];
   for (const [code, status, headers, text] of cases) {
@@ -81,4 +81,14 @@ test("empty inputs send no request", async ({ page }) => {
 test("the citation check is in the nav and open on the law-firm surface", async ({ page }) => {
   await page.goto("/matters");
   await expect(page.getByRole("link", { name: "Citation check" })).toBeVisible();
+});
+
+test("the product status fields are wired but OFF: an engine that sends them changes nothing on the page in this build", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) =>
+    r.fulfill({ json: { result: "NOT_IN_INDEX", note: NOTES.NOT_IN_INDEX, status: "not_in_index", label: "not in index", preview: true, verified: false } }),
+  );
+  await run(page);
+  await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
+  await expect(page.getByTestId("citation-note")).toHaveText(NOTES.NOT_IN_INDEX);
+  await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
 });

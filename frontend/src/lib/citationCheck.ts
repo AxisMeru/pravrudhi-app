@@ -14,12 +14,37 @@ export type VerifyStatus = (typeof VERIFY_STATUSES)[number];
 export interface VerifyReply {
   result: string;
   note: string;
+  /** Product status fields the engine adds (#533, additive; absent on an engine that predates them). */
+  status?: string;
+  label?: string;
+  preview?: boolean;
+  verified?: boolean;
 }
+
+/**
+ * The product status wording (#533) is wired but OFF: it shows only when the build sets NEXT_PUBLIC_CITATION_PRODUCT_STATUS=1 AND the engine
+ * sent the fields. Off, the page shows the engine's `result` and `note` exactly as before. The engine's mapping is the only place wording is made.
+ */
+export const PRODUCT_STATUS_ENABLED = process.env.NEXT_PUBLIC_CITATION_PRODUCT_STATUS === "1";
+
+/** The product statuses the engine can send (application/citation_status.py), in its order. */
+export const PRODUCT_STATUSES = ["verified", "quote_not_found", "not_in_index", "conflict", "malformed"] as const;
+/** Words that never appear in a status label shown by this page. */
+const LABEL_BANNED = /\b(fake|fabricated|hallucinated|invalid|false)\b/i;
 
 /** Words the product never uses in its own text; an engine note that carries one is withheld rather than reworded. */
 const NOTE_BANNED = /\bfake\b/i;
 
+export interface ProductStatus {
+  status: string;
+  label: string;
+  /** Always true while the preview badge applies; the page shows the badge whenever this is not explicitly false. */
+  preview: boolean;
+}
+
 export interface VerifyView {
+  /** The product status and label, only when the product status is enabled and the engine's fields passed every check; else null. */
+  product: ProductStatus | null;
   /** The status as the engine sent it (an unknown one is shown as sent, flagged). */
   status: string;
   known: boolean;
@@ -28,11 +53,33 @@ export interface VerifyView {
   noteWithheld: boolean;
 }
 
-export function verifyView(reply: VerifyReply): VerifyView {
+/**
+ * The product status for a reply, or null. Fail closed: the flag must be on; the status must be one of the five; the label must be non-empty and
+ * free of the banned words; a label may say "Verified" ONLY for status "verified" (and "verified" needs `verified` not to be false). Anything
+ * else falls back to the engine's `result` and `note`, never to a positive wording.
+ */
+export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED): ProductStatus | null {
+  if (!enabled) return null;
+  const status = typeof reply.status === "string" ? reply.status.trim() : "";
+  const label = typeof reply.label === "string" ? reply.label.trim() : "";
+  if (!(PRODUCT_STATUSES as readonly string[]).includes(status) || !label || LABEL_BANNED.test(label)) return null;
+  if (/^verified\b/i.test(label) && status !== "verified") return null;
+  if (status === "verified" && (reply.verified === false || reply.result !== "VERIFIED")) return null;
+  if (status !== "verified" && reply.result === "VERIFIED") return null;
+  return { status, label, preview: reply.preview !== false };
+}
+
+export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";
   const withheld = !note || NOTE_BANNED.test(note);
-  return { status, known: (VERIFY_STATUSES as readonly string[]).includes(status), note: withheld ? null : note, noteWithheld: withheld && !!note };
+  return {
+    status,
+    known: (VERIFY_STATUSES as readonly string[]).includes(status),
+    note: withheld ? null : note,
+    noteWithheld: withheld && !!note,
+    product: productStatus(reply, enabled),
+  };
 }
 
 export type VerifyErrorKind = "timeout" | "cancelled" | "rate_limited" | "signed_out" | "index_unavailable" | "at_capacity" | "server" | "network";

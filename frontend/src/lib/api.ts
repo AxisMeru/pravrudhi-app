@@ -1372,7 +1372,11 @@ export async function partnerUsage(org: string, days = 30): Promise<PartnerKeyUs
 /** The citation check (#539): one citation and the quote to look for; the engine answers a status and a fixed note (pravrudhi #181). */
 export const VERIFY_CITATION_TIMEOUT_MS = 20_000;
 
-export async function verifyCitation(citation: string, quote: string, signal?: AbortSignal): Promise<{ result: string; note: string }> {
+export async function verifyCitation(
+  citation: string,
+  quote: string,
+  signal?: AbortSignal,
+): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean }> {
   const path = "/api/v1/verify-citations";
   if (IS_DEMO) throw new ApiError(501, path);
   const localTok = await localToken();
@@ -1390,7 +1394,7 @@ export async function verifyCitation(citation: string, quote: string, signal?: A
       authOptional: true,
     });
     if (!res.ok) throw await apiErrorFrom(res, path);
-    return (await res.json()) as { result: string; note: string };
+    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);

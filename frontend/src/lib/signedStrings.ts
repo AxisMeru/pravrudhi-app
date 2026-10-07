@@ -39,9 +39,9 @@ export const CODED_ERROR_TEXT = {
   chat_endpoint_unreachable: "The chat service could not be reached, so the reply could not be completed. Try again later.",
 } as const;
 
-/** Signed wording for the citation check's errors (fixtures/signedGapStrings.json: the reviewed string note, section 5), by the engine's coded 503 `error`. */
+/** Signed wording for the citation check's errors (fixtures/signedGapStrings.json: the reviewed string note, section 5; verify_at_capacity is R1's later replacement, fixtures/signedCitationAmendments.json), by the engine's coded 503 `error`. */
 export const CITATION_ERROR_TEXT = {
   verify_timeout: "The citation check did not finish in time, so no result was returned. Try again later.",
-  verify_at_capacity: "The citation check is busy, so no result was returned. Try again in a few seconds (Retry-After 5).",
+  verify_at_capacity: "The citation check is busy, so no result was returned. Try again in about 5 seconds.",
   citation_index_unavailable: "The citation index is not available, so this citation was not checked.",
 } as const;
