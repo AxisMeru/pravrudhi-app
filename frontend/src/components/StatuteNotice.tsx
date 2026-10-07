@@ -1,4 +1,4 @@
-import { isIndiaCodeHost, STATUTE_NOTICE } from "@/lib/statuteNotice";
+import { sourceLinkLabel, STATUTE_NOTICE } from "@/lib/statuteNotice";
 
 // Shown with every block of statute text, and as the footer line on pages whose element analysis paraphrases or
 // quotes a provision. Statute text is never rendered without it (see lib/statuteNotice.ts).
@@ -10,7 +10,7 @@ export function StatuteNotice({ href, className = "" }: { href?: string; classNa
         <>
           {" "}
           <a href={href} target="_blank" rel="noopener noreferrer" className="underline">
-            {isIndiaCodeHost(href) ? "Source on India Code" : "Source"}
+            {sourceLinkLabel(href)}
           </a>
         </>
       )}
