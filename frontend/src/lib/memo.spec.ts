@@ -118,7 +118,9 @@ test("buildMemo: a quote with a pipe cannot break the element table; an element 
 test("buildMemo: REFER and ABSTAIN state the reason in plain language and make no finding", async () => {
   const { buildMemo } = await import("./memo");
   const md = buildMemo(FIXTURE, OPTS);
-  assert.match(md, /second check was temporarily unavailable/);
+  assert.match(md, /Referred to a lawyer/);
+  assert.match(md, /The second judge was unavailable, so we give a referral, not an answer\./);
+  assert.doesNotMatch(md, /must decide this matter/);
   assert.match(md, /No verdict was reached/i);
   assert.match(md, /judge_error/);
   const refer = md.split("## ").find((s) => s.startsWith("toy_refer"))!;
@@ -152,4 +154,129 @@ test("buildMemo: states the validation tier of the judge, so a verdict is never 
   assert.ok(memo.includes(MEMO_VALIDATION_TIER));
   assert.match(MEMO_VALIDATION_TIER, /constructed, in-distribution sets/);
   assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
+});
+
+test("buildMemo: an abstention carries the plain sentence for its reason beside the engine's code, and an unknown reason is not reworded", async () => {
+  const { buildMemo } = await import("./memo");
+  const { NON_REFER_REASON_TEXT } = await import("./reasonText");
+  const r = structuredClone(FIXTURE);
+  const abstain = r.contracts.find((c) => c.outcome === "ABSTAIN");
+  assert.ok(abstain, "the fixture has an abstaining contract");
+  abstain.reason = "judge_error";
+  const md = buildMemo(r, OPTS);
+  assert.ok(md.includes(NON_REFER_REASON_TEXT.judge_error));
+  assert.ok(md.includes("Engine reason code: judge_error"));
+  abstain.reason = "something_new";
+  const odd = buildMemo(r, OPTS);
+  assert.ok(odd.includes("Engine reason code: something_new"));
+  assert.doesNotMatch(odd, /A judge call failed/);
+});
+
+// -- "Provision text (for reference)" (Lead-2, 6 Oct; engine fields rule_text / judge_rule_text / rule_text_source) -------
+// Toy provision text only (invented words, not a real provision).
+const TOY_OFFICIAL = "TOY provision: whoever induces another by deceit to part with property commits the toy offence.";
+const TOY_JUDGED = "TOY provision (shortened): whoever induces another by deceit commits the toy offence.";
+
+test("buildMemo: a contract whose engine result carries rule_text gets one 'Provision text (for reference)' block, with the notice and the elements line", async () => {
+  const { buildMemo, PROVISION_HEADING, PROVISION_ELEMENTS_LINE } = await import("./memo");
+  const { STATUTE_NOTICE } = await import("./statuteNotice");
+  const withText = structuredClone(FIXTURE);
+  withText.contracts[0].rule_text = TOY_OFFICIAL;
+  withText.contracts[0].rule_text_source = "Toy Act, section 1";
+  const md = buildMemo(withText, OPTS);
+  assert.equal(md.split(`### ${PROVISION_HEADING}`).length - 1, 1, "exactly one block for the one contract that has text");
+  assert.ok(md.includes(`> ${TOY_OFFICIAL}`));
+  assert.ok(md.includes("Recorded source: Toy Act, section 1"));
+  assert.ok(md.includes(STATUTE_NOTICE), "the unofficial-text notice always travels with the provision text");
+  assert.ok(md.includes(PROVISION_ELEMENTS_LINE));
+  assert.match(PROVISION_ELEMENTS_LINE, /not extracted from the text below/);
+  assert.match(PROVISION_ELEMENTS_LINE, /this tool's reading of the provision/);
+  // The line sits between the heading and the text, so "the text below" is true.
+  assert.ok(md.indexOf(PROVISION_HEADING) < md.indexOf(PROVISION_ELEMENTS_LINE) && md.indexOf(PROVISION_ELEMENTS_LINE) < md.indexOf(`> ${TOY_OFFICIAL}`));
+  // The block sits AFTER that contract's element table (no restructure) and before the next contract.
+  assert.ok(md.indexOf("| Element |") < md.indexOf(`### ${PROVISION_HEADING}`));
+});
+
+test("buildMemo: no mismatch note unless the engine sent the judge's own version", async () => {
+  const { buildMemo, PROVISION_MISMATCH_LINE } = await import("./memo");
+  const noJudge = structuredClone(FIXTURE);
+  noJudge.contracts[0].rule_text = TOY_OFFICIAL;
+  assert.ok(!buildMemo(noJudge, OPTS).includes(PROVISION_MISMATCH_LINE));
+  const withJudge = structuredClone(noJudge);
+  withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
+  const md = buildMemo(withJudge, OPTS);
+  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:"));
+  assert.doesNotMatch(md, /rest on this version|official text above/);
+  assert.doesNotMatch(md.split("### ").filter((b) => b.startsWith("Provision text")).join(""), /\bofficial\b(?! version)/i, "official is used only for the India Code version, never for provision text");
+  assert.ok(md.includes(`> ${TOY_JUDGED}`));
+  assert.ok(md.indexOf(`> ${TOY_OFFICIAL}`) < md.indexOf(PROVISION_MISMATCH_LINE));
+});
+
+test("buildMemo: provenance only from rule_text_source: no source stated says so, and nothing names India Code as the text's source", async () => {
+  const { buildMemo, PROVISION_HEADING, PROVISION_HEADING_NO_SOURCE } = await import("./memo");
+  const none = structuredClone(FIXTURE);
+  none.contracts[0].rule_text = TOY_OFFICIAL;
+  const md = buildMemo(none, OPTS);
+  assert.ok(md.includes(`### ${PROVISION_HEADING_NO_SOURCE}`) && !md.includes(`### ${PROVISION_HEADING}`));
+  assert.ok(!md.includes("Recorded source:"));
+  assert.doesNotMatch(md, /from India Code|source: India Code/i);
+  const withSource = structuredClone(none);
+  withSource.contracts[0].rule_text_source = "Toy Act, section 1";
+  const md2 = buildMemo(withSource, OPTS);
+  assert.ok(md2.includes(`### ${PROVISION_HEADING}`) && md2.includes("Recorded source: Toy Act, section 1"));
+});
+
+test("buildMemo: without rule_text (an older engine, or none sent) the memo is exactly what it was: nothing is invented", async () => {
+  const { buildMemo, PROVISION_HEADING } = await import("./memo");
+  const md = buildMemo(FIXTURE, OPTS);
+  assert.ok(!md.includes(PROVISION_HEADING));
+  const blank = structuredClone(FIXTURE);
+  blank.contracts[0].rule_text = "   ";
+  blank.contracts[0].judge_rule_text = "x"; // a judge text alone, with no official text, is not shown either
+  assert.equal(buildMemo(blank, OPTS), md);
+});
+
+test("buildMemo: provision text with newlines stays inside its quote block", async () => {
+  const { buildMemo } = await import("./memo");
+  const two = structuredClone(FIXTURE);
+  two.contracts[0].rule_text = "TOY line one\nTOY line two";
+  const md = buildMemo(two, OPTS);
+  assert.ok(md.includes("> TOY line one\n> TOY line two"));
+});
+
+test("buildMemo: the notice and a source link ALWAYS travel with the provision text; never a constructed or foreign link", async () => {
+  const { buildMemo } = await import("./memo");
+  const { STATUTE_NOTICE, INDIA_CODE_HOME } = await import("./statuteNotice");
+  const cases: [string | null | undefined, string, string][] = [
+    [undefined, INDIA_CODE_HOME, "India Code (home page)"],
+    [null, INDIA_CODE_HOME, "India Code (home page)"],
+    ["Toy Act, section 1", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://indiacode.gov.in/act/toy/sections", "https://indiacode.gov.in/act/toy/sections", "India Code"],
+    ["Toy Act (https://www.indiacode.nic.in/handle/1/2)", "https://www.indiacode.nic.in/handle/1/2", "India Code"],
+    ["https://example.com/toy-act", INDIA_CODE_HOME, "India Code (home page)"],
+    ["http://indiacode.gov.in/insecure", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://evil-indiacode.gov.in.example.com/x", INDIA_CODE_HOME, "India Code (home page)"],
+    // R2: host-ambiguous and markdown-breaking inputs. The PARSED href is returned, never the raw token.
+    ["https://indiacode.gov.in\\@evil.com", "https://indiacode.gov.in/@evil.com", "India Code"],
+    ["https://user:pw@indiacode.gov.in/x", INDIA_CODE_HOME, "India Code (home page)"],
+    ["https://indiacode.gov.in/x)](https://evil.com)", INDIA_CODE_HOME, "India Code (home page)"], // a smuggled second URL: fallback
+    ["https://indiacode.gov.in/a<b>c[d]", "https://indiacode.gov.in/a%3Cb%3Ec%5Bd", "India Code"], // trailing "]" is punctuation, stripped
+  ];
+  for (const [source, link, label] of cases) {
+    const r = structuredClone(FIXTURE);
+    r.contracts[0].rule_text = TOY_OFFICIAL;
+    r.contracts[0].rule_text_source = source;
+    const md = buildMemo(r, OPTS);
+    assert.ok(md.includes(`${STATUTE_NOTICE} ${label}: ${link}`), `${source}: the notice and its link are one line`);
+    assert.equal((md.match(/India Code(?: \(home page\))?: https:\/\//g) ?? []).length, 1, `${source}: exactly one link`);
+  }
+});
+
+test("provisionSourceLink: a link never carries a character that can break out of a markdown link, and never a second URL", async () => {
+  const { provisionSourceLink } = await import("./statuteNotice");
+  for (const hostile of ["https://indiacode.gov.in/x)](https://evil.com)", "https://indiacode.gov.in/<script>", "https://indiacode.gov.in\\@evil.com", "https://indiacode.gov.in/a b"]) {
+    const { href } = provisionSourceLink(hostile);
+    assert.doesNotMatch(href, /[()[\]<>\s\\]/, hostile);
+    assert.equal((href.match(/https:\/\//g) ?? []).length, 1, `${hostile}: exactly one URL in ${href}`);
+  }
 });

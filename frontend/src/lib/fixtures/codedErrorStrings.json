@@ -1,0 +1,17 @@
+{
+ "source": {
+  "file": "FOLLOWUP_503_CODES_STRINGS_2026-10-06.md (the #619 follow-up note: strings for the coded 503s of pravrudhi #319)",
+  "head": "e65e5ffc",
+  "file_sha256": "cf01328475dda4c8b67fcf3ab61f40425f3b11d2dbe961f55c3717a9eac52bc0",
+  "signed_by": "R1, relayed by Lead-2-assistant on 6 Oct 2026",
+  "note": "Copied verbatim from the table's 'Proposed partner string' column at that head."
+ },
+ "strings": {
+  "agent_at_capacity": "The analysis service is busy, so nothing was scored. Try again in a few seconds.",
+  "agent_unavailable": "The analysis service is not available right now, so nothing was scored. Try again later.",
+  "checker_unavailable": "The checker is not available right now, so nothing was checked. Try again later.",
+  "registry_checker_unavailable": "The registry checker is not available right now, so nothing was checked. Try again later.",
+  "chat_endpoint_unreachable": "The chat service could not be reached, so the reply could not be completed. Try again later.",
+  "vendor_not_allowed": "The model provider you asked for is not allowed for API callers, so your question was not sent to it."
+ }
+}

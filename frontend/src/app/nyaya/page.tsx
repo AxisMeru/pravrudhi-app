@@ -27,7 +27,7 @@ import {
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
-import { sourceLinkFor } from "@/lib/statuteNotice";
+import { hitSourceLink } from "@/lib/statuteNotice";
 import {
   CAPABILITY_LABEL,
   CAPABILITY_DESCRIPTION,
@@ -639,7 +639,7 @@ function CorpusTab() {
             </div>
             <div className="mt-1 font-medium text-[var(--color-text)]">{h.title}</div>
             <div className="mt-1 text-[var(--color-text-dim)]">{h.text}</div>
-            <StatuteNotice className="mt-2" href={sourceLinkFor(h.act, recorded).href} />
+            <StatuteNotice className="mt-2" href={hitSourceLink(h, recorded).href} />
           </li>
         ))}
       </ul>

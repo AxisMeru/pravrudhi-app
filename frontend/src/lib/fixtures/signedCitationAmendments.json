@@ -1,0 +1,9 @@
+{
+ "source": "R1's signed replacement for the verify_at_capacity string (the '(Retry-After 5)' wording in the #619 note's section 5 is superseded), relayed by Lead-2-assistant on 7 Oct 2026. Copied verbatim.",
+ "supersedes": {
+  "verify_at_capacity": "The citation check is busy, so no result was returned. Try again in a few seconds (Retry-After 5)."
+ },
+ "strings": {
+  "verify_at_capacity": "The citation check is busy, so no result was returned. Try again in about 5 seconds."
+ }
+}
