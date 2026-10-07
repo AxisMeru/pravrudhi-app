@@ -43,6 +43,8 @@ export type ElementStatus = (typeof ELEMENT_STATUSES)[number];
 // unrecognised status. Only `established` and `not_established` are verdicts.
 export type ElementVerdict = "established" | "not_established";
 
+import { ELEMENT_STATUS_EXPLANATION } from "./signedStrings";
+
 export interface ElementStatusPresentation {
   // The canonical status this presentation came from, or null when the engine sent something this build does
   // not know. Callers that need to branch on "we could not read this" check `status === null` or `unknown`.
@@ -52,6 +54,8 @@ export interface ElementStatusPresentation {
   // status: not_confirmed, not_established and the two not-evaluated cases must never look alike.
   tone: string;
   verdict: ElementVerdict | null;
+  /** The signed sentence for what this status means; null for an unrecognised status (no signed wording for it). */
+  explanation: string | null;
   unknown: boolean;
 }
 
@@ -63,6 +67,7 @@ const UNKNOWN_PRESENTATION: ElementStatusPresentation = {
   label: "status not recognised",
   tone: "text-[var(--color-text-dim)] border-dashed border-[var(--color-border)]",
   verdict: null,
+  explanation: null,
   unknown: true,
 };
 
@@ -95,6 +100,7 @@ export function elementStatusPresentation(
         label: "established",
         tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
         verdict: "established",
+        explanation: ELEMENT_STATUS_EXPLANATION.established,
         unknown: false,
       };
     case "not_confirmed":
@@ -103,6 +109,7 @@ export function elementStatusPresentation(
         label: "not confirmed at the required confidence",
         tone: "text-amber-400 border-amber-500/40 bg-amber-500/10",
         verdict: null,
+        explanation: ELEMENT_STATUS_EXPLANATION.not_confirmed,
         unknown: false,
       };
     case "not_established":
@@ -111,6 +118,7 @@ export function elementStatusPresentation(
         label: "not established",
         tone: "text-[var(--color-text-dim)] border-[var(--color-border)]",
         verdict: "not_established",
+        explanation: ELEMENT_STATUS_EXPLANATION.not_established,
         unknown: false,
       };
     case "not_evaluated_second_unavailable":
@@ -119,6 +127,7 @@ export function elementStatusPresentation(
         label: "not evaluated — second judge unavailable",
         tone: "text-sky-400 border-sky-500/40 bg-sky-500/10",
         verdict: null,
+        explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_second_unavailable,
         unknown: false,
       };
     case "not_evaluated_gate1_unavailable":
@@ -134,6 +143,7 @@ export function elementStatusPresentation(
         label: "not evaluated — entailment check unavailable",
         tone: "text-violet-400 border-violet-500/40 bg-violet-500/10",
         verdict: null,
+        explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_gate1_unavailable,
         unknown: false,
       };
     default:

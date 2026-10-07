@@ -111,8 +111,8 @@ test("classifyAnalyseError: a judges_warming 503 is its own kind, with the retry
   const w = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable", reason: "judges_warming", retryAfter: 30 }));
   assert.equal(w.kind, "judges_warming");
   assert.equal(w.retryAfter, 30);
-  assert.match(w.message, /warming up/i);
-  assert.match(w.message, /30 seconds/);
+  assert.match(w.message, /starting up/i);
+  assert.match(w.message, /Seconds to wait: 30/);
   assert.match(w.message, /nothing was scored/i);
   const plain = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
   assert.equal(plain.kind, "judge_unavailable");
@@ -125,4 +125,29 @@ test("classifyAnalyseError: judges_warming without a Retry-After still reads sen
   const w = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable", reason: "judges_warming" }));
   assert.equal(w.kind, "judges_warming");
   assert.doesNotMatch(w.message, /undefined|NaN/);
+});
+
+test("classifyAnalyseError: a timeout or a plain judge_unavailable says the models may be off, never 'a minute or two'", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const t = classifyAnalyseError(new DOMException("aborted", "TimeoutError"));
+  const j = classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" }));
+  assert.match(t.message, /switched off/i);
+  assert.match(t.message, /no result was returned/i);
+  assert.match(j.message, /not available right now/i);
+  assert.match(j.message, /nothing was scored/i);
+  for (const x of [t, j]) assert.doesNotMatch(x.message, /minute/i);
+});
+
+test("classifyAnalyseError: the engine's judges_offline 503 is its own kind and says the models are switched off", async () => {
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { ApiError } = await import("./api");
+  const o = classifyAnalyseError(new ApiError(503, "/x", { code: "judges_offline" }));
+  assert.equal(o.kind, "judges_offline");
+  assert.match(o.message, /switched off/i);
+  assert.match(o.message, /nothing was scored/i);
+  assert.doesNotMatch(o.message, /minute|warming|starting/i);
+  assert.equal(o.retryAfter, undefined);
+  // the existing mappings stay as the fallback when the engine cannot read the limit
+  assert.equal(classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" })).kind, "judge_unavailable");
 });
