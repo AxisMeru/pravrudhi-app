@@ -4,7 +4,7 @@ import { useState } from "react";
 import { nyayaCorpus, type AnalyseFactsCitation } from "@/lib/api";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { citationQuery, pickCorpusHit } from "@/lib/surfaceCopy";
-import { sourceLinkFor } from "@/lib/statuteNotice";
+import { hitSourceLink } from "@/lib/statuteNotice";
 
 // The statute text for the provisions a contract is about, shown ONLY here, beside the analysis, always with the notice
 // and a source link. Loaded when the reader opens it, never with the page. A provision the corpus does not hold is
@@ -24,7 +24,7 @@ export function StatuteBeside({ citations }: { citations: AnalyseFactsCitation[]
         if (!q || !ref.corpus_id) continue;
         const r = await nyayaCorpus(q);
         const hit = pickCorpusHit(r.hits, ref.corpus_id);
-        if (hit) found.push({ ref, title: hit.title, text: hit.text, href: sourceLinkFor(hit.act, Array.isArray(r.sources) ? r.sources : []).href });
+        if (hit) found.push({ ref, title: hit.title, text: hit.text, href: hitSourceLink(hit, Array.isArray(r.sources) ? r.sources : []).href });
       }
       setShown(found);
       setState("ready");

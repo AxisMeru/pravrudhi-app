@@ -1,0 +1,187 @@
+{
+ "generated_at": "2026-10-06",
+ "page_version": "toy",
+ "blocks": [
+  {
+   "id": "bbl",
+   "review_status": "reviewed",
+   "outcome": "descriptive",
+   "reviews": [
+    {
+     "reviewer": "R1",
+     "ref": "https://github.com/example/repo/pull/1#pullrequestreview-1",
+     "head_sha": "abcdef1",
+     "date": "2026-10-07"
+    },
+    {
+     "reviewer": "R2",
+     "ref": "https://github.com/example/repo/pull/1#pullrequestreview-2",
+     "head_sha": "abcdef1",
+     "date": "2026-10-07"
+    }
+   ],
+   "numbers_file": "benchmarkExample.numbers.json",
+   "numbers_sha256": "7f90764a3e16d8a6ed7bad54ffcb95a232c7be55dc5f944b6ccc6274535a1a96",
+   "kind_chip": "Model legal knowledge (MCQ), not the harness",
+   "data_chip": "Public benchmark",
+   "what_it_is": "A toy item set used to test the page.",
+   "what_it_is_not": "Not a result about any real model.",
+   "limits": "Invented numbers for tests only.",
+   "copy": [],
+   "run": {
+    "model_ids": [
+     "model-toy"
+    ],
+    "revisions": [
+     "rev-1"
+    ],
+    "dataset_revision": "data-1",
+    "scorer_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "date": "2026-10-06"
+   },
+   "tables": [
+    {
+     "title": "Toy accuracy by language",
+     "columns": [
+      "arm",
+      "group"
+     ],
+     "chance": 0.25,
+     "rows": [
+      {
+       "arm": "alpha",
+       "group": "English",
+       "n": 100,
+       "correct": 60,
+       "accuracy": 0.6,
+       "ci95": [
+        0.49721,
+        0.69671
+       ],
+       "invalid": 1,
+       "protocol": "log_likelihood"
+      },
+      {
+       "arm": "beta",
+       "group": "English",
+       "n": 100,
+       "correct": 55,
+       "accuracy": 0.55,
+       "ci95": [
+        0.44728,
+        0.64968
+       ],
+       "invalid": 1,
+       "protocol": "log_likelihood"
+      }
+     ]
+    }
+   ],
+   "paired": [
+    {
+     "pair": "alpha vs beta",
+     "only_first_correct": 12,
+     "only_second_correct": 7,
+     "p": 0.359,
+     "holm_adjusted_p": null,
+     "family": "none: descriptive, unadjusted",
+     "label": "no separation",
+     "label_note": "descriptive"
+    }
+   ],
+   "bounds": [],
+   "categories": [],
+   "leaderboard": null,
+   "sentences": [
+    {
+     "template_id": "accuracy",
+     "text": "alpha, English: 60 of 100 correct (60.0%; exact 95% interval 49.7% to 69.7%)."
+    },
+    {
+     "template_id": "accuracy",
+     "text": "beta, English: 55 of 100 correct (55.0%; exact 95% interval 44.7% to 65.0%)."
+    },
+    {
+     "template_id": "paired_no_separation",
+     "text": "No separation: only alpha right 12, only beta right 7 (exact McNemar p = 0.359)."
+    }
+   ]
+  },
+  {
+   "id": "citation",
+   "review_status": "reviewed",
+   "outcome": "inconclusive",
+   "reviews": [
+    {
+     "reviewer": "R1",
+     "ref": "https://github.com/example/repo/pull/1#pullrequestreview-1",
+     "head_sha": "abcdef1",
+     "date": "2026-10-07"
+    },
+    {
+     "reviewer": "R2",
+     "ref": "https://github.com/example/repo/pull/1#pullrequestreview-2",
+     "head_sha": "abcdef1",
+     "date": "2026-10-07"
+    }
+   ],
+   "numbers_file": "benchmarkExample.numbers.json",
+   "numbers_sha256": "7f90764a3e16d8a6ed7bad54ffcb95a232c7be55dc5f944b6ccc6274535a1a96",
+   "kind_chip": "Own study, design not yet registered",
+   "data_chip": "Model-generated questions",
+   "what_it_is": "A toy citation set used to test the page.",
+   "what_it_is_not": "Not a result about any real checker.",
+   "limits": "Invented numbers for tests only.",
+   "copy": [],
+   "run": {
+    "model_ids": [
+     "model-toy"
+    ],
+    "revisions": [
+     "rev-1"
+    ],
+    "dataset_revision": "data-1",
+    "scorer_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "date": "2026-10-06"
+   },
+   "tables": [],
+   "paired": [],
+   "bounds": [
+    {
+     "name": "Toy upper bound",
+     "kind": "one_sided_upper",
+     "value": 0.088,
+     "n": 80,
+     "denominator": "toy answers"
+    }
+   ],
+   "categories": [
+    {
+     "label": "Toy category",
+     "count": 4
+    }
+   ],
+   "leaderboard": null,
+   "sentences": [
+    {
+     "template_id": "bound",
+     "text": "Toy upper bound: 0.088 (one sided upper, exact 95%, n = 80; toy answers)."
+    }
+   ]
+  },
+  {
+   "id": "legalbench",
+   "review_status": "pending",
+   "outcome": "n/a",
+   "kind_chip": "Harness vs the same model alone; United States law",
+   "data_chip": "Public benchmark"
+  },
+  {
+   "id": "sealed_court",
+   "review_status": "pending",
+   "outcome": "n/a",
+   "kind_chip": "Sealed Indian court test, reviewed result",
+   "data_chip": "Real court-derived"
+  }
+ ]
+}

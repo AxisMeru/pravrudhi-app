@@ -30,6 +30,13 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      # The benchmark results page's data gate (#638): the vendored validator (scripts/benchmarks/, VENDORED.txt) exits non-zero on an
+      # unreviewed number, a banned word or a result sentence the templates would not produce, and the build fails with it.
+      - name: benchmark results data gate
+        run: |
+          python3 scripts/benchmarks/validate_page_data.py frontend/public/benchmark_results.json
+          (cd scripts/benchmarks && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest)
+
       - name: typecheck
         working-directory: frontend
         run: npx tsc --noEmit -p .

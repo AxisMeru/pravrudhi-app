@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
@@ -39,6 +40,7 @@ export default function DemoPage() {
             Safety record
           </Link>
         </div>
+        <NyayaSiddhiLink />
         <CaveatStrip />
         <p className="text-sm text-[var(--color-text)]">{ASSIST_LINE}</p>
       </div>
