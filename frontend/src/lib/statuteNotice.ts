@@ -59,6 +59,40 @@ export function sourceLinkFor(act: string, sources: unknown): { href: string; re
   return { href: INDIA_CODE_HOME, recorded: false };
 }
 
+/** The words for a source link: a recorded India Code page is "Source on India Code"; the home-page fallback is not a source for the act. */
+export function sourceLinkLabel(href: string): string {
+  if (href === INDIA_CODE_HOME) return "India Code (home page)";
+  return isIndiaCodeHost(href) ? "Source on India Code" : "Source";
+}
+
+/** The fields of a corpus hit that decide its source link (the engine's `source_url` and `source_fallback_url`, pravrudhi #313). */
+export interface HitSourceFields {
+  act: string;
+  source_url?: unknown;
+  /** Typed for completeness and deliberately unused: the home-page fallback is this app's own INDIA_CODE_HOME. */
+  source_fallback_url?: unknown;
+}
+
+// Printable ASCII only (no control character, space, zero-width or other non-ASCII character), as the engine's check requires.
+function recordedUrl(u: unknown): string | null {
+  if (typeof u !== "string" || u !== u.trim() || /[^\x21-\x7e]|[\\<>()[\]]/.test(u) || u.split("://").length !== 2) return null;
+  const url = parseHttps(u);
+  if (!url || url.username || url.password || url.port || !INDIA_CODE_HOSTS.has(url.hostname.toLowerCase())) return null;
+  return url.href;
+}
+
+/**
+ * The link for one corpus hit: the engine's per-hit `source_url` when it sent one (a page the corpus recorded, never
+ * constructed; checked again here as an https India Code link), else, for an engine that predates the field, the
+ * act's recorded page from `sources`, else the India Code home page.
+ */
+export function hitSourceLink(hit: HitSourceFields, sources: unknown): { href: string; recorded: boolean } {
+  const url = recordedUrl(hit.source_url);
+  if (url) return { href: url, recorded: true };
+  if (hit.source_url === null || typeof hit.source_url === "string") return { href: INDIA_CODE_HOME, recorded: false };
+  return sourceLinkFor(hit.act, sources);
+}
+
 /**
  * The link that travels with provision text where the page has no corpus source records to resolve (the memo is a pure
  * function of one engine result): the engine's own recorded source if it IS an https India Code URL (`recorded: true`), else the

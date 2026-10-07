@@ -1088,6 +1088,10 @@ export interface NyayaAsk {
 export interface NyayaCorpusHit extends NyayaSource {
   score: number;
   text: string;
+  /** The page the corpus recorded for this act on India Code, or null; absent on an engine that predates it (pravrudhi #313). */
+  source_url?: string | null;
+  /** Always the India Code home page on an engine that sends it; a fallback, never a deep link. */
+  source_fallback_url?: string;
 }
 
 export async function nyayaVendors(): Promise<NyayaVendor[]> {
