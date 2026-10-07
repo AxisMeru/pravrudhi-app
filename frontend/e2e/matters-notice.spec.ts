@@ -13,10 +13,10 @@ test("the retention notice is on the page before anything is typed, word for wor
   await expect(page.getByTestId("retention-before")).toHaveText(ENGINE.text);
 });
 
-test("the file note says the file is not uploaded and that its text is sent on Analyse", async ({ page }) => {
+test("the file note says the file itself is not uploaded and that the text read from it is sent on Analyse", async ({ page }) => {
   await page.goto("/matters");
+  await expect(page.getByText("The file itself is not uploaded; the text read from it")).toBeVisible();
   await expect(page.getByText("is sent to the engine when you press Analyse")).toBeVisible();
-  await expect(page.getByText("never uploaded. Review")).toHaveCount(0);
 });
 
 async function analyse(page: import("@playwright/test").Page) {
@@ -51,6 +51,6 @@ test("with the nav flag on, the result links to the citation check", async ({ pa
 test("the citation check says what is and is not stored, before anything is entered", async ({ page }) => {
   await page.goto("/citations");
   await expect(page.getByTestId("citation-retention")).toHaveText(
-    "We do not store the citation or quote you enter; a keyed API call records only its result label and status for 90 days.",
+    "The citation check does not save the citation or the quote you enter.",
   );
 });

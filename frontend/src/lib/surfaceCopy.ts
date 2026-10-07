@@ -94,10 +94,8 @@ export const DO_NOT_CLAIM: readonly RegExp[] = [
 export const PRE_SUBMIT_RETENTION = "Don't submit real names or case details; anonymous submissions are kept up to 7 days for audit and are never used for training or evaluation.";
 // Replaces "Files are read in your browser and never uploaded.", which read as if the text were not sent either.
 export const FILE_NOTE =
-  "A file is read in your browser and is never uploaded. The text it gives you, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
+  "The file itself is not uploaded; the text read from it, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
 // Under a result, only where the Citation check is offered (its nav flag).
 export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
-// Citation check (read from the engine's verify endpoint by Lead-2-assistant, v0.5.46, not tested live): the citation and quote are not stored; only a keyed API call
-// records its result label and status.
-export const CITATION_RETENTION =
-  "We do not store the citation or quote you enter; a keyed API call records only its result label and status for 90 days.";
+// Citation check: R1's text (checked against engine v0.5.46). The API-key and audit detail belongs in the API docs, not on this page.
+export const CITATION_RETENTION = "The citation check does not save the citation or the quote you enter.";
