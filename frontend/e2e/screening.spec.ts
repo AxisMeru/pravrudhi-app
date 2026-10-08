@@ -81,6 +81,7 @@ test("the all-supported line appears only when every ingredient is supported, bo
   good.contracts[0].elements = EL.map((e, i) => ({ ...base, element: e, status: "established", p_established: 0.9, p_established_second: 0.8, fact_id: i === 2 ? "F2" : "F1", quote_source: "whole_fact" }));
   await run(page, good);
   await expect(page.getByTestId("summary-text")).toHaveText("All ingredients supported (structure checked)");
+  await expect(page.getByTestId("structure-note")).toHaveText("A Lean check confirmed the right ingredients were addressed; it does not read your facts.");
   await expect(page.getByTestId("summary-banner")).toContainText("not legal advice");
 });
 
@@ -92,6 +93,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   await expect(page.getByTestId("contract-review")).toContainText("not on the validated list");
   await expect(page.getByTestId("contract-review")).not.toHaveClass(/red/);
   await expect(page.getByTestId("summary-text")).not.toHaveText("All ingredients supported (structure checked)");
+  await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
 
 test("the memo and the audit trail download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {

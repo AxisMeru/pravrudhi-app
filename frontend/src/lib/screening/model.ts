@@ -63,7 +63,7 @@ function chipFor(el: ScreenedElement, uncertain: boolean): { chip: Chip; suggest
   if (uncertain) return { chip: "review", suggested: false, reason: referReasonPresentation("uncertain").message };
   if (el.status === "established") return { chip: "supported", suggested: false, reason: null };
   const signal = el.screening_signal;
-  if (signal && signal.supported === true) return { chip: "supported", suggested: true, reason: null };
+  if (signal && signal.supported === true) return { chip: "suggested", suggested: true, reason: null };
   if (el.status === "not_established") return { chip: "not_supported", suggested: false, reason: null };
   // not_confirmed, both not_evaluated cases and any status this build does not know: a review item with the signed sentence, never an error.
   return { chip: "review", suggested: false, reason: st.explanation ?? "The engine gave a status this app does not recognise yet; please check this ingredient." };
@@ -106,7 +106,8 @@ export function rowsFor(contract: AnalyseFactsContract, facts: AnalyseFactsResul
 export function summarize(contract: AnalyseFactsContract, rows: { ingredients: ScreeningRow[]; defences: ScreeningRow[] }): ScreeningSummary {
   const total = rows.ingredients.length;
   const supported = rows.ingredients.filter((r) => r.chip === "supported").length;
-  const review = rows.ingredients.filter((r) => r.chip === "review").length + rows.defences.length;
+  // A suggestion from the screening signal names no cited fact: it is not in N, and it asks to be checked, so it is in K.
+  const review = rows.ingredients.filter((r) => r.chip === "review" || r.chip === "suggested").length + rows.defences.length;
   const els = (contract.elements ?? []).filter((e) => !e.is_denial) as ScreenedElement[];
   const bothJudges = els.length > 0 && els.every((e) => e.status === "established" && typeof e.p_established_second === "number");
   const allSupported =

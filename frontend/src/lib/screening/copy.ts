@@ -1,16 +1,16 @@
 // Every NEW user-visible string of the Screening view lives here, so R1 reviews one list before any push (O8, #830). Strings the view reuses
 // (signed REFER and element texts, the cited-fact notes) are NOT repeated here. Rules: never "proved" or "established" at row level, never
 // "verbatim", never "the offence is made out", never advice; "Needs your review" is never styled as an error.
-export type Chip = "supported" | "not_supported" | "review";
+export type Chip = "supported" | "suggested" | "not_supported" | "review";
 
 export const CHIP_LABEL: Readonly<Record<Chip, string>> = {
   supported: "Supported by a fact",
+  // The screening signal is not a cited fact: its own chip, counted apart from the supported ingredients.
+  suggested: "Suggested by the screening judge; check it",
   not_supported: "Not supported by these facts",
   review: "Needs your review",
 };
 
-/** Beside a chip that comes from the optional screening signal rather than the judges' decision. */
-export const SUGGESTED_NOTE = "suggested by the screening judge; check it";
 
 export const SCREENING_TITLE = "Screening";
 export const SCREENING_SUBTITLE =
@@ -25,6 +25,8 @@ export const BANNER_STANDING_LINE = "This is a screening aid, not legal advice. 
 export function ipcDisclosure(ipcSection: string): string {
   return `Checked against the IPC text (s.${ipcSection}); the BNS counterpart is not validated.`;
 }
+/** Shown below the standing line whenever the all-supported line is shown: what the structure check is (R1, 8 Oct). */
+export const STRUCTURE_NOTE = "A Lean check confirmed the right ingredients were addressed; it does not read your facts.";
 export const ALL_SUPPORTED_TEXT = "All ingredients supported (structure checked)";
 
 export function bannerText(supported: number, total: number, review: number): string {

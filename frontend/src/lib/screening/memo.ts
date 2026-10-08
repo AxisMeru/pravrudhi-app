@@ -3,7 +3,7 @@
 import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
 import { MEMO_DISCLAIMER } from "../memo";
-import { CHIP_LABEL, ipcDisclosure, SUGGESTED_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
+import { CHIP_LABEL, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { offenceOf } from "./offences";
 
@@ -11,7 +11,6 @@ const line = (s: string): string => s.replace(/\r?\n/g, " ");
 
 function rowLines(r: ScreeningRow): string[] {
   const out = [`- **${CHIP_LABEL[r.chip]}**: ${line(r.element)}`];
-  if (r.suggested) out.push(`  - ${SUGGESTED_NOTE}`);
   if (r.reason) out.push(`  - Reason: ${line(r.reason)}`);
   if (r.note) out.push(`  - ${line(r.note)}`);
   if (r.factText) out.push(`  - ${r.factId}: ${line(r.factText)}`);
@@ -38,7 +37,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     out.push(`## ${off ? `${off.title} (${off.sections})` : c.contract_id}`, "", `Contract: ${c.contract_id}`, "");
     if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
     // The banner sentence never appears without the standing line directly under it (R1).
-    out.push(`**${s.text}**`, BANNER_STANDING_LINE, "");
+    out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
     const ref = contractReferral(c);
     if (ref) out.push(`Needs your review: ${line(ref.message)} (reason: ${ref.code})`, "");
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
