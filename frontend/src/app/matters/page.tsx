@@ -123,8 +123,8 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
           <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-          No judge has been trained on this contract&apos;s statute text yet — this is a gap in coverage, not a
-          failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
+          No judge has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers
+          instead. That is not a failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
         </p>
       </article>
     );
@@ -190,8 +190,8 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
           </div>
           <div className="mt-1 text-[var(--color-text-dim)]">
             Lean checks that the right elements for this contract were addressed — it does not read the facts
-            or quotes. The element findings above come from the judge and are quote-checked against the facts
-            you supplied.
+            or the cited facts. The element findings above come from the judge, which cites the supporting fact
+            from the facts you supplied.
           </div>
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
