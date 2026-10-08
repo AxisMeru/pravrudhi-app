@@ -5,7 +5,6 @@ import { ApiError } from "./api";
 import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, NO_QUOTE_TEXT, checkCitations, coverageLine, parseCitationLines } from "./citationsPanel";
 
 // Invented citations and quotes only.
-const reply = (result: string) => async () => ({ result, note: "A fixed note." });
 
 test("one citation per line; an optional quote after a bar; blank lines are ignored; line numbers are the typed ones", () => {
   const { items, skipped } = parseCitationLines("(2020) 3 SCC 456 | the sum shall be paid\n\n  (1999) 1 SCC 10  \r\n(2001) 2 SCC 5 |   ");
