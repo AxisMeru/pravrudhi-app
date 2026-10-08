@@ -30,11 +30,11 @@ export default function DemoPage() {
         </ol>
         <div className="flex flex-wrap items-center gap-4">
           <Link
-            href={`/matters?example=${EXAMPLE_ID}`}
+            href={`/screening?example=${EXAMPLE_ID}`}
             className="inline-flex w-fit items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white"
             data-testid="load-example"
           >
-            Open Matters with the example loaded
+            Open Screening with the example loaded
           </Link>
           <Link href="/safety" className="text-sm underline">
             Safety record

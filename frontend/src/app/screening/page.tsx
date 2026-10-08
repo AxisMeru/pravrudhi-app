@@ -14,10 +14,11 @@ import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
+import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { buildAuditTrail, buildScreeningMemo } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
-import { OFFENCES } from "@/lib/screening/offences";
+import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
@@ -43,6 +44,7 @@ export default function ScreeningPage() {
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [frontier, setFrontier] = useState(false);
+  const [exampleActive, setExampleActive] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,16 @@ export default function ScreeningPage() {
     };
   }, []);
 
+  // /screening?example=<id> loads the demo example: the allegations of one public judgment as numbered facts (read in the browser, as the
+  // page is a static export).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    void Promise.resolve().then(() => {
+      setFacts([...EXAMPLE_FACTS]);
+      setExampleActive(true);
+    });
+  }, []);
+
   useEffect(() => {
     let off = false;
     nyayaRegistryContracts()
@@ -81,6 +93,11 @@ export default function ScreeningPage() {
         setContractsError(null);
         setContracts(cs);
         setContractsLoaded(true);
+        if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
+          // the offence is the unit of choice: every contract of an offence the example invokes
+          const ids = EXAMPLE_CONTRACTS.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+          setPicked(new Set(ids.filter((id) => cs.includes(id))));
+        }
       })
       .catch((e: unknown) => {
         if (!off) setContractsError(e instanceof ApiError ? `Could not reach the engine's registry API (${e.status}).` : "Could not load contracts.");
@@ -127,6 +144,11 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
+        {exampleActive && (
+          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
+            {EXAMPLE_LABEL}
+          </p>
+        )}
         <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>

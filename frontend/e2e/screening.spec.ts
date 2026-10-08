@@ -123,3 +123,12 @@ test("a member who opens / lands on Screening", async ({ page }) => {
   await page.goto("/");
   await page.waitForURL(/\/screening/);
 });
+
+test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
+  await page.goto("/screening?example=madras-crl-op-13624-2024");
+  await expect(page.getByTestId("example-banner")).toContainText("Crl.O.P. No. 13624 of 2024");
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.325 of 2023/);
+  await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
+  await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
+});
