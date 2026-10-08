@@ -73,3 +73,9 @@ test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown rea
   assert.ok(md.includes("Every element was supported by a fact cited from the submitted facts."));
   assert.ok(md.includes("A defence element was supported by a fact cited from the submitted facts."));
 });
+
+test("memo: a missing or undefined quote_source prints the cited text bare, never in quotation marks", () => {
+  const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
+  assert.ok(md.includes("| d | supported by a fact | 0.90 | plain text (F1) |"), md);
+  assert.ok(md.includes("| e | supported by a fact | 0.90 | plain two (F1) |"), md);
+});

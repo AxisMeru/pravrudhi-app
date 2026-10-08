@@ -51,3 +51,12 @@ test("identifiers inside a template literal are not words; a single-word label p
   assert.equal(scanSource("src/x.ts", '  PROOF: { label: "established", tone: "x" },').length, 1);
   assert.equal(scanSource("src/x.ts", '  const same = el.status === "established";').length, 0);
 });
+
+test("every text-bearing property name catches a single banned word; other property names and comparisons do not", () => {
+  for (const key of ["label", "title", "text", "heading", "description", "subtitle"]) {
+    assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "established" };`).length, 1, key);
+    assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "verbatim" };`).length, 1, key);
+  }
+  for (const key of ["id", "name", "kind", "status", "value"]) assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "established" };`).length, 0, key);
+  assert.equal(scanSource("src/x.ts", `  if (x === "established") return "supported";`).length, 0);
+});
