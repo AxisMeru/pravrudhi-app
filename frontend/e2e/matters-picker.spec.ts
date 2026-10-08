@@ -52,3 +52,23 @@ test("the results table has a caption, column headers with scope, and sits in a 
   await expect(table.locator("th[scope=col]")).toHaveCount(3);
   await expect(table.locator("xpath=..")).toHaveClass(/overflow-x-auto/);
 });
+
+test("a referral is listed before the other results, whatever order the engine answered in", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69", "bns85"], entries: [{ id: "bns69", validated: true }, { id: "bns85", validated: true }] } }));
+  const base = { assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null, elements: [] };
+  await page.route("**/api/v1/analyse-facts**", (r) =>
+    r.fulfill({
+      json: {
+        run_id: "r-invented-3", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        contracts: [{ ...base, contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element" }, { ...base, contract_id: "bns85", outcome: "REFER_TO_LAWYER", reason: "uncertain" }],
+      },
+    }),
+  );
+  await page.goto("/matters");
+  await page.getByLabel("Facts (one per line)").fill(FACT);
+  await page.getByText("bns69").click();
+  await page.getByText("bns85").click();
+  await page.getByRole("button", { name: "Analyse" }).click();
+  await expect(page.locator("article").first()).toContainText("bns85");
+  await expect(page.locator("article").nth(1)).toContainText("bns69");
+});

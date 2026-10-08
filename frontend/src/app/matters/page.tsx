@@ -20,6 +20,7 @@ import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { referFirst } from "@/lib/contractOrder";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -516,7 +517,7 @@ export default function MattersPage() {
                 Print / save as PDF
               </button>
             </div>
-            {result.contracts.map((c) => (
+            {referFirst(result.contracts).map((c) => (
               <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} />
             ))}
             <StatuteNotice />
