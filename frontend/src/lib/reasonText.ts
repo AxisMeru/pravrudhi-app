@@ -5,7 +5,7 @@
 
 export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   all_elements_established:
-    "The judge found every condition this provision requires shown in your facts, citing a fact for each (see each element's `citation_note`), and found no fact that defeats the claim.",
+    "The judge found every condition this provision requires shown in your facts, citing a fact for each, and found no fact that defeats the claim.",
   denial_established: "The judge found a fact in your case that defeats this claim, and cited it.",
   missing_element: "The judge did not find at least one required condition shown in your facts.",
   no_training_statute_text: "We have no statute text for this provision, so we did not judge it.",
