@@ -74,3 +74,10 @@ test("a statute is looked up by the section the contract names, and only the mat
   assert.equal(pickCorpusHit(hits, "IPC/Section 1"), null);
   assert.equal(pickCorpusHit(undefined, "x"), null);
 });
+
+test("the before-you-submit retention notice is the engine's own text, word for word", async () => {
+  const { PRE_SUBMIT_RETENTION, FILE_NOTE, CITATION_NEXT_STEP } = await import("./surfaceCopy");
+  const engine = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineRetentionNotice.json"), "utf8")) as { text: string };
+  assert.equal(PRE_SUBMIT_RETENTION, engine.text);
+  for (const t of [FILE_NOTE, CITATION_NEXT_STEP]) assert.ok(!/verified|guarantee|never stored/i.test(t), t);
+});

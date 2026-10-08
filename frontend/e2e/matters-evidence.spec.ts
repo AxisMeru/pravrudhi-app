@@ -67,14 +67,18 @@ test("offsets that cannot be used show the cited fact plain; a fact that is not 
     element({ element: "a promise", offsets_source: null }),
     element({ element: "a delay", fact_id: "F2", quote: QUOTE2, start: 0, end: 5, offsets_source: "system" }), // slice is not the quote
     element({ element: "a gap", fact_id: "F404", quote: "nowhere", start: null, end: null, offsets_source: null }),
+    element({ element: "a hole", fact_id: "F405", quote: "everywhere", start: null, end: null, offsets_source: null, quote_source: "whole_fact" }),
   ]);
   await expect(page.getByTestId("cited-fact")).toHaveCount(2);
   await expect(page.getByTestId("cited-fact").first()).toContainText(F1);
   await expect(page.getByTestId("cited-passage")).toHaveCount(0);
   await expect(page.locator("mark")).toHaveCount(0);
   const fallback = page.getByTestId("cited-fact-fallback");
-  await expect(fallback).toContainText("Cited fact:");
-  await expect(fallback).toContainText("“nowhere”");
+  await expect(fallback).toHaveCount(2);
+  await expect(fallback.first()).toContainText("Cited fact:");
+  await expect(fallback.first()).toContainText("“nowhere”"); // judge-written words keep the marks
+  await expect(fallback.nth(1)).toContainText("everywhere");
+  await expect(fallback.nth(1)).not.toContainText("“"); // a whole fact cited in full is not a quotation
 });
 
 test("the Lean attestation shows both hashes and the structural-check note, and never says verified", async ({ page }) => {
