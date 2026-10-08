@@ -61,3 +61,15 @@ test("a passed quote is marked passed and a failed one is not", () => {
   assert.match(html(createElement(FrontierQuote, { quote: "q", check: "ok" })), /data-passed="true"/);
   assert.match(html(createElement(FrontierQuote, { quote: "q", check: "empty_quote" })), /data-passed="false"/);
 });
+
+test("a cell's check is marked passed only for ok; every other code and a missing code are not passed", () => {
+  const passed = (quote_check?: string | null) => frontierCell({ status: "established", quote: "q", quote_check })?.check?.passed;
+  assert.equal(passed("ok"), true);
+  for (const c of ["quote_not_found", "ambiguous_quote", "empty_quote", "unknown_fact", "brand_new", "", null, undefined]) assert.equal(passed(c), false, String(c));
+});
+
+test("a label is looked up as an OWN key: names inherited from Object.prototype are unknown codes, never a function or a sentence", () => {
+  for (const code of ["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf"]) {
+    assert.match(quoteCheckLabel(code), /does not recognise yet/, code);
+  }
+});

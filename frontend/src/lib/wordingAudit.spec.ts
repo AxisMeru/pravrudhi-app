@@ -34,3 +34,14 @@ test("a frontier file may say quote; any other file may not unless the allow-lis
   assert.equal(violations(house).length, 1);
   assert.equal(violations(house, new Set([`src/app/screening/page.tsx:passed the quote check`])).length, 0);
 });
+
+test("only comments, blank lines and re-export/import lines are skipped: the same words on a real line are hits", () => {
+  const w = "the quote check";
+  const skipped = [
+    `// ${w}`, `/* ${w} */`, ` * ${w}`, "", "   ", `import { x } from "./${w}";`, `export * from "./${w}";`, `export { a } from "./${w}";`,
+  ];
+  for (const line of skipped) assert.equal(scanSource("src/x.ts", line + `\nconst ok = "fine";`).length, 0, line);
+  const hits = ["const s = \"the quote check here\";", "export const s = \"the quote check here\";", "  return \"the quote check here\";"];
+  for (const line of hits) assert.equal(scanSource("src/x.ts", line).length, 1, line);
+  assert.deepEqual(scanSource("src/x.ts", `// a\nconst s = "the quote check here";\n// b`).map((h) => h.line), [2]);
+});
