@@ -5,7 +5,7 @@ import { ASSIST_LINE, SAFETY_COPY, SAFETY_LABEL, SAFETY_MATERIAL, SAFETY_NUMBERS
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
 test("the safety copy carries Track A's label and the assist line", () => {
-  assert.match(SAFETY_LABEL, /Real High Court material, the Obj-1b set, which the models used in development have been exposed to; measured with two judges/);
+  assert.match(SAFETY_LABEL, /Real High Court material, the Obj-1b set, kept out of our judges' training data but read once by a general-purpose model in an earlier study; measured with two judges/);
   assert.doesNotMatch(SAFETY_COPY.join(" "), /config(uration)? c\b/i, "partner-facing text says two judges, never config C");
   assert.match(SAFETY_LABEL, /one run, one seed/);
   assert.match(SAFETY_LABEL, /not production traffic/);
@@ -17,7 +17,8 @@ test("no sentence on the safety page calls the set sealed, or calls the measured
     assert.doesNotMatch(s, /\bsealed\b/i, s);
     assert.doesNotMatch(s, /production configuration/i, s);
   }
-  assert.match(SAFETY_MATERIAL, /exposed to the models used in development/);
+  assert.match(SAFETY_MATERIAL, /kept out of our judges' training data; a general-purpose AI model read it in an earlier study, so it is no longer unseen by every model/);
+  assert.doesNotMatch(SAFETY_MATERIAL + SAFETY_LABEL, /exposed to the models/);
 });
 
 test("every number on the safety page is a sourced figure", () => {
