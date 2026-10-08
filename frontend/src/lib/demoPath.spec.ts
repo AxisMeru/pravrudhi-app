@@ -21,7 +21,7 @@ test("the US-case Nyaya page is absent from the demo navigation and the palette"
 });
 
 test("the palette is unchanged for Studio with the flag off", () => {
-  assert.deepEqual(pagesFor(true, false).map((p) => p.id), PALETTE_PAGES.map((p) => p.id));
+  assert.deepEqual(pagesFor(true, false, true, true).map((p) => p.id), PALETTE_PAGES.map((p) => p.id));
 });
 
 import { SURFACE_ROUTES, routeAllowedOnSurface } from "./demoPath";
@@ -52,7 +52,7 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
   };
   const surface = buildCatalogue(index, false, false, true, true);
   assert.ok(surface.length > 0 && surface.every((r) => r.group === "Pages"));
-  assert.deepEqual(surface.map((r) => r.href).sort(), ["/benchmarks", "/citations", "/demo", "/matters", "/safety", "/settings"]);
+  assert.deepEqual(surface.map((r) => r.href).sort(), ["/benchmarks", "/demo", "/matters", "/safety", "/settings"]);
   const normal = buildCatalogue(index, false, true, true, false);
   assert.ok(normal.some((r) => r.group === "Actions") && normal.some((r) => r.group === "Objectives"));
 });
