@@ -1,26 +1,31 @@
 {
-  "_source": "pravrudhi src/pravrudhi/application/citation_status.py _LABELS (copied verbatim)",
-  "_engine_sha": "bce744968a997bc93ebf0e8a792ddba2dc94c5fc",
-  "labels": {
-    "VERIFIED": {
-      "status": "verified",
-      "label": "Verified: the citation resolves to an indexed case and the quote appears in the indexed text of the case, word for word apart from line breaks, quote marks, dashes and spacing."
-    },
-    "EXISTS_QUOTE_NOT_FOUND": {
-      "status": "quote_not_found",
-      "label": "quote not found in the indexed text of the case"
-    },
-    "NOT_IN_INDEX": {
-      "status": "not_in_index",
-      "label": "not in index"
-    },
-    "CONFLICT": {
-      "status": "conflict",
-      "label": "conflict: the citation matches more than one indexed case"
-    },
-    "MALFORMED": {
-      "status": "malformed",
-      "label": "Exactly one parseable citation is required."
-    }
+ "_source": "pravrudhi src/pravrudhi/application/citation_status.py _LABELS (copied verbatim)",
+ "_engine_sha": "bce744968a997bc93ebf0e8a792ddba2dc94c5fc",
+ "labels": {
+  "VERIFIED": {
+   "status": "verified",
+   "label": "Verified: the citation resolves to an indexed case and the quote appears in the indexed text of the case, word for word apart from line breaks, quote marks, dashes and spacing."
+  },
+  "EXISTS_QUOTE_NOT_FOUND": {
+   "status": "quote_not_found",
+   "label": "quote not found in the indexed text of the case"
+  },
+  "NOT_IN_INDEX": {
+   "status": "not_in_index",
+   "label": "not in index"
+  },
+  "CONFLICT": {
+   "status": "conflict",
+   "label": "conflict: the citation matches more than one indexed case"
+  },
+  "MALFORMED": {
+   "status": "malformed",
+   "label": "Exactly one parseable citation is required."
+  },
+  "IN_INDEX": {
+   "status": "in_index",
+   "label": "Found in the index (existence only): no quote was checked, so this is not a verification."
   }
+ },
+ "_note": "IN_INDEX added from pravrudhi #376 @32d88d16 (citation_status.py _LABELS), copied verbatim."
 }
