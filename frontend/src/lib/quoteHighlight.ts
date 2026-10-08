@@ -72,3 +72,11 @@ export function leanAttestationView(a: LeanAttestation | null | undefined): Lean
     rows: [row("Checker program (sha256)", a.binary_sha256), row("Input given to it (sha256)", a.wire_sha256)],
   };
 }
+
+/** The line shown where the structural-check block would be, on a referral for which none ran (R1-signed wording, option 2). */
+export const NO_STRUCTURAL_CHECK_LINE = "No structural check was run for this referral.";
+
+/** The line for a REFER contract with no Lean result; null for any contract that has a structural check, and for any other outcome. */
+export function noStructuralCheckLine(outcome: string, lean: unknown): string | null {
+  return outcome === "REFER_TO_LAWYER" && lean === null ? NO_STRUCTURAL_CHECK_LINE : null;
+}

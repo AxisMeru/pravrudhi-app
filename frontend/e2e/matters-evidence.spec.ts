@@ -88,3 +88,39 @@ test("at phone width the page itself does not scroll sideways and the evidence s
   const att = await page.getByTestId("lean-attestation").boundingBox();
   expect(att && att.x >= 0 && att.x + att.width <= 375, `the hash block is cut off: ${JSON.stringify(att)}`).toBeTruthy();
 });
+
+test("the no-structural-check line is not shown on a contract that is not a referral", async ({ page }) => {
+  await analyse(page, [element({ status: "not_established", p_established: 0.3 })], null);
+  // the recorded answer above is a PROOF with no Lean result: the line must NOT show (not a referral)
+  await expect(page.getByTestId("no-structural-check")).toHaveCount(0);
+});
+
+test("REFER_TO_LAWYER with lean null shows the signed line; with a structural check it shows the check instead", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69"], entries: [{ id: "bns69", validated: true }] } }));
+  let withLean = false;
+  await page.route("**/api/v1/analyse-facts**", (r) =>
+    r.fulfill({
+      json: {
+        run_id: "r-invented-3", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
+        facts: [{ id: "F1", text: F1, sha256: "d".repeat(64) }],
+        contracts: [{
+          contract_id: "bns69", outcome: "REFER_TO_LAWYER", reason: "uncertain", assertions: null,
+          lean: withLean ? { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] } : null,
+          lean_outcome: withLean ? "Proof" : null,
+          lean_attestation: withLean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "Proof" } : null,
+          uncertain: [], statute_text_mismatch: null, citations: [], elements: [element({ status: "not_established", p_established: 0.5 })],
+        }],
+      },
+    }),
+  );
+  await page.goto("/matters");
+  await page.getByLabel("Facts (one per line)").fill(F1);
+  await page.getByRole("group", { name: "Contracts to check against" }).getByText("bns69").click();
+  await page.getByRole("button", { name: "Analyse" }).click();
+  await expect(page.getByTestId("no-structural-check")).toHaveText("No structural check was run for this referral.");
+  await expect(page.getByTestId("lean-attestation")).toHaveCount(0);
+  withLean = true;
+  await page.getByRole("button", { name: "Analyse" }).click();
+  await expect(page.getByTestId("lean-attestation")).toBeVisible();
+  await expect(page.getByTestId("no-structural-check")).toHaveCount(0);
+});

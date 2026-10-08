@@ -18,7 +18,7 @@ import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
-import { highlightQuote, leanAttestationView } from "@/lib/quoteHighlight";
+import { highlightQuote, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { PageHeader } from "@/components/PageHeader";
@@ -188,6 +188,12 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       )}
 
       <StatuteBeside citations={c.citations} />
+
+      {noStructuralCheckLine(c.outcome, c.lean) && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="no-structural-check">
+          {noStructuralCheckLine(c.outcome, c.lean)}
+        </p>
+      )}
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">

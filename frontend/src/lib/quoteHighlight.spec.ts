@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { highlightQuote, leanAttestationView, LEAN_ATTESTATION_NOTE, CONTEXT_CHARS } from "./quoteHighlight";
+import { highlightQuote, leanAttestationView, LEAN_ATTESTATION_NOTE, CONTEXT_CHARS, noStructuralCheckLine, NO_STRUCTURAL_CHECK_LINE } from "./quoteHighlight";
 
 // Invented facts and values only.
 const FACTS = [
@@ -82,4 +82,14 @@ test("a missing or malformed attestation shows nothing: no invented hash", () =>
   assert.equal(leanAttestationView(undefined), null);
   assert.equal(leanAttestationView({ binary_sha256: "abc", wire_sha256: B, verdict: "Proof" }), null);
   assert.equal(leanAttestationView({ binary_sha256: A, wire_sha256: B.toUpperCase(), verdict: "Proof" }), null);
+});
+
+test("the no-structural-check line shows only on a REFER contract with no Lean result, both directions", () => {
+  const lean = { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] };
+  assert.equal(noStructuralCheckLine("REFER_TO_LAWYER", null), NO_STRUCTURAL_CHECK_LINE);
+  assert.equal(NO_STRUCTURAL_CHECK_LINE, "No structural check was run for this referral.");
+  assert.equal(noStructuralCheckLine("REFER_TO_LAWYER", lean), null); // a referral that did have a check shows the check, not this line
+  assert.equal(noStructuralCheckLine("PROOF", null), null); // not a referral
+  assert.equal(noStructuralCheckLine("ABSTAIN", null), null);
+  assert.equal(noStructuralCheckLine("REFER_TO_LAWYER", undefined), null); // an older engine that omits the field: nothing is asserted
 });
