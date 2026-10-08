@@ -11,9 +11,9 @@ export const STEPS: { title: string; body: string }[] = [
     body: "Each contract lists the elements the provision requires, so you can see what would have to be shown.",
   },
   {
-    title: "See the status of each element, and the quote behind each established one",
+    title: "See the status of each element, and the supporting fact behind each established one",
     body:
-      "Each established element shows the sentence of your facts it relies on, word for word. The other elements show their " +
+      "Each established element shows the fact of yours it cites, as you wrote it. The other elements show their " +
       "status and the reason the engine gives; nothing is filled in to look complete.",
   },
   {

@@ -1,4 +1,5 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
+import { memoCitationCell, memoCitationHeader } from "./citedFact";
 import { elementStatusPresentation } from "./elementStatus";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
@@ -30,8 +31,7 @@ const cell = (s: string): string => s.replace(/\r?\n/g, " ").replace(/\|/g, "\\|
 function elementRow(e: AnalyseFactsElement): string {
   const st = elementStatusPresentation(e.status);
   const p = e.p_established === null ? "n/a" : e.p_established.toFixed(2);
-  const quote = e.quote ? `"${cell(e.quote)}"${e.fact_id ? ` (${cell(e.fact_id)})` : ""}` : "no supporting quote";
-  return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${p} | ${quote} |`;
+  return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${p} | ${cell(memoCitationCell(e))} |`;
 }
 
 const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `> ${l}`);
@@ -78,14 +78,14 @@ function contractSection(c: AnalyseFactsContract): string {
       "",
     );
   } else if (c.outcome === "PROOF") {
-    lines.push(nonReferReasonText(c.reason) ?? "Every element was judged established from the submitted facts, each with a quote.", "");
+    lines.push(nonReferReasonText(c.reason) ?? "Every element was judged established from the submitted facts, each citing a fact.", "");
   } else if (c.outcome === "DENIAL") {
-    lines.push(nonReferReasonText(c.reason) ?? "A defence element was judged established from the submitted facts, with a quote.", "");
+    lines.push(nonReferReasonText(c.reason) ?? "A defence element was judged established from the submitted facts, citing a fact.", "");
   } else {
     lines.push(`The engine sent an outcome ("${c.outcome}") that is not an outcome this app recognises. Treat it as no verdict.`, "");
   }
   if (c.elements.length > 0) {
-    lines.push("| Element | Status | p(established) | Supporting quote |", "|---|---|---|---|", ...c.elements.map(elementRow), "");
+    lines.push(`| Element | Status | p(established) | ${memoCitationHeader(c.elements)} |`, "|---|---|---|---|", ...c.elements.map(elementRow), "");
   }
   if (c.lean) {
     lines.push(

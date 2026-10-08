@@ -1,7 +1,7 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the verbatim quote each one cites (quote-checked against the submitted
+// the house judge found established, the supporting fact each one cites (quote-checked against the submitted
 // facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
 // or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
@@ -21,6 +21,7 @@ import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/li
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { referFirst } from "@/lib/contractOrder";
+import { citationKind, citationNote } from "@/lib/citedFact";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -85,15 +86,17 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
         )}
       </td>
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
-        {el.quote ? (
+        {citationKind(el) === "whole_fact" ? (
+          <span data-testid="cited-fact-note">{citationNote(el)}</span>
+        ) : el.quote ? (
           <>
             <span className="italic">&ldquo;{el.quote}&rdquo;</span>
-            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
+            {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
         ) : (
-          <span>no quote</span>
+          <span>no cited fact</span>
         )}
         {quoteCheck?.show && (
           <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="quote-check-cause">
@@ -161,12 +164,12 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <caption className="sr-only">Elements of this contract: status and the supporting quote</caption>
+            <caption className="sr-only">See the status of each element, and the fact cited for each established one</caption>
             <thead>
               <tr className="text-xs text-[var(--color-text-dim)]">
                 <th scope="col" className="pb-1 pr-3 font-medium">element</th>
                 <th scope="col" className="pb-1 pr-3 font-medium">status</th>
-                <th scope="col" className="pb-1 font-medium">quote (verbatim from your facts)</th>
+                <th scope="col" className="pb-1 font-medium">supporting fact (cited)</th>
               </tr>
             </thead>
             <tbody>
@@ -344,7 +347,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element is tied to a verbatim quote from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
