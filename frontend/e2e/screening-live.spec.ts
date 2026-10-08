@@ -2,15 +2,16 @@ import { readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
 
 import type { AnalyseFactsResult } from "../src/lib/api";
-import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID } from "../src/lib/demo/example";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
+import { MATTER_CAVEAT, MATTER_DOC_ID, MATTER_NOT_SCREENED, MATTER_OFFENCE_IDS, checkMatterText } from "../src/lib/demo/screeningMatter";
 import { CHIP_LABEL } from "../src/lib/screening/copy";
 import { knownElements, rowsFor, summarize } from "../src/lib/screening/model";
-import { OFFENCES, offenceOf } from "../src/lib/screening/offences";
+import { OFFENCES } from "../src/lib/screening/offences";
 
 /**
- * The Screening view's production E2E (O8.5, #830): the design-partner flow on the public judgment the demo page uses (the allegations of
- * Crl.O.P. No. 13624 of 2024, Madras High Court), against the DEPLOYED app and judge. It asserts the real response (src/lib/demo/liveCheck.ts), and
+ * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted FRESH matter (Lead-2, 8 Oct): the allegation
+ * paragraph of a public Madras High Court order (Crl.O.P. No. 2770 of 2019, order of 25 Feb 2021; doc 9e77f94d), against
+ * the DEPLOYED app and judge. The demo example (Crl.O.P. 13624 of 2024) is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
  * that what the page shows is a plain-words reading of it: one checklist per contract, one row per ingredient with one of the three chips, the
  * cited fact shown in full, a what-to-check line, the summary banner per contract, the review items not styled as errors, no "proved" /
  * "established" / "verbatim" in the checklist, the memo and the audit trail.
@@ -32,22 +33,36 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD;
 test.skip(!GO && !REHEARSAL, "no production run without Lead-2's written go (SCREENING_LIVE_GO=1); objective and metrics are on pravrudhi-app#830");
 
 test.beforeAll(() => {
+  if (GO && !REHEARSAL && MATTER_FILE) {
+    const violations = checkMatterText(MATTER_TEXT);
+    if (violations.length > 0) throw new Error(`SCREENING_MATTER_FILE is not the accepted matter: ${violations.join('; ')}`);
+  }
   if (GO && !REHEARSAL && (!E2E_EMAIL || !E2E_PASSWORD)) throw new Error("SCREENING_LIVE_GO is set but E2E_EMAIL and E2E_PASSWORD are not (see ~/.config/pravrudhi/e2e.env).");
 });
 
-// the offences the example invokes, and every contract of each (the offence is the unit of choice on the page)
-const CONTRACT_IDS = [...new Set(EXAMPLE_CONTRACTS.flatMap((id) => offenceOf(id)?.contracts ?? [id]))];
+// The matter text is NOT in the repository (public, no real-person identifiers): it is read at run time from SCREENING_MATTER_FILE. A rehearsal uses
+// invented text. Either way it is checked before anything is sent.
+const MATTER_FILE = process.env.SCREENING_MATTER_FILE;
+const INVENTED = "Invented: a petitioner is said to have taken an advance of money for a promised sale of land and then to have failed to complete it, and to have threatened the complainant when he asked.";
+const MATTER_TEXT: string = REHEARSAL ? INVENTED : MATTER_FILE ? readFileSync(MATTER_FILE, "utf8") : "";
+// the facts submitted: the allegation paragraph, trimmed (the page splits on lines, so it is ONE fact, F1)
+const FACTS: string[] = [MATTER_TEXT.trim()];
+const MATTER_OFFENCES = OFFENCES.filter((o) => MATTER_OFFENCE_IDS.includes(o.id));
+// every contract of each offence the matter invokes (the offence is the unit of choice on the page)
+const CONTRACT_IDS = MATTER_OFFENCES.flatMap((o) => [...o.contracts]);
+test.skip(GO && !REHEARSAL && !MATTER_FILE, "SCREENING_MATTER_FILE is not set: the matter text is not in the repository (see src/lib/demo/screeningMatter.ts)");
+
 const FIXTURE: DemoFixture = {
-  id: EXAMPLE_ID,
-  label: "the public judgment's allegations, as the demo page loads them",
+  id: `matter-${MATTER_DOC_ID}`,
+  label: "the accepted fresh matter's allegations",
   path: "proof",
   contract_ids: CONTRACT_IDS,
-  wordings: { plain: [...EXAMPLE_FACTS], formal: [...EXAMPLE_FACTS] },
+  wordings: { plain: FACTS, formal: FACTS },
   expect: { recorded_runs: 0, outcomes: null },
 };
 
 function rehearsalAnswer(): AnalyseFactsResult {
-  const facts = EXAMPLE_FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) }));
+  const facts = FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) }));
   const base = { is_denial: false, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null, quote_source: "whole_fact", p_established_second: 0.8 };
   const contracts = CONTRACT_IDS.map((id, ci) => {
     const known = knownElements(id)!;
@@ -73,7 +88,7 @@ async function signIn(page: Page): Promise<void> {
 }
 
 for (let run = 1; run <= REPEATS; run++) {
-  test(`screening / ${EXAMPLE_ID} / run ${run}`, async ({ page }) => {
+  test(`screening / matter ${MATTER_DOC_ID} / run ${run}`, async ({ page }) => {
     test.setTimeout(REHEARSAL ? 40_000 : 420_000);
     if (REHEARSAL) {
       await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: CONTRACT_IDS, entries: [] } }));
@@ -84,26 +99,27 @@ for (let run = 1; run <= REPEATS; run++) {
     // the landing page after sign-in is Screening
     await page.goto("/");
     await page.waitForURL(/\/screening/, { timeout: 20_000 });
-    await page.goto(`/screening?example=${EXAMPLE_ID}`);
+    await page.goto("/screening");
     await page.locator("main").getByRole("heading", { name: "Screening", exact: true }).waitFor();
     const offline = page.getByTestId("screening-offline");
     // Lazily: innerText() on an element that is not there waits for the whole test timeout, so only read it when the notice is visible.
     const closed = await offline.isVisible().catch(() => false);
     test.skip(closed, `outside the service window: ${closed ? await offline.innerText() : ""}`);
 
-    // the example loaded: numbered facts, its offences selected
-    await expect(page.getByTestId("example-banner")).toContainText("Crl.O.P. No. 13624 of 2024");
-    for (let i = 0; i < EXAMPLE_FACTS.length; i++) {
-      await expect(page.getByRole("textbox", { name: `Fact F${i + 1}`, exact: true })).toHaveValue(EXAMPLE_FACTS[i]);
-    }
-    await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(new Set(EXAMPLE_CONTRACTS.map((c) => offenceOf(c)?.id)).size, { timeout: 30_000 });
+    // the matter goes in as pasted text, becomes the numbered fact F1, and the offences it invokes are picked
+    await page.getByLabel("Paste the FIR, complaint or narrative").fill(MATTER_TEXT);
+    await page.getByTestId("split-facts").click();
+    await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(FACTS[0]);
+    await expect(page.getByRole("textbox", { name: "Fact F2", exact: true })).toHaveCount(0);
+    for (const o of MATTER_OFFENCES) await page.getByTestId("offence-list").locator("label").filter({ hasText: o.title }).first().click();
+    await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(MATTER_OFFENCES.length);
 
     const responded = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/v1/analyse-facts" && r.request().method() === "POST", { timeout: 400_000 });
     await page.getByRole("button", { name: "Screen these facts" }).click();
     const response = await responded;
     expect(response.ok(), `analyse-facts answered ${response.status()}`).toBe(true);
     const result = (await response.json()) as AnalyseFactsResult;
-    const submitted = [...EXAMPLE_FACTS];
+    const submitted = [...FACTS];
     expect(checkDemoResult(result, submitted, FIXTURE), "violations of the real response").toEqual([]);
 
     // what the page shows is a plain-words reading of that response
@@ -134,8 +150,8 @@ for (let run = 1; run <= REPEATS; run++) {
       expect(text, "the checklist says proved, established or verbatim").not.toMatch(/\bproved\b|\bestablished\b|verbatim|offence is made out/i);
       observed[c.contract_id] = { supported: summary.supported, review: summary.review, notSupported: summary.total - summary.supported - rows.ingredients.filter((r) => r.chip === "review").length, banner: summary.text };
     }
-    // the IPC-text disclosure sits on the IPC-family offences the example invokes
-    for (const o of OFFENCES.filter((o) => o.ipcChecked && CONTRACT_IDS.some((id) => o.contracts.includes(id)))) {
+    // the IPC-text disclosure sits on the IPC-family offences the matter invokes
+    for (const o of MATTER_OFFENCES.filter((o) => o.ipcChecked)) {
       await expect(page.getByTestId("checklist").filter({ hasText: o.title }).first().getByTestId("ipc-disclosure")).toContainText(`s.${o.ipcChecked}`);
     }
 
@@ -165,7 +181,13 @@ for (let run = 1; run <= REPEATS; run++) {
 
     await test.info().attach("observed-screening", {
       contentType: "application/json",
-      body: JSON.stringify({ run, run_id: result.run_id, contracts: observed }),
+      body: JSON.stringify({
+        run, run_id: result.run_id, contracts: observed,
+        matter: MATTER_DOC_ID,
+        caveat: MATTER_CAVEAT,
+        not_screened: MATTER_NOT_SCREENED,
+        rehearsal: REHEARSAL,
+      }),
     });
   });
 }
