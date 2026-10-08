@@ -170,3 +170,11 @@ test("R1 (8 Oct): a suggestion is not a cited fact: its own chip text, not in N,
   const pm = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
   assert.doesNotMatch(pm, /A Lean check confirmed/);
 });
+
+test("R2 (8 Oct): the quote-check sentence is looked up by the table's OWN keys only (a prototype key finds nothing)", () => {
+  for (const key of ["constructor", "__proto__", "toString", "hasOwnProperty", "ok-but-not-a-key"]) {
+    const row = rowsFor(contract([el(0, { quote_source: "model", quote: "q", quote_check: key })]), FACTS).ingredients[0];
+    assert.equal(row.quote?.check, null, key);
+  }
+  assert.match(rowsFor(contract([el(0, { quote_source: "model", quote: "q", quote_check: "ok" })]), FACTS).ingredients[0].quote?.check ?? "", /exactly once/);
+});
