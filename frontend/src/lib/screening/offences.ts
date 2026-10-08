@@ -6,7 +6,7 @@ export interface Offence {
   title: string;
   bns: string | null;
   ipc: string | null;
-  /** One line shown with the title: the BNS section and its IPC equivalent. */
+  /** One line shown with the title: the BNS section and its IPC counterpart. */
   sections: string;
   contracts: readonly string[];
   /** The IPC section the engine actually judges against, set only where the BNS counterpart is not validated (the four IPC-family offences). */
@@ -14,7 +14,7 @@ export interface Offence {
 }
 
 const sections = (bns: string | null, ipc: string | null): string =>
-  [bns ? `BNS ${bns}` : null, ipc ? `IPC ${ipc}` : "no IPC equivalent"].filter(Boolean).join(" · ");
+  [bns ? `BNS ${bns}` : null, ipc ? `IPC ${ipc}` : "no IPC counterpart"].filter(Boolean).join(" · ");
 
 export const OFFENCES: readonly Offence[] = [
   { id: "breach-of-trust", title: "Criminal breach of trust", bns: "316", ipc: "405", sections: sections("316", "405"), contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers"], ipcChecked: "405" },

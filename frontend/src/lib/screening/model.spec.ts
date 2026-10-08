@@ -44,7 +44,7 @@ test("data: the offence table covers the 14 validated contracts exactly once, ea
   assert.deepEqual([...ids].sort(), Object.keys(contractElements.contracts).sort());
   assert.equal(new Set(ids).size, ids.length);
   assert.equal(offenceOf("bns85")?.sections, "BNS 85, 86 · IPC 498A");
-  assert.equal(offenceOf("bns69")?.sections, "BNS 69 · no IPC equivalent");
+  assert.equal(offenceOf("bns69")?.sections, "BNS 69 · no IPC counterpart");
   // the sources the pinned checker lists agree with the pair on each line
   assert.match(contractElements.contracts.ipc405_misappropriation.sources, /Indian Penal Code §405/);
   assert.match(contractElements.contracts.bns85.sources, /Bharatiya Nyaya Sanhita §85/);
