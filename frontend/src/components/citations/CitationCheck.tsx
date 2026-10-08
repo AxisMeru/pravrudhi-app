@@ -7,6 +7,41 @@ import { verifyCitation } from "@/lib/api";
 import { PREVIEW_LABEL } from "@/lib/citationCheck";
 import { runCitationCheck, type CitationCheckState } from "@/lib/citationCheckRun";
 
+/** What a finished (or failed) check shows: the engine's status verbatim with its note, or the honest refusal / invalid-input text. */
+export function CitationCheckResult({ state }: { state: CitationCheckState }) {
+  return (
+    <>
+    {(state.phase === "error" || state.phase === "invalid") && (
+      <p className="text-red-400" role="alert" data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
+        {state.message}
+      </p>
+    )}
+    {state.phase === "result" && (
+      <div data-testid="citation-check-result" className="rounded-md border border-[var(--color-border)] p-2">
+        <div className="font-mono text-sm text-[var(--color-text)]" data-testid="citation-check-status">
+          {state.view.status || "(no status)"}
+        </div>
+        {state.view.product && (
+          <p className="text-[var(--color-text)]" data-testid="citation-check-product-label">
+            {state.view.product.label}
+          </p>
+        )}
+        {!state.view.known && (
+          <p className="text-[var(--color-text-dim)]" data-testid="citation-check-unknown">
+            The engine sent a status this build does not know; it is shown as sent.
+          </p>
+        )}
+        {state.view.note && (
+          <p className="text-[var(--color-text)]" data-testid="citation-check-note">
+            {state.view.note}
+          </p>
+        )}
+      </div>
+    )}
+    </>
+  );
+}
+
 /** What one citation's check shows. Pure: the state in, markup out (the tests render this). */
 export function CitationCheckView({ state, onCheck, citation }: { state: CitationCheckState; onCheck: () => void; citation: string }) {
   const checking = state.phase === "checking";
@@ -25,33 +60,7 @@ export function CitationCheckView({ state, onCheck, citation }: { state: Citatio
       <span className="ml-2 text-[11px] text-amber-300" data-testid="citation-check-preview">
         {PREVIEW_LABEL}
       </span>
-      {(state.phase === "error" || state.phase === "invalid") && (
-        <p className="text-red-400" role="alert" data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
-          {state.message}
-        </p>
-      )}
-      {state.phase === "result" && (
-        <div data-testid="citation-check-result" className="rounded-md border border-[var(--color-border)] p-2">
-          <div className="font-mono text-sm text-[var(--color-text)]" data-testid="citation-check-status">
-            {state.view.status || "(no status)"}
-          </div>
-          {state.view.product && (
-            <p className="text-[var(--color-text)]" data-testid="citation-check-product-label">
-              {state.view.product.label}
-            </p>
-          )}
-          {!state.view.known && (
-            <p className="text-[var(--color-text-dim)]" data-testid="citation-check-unknown">
-              The engine sent a status this build does not know; it is shown as sent.
-            </p>
-          )}
-          {state.view.note && (
-            <p className="text-[var(--color-text)]" data-testid="citation-check-note">
-              {state.view.note}
-            </p>
-          )}
-        </div>
-      )}
+      <CitationCheckResult state={state} />
     </div>
   );
 }

@@ -1376,7 +1376,7 @@ export async function verifyCitation(
   citation: string,
   quote: string,
   signal?: AbortSignal,
-): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean }> {
+): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown }> {
   const path = "/api/v1/verify-citations";
   if (IS_DEMO) throw new ApiError(501, path);
   const localTok = await localToken();
@@ -1394,7 +1394,7 @@ export async function verifyCitation(
       authOptional: true,
     });
     if (!res.ok) throw await apiErrorFrom(res, path);
-    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean };
+    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
