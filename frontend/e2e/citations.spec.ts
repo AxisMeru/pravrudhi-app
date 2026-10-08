@@ -78,9 +78,13 @@ test("empty inputs send no request", async ({ page }) => {
   expect(calls).toBe(0);
 });
 
-test("the citation check is in the nav and open on the law-firm surface", async ({ page }) => {
+test("the citation check is not in the nav until the build turns it on, and the page still opens by URL", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD === "1", "the nav-on build is covered in citations-product-status.spec.ts");
   await page.goto("/matters");
-  await expect(page.getByRole("link", { name: "Citation check" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Matters" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Citation check" })).toHaveCount(0);
+  await page.goto("/citations");
+  await expect(page.getByTestId("citation-preview-label")).toBeVisible();
 });
 
 test("the product status fields are wired but OFF: an engine that sends them changes nothing on the page in this build", async ({ page }) => {

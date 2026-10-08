@@ -4,6 +4,7 @@
 // component owns rendering and keyboard handling, this file owns what there is to find and what happens when
 // something is chosen.
 
+import { CITATION_NAV_ENABLED, citationNavOffered } from "./citationNav";
 import {
   IS_DEMO,
   objectives as fetchObjectives,
@@ -54,9 +55,9 @@ export function isStudioOnlyHref(href: string): boolean {
 }
 
 // Runs are the operator's (pravrudhi#249): `showRuns` false drops the page from every palette surface.
-export function pagesFor(isStudio: boolean, demoPath: boolean = DEMO_PATH, showRuns: boolean = true): PalettePage[] {
+export function pagesFor(isStudio: boolean, demoPath: boolean = DEMO_PATH, showRuns: boolean = true, citationNav: boolean = CITATION_NAV_ENABLED): PalettePage[] {
   const pages = isStudio ? PALETTE_PAGES : PALETTE_PAGES.filter((p) => !STUDIO_ONLY_PAGES.has(p.id));
-  return pages.filter((p) => offeredInDemoPath(p.href, demoPath) && (showRuns || p.id !== "runs"));
+  return pages.filter((p) => offeredInDemoPath(p.href, demoPath) && citationNavOffered(p.href, citationNav) && (showRuns || p.id !== "runs"));
 }
 
 export const PALETTE_PAGES: PalettePage[] = [
