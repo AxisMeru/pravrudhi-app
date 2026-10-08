@@ -59,7 +59,7 @@ export function isReferReason(reason: string): reason is ReferReason {
 /** The signed sentences (docs/api/reason-codes.md), one per REFER reason, word for word. */
 export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; twoJudgesOnly: boolean }>> = {
   denial_unquotable: {
-    text: "The judge thinks a defeating fact exists but could not give a valid word-for-word quote for it. Please have a lawyer look.",
+    text: "The judge thinks a defeating fact exists but could not cite it in a way we can check. Please have a lawyer look.",
     twoJudgesOnly: false,
   },
   second_judge_defeater_disagreement: {
@@ -79,15 +79,15 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: true,
   },
   gate1_unavailable: {
-    text: "The entailment check (a separate check of the quoted words against the claim) was unavailable, so we give a referral, not an answer.",
+    text: "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
     twoJudgesOnly: false,
   },
   gate1_not_entailed: {
-    text: "The entailment check (a separate check of the quoted words against the claim) did not find enough support for it. Please have a lawyer look.",
+    text: "The entailment check (a separate check of the cited fact against the claim) did not find enough support for it. Please have a lawyer look.",
     twoJudgesOnly: false,
   },
   gate1_contradiction: {
-    text: "The entailment check (a separate check of the quoted words against the claim) found they contradict it. Please have a lawyer look.",
+    text: "The entailment check (a separate check of the cited fact against the claim) found the fact contradicts it. Please have a lawyer look.",
     twoJudgesOnly: false,
   },
   contract_not_validated: {
