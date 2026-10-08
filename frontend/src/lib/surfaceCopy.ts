@@ -12,9 +12,9 @@ export const CAVEATS: readonly { id: string; text: string }[] = [
   {
     id: "stack",
     text:
-      "Each contract is handled by two judge models and a Lean check: the judge models read your facts and quote the " +
-      "passages they rely on, and the Lean check confirms the right elements were addressed. The Lean check does not read " +
-      "your facts or the quotes.",
+      "Each contract is handled by two judge models and a Lean check: the judge models read your facts and cite the " +
+      "facts they rely on, and the Lean check confirms the right elements were addressed. The Lean check does not read " +
+      "your facts.",
   },
   {
     id: "validated",

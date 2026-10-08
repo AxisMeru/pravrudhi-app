@@ -44,12 +44,12 @@ export function quoteCheckPresentation(code: string | null | undefined): QuoteCh
   const raw = (code ?? "").trim();
   if (!raw) return null;
   if (Object.prototype.hasOwnProperty.call(QUOTE_CHECK_TEXT, raw)) return { show: raw !== "ok", text: QUOTE_CHECK_TEXT[raw], unknown: false };
-  return { show: true, text: `The quote check gave a result this app does not recognise yet ("${raw}").`, unknown: true };
+  return { show: true, text: `The check of the cited text gave a result this app does not recognise yet ("${raw}").`, unknown: true };
 }
 
 /** Which judge's confidence threshold a non-established element failed (`binding_leg`), in plain words; null for anything else. */
 export function bindingLegText(leg: string | null | undefined): string | null {
-  if (leg === "primary") return "Not established at the first judge's confidence threshold.";
-  if (leg === "second") return "Not established at the second judge's confidence threshold.";
+  if (leg === "primary") return "Not supported at the first judge's confidence threshold.";
+  if (leg === "second") return "Not supported at the second judge's confidence threshold.";
   return null;
 }

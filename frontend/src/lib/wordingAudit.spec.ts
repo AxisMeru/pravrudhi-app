@@ -34,3 +34,9 @@ test("a frontier file may say quote; any other file may not unless the allow-lis
   assert.equal(violations(house).length, 1);
   assert.equal(violations(house, new Set([`src/app/screening/page.tsx:passed the quote check`])).length, 0);
 });
+
+test("identifiers inside a template literal are not words; a single-word label property is", () => {
+  assert.equal(scanSource("src/x.ts", 'const a = `| ${cell(e.quote)} | ${quote} |`;').length, 0);
+  assert.equal(scanSource("src/x.ts", '  PROOF: { label: "established", tone: "x" },').length, 1);
+  assert.equal(scanSource("src/x.ts", '  const same = el.status === "established";').length, 0);
+});

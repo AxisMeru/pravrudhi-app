@@ -43,7 +43,7 @@ test("elementStatus: every canonical status has a mapping (trips if a fifth is a
 
 test("elementStatus: established is presented exactly as the page presented it before the extraction", () => {
   const p = elementStatusPresentation("established");
-  assert.equal(p.label, "established");
+  assert.equal(p.label, "supported by a fact");
   assert.equal(p.tone, "text-emerald-400 border-emerald-500/40 bg-emerald-500/10");
   assert.equal(p.verdict, "established");
 });
