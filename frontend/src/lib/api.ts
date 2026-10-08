@@ -1202,6 +1202,10 @@ export interface AnalyseFactsElement {
   binding_leg?: "primary" | "second" | null;
   claimed: boolean;
   p_established: number | null;
+  // The second judge's p (config C); null when no second judge ran. Additive and optional on older engines.
+  p_established_second?: number | null;
+  // The per-element screening signal (4B p, supported if >= its threshold); optional, absent until the engine sends it.
+  screening_signal?: { p: number; supported: boolean } | null;
   fact_id: string | null;
   quote: string | null;
   start: number | null;

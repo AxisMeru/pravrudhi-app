@@ -11,13 +11,13 @@ import { CAVEATS } from "./surfaceCopy";
 // Pins for the O8 lib/ rewrites (#84): each changed string is held EXACTLY, so a mutant that restores the old word or drops a clause fails.
 // Toy values only.
 
-test("demo step 3 title and body, exactly", () => {
-  const s = STEPS.find((x) => x.title.startsWith("See the status of each element"));
+test("demo step 3 title and body, exactly (the Screening flow: the three chips and the cited fact)", () => {
+  const s = STEPS.find((x) => x.title.startsWith("See which ingredients your facts support"));
   assert.ok(s);
-  assert.equal(s.title, "See the status of each element, and the fact cited behind each supported one");
+  assert.equal(s.title, "See which ingredients your facts support");
   assert.equal(
     s.body,
-    "Each supported element shows the fact of yours it cites, as you wrote it. The other elements show their status and the reason the engine gives; nothing is filled in to look complete.",
+    "Each ingredient is marked Supported by a fact, Not supported by these facts, or Needs your review, with the reason. A supported ingredient shows the fact of yours it cites, as you wrote it; nothing is filled in to look complete.",
   );
 });
 
