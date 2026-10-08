@@ -33,7 +33,7 @@ async function runWith(page: import("@playwright/test").Page, standard: unknown)
 
 test("a response without a standard says the engine reported none", async ({ page }) => {
   await runWith(page, undefined);
-  await expect(page.getByTestId("standard-line")).toHaveText("standard: not reported by this engine (the default is proved)");
+  await expect(page.getByTestId("standard-line")).toHaveText("standard: not reported by this engine (judged at the default standard of proof)");
   await expect(page.getByTestId("standard-notice")).toHaveCount(0);
 });
 
