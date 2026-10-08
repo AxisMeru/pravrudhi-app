@@ -16,7 +16,7 @@ test("referReason: every canonical reason has a mapping (trips if a tenth is add
     assert.doesNotThrow(() => referReasonPresentation(reason), `${reason} has no message mapping`);
     assert.equal(isReferReason(reason), true);
   }
-  assert.equal(REFER_REASONS.length, 9, "the canonical reason list changed — review the mapping and these tests");
+  assert.equal(REFER_REASONS.length, 10, "the canonical reason list changed — review the mapping and these tests");
 });
 
 test("referReason: the nine canonical reasons each get a distinct, non-empty message", () => {

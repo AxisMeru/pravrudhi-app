@@ -32,6 +32,19 @@ export const PRODUCT_STATUSES = ["verified", "quote_not_found", "not_in_index", 
 /** Words that never appear in a status label shown by this page. */
 const LABEL_BANNED = /\b(fake|fabricated|hallucinated|invalid|false)\b/i;
 
+/** The one product status each engine result maps to (application/citation_status.py); a reply whose pair differs is not shown as a product status. */
+const RESULT_TO_STATUS: Record<string, string> = {
+  VERIFIED: "verified",
+  EXISTS_QUOTE_NOT_FOUND: "quote_not_found",
+  NOT_IN_INDEX: "not_in_index",
+  CONFLICT: "conflict",
+  MALFORMED: "malformed",
+};
+/** Positive-claim words; a label carrying one anywhere is refused on every status but "verified". */
+const LABEL_POSITIVE = /\b(verif\w*|confirm\w*|authentic\w*|genuine|valid|correct|accurate|real|exists?|resolves?|appears)\b/;
+/** Case, width and invisible-character tricks must not slip a banned or positive word past the guards. */
+const foldLabel = (label: string): string => label.normalize("NFKC").replace(/[\p{Cf}]/gu, "").toLowerCase();
+
 /** Words the product never uses in its own text; an engine note that carries one is withheld rather than reworded. */
 const NOTE_BANNED = /\bfake\b/i;
 
@@ -55,17 +68,19 @@ export interface VerifyView {
 
 /**
  * The product status for a reply, or null. Fail closed: the flag must be on; the status must be one of the five; the label must be non-empty and
- * free of the banned words; a label may say "Verified" ONLY for status "verified" (and "verified" needs `verified` not to be false). Anything
+ * free of the banned words; a positive-claim word (verified, confirmed, exists, ...) may appear in a label ONLY for status "verified"; `result` and `status` must be the engine's own pair; `verified` must agree with the status. Anything
  * else falls back to the engine's `result` and `note`, never to a positive wording.
  */
 export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED): ProductStatus | null {
   if (!enabled) return null;
   const status = typeof reply.status === "string" ? reply.status.trim() : "";
   const label = typeof reply.label === "string" ? reply.label.trim() : "";
-  if (!(PRODUCT_STATUSES as readonly string[]).includes(status) || !label || LABEL_BANNED.test(label)) return null;
-  if (/^verified\b/i.test(label) && status !== "verified") return null;
-  if (status === "verified" && (reply.verified === false || reply.result !== "VERIFIED")) return null;
-  if (status !== "verified" && reply.result === "VERIFIED") return null;
+  if (!(PRODUCT_STATUSES as readonly string[]).includes(status) || !label) return null;
+  const folded = foldLabel(label);
+  if (LABEL_BANNED.test(folded)) return null;
+  if (status !== "verified" && LABEL_POSITIVE.test(folded)) return null;
+  if (RESULT_TO_STATUS[reply.result] !== status) return null;
+  if (status === "verified" ? reply.verified === false : reply.verified === true) return null;
   return { status, label, preview: reply.preview !== false };
 }
 

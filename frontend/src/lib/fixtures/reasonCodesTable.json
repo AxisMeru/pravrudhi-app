@@ -2,8 +2,8 @@
  "source": {
   "path": "docs/api/reason-codes.md (pravrudhi engine repository)",
   "ref": "origin/main",
-  "engine_sha": "e2c07e2948bd08cb827b91fe89ddce68e8b4aebb",
-  "file_sha256": "6d3ec402afcb794cf714ac02a5369641943d592b678abf819c39cb41cd87b9db",
+  "engine_sha": "ef9aff965d946bd7ee98402194c51d6764579cab",
+  "file_sha256": "cf1c80ad0f834422eb9f6052771fc6150e5a7cdc662f7f3eccdcff0ee460e932",
   "note": "Copied verbatim; the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
  },
  "reasons": {
@@ -65,6 +65,10 @@
   },
   "contract_not_validated": {
    "text": "This provision is not on the validated list, so we give a referral, not a proof or denial.",
+   "twoJudgesOnly": false
+  },
+  "input_too_long": {
+   "text": "The facts and question together are too long for the checker to read in one go, so we give a referral, not an answer. Please shorten them or have a lawyer look.",
    "twoJudgesOnly": false
   }
  },
