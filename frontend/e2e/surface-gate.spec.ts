@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
  * NOT YET RUN in CI: needs the built interface served by an engine (see README "Testing"); the unit specs in
  * src/lib/demoPath.spec.ts and src/lib/palette.spec.ts cover the same decision table.
  */
-const OPEN = ["/matters", "/settings", "/signin"];
+const OPEN = ["/screening", "/matters", "/settings", "/signin"];
 // Every page.tsx in src/app that is not open: the improvement loop's.
 const LOOP = ["/", "/start", "/objectives", "/objectives/detail", "/progress", "/memory", "/catalogue", "/chat", "/nyaya", "/runs", "/runs/view", "/models", "/install"];
 const ROUTES = [...OPEN, "/partner-keys", ...LOOP];
@@ -21,7 +21,7 @@ for (const path of LOOP) {
     await asEdition(page, "Pravrudhi", "member");
     await page.goto(path);
     if (path === "/") {
-      await page.waitForURL(/\/matters/);
+      await page.waitForURL(/\/screening/);
       return;
     }
     await expect(page.getByTestId("not-on-this-surface")).toBeVisible();
@@ -51,6 +51,7 @@ test("a member's navigation offers only the kept pages", async ({ page }) => {
   const offered = await page.locator("nav a[href]").evaluateAll((ls) => ls.map((a) => new URL((a as HTMLAnchorElement).href).pathname));
   for (const hidden of LOOP.filter((p) => p !== "/")) expect(offered).not.toContain(hidden);
   expect(offered).toContain("/matters");
+  expect(offered).toContain("/screening");
 });
 
 test("the walk covers every route", () => {
@@ -86,5 +87,5 @@ for (const path of VARIANTS) {
 test("a member who types /index.html (the Studio home) lands on Matters", async ({ page }) => {
   await asEdition(page, "Pravrudhi", "member");
   await page.goto("/index.html");
-  await page.waitForURL(/\/matters/);
+  await page.waitForURL(/\/screening/);
 });
