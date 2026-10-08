@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import test from "node:test";
 
 import { ApiError } from "./api";
-import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, NO_QUOTE_TEXT, checkCitations, coverageLine, parseCitationLines } from "./citationsPanel";
+import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, VERIFIED_WITHOUT_QUOTE_TEXT, checkCitations, coverageLine, parseCitationLines } from "./citationsPanel";
 
 // Invented citations and quotes only.
 
@@ -23,25 +23,28 @@ test("at most ten are taken; the rest are counted as skipped, never checked", ()
   assert.equal(skipped, 3);
 });
 
-test("the checks run one at a time, in order, and a line with no quote is not sent and is not given a status", async () => {
+test("the checks run one at a time, in order, and a line with no quote is SENT with a null quote (existence only)", async () => {
   const log: string[] = [];
   let active = 0;
   let maxActive = 0;
-  const verify = async (c: string) => {
+  const quotes: (string | null)[] = [];
+  const verify = async (c: string, q: string | null) => {
+    quotes.push(q);
     active += 1;
     maxActive = Math.max(maxActive, active);
     log.push(c);
     await new Promise((r) => setTimeout(r, 2));
     active -= 1;
-    return { result: "VERIFIED", note: "n" };
+    return { result: q === null ? "IN_INDEX" : "VERIFIED", note: "n" };
   };
   const { items } = parseCitationLines("A | qa\nB\nC | qc");
   const seen: number[] = [];
   const rows = await checkCitations(verify, items, undefined, (r) => seen.push(r.length));
-  assert.deepEqual(log, ["A", "C"]);
+  assert.deepEqual(log, ["A", "B", "C"]);
+  assert.deepEqual(quotes, ["qa", null, "qc"]);
   assert.equal(maxActive, 1);
   assert.equal(rows[0].state.phase, "result");
-  assert.deepEqual(rows[1].state, { phase: "needs_quote", message: NO_QUOTE_TEXT });
+  assert.equal(rows[1].state.phase, "result");
   assert.equal(rows[2].state.phase, "result");
   assert.ok(seen.length >= 3);
 });
@@ -90,8 +93,8 @@ test("the coverage the engine sent with a result is kept on that row", async () 
 
 test("an over-long citation or quote is NEVER cut: it reaches the length check and is refused, not checked as a prefix", async () => {
   const calls: string[] = [];
-  const verify = async (c: string, q: string) => {
-    calls.push(`${c.length}/${q.length}`);
+  const verify = async (c: string, q: string | null) => {
+    calls.push(`${c.length}/${(q ?? "").length}`);
     return { result: "VERIFIED", note: "n" };
   };
   const longCitation = "C".repeat(501);
@@ -120,4 +123,22 @@ test("a coverage object carrying BOTH counts prints the resolvable one and never
   assert.doesNotMatch(both, /38,657|38657/);
   assert.equal(coverageLine({ courts: ["Supreme Court"], judgments_in_index: 38657 }), COVERAGE_NOT_REPORTED);
   assert.equal(coverageLine({ courts: ["Supreme Court"], judgments: 38657 }), COVERAGE_NOT_REPORTED);
+});
+
+test("a line sent without a quote shows the engine's answer, and a VERIFIED answer to it is fail-closed: never shown as verified", async () => {
+  const stray = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2020) 3 SCC 456").items);
+  assert.equal(stray[0].state.phase, "error");
+  assert.equal(stray[0].state.phase === "error" && stray[0].state.message, VERIFIED_WITHOUT_QUOTE_TEXT);
+  const product = await checkCitations(async () => ({ result: "IN_INDEX", note: "n", status: "verified", label: "Verified", verified: true }), parseCitationLines("(2020) 3 SCC 456").items);
+  assert.equal(product[0].state.phase === "result" && product[0].state.view.status === "IN_INDEX" && product[0].state.view.product === null, true); // product wording is off: the stray flag cannot show
+  const inIndex = await checkCitations(async () => ({ result: "IN_INDEX", note: "The citation is in the index; no quote was checked." }), parseCitationLines("(2020) 3 SCC 456").items);
+  assert.equal(inIndex[0].state.phase === "result" && inIndex[0].state.view.status, "IN_INDEX");
+  // the same VERIFIED answer WITH a quote is a normal result
+  const withQuote = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2020) 3 SCC 456 | the words").items);
+  assert.equal(withQuote[0].state.phase === "result" && withQuote[0].state.view.status, "VERIFIED");
+});
+
+test("the coverage the engine sends, in its final shape, is worded from courts + resolvable_cases + the year range and prints no other count", () => {
+  const real = { courts: ["Supreme Court"], resolvable_cases: 3984, judgments_in_index: 38657, year_min: 1950, year_max: 2024 };
+  assert.equal(coverageLine(real), "Citations resolve for 3,984 Supreme Court judgments (1950 to 2024); other courts answer not in index, which is no evidence either way.");
 });

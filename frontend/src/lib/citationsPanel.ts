@@ -7,8 +7,8 @@ import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 export const MAX_CITATIONS = 10;
 
-/** Shown for a line with no quote until the engine can check existence alone (a quote is required today). Never a status. */
-export const NO_QUOTE_TEXT = "Not checked: add the quoted words after a | on the same line.";
+/** Shown instead of a result when the engine answers VERIFIED to a line sent WITHOUT a quote: that cannot be true (nothing was looked up in the text), so nothing is shown as verified. */
+export const VERIFIED_WITHOUT_QUOTE_TEXT = "The engine answered verified to a citation sent without a quote, which cannot be right, so no result is shown for it.";
 
 /** Shown when the engine's reply carries no recognised coverage. Never a typed-in claim about what the index holds. */
 export const COVERAGE_NOT_REPORTED = "Coverage not reported by the engine.";
@@ -46,7 +46,7 @@ export function parseCitationLines(text: string): ParsedCitations {
   return { items, skipped };
 }
 
-export type RowState = CitationCheckState | { phase: "needs_quote"; message: string };
+export type RowState = CitationCheckState;
 
 export interface PanelRow {
   item: CitationLine;
@@ -55,7 +55,15 @@ export interface PanelRow {
 
 type Verify = Parameters<typeof runCitationCheck>[0];
 
-/** Checks the items in order, one at a time; `onRow` fires after each so the screen fills as results arrive. A quote-less line is not sent. */
+/** A line sent without a quote can never be verified: a VERIFIED answer to one (the result or the product status) is turned into an error, not shown. */
+function failClosed(item: CitationLine, state: CitationCheckState): RowState {
+  if (item.quote !== null || state.phase !== "result") return state;
+  const v = state.view;
+  if (v.status === "VERIFIED" || v.product?.status === "verified") return { phase: "error", kind: "server", message: VERIFIED_WITHOUT_QUOTE_TEXT };
+  return state;
+}
+
+/** Checks the items in order, one at a time; `onRow` fires after each so the screen fills as results arrive. A quote-less line is SENT as an existence-only check. */
 export async function checkCitations(
   verify: Verify,
   items: readonly CitationLine[],
@@ -66,13 +74,9 @@ export async function checkCitations(
   for (let i = 0; i < rows.length; i += 1) {
     if (signal?.aborted) break;
     const { item } = rows[i];
-    if (item.quote === null) {
-      rows[i] = { item, state: { phase: "needs_quote", message: NO_QUOTE_TEXT } };
-    } else {
-      rows[i] = { item, state: { phase: "checking" } };
-      onRow?.([...rows]);
-      rows[i] = { item, state: await runCitationCheck(verify, item.citation, item.quote, signal) };
-    }
+    rows[i] = { item, state: { phase: "checking" } };
+    onRow?.([...rows]);
+    rows[i] = { item, state: failClosed(item, await runCitationCheck(verify, item.citation, item.quote, signal)) };
     onRow?.([...rows]);
   }
   return rows;
