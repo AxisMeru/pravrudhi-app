@@ -1,0 +1,5 @@
+{
+  "_source": "pravrudhi src/pravrudhi/application/nyaya_agent.py RETENTION_NOTICE (copied verbatim)",
+  "_engine_sha": "bce744968a997bc93ebf0e8a792ddba2dc94c5fc",
+  "text": "Don't submit real names or case details; anonymous submissions are kept up to 7 days for audit and are never used for training or evaluation."
+}

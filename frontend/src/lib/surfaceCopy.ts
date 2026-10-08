@@ -88,3 +88,14 @@ export const DO_NOT_CLAIM: readonly RegExp[] = [
   /saves? (you )?(hours?|time)|\d+\s*(hours?|minutes?) saved|\d+\s*%/i,
   /\bNI\s*138\b|negotiable instruments|cheque|dishonou?r/i,
 ];
+
+// Before-you-submit notice (design-partner audit gap 1). The text is the engine's own RETENTION_NOTICE, word for word (drift test against
+// fixtures/engineRetentionNotice.json); the page used to show it only after a result came back.
+export const PRE_SUBMIT_RETENTION = "Don't submit real names or case details; anonymous submissions are kept up to 7 days for audit and are never used for training or evaluation.";
+// Replaces "Files are read in your browser and never uploaded.", which read as if the text were not sent either.
+export const FILE_NOTE =
+  "The file itself is not uploaded; the text read from it, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
+// Under a result, only where the Citation check is offered (its nav flag).
+export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
+// Citation check: R1's text (checked against engine v0.5.46). The API-key and audit detail belongs in the API docs, not on this page.
+export const CITATION_RETENTION = "The citation check does not save the citation or the quote you enter.";
