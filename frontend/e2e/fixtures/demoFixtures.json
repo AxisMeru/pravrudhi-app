@@ -1,0 +1,62 @@
+{
+  "_note": "Three demo fact sets written for the demo. Every name, place and event is invented; none is drawn from any evaluation, holdout or court item. Each is written twice (plain and near-statutory wording) because the engine's judges can be sensitive to wording: the live spec runs both. `expect.outcomes` stays null until a fixture has been run at least 3 times in one window and the outcomes recorded on pravrudhi-app#18; the spec's outcome assertion turns strict only then (expect.recorded_runs >= 3).",
+  "fixtures": [
+    {
+      "id": "proof-path",
+      "label": "PROOF-capable: a promise to marry made with no intention of keeping it (validated contract bns69)",
+      "path": "proof",
+      "contract_ids": ["bns69"],
+      "wordings": {
+        "plain": [
+          "Meera and Arjun were in a relationship for two years. In March, Arjun told Meera he would marry her once his father returned from abroad.",
+          "In February, Arjun had written to a friend that he had already decided not to marry Meera and only wanted her to stay with him.",
+          "Because Arjun promised to marry her, Meera agreed in April to a sexual relationship with him."
+        ],
+        "formal": [
+          "The complainant, Meera, and the accused, Arjun, had been in a relationship for two years. In March the accused made a promise of marriage to the complainant, to be performed on his father's return from abroad.",
+          "In a message sent to a third person in February, before the promise was made, the accused recorded that he had resolved not to marry the complainant and wished only to keep her with him.",
+          "On the faith of the promise of marriage, the complainant consented in April to sexual intercourse with the accused."
+        ]
+      },
+      "expect": { "recorded_runs": 0, "outcomes": null }
+    },
+    {
+      "id": "abstain-path",
+      "label": "ABSTAIN: facts that do not show the required conditions (validated contract bns85)",
+      "path": "abstain",
+      "contract_ids": ["bns85"],
+      "wordings": {
+        "plain": [
+          "Nisha and Karan married in 2019 and live in Pune with his parents.",
+          "Nisha works as an engineer. Karan's mother cooks for the household and Nisha helps in the evenings.",
+          "The two families meet at festivals and have never had a complaint against each other."
+        ],
+        "formal": [
+          "The complainant, Nisha, and the accused, Karan, were married in 2019 and reside at Pune in the household of the accused's parents.",
+          "The complainant is employed as an engineer. The household's meals are prepared by the accused's mother, with the complainant assisting in the evenings.",
+          "The families of the parties meet on festive occasions, and no complaint of any kind has been made by either against the other."
+        ]
+      },
+      "expect": { "recorded_runs": 0, "outcomes": null }
+    },
+    {
+      "id": "refer-path",
+      "label": "REFER: a contract that is not validated is always referred (bns316_misappropriation)",
+      "path": "refer",
+      "contract_ids": ["bns316_misappropriation"],
+      "wordings": {
+        "plain": [
+          "Ravi gave his neighbour Sunil a laptop to keep safe while he travelled for a month.",
+          "While Ravi was away, Sunil sold the laptop online and spent the money on himself.",
+          "When Ravi returned and asked for it, Sunil said he had lost it."
+        ],
+        "formal": [
+          "The complainant, Ravi, entrusted a laptop computer to the accused, Sunil, for safe keeping during the complainant's absence of one month.",
+          "During that absence the accused sold the laptop through an online platform and applied the proceeds to his own use.",
+          "On the complainant's return and demand for the laptop, the accused stated that it had been lost."
+        ]
+      },
+      "expect": { "recorded_runs": 0, "outcomes": null }
+    }
+  ]
+}
