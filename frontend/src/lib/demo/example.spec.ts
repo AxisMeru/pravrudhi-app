@@ -34,10 +34,10 @@ test("the example selects the IPC contracts for the sections the complaint names
 
 import { STEPS } from "./steps";
 
-test("the demo steps do not say every element carries a quote: only established elements do", () => {
+test("the demo steps do not say every element cites a fact: only supported elements do", () => {
   const text = STEPS.map((x) => `${x.title}. ${x.body}`).join(" ");
   assert.doesNotMatch(text, /for every element/i);
-  assert.match(text, /Each established element shows the sentence of your facts/);
+  assert.match(text, /Each supported element shows the fact of yours it cites, as you wrote it/);
   assert.match(text, /The other elements show their status and the reason/);
   assert.equal(STEPS.length, 5);
 });
