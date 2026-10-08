@@ -1230,6 +1230,9 @@ export interface AnalyseFactsContract {
   assertions: Record<string, boolean> | null;
   lean: { verdict: string; denied_claims: string[]; unlicensed_claims: string[]; omitted_claims: string[] } | null;
   lean_outcome: string | null;
+  // Which pinned checker binary scored which exact input (engine: partner `lean_attestation`); null when no Lean call ran,
+  // absent from an older engine. Attests WHAT was scored and by WHICH binary, not that the facts are true.
+  lean_attestation?: { binary_sha256: string; wire_sha256: string; verdict: string } | null;
   uncertain: string[];
   statute_text_mismatch: boolean | null;
   // The provision text, for reference (engine: pravrudhi#308; absent from an older engine). `rule_text` is the provision

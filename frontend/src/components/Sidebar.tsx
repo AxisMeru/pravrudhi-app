@@ -24,6 +24,7 @@ import {
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AccountControl } from "@/components/AccountControl";
+import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
@@ -125,7 +126,7 @@ export function Sidebar() {
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
-        {NAV.filter(({ href }) => offeredInDemoPath(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
+        {NAV.filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
           .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
           .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
           .map(({ href, label, icon: Icon }) => {
