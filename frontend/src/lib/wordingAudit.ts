@@ -26,9 +26,12 @@ function candidates(line: string): string[] {
   const out: string[] = [];
   const noAttrs = line.replace(/\b(className|data-testid|data-kind|aria-controls|id|key|href|type|role|name|htmlFor)=("[^"]*"|\{[^}]*\})/g, "");
   for (const m of noAttrs.matchAll(LITERAL)) {
-    const s = m[1] ?? m[2] ?? m[3] ?? "";
+    // identifiers inside a template literal's ${...} are code, not words a reader sees
+    const s = (m[1] ?? m[2] ?? m[3] ?? "").replace(/\$\{[^}]*\}/g, " ");
     if (/\s/.test(s.trim()) && /[A-Za-z]{3}/.test(s)) out.push(s);
   }
+  // a single-word value of a text-bearing property (label: "established") is shown to the reader too
+  for (const m of noAttrs.matchAll(/\b(label|title|text|heading|description|subtitle)\s*:\s*"([^"\s]+)"/g)) out.push(m[2]);
   const jsx = noAttrs.match(/>([^<>{}]*[A-Za-z]{3}[^<>{}]*)</g);
   if (jsx) for (const j of jsx) out.push(j.slice(1, -1));
   return out;
