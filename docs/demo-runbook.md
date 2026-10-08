@@ -34,3 +34,12 @@ Each run: sign in, open Matters, tick the contract, paste the facts, Analyse, wa
 - **Wording sensitivity:** a judge's reading can change between a plain and a near-statutory wording of the same facts. That is why every fixture runs in both and the outcomes are recorded for each; a difference between wordings is a finding to report, not a flake to retry. The recorded expectation is per fixture and wording only after the 3 recorded runs.
 - **What is recorded when the 3 runs disagree:** an outcome is recorded for a fixture and wording only when all 3 runs gave the identical outcome; otherwise record null and report the split (for example 2 PROOF, 1 ABSTAIN) on the issue.
 - Results from these fixtures are pipeline-measured on invented facts: they are not evidence about real matters and are not quoted anywhere outside the issue.
+
+## Screening E2E (O8.5)
+
+The production check of the Screening view on the accepted fresh matter. One run is ONE analyse-facts call; it needs Lead-2's written go (call count, $ cap, window), the Screening PRs merged and deployed, and #59, #60 and #61 merged.
+
+- Run exactly: `cd frontend && LIVE_E2E_GO=1 SCREENING_LIVE_GO=1 SCREENING_MATTER_FILE=<path to the matter text> npx playwright test screening-live.spec.ts --project=live-chromium` with `E2E_EMAIL` and `E2E_PASSWORD` in the environment (`~/.config/pravrudhi/e2e.env`). **Never** `-- screening-live.spec.ts`.
+- The matter text is not in the repository (the repository is public and carries no real-person identifiers). `SCREENING_MATTER_FILE` points at the file the team holds; the spec checks its sha256 (f585f16b…6bc) and length (1,105) before anything is sent, and refuses a different text.
+- `SCREENING_LIVE_REPEATS` (default 1) repeats it; each run attaches `observed-screening` JSON with the run id, the doc id 9e77f94d, the caveat and the per-contract chip counts (pipeline-measured, n = the runs in the window).
+- Rehearsal, no network and no account: `SCREENING_LIVE_REHEARSAL=1 npx playwright test -c playwright.rehearsal.config.ts` against a local engine serving the built interface (recorded invented answers).
