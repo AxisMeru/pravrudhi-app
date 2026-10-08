@@ -48,7 +48,7 @@ export default defineConfig({
       ? [
           {
             name: "live-chromium",
-            testMatch: ["live.spec.ts", "matters-live.spec.ts", "nyaya-live.spec.ts", "demo-live.spec.ts"],
+            testMatch: ["live.spec.ts", "matters-live.spec.ts", "nyaya-live.spec.ts", "demo-live.spec.ts", "screening-live.spec.ts"],
             // A little more patience than the local-engine default: real network latency to a real, cold
             // hosted engine, not a process on localhost.
             timeout: 60_000,
