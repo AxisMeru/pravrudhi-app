@@ -81,8 +81,10 @@ test("planted failures are each caught", () => {
     ["fact count differs", (r) => r.facts.pop(), /echoed 2 facts for 3 submitted/],
     ["no retention notice", (r) => delete (r as { retention_notice?: string }).retention_notice, /retention notice/],
     ["missing elements", (r) => (r.contracts[0].elements = []), /no element rows/],
-    ["established element without a quote", (r) => (r.contracts[0].elements[0].quote = null), /no quote/],
-    ["a quote not in the facts", (r) => (r.contracts[0].elements[0].quote = "words that were never submitted"), /not verbatim/],
+    ["a model-cited element without a quote", (r) => (r.contracts[0].elements[0].quote = null), /no quote/],
+    ["a model quote not in the facts", (r) => (r.contracts[0].elements[0].quote = "words that were never submitted"), /not verbatim/],
+    ["a whole-fact citation naming a fact that was not submitted", (r) => { r.contracts[0].elements[0].quote_source = "whole_fact"; r.contracts[0].elements[0].fact_id = "F99"; }, /is not one of the submitted facts/],
+    ["an empty citation_note", (r) => (r.contracts[0].elements[0].citation_note = "  "), /citation_note is present but empty/],
     ["no established element in a PROOF", (r) => (r.contracts[0].elements[0].status = "not_established"), /no established element/],
     ["no citations", (r) => (r.contracts[0].citations = null), /no citations array/],
     ["empty citations", (r) => (r.contracts[0].citations = []), /citations is empty/],
@@ -96,6 +98,22 @@ test("planted failures are each caught", () => {
     const violations = checkDemoResult(r, facts, f);
     assert.ok(violations.some((v) => expected.test(v)), `${name}: expected ${expected}, got ${JSON.stringify(violations)}`);
   }
+});
+
+test("a whole-fact citation passes with no quote claim: no quote, or a quote that is not verbatim, is not a violation", () => {
+  const f = byId("proof-path");
+  const facts = f.wordings.plain;
+  for (const quote of [null, "words that were never submitted"]) {
+    const r = resultFor(f, facts);
+    const e = r.contracts[0].elements[0];
+    e.quote_source = "whole_fact";
+    e.quote = quote;
+    assert.deepEqual(checkDemoResult(r, facts, f), [], String(quote));
+  }
+  const none = resultFor(f, facts);
+  none.contracts[0].elements[0].quote_source = null;
+  none.contracts[0].elements[0].quote = null;
+  assert.deepEqual(checkDemoResult(none, facts, f), [], "no source means no claim");
 });
 
 test("a REFER with an unknown reason, and an ABSTAIN with an unknown reason, are caught", () => {

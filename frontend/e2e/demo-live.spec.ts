@@ -8,8 +8,8 @@ import { checkDemoResult, checkMemoText, type DemoFixture } from "../src/lib/dem
 /**
  * The scripted demo E2E (pravrudhi-app#18): three invented fact sets (PROOF-capable, ABSTAIN, REFER), each in a plain and a
  * near-statutory wording, run against the DEPLOYED app and judge, with content assertions (src/lib/demo/liveCheck.ts, which is
- * itself unit-tested with planted failures): result card per contract, element rows, quotes present word for word in the
- * submitted facts, citations, hashes, retention notice, the recorded outcome once it binds, and the downloaded memo.
+ * itself unit-tested with planted failures): result card per contract, element rows, the cited fact (a model quote word for word in
+ * the submitted facts, or a whole-fact citation naming a submitted fact, with no quote claim), citations, hashes, retention notice, the recorded outcome once it binds, and the downloaded memo.
  *
  * NOT RUN BY DEFAULT. A production run needs Lead-2's written go (set DEMO_LIVE_GO=1 for the window it was granted for) and the
  * e2e member account in the environment (E2E_EMAIL / E2E_PASSWORD). Objective and metrics are on #18. It must not run before
