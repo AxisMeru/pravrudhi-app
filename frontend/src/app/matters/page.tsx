@@ -18,6 +18,7 @@ import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
+import { highlightQuote, leanAttestationView } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { referFirst } from "@/lib/contractOrder";
@@ -60,7 +61,7 @@ function OutcomeBadge({ outcome }: { outcome: string }) {
   );
 }
 
-function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
+function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number]; facts: ReadonlyArray<{ id: string; text: string }> }) {
   // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
@@ -68,6 +69,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   // A quote-check cause is only meaningful for a model quote; a whole-fact or unstated citation has no quote to check (R1, 8 Oct).
   const quoteCheck = el.quote_source === "model" ? quoteCheckPresentation(el.quote_check) : null;
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
+  const view = highlightQuote(facts, el);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
@@ -93,6 +95,16 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
           <>
             <span className="italic">&ldquo;{el.quote}&rdquo;</span>
             {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
+            {view.kind === "highlight" && (
+              <div className="mt-1 text-xs not-italic" data-testid="quote-in-fact">
+                <span className="text-[11px]">In fact {view.factId}: </span>
+                {view.cutBefore && "…"}
+                {view.before}
+                <mark className="rounded-sm bg-amber-500/25 px-0.5 text-[var(--color-text)]">{view.quote}</mark>
+                {view.after}
+                {view.cutAfter && "…"}
+              </div>
+            )}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
@@ -115,7 +127,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   );
 }
 
-function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: ValidationMark }) {
+function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: ValidationMark; facts: ReadonlyArray<{ id: string; text: string }> }) {
   if (isUncovered(c)) {
     return (
       <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -175,7 +187,7 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
             </thead>
             <tbody>
               {c.elements.map((el, i) => (
-                <ElementRow key={`${el.element}-${i}`} el={el} />
+                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
               ))}
             </tbody>
           </table>
@@ -197,6 +209,19 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
           {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
+          {(() => {
+            const att = leanAttestationView(c.lean_attestation);
+            return att && (
+              <div className="mt-2 border-t border-[var(--color-border)] pt-2 text-[var(--color-text-dim)]" data-testid="lean-attestation">
+                <div>{att.note}</div>
+                {att.rows.map((r) => (
+                  <div key={r.label} className="mt-1 break-all">
+                    {r.label}: <code title={r.full} className="text-[11px]">{r.full}</code>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -522,7 +547,7 @@ export default function MattersPage() {
               </button>
             </div>
             {referFirst(result.contracts).map((c) => (
-              <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} />
+              <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} facts={result.facts} />
             ))}
             <StatuteNotice />
           </div>
