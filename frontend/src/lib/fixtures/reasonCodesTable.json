@@ -1,18 +1,18 @@
 {
  "source": {
   "path": "docs/api/reason-codes.md (pravrudhi engine repository)",
-  "ref": "origin/main",
-  "engine_sha": "e2c07e2948bd08cb827b91fe89ddce68e8b4aebb",
-  "file_sha256": "6d3ec402afcb794cf714ac02a5369641943d592b678abf819c39cb41cd87b9db",
+  "ref": "d67b43c4",
+  "engine_sha": "d67b43c46c1e3c564635eb9e518d366b36f0613e",
+  "file_sha256": "81f90dfa66646669750ee7119a510dd7295571c8cd68c4bc08d9a87c3abcd603",
   "note": "Copied verbatim; the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
  },
  "reasons": {
   "all_elements_established": {
-   "text": "The judge found every condition this provision requires in words quoted from your facts, and found no fact that defeats the claim.",
+   "text": "The judge found every condition this provision requires shown in your facts, citing a fact for each (see each element's `citation_note`), and found no fact that defeats the claim.",
    "twoJudgesOnly": false
   },
   "denial_established": {
-   "text": "The judge found a fact in your case that defeats this claim, and quoted it.",
+   "text": "The judge found a fact in your case that defeats this claim, and cited it.",
    "twoJudgesOnly": false
   },
   "missing_element": {
@@ -32,7 +32,7 @@
    "twoJudgesOnly": false
   },
   "denial_unquotable": {
-   "text": "The judge thinks a defeating fact exists but could not give a valid word-for-word quote for it. Please have a lawyer look.",
+   "text": "The judge thinks a defeating fact exists but could not cite it in a way we can check. Please have a lawyer look.",
    "twoJudgesOnly": false
   },
   "second_judge_defeater_disagreement": {
@@ -52,24 +52,28 @@
    "twoJudgesOnly": true
   },
   "gate1_unavailable": {
-   "text": "The entailment check (a separate check of the quoted words against the claim) was unavailable, so we give a referral, not an answer.",
+   "text": "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
    "twoJudgesOnly": false
   },
   "gate1_not_entailed": {
-   "text": "The entailment check (a separate check of the quoted words against the claim) did not find enough support for it. Please have a lawyer look.",
+   "text": "The entailment check (a separate check of the cited fact against the claim) did not find enough support for it. Please have a lawyer look.",
    "twoJudgesOnly": false
   },
   "gate1_contradiction": {
-   "text": "The entailment check (a separate check of the quoted words against the claim) found they contradict it. Please have a lawyer look.",
+   "text": "The entailment check (a separate check of the cited fact against the claim) found the fact contradicts it. Please have a lawyer look.",
    "twoJudgesOnly": false
   },
   "contract_not_validated": {
    "text": "This provision is not on the validated list, so we give a referral, not a proof or denial.",
    "twoJudgesOnly": false
+  },
+  "input_too_long": {
+   "text": "The facts and question together are too long for the checker to read in one go, so we give a referral, not an answer. Please shorten them or have a lawyer look.",
+   "twoJudgesOnly": false
   }
  },
  "quote_check": {
-  "ok": "The judge's quoted words appear exactly once in the fact they name.",
+  "ok": "The cited text appears exactly once in the fact named (the judge's quoted words, or, when the judge only names the fact, the fact itself).",
   "not_established": "The judge did not find this condition shown in your facts.",
   "no_quote": "The judge said this condition holds but gave no words to show it.",
   "unknown_fact": "The judge pointed to a fact that is not among yours.",
