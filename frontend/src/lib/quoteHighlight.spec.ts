@@ -31,6 +31,31 @@ test("a span that equals the whole fact shows the cited fact once, plain: no pas
   }
 });
 
+test("a span touching only one end of the fact is still a strict part: a prefix (start 0, end < length) and a suffix (start > 0, end = length) are PASSAGES, never the whole fact", () => {
+  const f = FACTS[0].text; // "The tenant paid the deposit on the first day of the month."
+  const n = Array.from(f).length;
+  const prefix = citedFactView(FACTS, el({ quote: "The tenant paid the deposit", start: 0, end: 27 }));
+  assert.equal(prefix.kind, "passage");
+  if (prefix.kind === "passage") {
+    assert.equal(prefix.before, "");
+    assert.equal(prefix.quote, "The tenant paid the deposit");
+    assert.equal(prefix.cutBefore, false);
+    assert.equal(prefix.after, f.slice(27));
+  }
+  const suffix = citedFactView(FACTS, el({ quote: "of the month.", start: n - 13, end: n }));
+  assert.equal(suffix.kind, "passage");
+  if (suffix.kind === "passage") {
+    assert.equal(suffix.after, "");
+    assert.equal(suffix.cutAfter, false);
+    assert.equal(suffix.quote, "of the month.");
+  }
+  // the whole fact stays whole: start 0 and end = length
+  assert.equal(citedFactView(FACTS, el({ quote: f, start: 0, end: n })).kind, "fact");
+  // one code point short at either end is already a passage
+  assert.equal(citedFactView(FACTS, el({ quote: f.slice(0, n - 1), start: 0, end: n - 1 })).kind, "passage");
+  assert.equal(citedFactView(FACTS, el({ quote: f.slice(1), start: 1, end: n })).kind, "passage");
+});
+
 test("offsets that cannot be used show the cited fact once, plain, never a mark", () => {
   const whole = { kind: "fact", factId: "F1", text: FACTS[0].text };
   assert.deepEqual(citedFactView(FACTS, el({ offsets_source: "model" })), whole);
