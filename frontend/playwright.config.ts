@@ -33,7 +33,7 @@ export default defineConfig({
       name: "product-chromium",
       testMatch: [
         "product.spec.ts", "signin-guards.spec.ts",
-        "matters.spec.ts", "matters-upload.spec.ts", "benchmarks.spec.ts", "citations.spec.ts", "citations-product-status.spec.ts", "refer-strings.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts", "standard-line.spec.ts",
+        "matters.spec.ts", "matters-upload.spec.ts", "matters-evidence.spec.ts", "matters-notice.spec.ts", "matters-picker.spec.ts", "benchmarks.spec.ts", "citations.spec.ts", "citations-product-status.spec.ts", "refer-strings.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts", "standard-line.spec.ts",
       ],
     },
     {

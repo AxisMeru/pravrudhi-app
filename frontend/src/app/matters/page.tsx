@@ -13,19 +13,23 @@
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
-import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
+import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
-import { validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
+import Link from "next/link";
+import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
+import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -57,13 +61,14 @@ function OutcomeBadge({ outcome }: { outcome: string }) {
   );
 }
 
-function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
+function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number]; facts: ReadonlyArray<{ id: string; text: string }> }) {
   // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
   // Why a quote was rejected (the engine's quote check), and which judge's threshold a non-established element failed.
   const quoteCheck = quoteCheckPresentation(el.quote_check);
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
+  const view = citedFactView(facts, el);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
@@ -85,7 +90,27 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
         {el.quote ? (
           <>
-            <span className="italic">&ldquo;{el.quote}&rdquo;</span>
+            {view.kind === "passage" ? (
+              <div className="text-xs not-italic" data-testid="cited-passage">
+                <span className="text-[11px]">Passage within the cited fact {view.factId}: </span>
+                {view.cutBefore && "…"}
+                {view.before}
+                <mark className="rounded-sm bg-amber-500/25 px-0.5 text-[var(--color-text)]">{view.quote}</mark>
+                {view.after}
+                {view.cutAfter && "…"}
+              </div>
+            ) : view.kind === "fact" ? (
+              <div className="text-xs not-italic" data-testid="cited-fact">
+                <span className="text-[11px]">Cited fact {view.factId}: </span>
+                {view.text}
+              </div>
+            ) : (
+              <span className="italic" data-testid="cited-fact-fallback">
+                <span className="text-[11px] not-italic">Cited fact: </span>
+                {/* curly marks only for words a judge wrote; a whole fact cited in full is not a quotation */}
+                {el.quote_source === "model" ? <>&ldquo;{el.quote}&rdquo;</> : el.quote}
+              </span>
+            )}
             {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
           </>
         ) : el.error ? (
@@ -109,7 +134,7 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   );
 }
 
-function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: ValidationMark }) {
+function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: ValidationMark; facts: ReadonlyArray<{ id: string; text: string }> }) {
   if (isUncovered(c)) {
     return (
       <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
@@ -157,23 +182,32 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
       })()}
 
       {c.elements.length > 0 && (
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="text-xs text-[var(--color-text-dim)]">
-              <th className="pb-1 pr-3 font-medium">element</th>
-              <th className="pb-1 pr-3 font-medium">status</th>
-              <th className="pb-1 font-medium">quote (verbatim from your facts)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {c.elements.map((el, i) => (
-              <ElementRow key={`${el.element}-${i}`} el={el} />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
+            <thead>
+              <tr className="text-xs text-[var(--color-text-dim)]">
+                <th scope="col" className="pb-1 pr-3 font-medium">element</th>
+                <th scope="col" className="pb-1 pr-3 font-medium">status</th>
+                <th scope="col" className="pb-1 font-medium">cited fact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {c.elements.map((el, i) => (
+                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <StatuteBeside citations={c.citations} />
+
+      {noStructuralCheckLine(c.outcome, c.lean) && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="no-structural-check">
+          {noStructuralCheckLine(c.outcome, c.lean)}
+        </p>
+      )}
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
@@ -188,6 +222,19 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
           {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
+          {(() => {
+            const att = leanAttestationView(c.lean_attestation);
+            return att && (
+              <div className="mt-2 border-t border-[var(--color-border)] pt-2 text-[var(--color-text-dim)]" data-testid="lean-attestation">
+                <div>{att.note}</div>
+                {att.rows.map((r) => (
+                  <div key={r.label} className="mt-1 break-all">
+                    {r.label}: <code title={r.full} className="text-[11px]">{r.full}</code>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -222,6 +269,8 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [contractsLoaded, setContractsLoaded] = useState(false);
+  const [contractsTry, setContractsTry] = useState(0);
   // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
   const [exampleActive, setExampleActive] = useState(false);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
@@ -229,6 +278,7 @@ export default function MattersPage() {
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
     let off = false;
@@ -270,7 +320,9 @@ export default function MattersPage() {
     nyayaRegistryContracts()
       .then((cs) => {
         if (off) return;
+        setContractsError(null);
         setContracts(cs);
+        setContractsLoaded(true);
         if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
           setSelected(new Set(EXAMPLE_CONTRACTS.filter((id) => cs.includes(id))));
         }
@@ -282,7 +334,7 @@ export default function MattersPage() {
     return () => {
       off = true;
     };
-  }, []);
+  }, [contractsTry]);
 
   function toggleContract(id: string) {
     setSelected((prev) => {
@@ -343,6 +395,7 @@ export default function MattersPage() {
         )}
         <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
           </label>
@@ -373,7 +426,7 @@ export default function MattersPage() {
             }}
           />
           <p className="text-xs text-[var(--color-text-dim)]">
-            Files are read in your browser and never uploaded. Review and edit the text before analysing.
+            {FILE_NOTE}
           </p>
           <textarea
             id="matters-facts"
@@ -398,10 +451,17 @@ export default function MattersPage() {
 
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium text-[var(--color-text)]">Contracts to check against</legend>
-            {contractsError ? (
-              <p className="text-sm text-red-400">{contractsError}</p>
-            ) : contracts.length === 0 ? (
-              <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>
+            {picker === "error" ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
+                  Try again
+                </button>
+              </div>
+            ) : picker === "empty" ? (
+              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+            ) : picker === "loading" ? (
+              <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {contracts.map((id) => (
@@ -484,6 +544,11 @@ export default function MattersPage() {
                 </div>
               );
             })()}
+            {CITATION_NAV_ENABLED && (
+              <p className="text-sm text-[var(--color-text-dim)] print:hidden" data-testid="citation-next-step">
+                <Link href="/citations" className="underline">{CITATION_NEXT_STEP}</Link>
+              </p>
+            )}
             <div className="flex gap-2 print:hidden" data-testid="memo-actions">
               <button
                 type="button"
@@ -501,7 +566,7 @@ export default function MattersPage() {
               </button>
             </div>
             {result.contracts.map((c) => (
-              <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} />
+              <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} facts={result.facts} />
             ))}
             <StatuteNotice />
           </div>
