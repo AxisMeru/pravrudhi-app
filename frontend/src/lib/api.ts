@@ -1213,6 +1213,8 @@ export interface AnalyseFactsElement {
   // Who supplied the quote (e.g. "model") -- shown per element so the element table can name the exact
   // fact behind each claim, not just the final verdict (LEG-PLAN P3/L4 requirement).
   quote_source: string | null;
+  // The engine's own sentence for how the element cites its support (additive; absent on an older engine).
+  citation_note?: string | null;
   error: string | null;
 }
 

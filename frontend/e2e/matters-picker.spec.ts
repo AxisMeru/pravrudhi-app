@@ -73,7 +73,7 @@ test("a referral is listed before the other results, whatever order the engine a
   await expect(page.locator("article").nth(1)).toContainText("bns69");
 });
 
-test("the cited-fact cell branches on quote_source: a whole fact says so and shows no quote, a checked model quote says it passed the quote check", async ({ page }) => {
+test("the cited-fact cell branches on quote_source: a whole fact says so and shows no quote, the engine's citation_note is shown when sent", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69"], entries: [{ id: "bns69", validated: true }] } }));
   const el = { is_denial: false, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
   await page.route("**/api/v1/analyse-facts**", (r) =>
@@ -83,7 +83,7 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [
-            { ...el, element: "first", fact_id: "f1", quote: "INVENTED MODEL QUOTE", quote_source: "model", quote_check: "ok" },
+            { ...el, element: "first", fact_id: "f1", quote: "INVENTED MODEL QUOTE", quote_source: "model", quote_check: "ok", citation_note: "INVENTED ENGINE SENTENCE" },
             { ...el, element: "second", fact_id: "f2", quote: "INVENTED WHOLE FACT", quote_source: "whole_fact", quote_check: "ok" },
           ],
         }],
@@ -95,7 +95,7 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
   await page.getByText("bns69").click();
   await page.getByRole("button", { name: "Analyse" }).click();
   const notes = page.getByTestId("cited-fact-note");
-  await expect(notes.nth(0)).toHaveText("— word-for-word quote that passed the quote check");
+  await expect(notes.nth(0)).toHaveText("— INVENTED ENGINE SENTENCE");
   await expect(notes.nth(1)).toHaveText("cites your fact f2 in full (the judge names the fact; it does not quote words)");
   await expect(page.getByText("INVENTED MODEL QUOTE")).toBeVisible();
   await expect(page.getByText("INVENTED WHOLE FACT")).toHaveCount(0);

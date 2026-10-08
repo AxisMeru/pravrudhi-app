@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { citationKind, citationNote, memoCitationCell, memoCitationHeader } from "./citedFact";
+import { NEUTRAL_NOTE, citationKind, citationNote, memoCitationCell, memoCitationHeader } from "./citedFact";
 
 const model = { quote: "an invented sentence", quote_source: "model", quote_check: "ok", fact_id: "f1" };
 const whole = { quote: "an invented sentence", quote_source: "whole_fact", quote_check: "ok", fact_id: "f2" };
@@ -16,13 +16,16 @@ test("the wording branches on quote_source: model quote, whole fact, or no claim
   assert.equal(citationKind({ quote: null, quote_source: "model" }), "none");
 });
 
-test("a model quote is called word-for-word only when the quote check says ok; a whole fact names the fact and says it does not quote words", () => {
-  assert.equal(citationNote(model), "word-for-word quote that passed the quote check");
-  assert.equal(citationNote({ ...model, quote_check: "quote_not_found" }), null);
-  assert.equal(citationNote({ ...model, quote_check: null }), null);
+test("the engine's citation_note is used when it is there; without it the page makes no quote claim", () => {
+  assert.equal(citationNote({ ...model, citation_note: "the engine's own sentence" }), "the engine's own sentence");
+  assert.equal(citationNote({ ...whole, citation_note: "  another engine sentence " }), "another engine sentence");
+  assert.equal(citationNote({ ...model, citation_note: "" }), NEUTRAL_NOTE);
+  assert.equal(citationNote(model), NEUTRAL_NOTE);
+  assert.equal(citationNote({ ...model, quote_check: "quote_not_found" }), NEUTRAL_NOTE);
   assert.equal(citationNote(whole), "cites your fact f2 in full (the judge names the fact; it does not quote words)");
   assert.equal(citationNote({ ...whole, fact_id: null }), "cites your fact in full (the judge names the fact; it does not quote words)");
   assert.equal(citationNote({ quote: "x", quote_source: "something_new" }), null);
+  assert.ok(!/word-for-word|verbatim/i.test(NEUTRAL_NOTE));
 });
 
 test("the memo says Supporting quote only for model quotes, and Cited fact otherwise", () => {
@@ -30,8 +33,9 @@ test("the memo says Supporting quote only for model quotes, and Cited fact other
   assert.equal(memoCitationHeader([whole]), "Cited fact");
   assert.equal(memoCitationHeader([model, whole]), "Cited fact");
   assert.equal(memoCitationHeader([{ quote: null }]), "Cited fact");
-  assert.equal(memoCitationCell(model), '"an invented sentence" (f1)');
-  assert.equal(memoCitationCell(whole), "cites fact f2 in full");
+  assert.equal(memoCitationCell(model), '"an invented sentence" (f1) (cites the supporting fact)');
+  assert.equal(memoCitationCell({ ...model, citation_note: "engine sentence" }), '"an invented sentence" (f1) (engine sentence)');
+  assert.equal(memoCitationCell(whole), "cites your fact f2 in full (the judge names the fact; it does not quote words)");
   assert.equal(memoCitationCell({ quote: null }), "no cited fact");
 });
 
