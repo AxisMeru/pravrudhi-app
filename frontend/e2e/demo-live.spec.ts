@@ -53,7 +53,9 @@ for (const fixture of FIXTURES) {
         await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
         // Outside the service window the hosted demo says so and refuses to send: skipped, with the reason, not failed.
         const offline = page.getByTestId("matters-offline");
-        test.skip(await offline.isVisible().catch(() => false), `outside the service window: ${await offline.innerText().catch(() => "")}`);
+        // Lazily: innerText() on an element that is not there waits for the whole test timeout, so only read the notice when it is visible.
+        const closed = await offline.isVisible().catch(() => false);
+        test.skip(closed, `outside the service window: ${closed ? await offline.innerText() : ""}`);
 
         const group = page.getByRole("group", { name: "Contracts to check against" });
         for (const id of fixture.contract_ids) {
