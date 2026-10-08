@@ -35,7 +35,7 @@ test("a referral shows the heading, then the signed sentence on its own", async 
   await runWith(page, "gate1_unavailable");
   await expect(page.getByTestId("referred-heading")).toHaveText("Referred to a lawyer");
   await expect(page.getByTestId("referred-sentence")).toHaveText(
-    "The entailment check (a separate check of the quoted words against the claim) was unavailable, so we give a referral, not an answer.",
+    "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
   );
   await expect(page.getByTestId("referred-two-judges")).toHaveCount(0);
   await expect(page.getByText(/must decide this matter|should be reviewed by a lawyer/)).toHaveCount(0);

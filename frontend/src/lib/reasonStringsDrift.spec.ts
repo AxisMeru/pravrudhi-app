@@ -72,10 +72,19 @@ test("every REFER reason's message is the signed sentence, verbatim", () => {
   }
 });
 
-test("every other reason's text and every quote check's text is the signed sentence, verbatim", () => {
+// The ONE sanctioned difference between the engine's table and a member-facing sentence: the engine row points a developer at the response field
+// (`citation_note`); the member never sees an API field name (R1, 8 Oct). Exactly this parenthetical, exactly on this code, and nothing else.
+const API_FIELD_POINTER = " (see each element's `citation_note`)";
+const WITHOUT_API_FIELD: Readonly<Record<string, string>> = { all_elements_established: API_FIELD_POINTER };
+
+test("every other reason's text and every quote check's text is the signed sentence, verbatim (but for the API-field pointer)", () => {
   for (const [code, signed] of Object.entries(TABLE.reasons)) {
     if ((REFER_REASONS as readonly string[]).includes(code)) continue;
-    assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(signed.text), code);
+    const drop = WITHOUT_API_FIELD[code];
+    const expected = drop ? signed.text.replace(drop, "") : signed.text;
+    if (drop) assert.ok(signed.text.includes(drop), `${code}: the engine row no longer carries the pointer; remove this exception`);
+    assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(expected), code);
+    if (drop) assert.doesNotMatch(NON_REFER_REASON_TEXT[code] ?? "", /citation_note|`/, `${code}: an API field name reached a member-facing sentence`);
   }
   for (const [code, text] of Object.entries(TABLE.quote_check)) assert.equal(norm(QUOTE_CHECK_TEXT[code] ?? ""), norm(text), code);
 });

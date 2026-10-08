@@ -3,8 +3,8 @@
 // traffic, another court population, or another product, and no figure appears anywhere else in the interface.
 
 export const SAFETY_LABEL =
-  "Real High Court material, sealed Obj-1b, the production configuration with two judges (4B judge on our own machine, 32B judge on the production serverless " +
-  "endpoint); one run, one seed. Descriptive of this sealed set, not production traffic.";
+  "Real High Court material, the Obj-1b set, kept out of our judges' training data but read once by a general-purpose model in an earlier study; measured with two judges (4B judge on our own " +
+  "machine, 32B judge on the serverless endpoint); one run, one seed. Descriptive of this set, not production traffic.";
 
 export const ASSIST_LINE = "This assists a lawyer; it is not a verdict.";
 
@@ -26,21 +26,21 @@ export const SAFETY_FIGURES: readonly SafetyFigure[] = [
     id: "coverage",
     heading: "Court-established items proved",
     text:
-      "0 of 31. No court-established item was proved on this material: the product abstains rather than proves here. That is " +
+      "0 of 31. No court-established item was proved on this material: it refers or abstains rather than proves here. That is " +
       "a statement about what it did on this set, not a statement that such items are unsafe.",
   },
 ];
 
 export const SAFETY_MATERIAL =
-  "A sealed set of 372 real court items. 51 were set aside because the design sends them straight to a lawyer without a " +
+  "A fixed set of 372 real court items, kept out of our judges' training data; a general-purpose AI model read it in an earlier study, so it is no longer unseen by every model. 51 were set aside because the design sends them straight to a lawyer without a " +
   "judgment (46 court-rejected, 5 court-established), leaving 321 judged: 290 court-rejected and 31 court-established. The " +
   "court-rejected items are drawn predominantly from orders on petitions to quash criminal proceedings (cruelty, cheating and " +
   "breach-of-trust families). This is not a statement about trial or appellate conviction judgments.";
 
 export const SAFETY_STACK =
-  "The production configuration uses two judges: a 4B element judge (threshold 0.74) and a 32B judge (threshold 0.97) that both have to agree. " +
-  "In this run the 4B ran on our own machine and the 32B on the production serverless endpoint. The result is for this " +
-  "configuration on a pre-registered held-out set, in a single run; it is not a claim about a different court population.";
+  "The two-judge configuration pairs a 4B element judge (threshold 0.74) with a 32B judge (threshold 0.97); both have to agree. " +
+  "In this run the 4B ran on our own machine and the 32B on the serverless endpoint, and the figure was measured on that arrangement only. " +
+  "The result is for this configuration on a pre-registered held-out set, in a single run; it is not a claim about a different court population.";
 
 export interface SafetyRecord {
   figure: string;

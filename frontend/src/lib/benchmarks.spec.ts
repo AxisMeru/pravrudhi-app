@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { NYAYASIDDHI_LINK_TEXT, NYAYASIDDHI_BLURB, NYAYASIDDHI_URL, BLOCK_IDS, BLOCK_TITLE, chartAlt, fixedPageStrings, pairNames, parseBenchmarkResults, titleFor } from "./benchmarks";
+import { NYAYASIDDHI_LINK_TEXT, NYAYASIDDHI_BLURB, NYAYASIDDHI_URL, BLOCK_IDS, BLOCK_TITLE, HOW_WE_TEST, KIND_CHIPS_BY_BLOCK, chartAlt, fixedPageStrings, pairNames, parseBenchmarkResults, titleFor } from "./benchmarks";
 
 // The page's runtime contract (lib/benchmarks.ts) and the CI gate (the vendored validator and copy-lint) are tested together on one
 // fixture of INVENTED numbers (fixtures/benchmarkExample.json: test data, never results): the fixture must satisfy the real validator, and
@@ -199,4 +199,14 @@ test("NyayaSiddhi: the link text and blurb are exactly as relayed, the link is t
   writeFileSync(file, JSON.stringify([{ id: "link", text: NYAYASIDDHI_LINK_TEXT }, { id: "status", text: NYAYASIDDHI_BLURB }]));
   assert.equal(spawnSync("python3", [join(SCRIPTS, "lint_copy.py"), file], { encoding: "utf8" }).status, 0);
   assert.ok(fixedPageStrings().some((s) => s.text === NYAYASIDDHI_LINK_TEXT));
+});
+
+test("the page's own sentences and titles never call a test set sealed (R1, 8 Oct); the one kind chip that still does is the vendored validator's allowed text", () => {
+  for (const s of fixedPageStrings()) {
+    if (s.text === KIND_CHIPS_BY_BLOCK.sealed_court[0]) continue; // the validator's allowed chip; renaming it is an upstream change, then a re-vendor
+    assert.doesNotMatch(s.text, /\bsealed\b/i, s.text);
+  }
+  assert.equal(BLOCK_TITLE.sealed_court, "What the fixed Indian court test sets found");
+  assert.ok(HOW_WE_TEST.some((t) => /not fresh-test estimates/.test(t)));
+  assert.ok(!HOW_WE_TEST.some((t) => /never used for tuning/i.test(t)));
 });

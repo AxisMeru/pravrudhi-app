@@ -6,11 +6,11 @@
 
 /** Element statuses: what each one means, shown under the status badge for the three that are not a verdict. */
 export const ELEMENT_STATUS_EXPLANATION = {
-  established: "The judge said this condition is shown and quoted words from your facts that passed the quote check.",
+  established: "The judge said this condition is shown and cites the supporting fact from your facts.",
   not_established: "The judge did not find this condition shown in your facts.",
   not_confirmed: "The judge leaned towards 'shown', but its confidence did not reach the level we require, so this condition is not counted as shown.",
   not_evaluated_second_unavailable: "The second judge did not answer, so this condition was not confirmed.",
-  not_evaluated_gate1_unavailable: "This condition was not evaluated because the entailment check (a separate check of the quoted words against the claim) was unavailable.",
+  not_evaluated_gate1_unavailable: "This condition was not evaluated because the entailment check (a separate check of the cited fact against the claim) was unavailable.",
 } as const;
 
 /** Service errors, by the engine's coded 503 `error` (and 429). */
@@ -26,7 +26,7 @@ export const SERVICE_ERROR_TEXT = {
 /** App-specific strings signed by R1 (6 Oct 2026; fixtures/appSignedStrings.json): the web session 401 and the memo disclaimer. */
 export const SESSION_401_TEXT = "You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.";
 export const MEMO_DISCLAIMER_TEXT =
-  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome is a referral, not an answer: the system reached no verdict, and a lawyer should look at the matter. A quote is verbatim text from the submitted facts, not proof that it is relevant.";
+  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome is a referral, not an answer: the system reached no verdict, and a lawyer should look at the matter. The cited fact is verbatim text from the submitted facts, not proof that it is relevant.";
 
 /**
  * Signed wording for the coded errors of pravrudhi #319 that THIS app surfaces (fixtures/codedErrorStrings.json: source note, head and

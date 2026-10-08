@@ -1,7 +1,7 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the verbatim quote each one cites (quote-checked against the submitted
+// the house judge found established, the supporting fact each one cites (checked against the submitted
 // facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
 // or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
@@ -21,6 +21,8 @@ import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/li
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { referFirst } from "@/lib/contractOrder";
+import { citationNote } from "@/lib/citedFact";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -66,7 +68,8 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
   // Why a quote was rejected (the engine's quote check), and which judge's threshold a non-established element failed.
-  const quoteCheck = quoteCheckPresentation(el.quote_check);
+  // A quote-check cause is only meaningful for a model quote; a whole-fact or unstated citation has no quote to check (R1, 8 Oct).
+  const quoteCheck = el.quote_source === "model" ? quoteCheckPresentation(el.quote_check) : null;
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
   const view = citedFactView(facts, el);
   return (
@@ -111,12 +114,12 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
                 {el.quote_source === "model" ? <>&ldquo;{el.quote}&rdquo;</> : el.quote}
               </span>
             )}
-            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
+            {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
         ) : (
-          <span>no quote</span>
+          <span>no cited fact</span>
         )}
         {quoteCheck?.show && (
           <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="quote-check-cause">
@@ -143,8 +146,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-          No judge has been trained on this contract&apos;s statute text yet — this is a gap in coverage, not a
-          failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
+          No judge has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers
+          instead. That is not a failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
         </p>
       </article>
     );
@@ -216,8 +219,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           </div>
           <div className="mt-1 text-[var(--color-text-dim)]">
             Lean checks that the right elements for this contract were addressed — it does not read the facts
-            or quotes. The element findings above come from the judge and are quote-checked against the facts
-            you supplied.
+            or the cited facts. The element findings above come from the judge, which cites the supporting fact
+            from the facts you supplied.
           </div>
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
@@ -386,7 +389,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element is tied to a verbatim quote from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
@@ -565,7 +568,7 @@ export default function MattersPage() {
                 Print / save as PDF
               </button>
             </div>
-            {result.contracts.map((c) => (
+            {referFirst(result.contracts).map((c) => (
               <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} facts={result.facts} />
             ))}
             <StatuteNotice />
