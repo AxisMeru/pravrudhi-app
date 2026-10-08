@@ -34,3 +34,29 @@ test("a frontier file may say quote; any other file may not unless the allow-lis
   assert.equal(violations(house).length, 1);
   assert.equal(violations(house, new Set([`src/app/screening/page.tsx:passed the quote check`])).length, 0);
 });
+
+test("only comments, blank lines and re-export/import lines are skipped: the same words on a real line are hits", () => {
+  const w = "the quote check";
+  const skipped = [
+    `// ${w}`, `/* ${w} */`, ` * ${w}`, "", "   ", `import { x } from "./${w}";`, `export * from "./${w}";`, `export { a } from "./${w}";`,
+  ];
+  for (const line of skipped) assert.equal(scanSource("src/x.ts", line + `\nconst ok = "fine";`).length, 0, line);
+  const hits = ["const s = \"the quote check here\";", "export const s = \"the quote check here\";", "  return \"the quote check here\";"];
+  for (const line of hits) assert.equal(scanSource("src/x.ts", line).length, 1, line);
+  assert.deepEqual(scanSource("src/x.ts", `// a\nconst s = "the quote check here";\n// b`).map((h) => h.line), [2]);
+});
+
+test("identifiers inside a template literal are not words; a single-word label property is", () => {
+  assert.equal(scanSource("src/x.ts", 'const a = `| ${cell(e.quote)} | ${quote} |`;').length, 0);
+  assert.equal(scanSource("src/x.ts", '  PROOF: { label: "established", tone: "x" },').length, 1);
+  assert.equal(scanSource("src/x.ts", '  const same = el.status === "established";').length, 0);
+});
+
+test("every text-bearing property name catches a single banned word; other property names and comparisons do not", () => {
+  for (const key of ["label", "title", "text", "heading", "description", "subtitle"]) {
+    assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "established" };`).length, 1, key);
+    assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "verbatim" };`).length, 1, key);
+  }
+  for (const key of ["id", "name", "kind", "status", "value"]) assert.equal(scanSource("src/x.ts", `  const o = { ${key}: "established" };`).length, 0, key);
+  assert.equal(scanSource("src/x.ts", `  if (x === "established") return "supported";`).length, 0);
+});

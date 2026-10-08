@@ -3,7 +3,6 @@
 // for per call and caps how many lookups run at once, so the checks run in sequence. Statuses and refusal wording come from citationCheck.ts and
 // citationCheckRun.ts unchanged; this file adds no status of its own.
 
-import { CITATION_MAX, QUOTE_MAX } from "./citationCheck";
 import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 export const MAX_CITATIONS = 10;
@@ -38,8 +37,10 @@ export function parseCitationLines(text: string): ParsedCitations {
       return;
     }
     const bar = line.indexOf("|");
-    const citation = (bar === -1 ? line : line.slice(0, bar)).trim().slice(0, CITATION_MAX);
-    const quote = bar === -1 ? "" : line.slice(bar + 1).trim().slice(0, QUOTE_MAX);
+    // Never cut: an over-long citation or quote must reach checkInputs, which refuses it with the length message. Cutting here would check a
+    // prefix of what the user typed (and a prefix that is found would read VERIFIED). The FIRST bar splits; later bars belong to the quote.
+    const citation = (bar === -1 ? line : line.slice(0, bar)).trim();
+    const quote = bar === -1 ? "" : line.slice(bar + 1).trim();
     items.push({ line: i + 1, citation, quote: quote || null });
   });
   return { items, skipped };
@@ -79,18 +80,19 @@ export async function checkCitations(
 
 /**
  * The coverage line from the engine's own field. The shape is PROVISIONAL until the engine fixes it: a non-empty string is shown as sent;
- * an object with `courts` (strings) and `judgments` (a count) is worded from those two facts (and a year range if both ends are numbers);
+ * an object with `courts` (strings) and `resolvable_cases` (the RESOLVABLE count, R1/E2) is worded from those two facts; the index total (`judgments_in_index`) is never read (and a year range if both ends are numbers);
  * anything else is the fallback. Nothing is ever filled in from this app.
  */
 export function coverageLine(coverage: unknown): string {
   if (typeof coverage === "string" && coverage.trim()) return coverage.trim();
   if (coverage && typeof coverage === "object") {
-    const c = coverage as { courts?: unknown; judgments?: unknown; year_min?: unknown; year_max?: unknown };
+    const c = coverage as { courts?: unknown; resolvable_cases?: unknown; year_min?: unknown; year_max?: unknown };
     const courts = Array.isArray(c.courts) && c.courts.length > 0 && c.courts.every((x) => typeof x === "string" && x.trim()) ? (c.courts as string[]) : null;
-    const n = typeof c.judgments === "number" && Number.isInteger(c.judgments) && c.judgments >= 0 ? c.judgments : null;
+    const n = typeof c.resolvable_cases === "number" && Number.isInteger(c.resolvable_cases) && c.resolvable_cases >= 0 ? c.resolvable_cases : null;
     if (courts && n !== null) {
-      const years = typeof c.year_min === "number" && typeof c.year_max === "number" ? `, ${c.year_min} to ${c.year_max}` : "";
-      return `The index holds ${n.toLocaleString("en-GB")} judgments (${courts.join(", ")}${years}). A citation to any other court is answered not in index, which is no evidence either way.`;
+      const years = typeof c.year_min === "number" && typeof c.year_max === "number" ? ` (${c.year_min} to ${c.year_max})` : "";
+      // `resolvable_cases` is the count a citation can resolve to; the index total is a different number and must never print (R1, at mounting).
+      return `Citations resolve for ${n.toLocaleString("en-GB")} ${courts.join(", ")} judgments${years}; other courts answer not in index, which is no evidence either way.`;
     }
   }
   return COVERAGE_NOT_REPORTED;
