@@ -1,6 +1,6 @@
 {
  "_source": "pravrudhi src/pravrudhi/application/citation_status.py _LABELS (copied verbatim)",
- "_engine_sha": "bce744968a997bc93ebf0e8a792ddba2dc94c5fc",
+ "_engine_sha": "32d88d166c889e0e234459403f53532c6b9106bd",
  "labels": {
   "VERIFIED": {
    "status": "verified",
@@ -27,5 +27,5 @@
    "label": "Found in the index (existence only): no quote was checked, so this is not a verification."
   }
  },
- "_note": "IN_INDEX added from pravrudhi #376 @32d88d16 (citation_status.py _LABELS), copied verbatim."
+ "_note": "Labels copied verbatim from pravrudhi src/pravrudhi/application/citation_status.py _LABELS at _engine_sha (#376 @32d88d16, IN_INDEX included); re-pin to the merged commit when #376 lands."
 }
