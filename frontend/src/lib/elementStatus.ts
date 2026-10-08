@@ -115,7 +115,7 @@ export function elementStatusPresentation(
     case "not_established":
       return {
         status: raw,
-        label: "not established",
+        label: "not supported by these facts",
         tone: "text-[var(--color-text-dim)] border-[var(--color-border)]",
         verdict: "not_established",
         explanation: ELEMENT_STATUS_EXPLANATION.not_established,
