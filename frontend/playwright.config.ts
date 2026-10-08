@@ -31,9 +31,13 @@ export default defineConfig({
   projects: [
     {
       name: "product-chromium",
-      testMatch: [
-        "product.spec.ts", "signin-guards.spec.ts",
-        "matters.spec.ts", "benchmarks.spec.ts", "citations.spec.ts", "citations-product-status.spec.ts", "refer-strings.spec.ts", "matters-outage.spec.ts", "surface-gate.spec.ts", "standard-line.spec.ts",
+      // Every spec in e2e/ runs here unless another project owns it (or it is opt-in below): a new product spec needs no edit to this file.
+      testMatch: ["**/*.spec.ts"],
+      testIgnore: [
+        "settings-byok.spec.ts", "models-providers.spec.ts", "run-plain-language.spec.ts", // studio-chromium
+        "live.spec.ts", "matters-live.spec.ts", "nyaya-live.spec.ts", // live-chromium
+        "partner-api-live.spec.ts", // live-api
+        "demo-path.spec.ts", // opt-in: only against a NEXT_PUBLIC_DEMO_PATH=1 build (it skips itself otherwise)
       ],
     },
     {
