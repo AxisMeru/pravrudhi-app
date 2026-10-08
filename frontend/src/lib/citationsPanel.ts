@@ -80,18 +80,18 @@ export async function checkCitations(
 
 /**
  * The coverage line from the engine's own field. The shape is PROVISIONAL until the engine fixes it: a non-empty string is shown as sent;
- * an object with `courts` (strings) and `judgments` (the RESOLVABLE count) is worded from those two facts (and a year range if both ends are numbers);
+ * an object with `courts` (strings) and `resolvable_cases` (the RESOLVABLE count, R1/E2) is worded from those two facts; the index total (`judgments_in_index`) is never read (and a year range if both ends are numbers);
  * anything else is the fallback. Nothing is ever filled in from this app.
  */
 export function coverageLine(coverage: unknown): string {
   if (typeof coverage === "string" && coverage.trim()) return coverage.trim();
   if (coverage && typeof coverage === "object") {
-    const c = coverage as { courts?: unknown; judgments?: unknown; year_min?: unknown; year_max?: unknown };
+    const c = coverage as { courts?: unknown; resolvable_cases?: unknown; year_min?: unknown; year_max?: unknown };
     const courts = Array.isArray(c.courts) && c.courts.length > 0 && c.courts.every((x) => typeof x === "string" && x.trim()) ? (c.courts as string[]) : null;
-    const n = typeof c.judgments === "number" && Number.isInteger(c.judgments) && c.judgments >= 0 ? c.judgments : null;
+    const n = typeof c.resolvable_cases === "number" && Number.isInteger(c.resolvable_cases) && c.resolvable_cases >= 0 ? c.resolvable_cases : null;
     if (courts && n !== null) {
       const years = typeof c.year_min === "number" && typeof c.year_max === "number" ? ` (${c.year_min} to ${c.year_max})` : "";
-      // `judgments` must be the engine's RESOLVABLE count (the judgments a citation can resolve to), not the size of the index (R1, at mounting).
+      // `resolvable_cases` is the count a citation can resolve to; the index total is a different number and must never print (R1, at mounting).
       return `Citations resolve for ${n.toLocaleString("en-GB")} ${courts.join(", ")} judgments${years}; other courts answer not in index, which is no evidence either way.`;
     }
   }
