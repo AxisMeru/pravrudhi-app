@@ -26,7 +26,7 @@ export const SAFETY_FIGURES: readonly SafetyFigure[] = [
     id: "coverage",
     heading: "Court-established items proved",
     text:
-      "0 of 31. No court-established item was proved on this material: the product abstains rather than proves here. That is " +
+      "0 of 31. No court-established item was proved on this material: it refers or abstains rather than proves here. That is " +
       "a statement about what it did on this set, not a statement that such items are unsafe.",
   },
 ];

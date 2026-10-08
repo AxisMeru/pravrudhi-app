@@ -65,7 +65,8 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
   // Why a quote was rejected (the engine's quote check), and which judge's threshold a non-established element failed.
-  const quoteCheck = quoteCheckPresentation(el.quote_check);
+  // A quote-check cause is only meaningful for a model quote; a whole-fact or unstated citation has no quote to check (R1, 8 Oct).
+  const quoteCheck = el.quote_source === "model" ? quoteCheckPresentation(el.quote_check) : null;
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
   return (
     <tr className="border-t border-[var(--color-border)]">
@@ -86,9 +87,9 @@ function ElementRow({ el }: { el: AnalyseFactsContract["elements"][number] }) {
         )}
       </td>
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
-        {citationKind(el) === "whole_fact" ? (
+        {citationKind(el) === "whole_fact" || citationKind(el) === "unstated" ? (
           <span data-testid="cited-fact-note">{citationNote(el)}</span>
-        ) : el.quote ? (
+        ) : citationKind(el) === "model" ? (
           <>
             <span className="italic">&ldquo;{el.quote}&rdquo;</span>
             {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}

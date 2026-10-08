@@ -47,3 +47,14 @@ test("no page string claims a verbatim span or a highlighted passage", () => {
     assert.doesNotMatch(strings, /verbatim span|highlighted passage/i, f);
   }
 });
+
+test("an established element with no quote_source (an older engine on the house path) is treated like a whole fact: neutral sentence, no quote shown, no quote-check cause", () => {
+  const older = { quote: "an invented sentence", quote_check: "ok", fact_id: "f3", status: "established" };
+  assert.equal(citationKind(older), "unstated");
+  assert.equal(citationNote(older), NEUTRAL_NOTE);
+  assert.equal(memoCitationCell(older), "cites the supporting fact (f3)");
+  assert.equal(memoCitationHeader([older]), "Cited fact");
+  // a non-established element with no source makes no claim at all
+  assert.equal(citationKind({ ...older, status: "not_established" }), "none");
+  assert.equal(citationNote({ ...older, status: "not_established" }), null);
+});

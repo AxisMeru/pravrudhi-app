@@ -101,3 +101,26 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
   await expect(page.getByText("INVENTED WHOLE FACT")).toHaveCount(0);
   await expect(page.locator("th[scope=col]").last()).toHaveText("supporting fact (cited)");
 });
+
+test("an older engine (no quote_source) on the house path: the page says it cites the supporting fact, shows no quote and no quote-check cause", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69"], entries: [{ id: "bns69", validated: true }] } }));
+  const el = { is_denial: false, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
+  await page.route("**/api/v1/analyse-facts**", (r) =>
+    r.fulfill({
+      json: {
+        run_id: "r-invented-5", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        contracts: [{
+          contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
+          elements: [{ ...el, element: "first", fact_id: "f1", quote: "INVENTED OLDER QUOTE", quote_source: null, quote_check: "quote_not_found" }],
+        }],
+      },
+    }),
+  );
+  await page.goto("/matters");
+  await page.getByLabel("Facts (one per line)").fill(FACT);
+  await page.getByText("bns69").click();
+  await page.getByRole("button", { name: "Analyse" }).click();
+  await expect(page.getByTestId("cited-fact-note")).toHaveText("cites the supporting fact");
+  await expect(page.getByText("INVENTED OLDER QUOTE")).toHaveCount(0);
+  await expect(page.getByTestId("quote-check-cause")).toHaveCount(0);
+});
