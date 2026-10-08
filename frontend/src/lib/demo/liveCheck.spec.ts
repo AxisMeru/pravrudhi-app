@@ -147,3 +147,46 @@ test("the memo check passes against the real buildMemo() and catches a memo miss
   assert.ok(checkMemoText(memo.replace(r.run_id, "x"), r).some((v) => /run id/.test(v)));
   assert.ok(checkMemoText(memo.replaceAll(r.contracts[0].elements[0].quote as string, "REMOVED"), r).some((v) => /quote is missing/.test(v)));
 });
+
+test("planted (R2): the memo's whole-fact branch needs the cited fact id, and the model-quote check applies to model quotes only", () => {
+  const f = byId("proof-path");
+  const facts = f.wordings.plain;
+  const meta = { engineVersion: "0.0.0", generatedAt: "2026-01-01T00:00:00Z" };
+  const whole = resultFor(f, facts);
+  const e = whole.contracts[0].elements[0];
+  e.quote_source = "whole_fact";
+  const memo = buildMemo(whole, meta);
+  assert.deepEqual(checkMemoText(memo, whole), []);
+  assert.ok(checkMemoText(memo.replaceAll(e.fact_id as string, "ZZ-GONE"), whole).some((v) => /cited fact id is missing/.test(v)), "a memo without the cited fact id");
+  // a whole-fact element's quote is not held to the memo; a model quote is
+  assert.deepEqual(checkMemoText(memo.replaceAll(e.quote as string, "REMOVED"), whole).filter((v) => /quote is missing/.test(v)), []);
+  const model = resultFor(f, facts);
+  assert.ok(checkMemoText(buildMemo(model, meta).replaceAll(model.contracts[0].elements[0].quote as string, "REMOVED"), model).some((v) => /model quote is missing/.test(v)));
+  // no quote_source: no memo claim at all
+  const none = resultFor(f, facts);
+  none.contracts[0].elements[0].quote_source = null;
+  assert.deepEqual(checkMemoText(buildMemo(none, meta).replaceAll(none.contracts[0].elements[0].quote as string, "REMOVED").replaceAll("F1", "ZZ"), none), []);
+});
+
+test("pinned (R2): a missing or null citation_note on an established element is allowed (an older engine sends none); only a present but empty one is a violation", () => {
+  const f = byId("proof-path");
+  const facts = f.wordings.plain;
+  for (const note of [undefined, null]) {
+    const r = resultFor(f, facts);
+    r.contracts[0].elements[0].citation_note = note;
+    assert.deepEqual(checkDemoResult(r, facts, f), [], String(note));
+  }
+  const ok = resultFor(f, facts);
+  ok.contracts[0].elements[0].citation_note = "an invented engine sentence";
+  assert.deepEqual(checkDemoResult(ok, facts, f), []);
+});
+
+test("pinned (R2): only established elements are held to a citation; a non-established element is not checked, whatever it carries", () => {
+  const f = byId("proof-path");
+  const facts = f.wordings.plain;
+  const r = resultFor(f, facts);
+  r.contracts[0].elements.push({ ...r.contracts[0].elements[0], element: "e2", status: "not_established", quote_source: "whole_fact", fact_id: "F99", quote: "never submitted", citation_note: " " });
+  assert.deepEqual(checkDemoResult(r, facts, f), []);
+  r.contracts[0].elements[1].status = "established";
+  assert.ok(checkDemoResult(r, facts, f).length >= 2, "the same element, once established, is checked");
+});
