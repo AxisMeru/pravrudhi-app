@@ -184,12 +184,12 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <caption className="sr-only">Elements of {c.contract_id}: status and the supporting quote</caption>
+            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
             <thead>
               <tr className="text-xs text-[var(--color-text-dim)]">
                 <th scope="col" className="pb-1 pr-3 font-medium">element</th>
                 <th scope="col" className="pb-1 pr-3 font-medium">status</th>
-                <th scope="col" className="pb-1 font-medium">quote (verbatim from your facts)</th>
+                <th scope="col" className="pb-1 font-medium">cited fact</th>
               </tr>
             </thead>
             <tbody>
