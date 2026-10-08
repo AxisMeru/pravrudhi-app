@@ -1240,6 +1240,8 @@ export interface AnalyseFactsContract {
   rule_text_source?: string | null;
   // The provisions this contract is about (the engine derives them from the contract's own sources; no text here).
   citations?: AnalyseFactsCitation[] | null;
+  // Per-contract attestation of the pinned Lean check (binary_sha256, wire_sha256); absent from an older engine.
+  lean_attestation?: Record<string, string> | null;
 }
 
 export interface AnalyseFactsCitation {
