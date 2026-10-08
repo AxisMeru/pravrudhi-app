@@ -10,7 +10,7 @@ import { OFFENCES } from "../src/lib/screening/offences";
 
 /**
  * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted FRESH matter (Lead-2, 8 Oct): the allegation
- * paragraph of a public Madras High Court order (Crl.O.P. No. 2770 of 2019, order of 25 Feb 2021; doc 9e77f94d), against
+ * paragraph of a public Madras High Court order (doc 9e77f94d), against
  * the DEPLOYED app and judge. The demo example (Crl.O.P. 13624 of 2024) is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
  * that what the page shows is a plain-words reading of it: one checklist per contract, one row per ingredient with one of the three chips, the
  * cited fact shown in full, a what-to-check line, the summary banner per contract, the review items not styled as errors, no "proved" /

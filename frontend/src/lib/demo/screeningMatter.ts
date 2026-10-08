@@ -13,13 +13,13 @@ export const MATTER_NOT_SCREENED = "IPC 506(i) is not one of the validated contr
 
 import { createHash } from "node:crypto";
 
-/** Violations of the supplied matter text: empty when it is exactly the accepted file. */
-export function checkMatterText(raw: string): string[] {
+/** Violations of the supplied matter text: empty when it is exactly the accepted file. The expectations are a parameter only so the checker itself can be tested on invented text. */
+export function checkMatterText(raw: string, expected: { sha256: string; length: number } = { sha256: MATTER_FILE_SHA256, length: MATTER_LENGTH }): string[] {
   const out: string[] = [];
   const sha = createHash("sha256").update(raw, "utf8").digest("hex");
-  if (sha !== MATTER_FILE_SHA256) out.push(`sha256 ${sha} is not the accepted ${MATTER_FILE_SHA256}`);
+  if (sha !== expected.sha256) out.push(`sha256 ${sha} is not the accepted ${expected.sha256}`);
   const text = raw.trim();
-  if (text.length !== MATTER_LENGTH) out.push(`the trimmed text is ${text.length} characters, expected ${MATTER_LENGTH}`);
+  if (text.length !== expected.length) out.push(`the trimmed text is ${text.length} characters, expected ${expected.length}`);
   if (/\n/.test(text)) out.push("the text is not one paragraph");
   return out;
 }
