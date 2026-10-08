@@ -40,7 +40,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     if (ref) out.push(`Needs your review: ${line(ref.message)} (reason: ${ref.code})`, "");
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
     if (rows.defences.length > 0) out.push("### A fact that may defeat the claim", "", ...rows.defences.flatMap(rowLines), "");
-    const att = c.lean_attestation as Record<string, string> | null | undefined;
+    const att = c.lean_attestation;
     if (att?.binary_sha256) out.push(`Lean checker: binary sha256 ${att.binary_sha256}${att.wire_sha256 ? `, wire sha256 ${att.wire_sha256}` : ""}`, "");
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
