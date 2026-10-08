@@ -1,8 +1,15 @@
-// Show the supporting quote in its fact, at the engine's offsets. The engine locates a quote with an exact find in the
-// named fact and returns `start`/`end` itself (`offsets_source: "system"`): they count Unicode code points (Python str
-// indexes), not UTF-16 units, so a fact with an emoji or another astral character would shift every later highlight if
-// the offsets were used on a JS string directly. This module converts by code points, and it shows a highlight only when
-// the slice at those offsets is exactly the quote the engine returned; any other case falls back to the plain quote.
+// The cited fact view: which of the user's facts an element cites, and where in it the engine's offsets point. The engine returns
+// `start`/`end` itself (`offsets_source: "system"`); they count Unicode code points (Python str indexes), not UTF-16 units, so a fact with
+// an emoji or another astral character would shift every later mark if the offsets were used on a JS string directly. This module
+// converts by code points.
+//
+// Production may cite the WHOLE fact (the span then equals the fact), so the view makes no span claim the data does not carry:
+//  - a span that is a STRICT part of the fact (and the slice at the offsets is exactly the quote the engine returned) is a "passage": shown
+//    inside its fact with a mark, labelled as a passage within the cited fact;
+//  - a span that equals the whole fact, or offsets that cannot be used (not from the engine, invalid, or not the returned quote), show the
+//    cited fact once, as plain text: nothing is marked;
+//  - when there is no quote, or the named fact is not among the facts, there is nothing to show but the quote itself (plain).
+// The rule reads the offsets, never the `quote_source` label.
 
 export interface QuoteFields {
   fact_id: string | null;
@@ -12,31 +19,34 @@ export interface QuoteFields {
   offsets_source: string | null;
 }
 
-export type PlainReason = "no_quote" | "offsets_not_from_engine" | "fact_not_found" | "offsets_invalid" | "offsets_do_not_match_quote";
+export type PlainReason = "no_quote" | "fact_not_found";
 
 export type QuoteView =
-  | { kind: "highlight"; factId: string; before: string; quote: string; after: string; cutBefore: boolean; cutAfter: boolean }
+  | { kind: "passage"; factId: string; before: string; quote: string; after: string; cutBefore: boolean; cutAfter: boolean }
+  | { kind: "fact"; factId: string; text: string }
   | { kind: "plain"; reason: PlainReason };
 
-/** Characters of the fact shown on each side of the quote. */
+/** Characters of the fact shown on each side of a passage. */
 export const CONTEXT_CHARS = 80;
 
 const isIndex = (n: unknown): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0;
 
-export function highlightQuote(facts: ReadonlyArray<{ id: string; text: string }>, el: QuoteFields, context: number = CONTEXT_CHARS): QuoteView {
+export function citedFactView(facts: ReadonlyArray<{ id: string; text: string }>, el: QuoteFields, context: number = CONTEXT_CHARS): QuoteView {
   if (!el.quote) return { kind: "plain", reason: "no_quote" };
-  if (el.offsets_source !== "system") return { kind: "plain", reason: "offsets_not_from_engine" };
   const fact = el.fact_id === null ? undefined : facts.find((f) => f.id === el.fact_id);
   if (!fact) return { kind: "plain", reason: "fact_not_found" };
+  const whole: QuoteView = { kind: "fact", factId: fact.id, text: fact.text };
+  if (el.offsets_source !== "system") return whole;
   const cps = Array.from(fact.text);
   const { start, end } = el;
-  if (!isIndex(start) || !isIndex(end) || start >= end || end > cps.length) return { kind: "plain", reason: "offsets_invalid" };
+  if (!isIndex(start) || !isIndex(end) || start >= end || end > cps.length) return whole;
   const quote = cps.slice(start, end).join("");
-  if (quote !== el.quote) return { kind: "plain", reason: "offsets_do_not_match_quote" };
+  if (quote !== el.quote) return whole;
+  if (start === 0 && end === cps.length) return whole; // the span is the whole fact: no passage to mark
   const from = Math.max(0, start - context);
   const to = Math.min(cps.length, end + context);
   return {
-    kind: "highlight",
+    kind: "passage",
     factId: fact.id,
     before: cps.slice(from, start).join(""),
     quote,
@@ -71,4 +81,12 @@ export function leanAttestationView(a: LeanAttestation | null | undefined): Lean
     note: LEAN_ATTESTATION_NOTE,
     rows: [row("Checker program (sha256)", a.binary_sha256), row("Input given to it (sha256)", a.wire_sha256)],
   };
+}
+
+/** The line shown where the structural-check block would be, on a referral for which none ran (R1-signed wording, option 2). */
+export const NO_STRUCTURAL_CHECK_LINE = "No structural check was run for this referral.";
+
+/** The line for a REFER contract with no Lean result; null for any contract that has a structural check, and for any other outcome. */
+export function noStructuralCheckLine(outcome: string, lean: unknown): string | null {
+  return outcome === "REFER_TO_LAWYER" && lean === null ? NO_STRUCTURAL_CHECK_LINE : null;
 }
