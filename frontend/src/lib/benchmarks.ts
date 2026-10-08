@@ -37,7 +37,7 @@ export const BLOCK_TITLE: Readonly<Record<BlockId, string>> = {
   bbl: "Our models on an Indian legal-knowledge test",
   citation: "How often does our citation checker mark a wrong citation as verified?",
   legalbench: "Rule application on a public benchmark",
-  sealed_court: "What the sealed Indian court tests found",
+  sealed_court: "What the fixed Indian court test sets found",
 };
 
 /** The fixed label shown on a block (spec 1.1 to 1.3); the sealed-court block carries the signed sentences from the data's `copy`. */
@@ -56,7 +56,7 @@ export const NO_FIGURE_TEXT = "No figure is shown until a second reviewer has ch
 /** Block E, "How we test" (spec 2.1, item 6). */
 export const HOW_WE_TEST: readonly string[] = [
   "Items are real court-derived or labelled constructed.",
-  "Sealed sets are never used for tuning.",
+  "Model weights are not trained on these test sets by design; the sets were reused to compare candidates, and a small number of test cases share passages with training documents (removed from the headline figures), so results are not fresh-test estimates.",
   "Every number is checked by a second reviewer.",
   'When a paired exact McNemar comparison does not separate two arms, we call it "no separation" and state no direction; that is not evidence that the arms are equal.',
   "Numbers are dated.",
