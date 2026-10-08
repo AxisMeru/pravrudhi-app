@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * The matters page's evidence view (#15): the supporting quote shown once, inside its fact, at the engine's offsets, and the Lean
+ * The matters page's cited fact view (#15): the cited fact shown once (a passage marked only when the span is a strict part of it), and the Lean
  * attestation hashes. Recorded engine answers (page.route) with invented values only: no judge is needed. Claim tier: unit-tested and
  * rendered against a recorded answer, not run live.
  */
@@ -42,23 +42,39 @@ const element = (o: object) => ({
   offsets_source: "system", quote_source: "model", error: null, ...o,
 });
 
-test("a quote is shown once, highlighted in its fact at the engine's code-point offsets (an emoji before it does not shift it)", async ({ page }) => {
+test("a strictly partial span is a passage within the cited fact, marked once, at the engine's code-point offsets (an emoji before it does not shift it)", async ({ page }) => {
   await analyse(page, [element({})]);
-  const inFact = page.getByTestId("quote-in-fact");
-  await expect(inFact).toBeVisible();
-  await expect(inFact.locator("mark")).toHaveText(QUOTE1);
-  await expect(inFact).toContainText("In fact F1");
+  const passage = page.getByTestId("cited-passage");
+  await expect(passage).toBeVisible();
+  await expect(passage.locator("mark")).toHaveText(QUOTE1);
+  await expect(passage).toContainText("Passage within the cited fact F1");
   await expect(page.getByText(`“${QUOTE1}”`)).toHaveCount(0); // not repeated as a second, italic copy
 });
 
-test("offsets that cannot be used fall back to the plain quote: not from the engine, or not the quote", async ({ page }) => {
+test("a span that is the whole fact shows the cited fact once, plain, with no mark and no italic copy", async ({ page }) => {
+  await analyse(page, [element({ fact_id: "F2", quote: F2, start: 0, end: Array.from(F2).length, quote_source: "whole_fact" })]);
+  const fact = page.getByTestId("cited-fact");
+  await expect(fact).toBeVisible();
+  await expect(fact).toContainText("Cited fact F2");
+  await expect(fact).toContainText(F2);
+  await expect(fact.locator("mark")).toHaveCount(0);
+  await expect(page.getByTestId("cited-passage")).toHaveCount(0);
+  await expect(page.getByText(`“${F2}”`)).toHaveCount(0);
+});
+
+test("offsets that cannot be used show the cited fact plain; a fact that is not among the facts falls back to the labelled quote", async ({ page }) => {
   await analyse(page, [
     element({ element: "a promise", offsets_source: null }),
     element({ element: "a delay", fact_id: "F2", quote: QUOTE2, start: 0, end: 5, offsets_source: "system" }), // slice is not the quote
+    element({ element: "a gap", fact_id: "F404", quote: "nowhere", start: null, end: null, offsets_source: null }),
   ]);
-  await expect(page.getByText(`“${QUOTE1}”`)).toBeVisible();
-  await expect(page.getByText(`“${QUOTE2}”`)).toBeVisible();
-  await expect(page.getByTestId("quote-in-fact")).toHaveCount(0);
+  await expect(page.getByTestId("cited-fact")).toHaveCount(2);
+  await expect(page.getByTestId("cited-fact").first()).toContainText(F1);
+  await expect(page.getByTestId("cited-passage")).toHaveCount(0);
+  await expect(page.locator("mark")).toHaveCount(0);
+  const fallback = page.getByTestId("cited-fact-fallback");
+  await expect(fallback).toContainText("Cited fact:");
+  await expect(fallback).toContainText("“nowhere”");
 });
 
 test("the Lean attestation shows both hashes and the structural-check note, and never says verified", async ({ page }) => {
@@ -73,17 +89,17 @@ test("the Lean attestation shows both hashes and the structural-check note, and 
 
 test("no attestation block when the engine sent none", async ({ page }) => {
   await analyse(page, [element({})], null);
-  await expect(page.getByTestId("quote-in-fact")).toBeVisible();
+  await expect(page.getByTestId("cited-passage")).toBeVisible();
   await expect(page.getByTestId("lean-attestation")).toHaveCount(0);
 });
 
 test("at phone width the page itself does not scroll sideways and the evidence stays inside the screen", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await analyse(page, [element({})], { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] });
-  await expect(page.getByTestId("quote-in-fact")).toBeVisible();
+  await expect(page.getByTestId("cited-passage")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow, "the page scrolls sideways at 375 px").toBeLessThanOrEqual(0);
-  const box = await page.getByTestId("quote-in-fact").boundingBox();
+  const box = await page.getByTestId("cited-passage").boundingBox();
   expect(box && box.x >= 0 && box.x + box.width <= 375, `the evidence cell is cut off: ${JSON.stringify(box)}`).toBeTruthy();
   const att = await page.getByTestId("lean-attestation").boundingBox();
   expect(att && att.x >= 0 && att.x + att.width <= 375, `the hash block is cut off: ${JSON.stringify(att)}`).toBeTruthy();
