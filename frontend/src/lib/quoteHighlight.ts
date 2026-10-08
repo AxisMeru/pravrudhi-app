@@ -59,7 +59,7 @@ export interface LeanAttestationView {
 }
 
 export const LEAN_ATTESTATION_NOTE =
-  "These two hashes name the checker program and the exact input it was given, so anyone can recompute them. The check is structural: it shows how the judged conditions fit the contract. It does not show that your facts are true or that the law is correctly applied.";
+  "These two hashes name the checker program and the exact input it was given, so the same check can be reproduced by anyone who has both. The check is structural: it checks that the element results returned by the judges combine into the contract outcome shown, according to the contract's structure. It does not show that your facts are true or that the law is correctly applied.";
 
 const SHA = /^[0-9a-f]{64}$/;
 
