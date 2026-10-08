@@ -5,7 +5,8 @@ import { ASSIST_LINE, SAFETY_COPY, SAFETY_LABEL, SAFETY_NUMBERS, SAFETY_RECORDS 
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
 test("the safety copy carries Track A's label and the assist line", () => {
-  assert.match(SAFETY_LABEL, /Real High Court material, sealed Obj-1b, config C/);
+  assert.match(SAFETY_LABEL, /Real High Court material, sealed Obj-1b, the production configuration with two judges/);
+  assert.doesNotMatch(SAFETY_COPY.join(" "), /config(uration)? c\b/i, "partner-facing text says two judges, never config C");
   assert.match(SAFETY_LABEL, /one run, one seed/);
   assert.match(SAFETY_LABEL, /not production traffic/);
   assert.equal(ASSIST_LINE, "This assists a lawyer; it is not a verdict.");

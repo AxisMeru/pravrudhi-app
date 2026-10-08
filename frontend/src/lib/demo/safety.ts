@@ -3,7 +3,7 @@
 // traffic, another court population, or another product, and no figure appears anywhere else in the interface.
 
 export const SAFETY_LABEL =
-  "Real High Court material, sealed Obj-1b, config C (4B judge on our own machine, 32B judge on the production serverless " +
+  "Real High Court material, sealed Obj-1b, the production configuration with two judges (4B judge on our own machine, 32B judge on the production serverless " +
   "endpoint); one run, one seed. Descriptive of this sealed set, not production traffic.";
 
 export const ASSIST_LINE = "This assists a lawyer; it is not a verdict.";
@@ -38,7 +38,7 @@ export const SAFETY_MATERIAL =
   "breach-of-trust families). This is not a statement about trial or appellate conviction judgments.";
 
 export const SAFETY_STACK =
-  "Production configuration C: a 4B element judge (threshold 0.74) and a 32B judge (threshold 0.97) that both have to agree. " +
+  "The production configuration uses two judges: a 4B element judge (threshold 0.74) and a 32B judge (threshold 0.97) that both have to agree. " +
   "In this run the 4B ran on our own machine and the 32B on the production serverless endpoint. The result is for this " +
   "configuration on a pre-registered held-out set, in a single run; it is not a claim about a different court population.";
 
