@@ -1,7 +1,7 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the supporting fact each one cites (quote-checked against the submitted
+// the house judge found established, the supporting fact each one cites (checked against the submitted
 // facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
 // or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
@@ -18,11 +18,11 @@ import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
-import { highlightQuote, leanAttestationView } from "@/lib/quoteHighlight";
+import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { referFirst } from "@/lib/contractOrder";
-import { citationKind, citationNote } from "@/lib/citedFact";
+import { citationNote } from "@/lib/citedFact";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
@@ -71,7 +71,7 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
   // A quote-check cause is only meaningful for a model quote; a whole-fact or unstated citation has no quote to check (R1, 8 Oct).
   const quoteCheck = el.quote_source === "model" ? quoteCheckPresentation(el.quote_check) : null;
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
-  const view = highlightQuote(facts, el);
+  const view = citedFactView(facts, el);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
@@ -91,22 +91,30 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
         )}
       </td>
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
-        {citationKind(el) === "whole_fact" || citationKind(el) === "unstated" ? (
-          <span data-testid="cited-fact-note">{citationNote(el)}</span>
-        ) : citationKind(el) === "model" ? (
+        {el.quote ? (
           <>
-            <span className="italic">&ldquo;{el.quote}&rdquo;</span>
-            {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
-            {view.kind === "highlight" && (
-              <div className="mt-1 text-xs not-italic" data-testid="quote-in-fact">
-                <span className="text-[11px]">In fact {view.factId}: </span>
+            {view.kind === "passage" ? (
+              <div className="text-xs not-italic" data-testid="cited-passage">
+                <span className="text-[11px]">Passage within the cited fact {view.factId}: </span>
                 {view.cutBefore && "…"}
                 {view.before}
                 <mark className="rounded-sm bg-amber-500/25 px-0.5 text-[var(--color-text)]">{view.quote}</mark>
                 {view.after}
                 {view.cutAfter && "…"}
               </div>
+            ) : view.kind === "fact" ? (
+              <div className="text-xs not-italic" data-testid="cited-fact">
+                <span className="text-[11px]">Cited fact {view.factId}: </span>
+                {view.text}
+              </div>
+            ) : (
+              <span className="italic" data-testid="cited-fact-fallback">
+                <span className="text-[11px] not-italic">Cited fact: </span>
+                {/* curly marks only for words a judge wrote; a whole fact cited in full is not a quotation */}
+                {el.quote_source === "model" ? <>&ldquo;{el.quote}&rdquo;</> : el.quote}
+              </span>
             )}
+            {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
@@ -179,12 +187,12 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <caption className="sr-only">See the status of each element, and the fact cited for each established one</caption>
+            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
             <thead>
               <tr className="text-xs text-[var(--color-text-dim)]">
                 <th scope="col" className="pb-1 pr-3 font-medium">element</th>
                 <th scope="col" className="pb-1 pr-3 font-medium">status</th>
-                <th scope="col" className="pb-1 font-medium">supporting fact (cited)</th>
+                <th scope="col" className="pb-1 font-medium">cited fact</th>
               </tr>
             </thead>
             <tbody>
@@ -197,6 +205,12 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       )}
 
       <StatuteBeside citations={c.citations} />
+
+      {noStructuralCheckLine(c.outcome, c.lean) && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="no-structural-check">
+          {noStructuralCheckLine(c.outcome, c.lean)}
+        </p>
+      )}
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
