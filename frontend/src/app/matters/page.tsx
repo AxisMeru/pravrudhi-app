@@ -13,7 +13,7 @@
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
-import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
@@ -21,6 +21,7 @@ import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/li
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
@@ -181,20 +182,23 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       })()}
 
       {c.elements.length > 0 && (
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="text-xs text-[var(--color-text-dim)]">
-              <th className="pb-1 pr-3 font-medium">element</th>
-              <th className="pb-1 pr-3 font-medium">status</th>
-              <th className="pb-1 font-medium">quote (verbatim from your facts)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {c.elements.map((el, i) => (
-              <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
+            <thead>
+              <tr className="text-xs text-[var(--color-text-dim)]">
+                <th scope="col" className="pb-1 pr-3 font-medium">element</th>
+                <th scope="col" className="pb-1 pr-3 font-medium">status</th>
+                <th scope="col" className="pb-1 font-medium">cited fact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {c.elements.map((el, i) => (
+                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <StatuteBeside citations={c.citations} />
@@ -265,6 +269,8 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [contractsLoaded, setContractsLoaded] = useState(false);
+  const [contractsTry, setContractsTry] = useState(0);
   // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
   const [exampleActive, setExampleActive] = useState(false);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
@@ -272,6 +278,7 @@ export default function MattersPage() {
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
     let off = false;
@@ -313,7 +320,9 @@ export default function MattersPage() {
     nyayaRegistryContracts()
       .then((cs) => {
         if (off) return;
+        setContractsError(null);
         setContracts(cs);
+        setContractsLoaded(true);
         if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
           setSelected(new Set(EXAMPLE_CONTRACTS.filter((id) => cs.includes(id))));
         }
@@ -325,7 +334,7 @@ export default function MattersPage() {
     return () => {
       off = true;
     };
-  }, []);
+  }, [contractsTry]);
 
   function toggleContract(id: string) {
     setSelected((prev) => {
@@ -442,10 +451,17 @@ export default function MattersPage() {
 
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium text-[var(--color-text)]">Contracts to check against</legend>
-            {contractsError ? (
-              <p className="text-sm text-red-400">{contractsError}</p>
-            ) : contracts.length === 0 ? (
-              <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>
+            {picker === "error" ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
+                  Try again
+                </button>
+              </div>
+            ) : picker === "empty" ? (
+              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+            ) : picker === "loading" ? (
+              <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {contracts.map((id) => (
