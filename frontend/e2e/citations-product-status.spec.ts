@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { expect, test } from "@playwright/test";
 
 /**
@@ -7,13 +10,8 @@ import { expect, test } from "@playwright/test";
  */
 test.skip(process.env.CITATION_PRODUCT_STATUS_BUILD !== "1", "needs a build with NEXT_PUBLIC_CITATION_PRODUCT_STATUS=1");
 
-const ANSWERS: Record<string, { status: string; label: string }> = {
-  VERIFIED: { status: "verified", label: "Verified: the citation resolves to an indexed case and the exact quote appears in its text." },
-  EXISTS_QUOTE_NOT_FOUND: { status: "quote_not_found", label: "quote not found in the record" },
-  NOT_IN_INDEX: { status: "not_in_index", label: "not in index" },
-  CONFLICT: { status: "conflict", label: "conflict" },
-  MALFORMED: { status: "malformed", label: "Exactly one parseable citation is required." },
-};
+// The engine's own labels, verbatim (src/lib/fixtures/engineCitationLabels.json: source file and engine sha in its header).
+const ANSWERS = JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "engineCitationLabels.json"), "utf8")).labels as Record<string, { status: string; label: string }>;
 
 for (const [result, a] of Object.entries(ANSWERS)) {
   test(`${result}: the engine's label is shown verbatim with the preview badge, beside the status`, async ({ page }) => {
@@ -40,4 +38,10 @@ test("a contradictory or unknown product status falls back to the engine's statu
   await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
   await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
   await expect(page.getByText("Verified: all good")).toHaveCount(0);
+});
+
+test("with the nav flag on, the citation check is in the nav", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", "needs a build with NEXT_PUBLIC_CITATION_NAV=1");
+  await page.goto("/matters");
+  await expect(page.getByRole("link", { name: "Citation check" })).toBeVisible();
 });
