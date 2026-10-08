@@ -30,6 +30,7 @@ export const REFER_REASONS = [
   "gate1_not_entailed",
   "gate1_contradiction",
   "contract_not_validated",
+  "input_too_long",
 ] as const;
 
 export type ReferReason = (typeof REFER_REASONS)[number];
@@ -91,6 +92,10 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
   },
   contract_not_validated: {
     text: "This provision is not on the validated list, so we give a referral, not a proof or denial.",
+    twoJudgesOnly: false,
+  },
+  input_too_long: {
+    text: "The facts and question together are too long for the checker to read in one go, so we give a referral, not an answer. Please shorten them or have a lawyer look.",
     twoJudgesOnly: false,
   },
 };
