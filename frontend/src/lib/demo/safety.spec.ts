@@ -1,15 +1,23 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { ASSIST_LINE, SAFETY_COPY, SAFETY_LABEL, SAFETY_NUMBERS, SAFETY_RECORDS } from "./safety";
+import { ASSIST_LINE, SAFETY_COPY, SAFETY_LABEL, SAFETY_MATERIAL, SAFETY_NUMBERS, SAFETY_RECORDS } from "./safety";
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
 test("the safety copy carries Track A's label and the assist line", () => {
-  assert.match(SAFETY_LABEL, /Real High Court material, sealed Obj-1b, the production configuration with two judges/);
+  assert.match(SAFETY_LABEL, /Real High Court material, the Obj-1b set, which the models used in development have been exposed to; measured with two judges/);
   assert.doesNotMatch(SAFETY_COPY.join(" "), /config(uration)? c\b/i, "partner-facing text says two judges, never config C");
   assert.match(SAFETY_LABEL, /one run, one seed/);
   assert.match(SAFETY_LABEL, /not production traffic/);
   assert.equal(ASSIST_LINE, "This assists a lawyer; it is not a verdict.");
+});
+
+test("no sentence on the safety page calls the set sealed, or calls the measured arrangement the production configuration (R1 on #62)", () => {
+  for (const s of SAFETY_COPY) {
+    assert.doesNotMatch(s, /\bsealed\b/i, s);
+    assert.doesNotMatch(s, /production configuration/i, s);
+  }
+  assert.match(SAFETY_MATERIAL, /exposed to the models used in development/);
 });
 
 test("every number on the safety page is a sourced figure", () => {

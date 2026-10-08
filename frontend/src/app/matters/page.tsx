@@ -160,7 +160,7 @@ function ContractResult({ c, mark }: { c: AnalyseFactsContract; mark?: Validatio
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <caption className="sr-only">Elements of {c.contract_id}: status and the supporting quote</caption>
+            <caption className="sr-only">Elements of this contract: status and the supporting quote</caption>
             <thead>
               <tr className="text-xs text-[var(--color-text-dim)]">
                 <th scope="col" className="pb-1 pr-3 font-medium">element</th>

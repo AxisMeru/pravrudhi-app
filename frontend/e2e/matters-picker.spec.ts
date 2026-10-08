@@ -48,7 +48,7 @@ test("the results table has a caption, column headers with scope, and sits in a 
   await page.getByRole("button", { name: "Analyse" }).click();
   const table = page.locator("article table").first();
   await expect(table).toBeVisible();
-  await expect(table.locator("caption")).toHaveText(/Elements of bns69/);
+  await expect(table.locator("caption")).toHaveText(/Elements of this contract/);
   await expect(table.locator("th[scope=col]")).toHaveCount(3);
   await expect(table.locator("xpath=..")).toHaveClass(/overflow-x-auto/);
 });
