@@ -64,6 +64,9 @@ test("the checklist: a chip and plain reason per ingredient, the cited fact in f
   await expect(rows.nth(0).getByTestId("cited-fact-text")).toContainText(F1);
   await expect(rows.nth(0).getByTestId("what-to-check")).toContainText("Check what the facts say was said or concealed");
   await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients have a supporting fact; 1 need your review.");
+  await expect(page.getByTestId("checklist").getByTestId("ipc-disclosure")).toHaveText("Checked against the IPC text (s.415); the BNS counterpart is not validated.");
+  // the banner sentence sits directly above the standing line
+  await expect(page.getByTestId("summary-banner")).toHaveText(/ingredients have a supporting fact; 1 need your review\.\s*This is a screening aid, not legal advice\. A lawyer decides\./);
   const text = await page.getByTestId("checklist").innerText();
   expect(text).not.toMatch(/\bproved\b|\bestablished\b|verbatim|offence is made out/i);
   // "Needs your review" is amber, never the error red

@@ -19,7 +19,7 @@ import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/fac
 import { buildAuditTrail, buildScreeningMemo } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { ipcDisclosure, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
@@ -259,6 +259,9 @@ export default function ScreeningPage() {
                         <span>
                           <span className="text-[var(--color-text)]">{o.title}</span>
                           <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>
+                          {o.ipcChecked && (
+                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
+                          )}
                           {ids.some((i) => validationLabel(validationMark(validated, i))) && (
                             <span className="ml-2 text-xs text-amber-300">({validationLabel(validationMark(validated, ids[0]))})</span>
                           )}

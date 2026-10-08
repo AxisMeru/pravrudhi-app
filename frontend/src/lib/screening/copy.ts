@@ -21,6 +21,10 @@ export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";
 
 /** The standing line beside every summary banner. */
 export const BANNER_STANDING_LINE = "This is a screening aid, not legal advice. A lawyer decides.";
+/** For the four offences the engine judges through their IPC-family contracts: the BNS counterpart is not on the validated list (R1, 8 Oct; #825). */
+export function ipcDisclosure(ipcSection: string): string {
+  return `Checked against the IPC text (s.${ipcSection}); the BNS counterpart is not validated.`;
+}
 export const ALL_SUPPORTED_TEXT = "All ingredients supported (structure checked)";
 
 export function bannerText(supported: number, total: number, review: number): string {

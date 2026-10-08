@@ -1,4 +1,4 @@
-import { CHIP_LABEL, DEFENCE_HEADING, NO_CHECK_NOTE, SUGGESTED_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING } from "@/lib/screening/copy";
+import { CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, SUGGESTED_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
@@ -58,6 +58,9 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
           {offence?.sections ? `${offence.sections} · ` : ""}
           <span className="font-mono">{contract.contract_id}</span>
         </p>
+        {offence?.ipcChecked && (
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(offence.ipcChecked)}</p>
+        )}
       </header>
       <SummaryBanner summary={summary} />
       {referral && (

@@ -3,7 +3,7 @@
 import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
 import { MEMO_DISCLAIMER } from "../memo";
-import { CHIP_LABEL, SUGGESTED_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
+import { CHIP_LABEL, ipcDisclosure, SUGGESTED_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { offenceOf } from "./offences";
 
@@ -35,7 +35,10 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     const rows = rowsFor(c, result.facts);
     const s = summarize(c, rows);
     const off = offenceOf(c.contract_id);
-    out.push(`## ${off ? `${off.title} (${off.sections})` : c.contract_id}`, "", `Contract: ${c.contract_id}`, "", `**${s.text}**`, "");
+    out.push(`## ${off ? `${off.title} (${off.sections})` : c.contract_id}`, "", `Contract: ${c.contract_id}`, "");
+    if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
+    // The banner sentence never appears without the standing line directly under it (R1).
+    out.push(`**${s.text}**`, BANNER_STANDING_LINE, "");
     const ref = contractReferral(c);
     if (ref) out.push(`Needs your review: ${line(ref.message)} (reason: ${ref.code})`, "");
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");

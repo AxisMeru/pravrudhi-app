@@ -5,7 +5,8 @@ import leanOutcome from "../fixtures/leanOutcome.json";
 import whatToCheck from "../fixtures/whatToCheck.json";
 import contractElements from "../fixtures/contractElements.json";
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "../api";
-import { CHIP_LABEL } from "./copy";
+import { CHIP_LABEL, ipcDisclosure } from "./copy";
+import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
 import { LEAN_PASS_OUTCOME, contractReferral, rowsFor, summarize, whatToCheckFor } from "./model";
 
@@ -132,4 +133,26 @@ test("a found defence is a review item, an unfound one is not shown; a referral 
   const ref = contractReferral(contract([el(0)], { outcome: "REFER_TO_LAWYER", reason: "contract_not_validated" }));
   assert.match(ref?.message ?? "", /not on the validated list/);
   assert.equal(contractReferral(contract([el(0)])), null);
+});
+
+test("R1 (8 Oct): the IPC-text disclosure is on exactly the four IPC-family offences, with their own IPC section; the BNS-native ones have none", () => {
+  const disclosed = Object.fromEntries(OFFENCES.map((o) => [o.id, o.ipcChecked]));
+  assert.deepEqual(disclosed, {
+    "breach-of-trust": "405", cheating: "415", "cheating-personation": "416", "false-information": "182",
+    "promise-to-marry": null, cruelty: null, abetment: null, "abetment-outside-india": null,
+  });
+  assert.equal(ipcDisclosure("405"), "Checked against the IPC text (s.405); the BNS counterpart is not validated.");
+});
+
+test("R1 (8 Oct): the memo never shows the banner sentence without the standing line directly under it, and says 'may' for a defeater", () => {
+  const c = contract([el(0), el(1, { status: "not_established" }), el(2, { status: "not_confirmed" }), el(0, { is_denial: true, element: "a defence", status: "established" })], { outcome: "ABSTAIN" });
+  const memo = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
+  const lines = memo.split("\n");
+  const i = lines.findIndex((l) => /ingredients have a supporting fact/.test(l));
+  assert.ok(i > 0);
+  assert.equal(lines[i + 1], "This is a screening aid, not legal advice. A lawyer decides.");
+  assert.match(memo, /### A fact that may defeat the claim/);
+  assert.match(memo, /Checked against the IPC text \(s\.415\); the BNS counterpart is not validated\./);
+  // a defeater row is not an ingredient: M stays 3
+  assert.match(memo, /1 of 3 ingredients have a supporting fact; 2 need your review\./);
 });
