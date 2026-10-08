@@ -5,7 +5,7 @@ import leanOutcome from "../fixtures/leanOutcome.json";
 import whatToCheck from "../fixtures/whatToCheck.json";
 import contractElements from "../fixtures/contractElements.json";
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "../api";
-import { CHIP_LABEL, ipcDisclosure } from "./copy";
+import { CHIP_LABEL, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
 import { LEAN_PASS_OUTCOME, contractReferral, rowsFor, summarize, whatToCheckFor } from "./model";
@@ -73,11 +73,11 @@ test("an unrecognised status and an 'uncertain' element are review items with a 
   assert.match(ingredients[1].reason ?? "", /not sure/i);
 });
 
-test("the screening signal makes a not-established row 'supported', marked as suggested, only when the engine sends it", () => {
+test("the screening signal gives a not-established row its OWN chip (suggested, not supported), only when the engine sends it", () => {
   const withSignal = el(1, { status: "not_established", screening_signal: { p: 0.8, supported: true } });
   const without = el(1, { status: "not_established" });
   const rows = rowsFor(contract([el(0), withSignal, el(2, { status: "not_established", screening_signal: { p: 0.2, supported: false } })]), FACTS).ingredients;
-  assert.deepEqual(rows.map((r) => [r.chip, r.suggested]), [["supported", false], ["supported", true], ["not_supported", false]]);
+  assert.deepEqual(rows.map((r) => [r.chip, r.suggested]), [["supported", false], ["suggested", true], ["not_supported", false]]);
   assert.equal(rowsFor(contract([without]), FACTS).ingredients[0].chip, "not_supported");
 });
 
@@ -155,4 +155,18 @@ test("R1 (8 Oct): the memo never shows the banner sentence without the standing 
   assert.match(memo, /Checked against the IPC text \(s\.415\); the BNS counterpart is not validated\./);
   // a defeater row is not an ingredient: M stays 3
   assert.match(memo, /1 of 3 ingredients have a supporting fact; 2 need your review\./);
+});
+
+test("R1 (8 Oct): a suggestion is not a cited fact: its own chip text, not in N, in K; the structure note appears with the all-supported line only", () => {
+  assert.equal(CHIP_LABEL.suggested, "Suggested by the screening judge; check it");
+  const c = contract([el(0), el(1, { status: "not_established", screening_signal: { p: 0.9, supported: true } }), el(2, { status: "not_established" })], { outcome: "ABSTAIN" });
+  const s = summarize(c, rowsFor(c, FACTS));
+  assert.equal(s.text, "1 of 3 ingredients have a supporting fact; 1 need your review.");
+  assert.equal(s.supported, 1);
+  assert.equal(STRUCTURE_NOTE, "A Lean check confirmed the right ingredients were addressed; it does not read your facts.");
+  const good = contract([el(0), el(1), el(2)]);
+  const gm = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [good] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
+  assert.match(gm, /\*\*All ingredients supported \(structure checked\)\*\*\nThis is a screening aid, not legal advice\. A lawyer decides\.\nA Lean check confirmed/);
+  const pm = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
+  assert.doesNotMatch(pm, /A Lean check confirmed/);
 });
