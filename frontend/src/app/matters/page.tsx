@@ -87,10 +87,9 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
         {el.quote ? (
           <>
-            <span className="italic">&ldquo;{el.quote}&rdquo;</span>
-            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
-            {view.kind === "highlight" && (
-              <div className="mt-1 text-xs not-italic" data-testid="quote-in-fact">
+            {view.kind === "highlight" ? (
+              // Valid highlight: show the quote once, inside its fact. The italic quote below is the fallback when the offsets cannot be used.
+              <div className="text-xs not-italic" data-testid="quote-in-fact">
                 <span className="text-[11px]">In fact {view.factId}: </span>
                 {view.cutBefore && "…"}
                 {view.before}
@@ -98,7 +97,10 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
                 {view.after}
                 {view.cutAfter && "…"}
               </div>
+            ) : (
+              <span className="italic">&ldquo;{el.quote}&rdquo;</span>
             )}
+            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
