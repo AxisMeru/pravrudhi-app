@@ -1,6 +1,6 @@
 // The offences the Screening view offers, grouped by what the user is screening for, with the BNS section and its IPC equivalent on one line.
 // Only the contracts the engine's registry marks validated are offered in v1 (refer-first); the user picks, nothing is suggested. The section
-// pairs are authored here for R1/R2 to check (offences.spec.ts pins them against the contract sources in fixtures/contractElements.json).
+// pairs are authored here for R1/R2 to check (offences.spec.ts pins the table exactly; model.spec.ts pins its contracts against the contract sources in fixtures/contractElements.json).
 export interface Offence {
   id: string;
   title: string;
