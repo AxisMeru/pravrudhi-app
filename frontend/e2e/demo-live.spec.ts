@@ -68,7 +68,7 @@ for (const fixture of FIXTURES) {
         expect(response.ok(), `analyse-facts answered ${response.status()}`).toBe(true);
         const wire = (await response.json()) as AnalyseFactsWire;
         await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
-        const result = withFactText(wire, facts);
+        const result = await withFactText(wire, facts);
 
         // The content assertions on the REAL response.
         expect(checkDemoResult(wire, facts, fixture), "violations of the demo result").toEqual([]);

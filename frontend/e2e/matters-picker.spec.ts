@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The contract picker's states and the results table's structure on /matters (design-partner audit, gaps 2 and 3). Recorded engine
@@ -34,7 +35,7 @@ test("the results table has a caption, column headers with scope, and sits in a 
     r.fulfill({
       json: {
         run_id: "r-invented-1", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented",
-        facts: [{ id: "f1", sha256: "b".repeat(64) }],
+        facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [{ element: "a promise", is_denial: false, screening_signal: null, citation_note: null, status: "established", claimed: true, p_established: 0.9, fact_id: "f1", quote: FACT.slice(0, 40), start: 0, end: 40, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "model", quote_source: "model", error: null }],
@@ -59,7 +60,7 @@ test("a referral is listed before the other results, whatever order the engine a
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-3", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: "b".repeat(64) }],
+        run_id: "r-invented-3", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{ ...base, contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element" }, { ...base, contract_id: "bns85", outcome: "REFER_TO_LAWYER", reason: "uncertain" }],
       },
     }),
@@ -79,7 +80,7 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-4", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: "b".repeat(64) }, { id: "f2", sha256: "c".repeat(64) }],
+        run_id: "r-invented-4", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }, { id: "f2", sha256: sha("Meena kept it.") }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [
@@ -110,7 +111,7 @@ test("an older engine (no quote_source) on the house path: the page says it cite
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-5", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: "b".repeat(64) }],
+        run_id: "r-invented-5", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [{ ...el, element: "first", fact_id: "f1", quote: "INVENTED OLDER QUOTE", quote_source: null, quote_check: "quote_not_found" }],

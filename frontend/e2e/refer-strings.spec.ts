@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The referral layout and the status explanations, against RECORDED responses (page.route), not a judge: the heading "Referred to a
@@ -11,7 +12,7 @@ const RESULT = (reason: string) => ({
   run_id: "run-TOY-1",
   judge: "recorded",
   score_sha256: "a".repeat(64),
-  facts: FACTS.map((_, i) => ({ id: `F${i + 1}`, sha256: "b".repeat(64) })),
+  facts: FACTS.map((t, i) => ({ id: `F${i + 1}`, sha256: sha(t) })),
   provenance: "recorded",
   retention_notice: "recorded retention notice",
   contracts: [

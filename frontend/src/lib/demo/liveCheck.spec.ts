@@ -142,10 +142,10 @@ test("the recorded expectation binds only after 3 recorded runs, then a differin
   assert.deepEqual(checkDemoResult(resultFor(f, facts), facts, f), []);
 });
 
-test("the memo check passes against the real buildMemo() and catches a memo missing a quote or the run id", () => {
+test("the memo check passes against the real buildMemo() and catches a memo missing a quote or the run id", async () => {
   const f = byId("proof-path");
   const facts = f.wordings.plain;
-  const r = withFactText(resultFor(f, facts), facts);
+  const r = await withFactText(resultFor(f, facts), facts);
   const memo = buildMemo(r, { engineVersion: "0.0.0", generatedAt: "2026-01-01T00:00:00Z" });
   assert.deepEqual(checkMemoText(memo, r), []);
   assert.ok(checkMemoText(memo.replace(r.run_id, "x"), r).some((v) => /run id/.test(v)));

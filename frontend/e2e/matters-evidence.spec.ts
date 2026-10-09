@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The matters page's cited fact view (#15): the cited fact shown once (a passage marked only when the span is a strict part of it), and the Lean
@@ -20,7 +21,7 @@ async function analyse(page: import("@playwright/test").Page, elements: object[]
     r.fulfill({
       json: {
         run_id: "r-invented-2", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
-        facts: [{ id: "F1", sha256: "d".repeat(64) }, { id: "F2", sha256: "e".repeat(64) }],
+        facts: [{ id: "F1", sha256: sha(F1) }, { id: "F2", sha256: sha(F2) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: { a: true },
           lean, lean_outcome: lean ? "PROOF" : null,
@@ -122,7 +123,7 @@ test("REFER_TO_LAWYER with lean null shows the signed line; with a structural ch
     r.fulfill({
       json: {
         run_id: "r-invented-3", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
-        facts: [{ id: "F1", sha256: "d".repeat(64) }],
+        facts: [{ id: "F1", sha256: sha(F1) }],
         contracts: [{
           contract_id: "bns69", outcome: "REFER_TO_LAWYER", reason: "uncertain", assertions: null,
           lean: withLean ? { verdict: "PROOF", denied_claims: [], unlicensed_claims: [], omitted_claims: [] } : null,

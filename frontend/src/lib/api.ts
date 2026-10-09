@@ -1313,10 +1313,26 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
 // were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
 const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
 
-/** The engine echoes facts in submission order as F1..Fn with a sha256 and no text; the text shown beside a citation is the text the user submitted. */
-export function withFactText(wire: AnalyseFactsWire, submitted: string[]): AnalyseFactsResult {
+async function sha256Hex(text: string): Promise<string> {
+  const d = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(d), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * The engine echoes each fact as {id, sha256} (the sha256 of the stripped text) and no text, so the text shown beside a citation is the text this app
+ * submitted, paired to the echoed fact BY sha256 (never by position). An echoed fact that matches no submitted fact, and every fact when the counts
+ * differ, gets an empty text: the callers then show no cited-fact text at all rather than a wrong one.
+ */
+export async function withFactText(wire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
   const echoed = Array.isArray(wire.facts) ? wire.facts : [];
-  return { ...wire, facts: echoed.map((f, i) => ({ ...f, text: echoed.length === submitted.length ? submitted[i] : "" })) };
+  if (echoed.length !== submitted.length) return { ...wire, facts: echoed.map((f) => ({ ...f, text: "" })) };
+  const bySha = new Map<string, string[]>();
+  for (const t of submitted) {
+    const stripped = t.trim();
+    const h = await sha256Hex(stripped);
+    bySha.set(h, [...(bySha.get(h) ?? []), stripped]);
+  }
+  return { ...wire, facts: echoed.map((f) => ({ ...f, text: bySha.get(f.sha256)?.shift() ?? "" })) };
 }
 
 export async function analyseFacts(
@@ -1339,7 +1355,7 @@ export async function analyseFacts(
     }
     if (!res.ok) throw err;
   }
-  return withFactText((await res.json()) as AnalyseFactsWire, facts);
+  return await withFactText((await res.json()) as AnalyseFactsWire, facts);
 }
 
 // Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in

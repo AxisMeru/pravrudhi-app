@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
@@ -23,7 +24,7 @@ const FAKE_RESULT = {
   run_id: "nyaya-agent-abc123",
   judge: "house",
   score_sha256: "deadbeef",
-  facts: [{ id: "F1", sha256: "x" }],
+  facts: [{ id: "F1", sha256: "5eb10579990a4f869f10b6dfaabe3c4790ca99cdbc2e8002c77ff4172353eae0" }],
   contracts: [
     {
       contract_id: "bns69",
@@ -280,8 +281,44 @@ test("analyseFacts: the engine echoes id and sha256 only; each fact's text is th
   const { restore } = mockFetch(() => ok(FAKE_RESULT));
   try {
     const r = await analyseFacts(["toy fact"], ["bns69"]);
-    assert.deepEqual(r.facts, [{ id: "F1", sha256: "x", text: "toy fact" }]);
+    assert.deepEqual(r.facts, [{ id: "F1", sha256: "5eb10579990a4f869f10b6dfaabe3c4790ca99cdbc2e8002c77ff4172353eae0", text: "toy fact" }]);
   } finally {
     restore();
   }
+});
+
+// withFactText pairs echoed and submitted facts BY sha256; whatever cannot be paired gets no text, so no page ever shows a wrong fact beside a citation.
+const wireOf = (facts: { id: string; sha256: string }[]) => ({ ...FAKE_RESULT, facts }) as unknown as import("./api").AnalyseFactsWire;
+const H = (t: string) => createHash("sha256").update(t).digest("hex");
+
+test("withFactText: an echo in a different order is paired by sha256, not by position", async () => {
+  const { withFactText } = await import("./api");
+  const r = await withFactText(wireOf([{ id: "F1", sha256: H("second") }, { id: "F2", sha256: H("first") }]), ["first", "second"]);
+  assert.deepEqual(r.facts.map((f) => f.text), ["second", "first"]);
+});
+
+test("withFactText: the submitted fact is paired by its STRIPPED text, as the engine hashes it", async () => {
+  const { withFactText } = await import("./api");
+  const r = await withFactText(wireOf([{ id: "F1", sha256: H("padded") }]), ["  padded \n"]);
+  assert.equal(r.facts[0].text, "padded");
+});
+
+test("withFactText: a sha256 that matches no submitted fact gets an empty text, the others keep theirs", async () => {
+  const { withFactText } = await import("./api");
+  const r = await withFactText(wireOf([{ id: "F1", sha256: H("one") }, { id: "F2", sha256: "0".repeat(64) }]), ["one", "two"]);
+  assert.deepEqual(r.facts.map((f) => f.text), ["one", ""]);
+});
+
+test("withFactText: a count mismatch hides every fact's text", async () => {
+  const { withFactText } = await import("./api");
+  const r = await withFactText(wireOf([{ id: "F1", sha256: H("one") }]), ["one", "two"]);
+  assert.deepEqual(r.facts.map((f) => f.text), [""]);
+  const none = await withFactText({ ...wireOf([]), facts: undefined } as never, ["one"]);
+  assert.deepEqual(none.facts, []);
+});
+
+test("withFactText: two identical submitted facts are each used once", async () => {
+  const { withFactText } = await import("./api");
+  const r = await withFactText(wireOf([{ id: "F1", sha256: H("same") }, { id: "F2", sha256: H("same") }]), ["same", "same"]);
+  assert.deepEqual(r.facts.map((f) => f.text), ["same", "same"]);
 });

@@ -127,7 +127,7 @@ for (let run = 1; run <= REPEATS; run++) {
     // Attach what the engine answered and what the page sent BEFORE any assertion, so a failure can be diagnosed without a re-run (matter text omitted: it is private).
     await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
     await test.info().attach("request-body", { body: JSON.stringify({ ...JSON.parse(response.request().postData() ?? "{}"), facts: submitted.map((f, i) => `<fact ${i + 1}: ${f.length} chars>`) }, null, 2), contentType: "application/json" });
-    const result = withFactText(wire, submitted);
+    const result = await withFactText(wire, submitted);
     expect(checkDemoResult(wire, submitted, FIXTURE), "violations of the real response").toEqual([]);
 
     // what the page shows is a plain-words reading of that response
