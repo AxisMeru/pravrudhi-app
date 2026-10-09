@@ -322,3 +322,17 @@ test("withFactText: two identical submitted facts are each used once", async () 
   const r = await withFactText(wireOf([{ id: "F1", sha256: H("same") }, { id: "F2", sha256: H("same") }]), ["same", "same"]);
   assert.deepEqual(r.facts.map((f) => f.text), ["same", "same"]);
 });
+
+test("withFactText: without crypto.subtle (an insecure context) the engine's order contract pairs by position, exact for equal counts", async () => {
+  const { withFactText } = await import("./api");
+  const desc = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+  Object.defineProperty(globalThis, "crypto", { value: {}, configurable: true });
+  try {
+    const r = await withFactText(wireOf([{ id: "F1", sha256: "x" }, { id: "F2", sha256: "y" }]), [" one ", "two"]);
+    assert.deepEqual(r.facts.map((f) => f.text), ["one", "two"]);
+    const mism = await withFactText(wireOf([{ id: "F1", sha256: "x" }]), ["one", "two"]);
+    assert.deepEqual(mism.facts.map((f) => f.text), [""]);
+  } finally {
+    if (desc) Object.defineProperty(globalThis, "crypto", desc);
+  }
+});

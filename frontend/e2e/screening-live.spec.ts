@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./support/engineTest";
@@ -22,7 +23,7 @@ import { OFFENCES } from "../src/lib/screening/offences";
  * NOT RUN BY DEFAULT. A production run needs Lead-2's written go: set SCREENING_LIVE_GO=1 for the window it was granted for (the go names the
  * call count and the $ cap; one run is ONE analyse-facts call), the e2e member account in the environment (E2E_EMAIL / E2E_PASSWORD), and
  * #59, #60 and #61 merged first (see docs/demo-runbook.md). Skipped, not failed, outside the service window, with the reason.
- * SCREENING_LIVE_REPEATS (default 1) runs it more than once in the window; each run attaches `observed-screening` JSON with run id and the
+ * SCREENING_LIVE_REPEATS (default 1) runs it more than once in the window; each run attaches `observed-screening` JSON and writes it (and the raw response) to SCREENING_OUT_DIR, printing the path, with run id and the
  * per-contract chip counts (pipeline-measured, n = the runs in the window, no performance claim).
  */
 const GO = process.env.SCREENING_LIVE_GO === "1";
@@ -54,6 +55,9 @@ const MATTER_OFFENCES = OFFENCES.filter((o) => MATTER_OFFENCE_IDS.includes(o.id)
 // every contract of each offence the matter invokes (the offence is the unit of choice on the page)
 const CONTRACT_IDS = MATTER_OFFENCES.flatMap((o) => [...o.contracts]);
 test.skip(GO && !REHEARSAL && !MATTER_FILE, "SCREENING_MATTER_FILE is not set: the matter text is not in the repository (see src/lib/demo/screeningMatter.ts)");
+
+/** Where the observed-screening and raw-response JSON are written whatever the reporter; SCREENING_OUT_DIR overrides (default frontend/test-results/screening-live). */
+const OUT_DIR = resolve(process.env.SCREENING_OUT_DIR ?? join("test-results", "screening-live"));
 
 const FIXTURE: DemoFixture = {
   id: `matter-${MATTER_DOC_ID}`,
@@ -126,6 +130,8 @@ for (let run = 1; run <= REPEATS; run++) {
     const submitted = [...FACTS];
     // Attach what the engine answered and what the page sent BEFORE any assertion, so a failure can be diagnosed without a re-run (matter text omitted: it is private).
     await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
+    mkdirSync(OUT_DIR, { recursive: true });
+    writeFileSync(join(OUT_DIR, `raw-response-${MATTER_DOC_ID}-run${run}-${wire.run_id}.json`), JSON.stringify(wire, null, 2) + "\n");
     await test.info().attach("request-body", { body: JSON.stringify({ ...JSON.parse(response.request().postData() ?? "{}"), facts: submitted.map((f, i) => `<fact ${i + 1}: ${f.length} chars>`) }, null, 2), contentType: "application/json" });
     const result = await withFactText(wire, submitted);
     expect(checkDemoResult(wire, submitted, FIXTURE), "violations of the real response").toEqual([]);
@@ -187,15 +193,18 @@ for (let run = 1; run <= REPEATS; run++) {
     expect(audit.response.run_id).toBe(result.run_id);
     expect(audit.request.facts).toEqual(submitted);
 
-    await test.info().attach("observed-screening", {
-      contentType: "application/json",
-      body: JSON.stringify({
-        run, run_id: result.run_id, contracts: observed,
-        matter: MATTER_DOC_ID,
-        caveat: MATTER_CAVEAT,
-        not_screened: MATTER_NOT_SCREENED,
-        rehearsal: REHEARSAL,
-      }),
+    const observedJson = JSON.stringify({
+      run, run_id: result.run_id, contracts: observed,
+      matter: MATTER_DOC_ID,
+      caveat: MATTER_CAVEAT,
+      not_screened: MATTER_NOT_SCREENED,
+      rehearsal: REHEARSAL,
     });
+    await test.info().attach("observed-screening", { contentType: "application/json", body: observedJson });
+    // Attachments are only saved by some reporters (not --reporter=list), so the same JSON is ALWAYS written to a file; the path is printed.
+    const file = join(OUT_DIR, `observed-screening-${MATTER_DOC_ID}-run${run}-${result.run_id}.json`);
+    mkdirSync(OUT_DIR, { recursive: true });
+    writeFileSync(file, observedJson + "\n");
+    console.log(`observed-screening written to ${file}`);
   });
 }
