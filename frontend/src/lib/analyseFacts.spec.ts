@@ -23,7 +23,7 @@ const FAKE_RESULT = {
   run_id: "nyaya-agent-abc123",
   judge: "house",
   score_sha256: "deadbeef",
-  facts: [{ id: "F1", text: "toy fact", sha256: "x" }],
+  facts: [{ id: "F1", sha256: "x" }],
   contracts: [
     {
       contract_id: "bns69",
@@ -272,5 +272,16 @@ test("analyseFacts: the coded 503s from the engine (error code + fixed detail) a
       restore();
     }
     assert.equal(analyseFactsCalls(calls).length, 2);
+  }
+});
+
+test("analyseFacts: the engine echoes id and sha256 only; each fact's text is the text this app submitted (the production Screening defect of 9 Oct)", async () => {
+  const { analyseFacts } = await import("./api");
+  const { restore } = mockFetch(() => ok(FAKE_RESULT));
+  try {
+    const r = await analyseFacts(["toy fact"], ["bns69"]);
+    assert.deepEqual(r.facts, [{ id: "F1", sha256: "x", text: "toy fact" }]);
+  } finally {
+    restore();
   }
 });

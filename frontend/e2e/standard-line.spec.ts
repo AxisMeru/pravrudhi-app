@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 /**
  * #32: the matter view shows the standard line applied next to the verdict. This runs against RECORDED responses (page.route),
@@ -9,7 +9,7 @@ const RESULT = (standard: unknown) => ({
   run_id: "run-TOY-1",
   judge: "recorded",
   score_sha256: "a".repeat(64),
-  facts: FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) })),
+  facts: FACTS.map((_, i) => ({ id: `F${i + 1}`, sha256: "b".repeat(64) })),
   provenance: "recorded",
   retention_notice: "recorded retention notice",
   ...(standard === undefined ? {} : { standard }),

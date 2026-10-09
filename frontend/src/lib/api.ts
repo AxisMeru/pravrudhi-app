@@ -1261,6 +1261,12 @@ export interface AnalyseFactsStandardOut {
   in_judge_prompt: boolean;
 }
 
+/** What the engine sends: the facts echo carries each fact's id and sha256 only, never its text (pravrudhi nyaya_agent.py AgentRun.facts). */
+export interface AnalyseFactsWire extends Omit<AnalyseFactsResult, "facts"> {
+  facts: { id: string; sha256: string }[];
+}
+
+/** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
   run_id: string;
   judge: string;
@@ -1307,6 +1313,12 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
 // were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
 const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
 
+/** The engine echoes facts in submission order as F1..Fn with a sha256 and no text; the text shown beside a citation is the text the user submitted. */
+export function withFactText(wire: AnalyseFactsWire, submitted: string[]): AnalyseFactsResult {
+  const echoed = Array.isArray(wire.facts) ? wire.facts : [];
+  return { ...wire, facts: echoed.map((f, i) => ({ ...f, text: echoed.length === submitted.length ? submitted[i] : "" })) };
+}
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
@@ -1327,7 +1339,7 @@ export async function analyseFacts(
     }
     if (!res.ok) throw err;
   }
-  return (await res.json()) as AnalyseFactsResult;
+  return withFactText((await res.json()) as AnalyseFactsWire, facts);
 }
 
 // Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in

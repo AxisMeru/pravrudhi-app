@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 /**
  * The Screening view against RECORDED engine answers (page.route) with invented facts: the checklist, the chips and their reasons, the cited fact
@@ -15,10 +15,10 @@ const EL = [
   "the deception fraudulently or dishonestly induces the deceived person",
   "the inducement causes delivery of property to any person, or consent that any person shall retain property",
 ];
-const base = { is_denial: false, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };
+const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };
 const ANSWER = {
   run_id: "r-invented-screen", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice",
-  facts: [{ id: "F1", text: F1, sha256: "b".repeat(64) }, { id: "F2", text: F2, sha256: "c".repeat(64) }],
+  facts: [{ id: "F1", sha256: "b".repeat(64) }, { id: "F2", sha256: "c".repeat(64) }],
   contracts: [{
     contract_id: CID, outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
     elements: [
