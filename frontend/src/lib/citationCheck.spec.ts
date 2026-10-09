@@ -22,8 +22,8 @@ test("the preview label is exactly the decided wording", () => {
   assert.equal(PREVIEW_LABEL, "preview: accuracy not yet measured");
 });
 
-test("the five statuses the engine can answer are shown verbatim and known", () => {
-  assert.deepEqual([...VERIFY_STATUSES], ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"]);
+test("the six statuses the engine can answer are shown verbatim and known", () => {
+  assert.deepEqual([...VERIFY_STATUSES], ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"]);
   for (const s of VERIFY_STATUSES) {
     const v = verifyView({ result: s, note: "A fixed note." });
     assert.equal(v.status, s);
@@ -92,8 +92,8 @@ test("the product status is OFF in this build by default, and off shows only the
   }
 });
 
-test("switched on, each of the five product statuses shows the engine's label verbatim with the preview flag", () => {
-  assert.deepEqual([...PRODUCT_STATUSES], ["verified", "quote_not_found", "not_in_index", "conflict", "malformed"]);
+test("switched on, each of the six product statuses shows the engine's label verbatim with the preview flag", () => {
+  assert.deepEqual([...PRODUCT_STATUSES], ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed"]);
   for (const reply of Object.values(PRODUCT)) {
     const p = productStatus({ ...reply, note: "n" }, true);
     assert.deepEqual(p, { status: reply.status, label: reply.label, preview: true });
