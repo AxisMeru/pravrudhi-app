@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The matters page's cited fact view (#15): the cited fact shown once (a passage marked only when the span is a strict part of it), and the Lean
@@ -20,11 +21,11 @@ async function analyse(page: import("@playwright/test").Page, elements: object[]
     r.fulfill({
       json: {
         run_id: "r-invented-2", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
-        facts: [{ id: "F1", text: F1, sha256: "d".repeat(64) }, { id: "F2", text: F2, sha256: "e".repeat(64) }],
+        facts: [{ id: "F1", sha256: sha(F1) }, { id: "F2", sha256: sha(F2) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: { a: true },
-          lean, lean_outcome: lean ? "Proof" : null,
-          lean_attestation: lean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "Proof" } : null,
+          lean, lean_outcome: lean ? "PROOF" : null,
+          lean_attestation: lean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "PROOF" } : null,
           uncertain: [], statute_text_mismatch: null, citations: [], elements,
         }],
       },
@@ -37,7 +38,7 @@ async function analyse(page: import("@playwright/test").Page, elements: object[]
 }
 
 const element = (o: object) => ({
-  element: "a promise", is_denial: false, status: "established", claimed: true, p_established: 0.91, fact_id: "F1", quote: QUOTE1,
+  element: "a promise", is_denial: false, screening_signal: null, citation_note: null, status: "established", claimed: true, p_established: 0.91, fact_id: "F1", quote: QUOTE1,
   start: cp(F1, QUOTE1), end: cp(F1, QUOTE1) + Array.from(QUOTE1).length, quote_check: "ok", attempts: 1, occurrences: 1,
   offsets_source: "system", quote_source: "model", error: null, ...o,
 });
@@ -82,7 +83,7 @@ test("offsets that cannot be used show the cited fact plain; a fact that is not 
 });
 
 test("the Lean attestation shows both hashes and the structural-check note, and never says verified", async ({ page }) => {
-  await analyse(page, [element({})], { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] });
+  await analyse(page, [element({})], { verdict: "PROOF", denied_claims: [], unlicensed_claims: [], omitted_claims: [] });
   const att = page.getByTestId("lean-attestation");
   await expect(att).toBeVisible();
   await expect(att).toContainText(BIN);
@@ -99,7 +100,7 @@ test("no attestation block when the engine sent none", async ({ page }) => {
 
 test("at phone width the page itself does not scroll sideways and the evidence stays inside the screen", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
-  await analyse(page, [element({})], { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] });
+  await analyse(page, [element({})], { verdict: "PROOF", denied_claims: [], unlicensed_claims: [], omitted_claims: [] });
   await expect(page.getByTestId("cited-passage")).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow, "the page scrolls sideways at 375 px").toBeLessThanOrEqual(0);
@@ -122,12 +123,12 @@ test("REFER_TO_LAWYER with lean null shows the signed line; with a structural ch
     r.fulfill({
       json: {
         run_id: "r-invented-3", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
-        facts: [{ id: "F1", text: F1, sha256: "d".repeat(64) }],
+        facts: [{ id: "F1", sha256: sha(F1) }],
         contracts: [{
           contract_id: "bns69", outcome: "REFER_TO_LAWYER", reason: "uncertain", assertions: null,
-          lean: withLean ? { verdict: "Proof", denied_claims: [], unlicensed_claims: [], omitted_claims: [] } : null,
-          lean_outcome: withLean ? "Proof" : null,
-          lean_attestation: withLean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "Proof" } : null,
+          lean: withLean ? { verdict: "PROOF", denied_claims: [], unlicensed_claims: [], omitted_claims: [] } : null,
+          lean_outcome: withLean ? "PROOF" : null,
+          lean_attestation: withLean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "PROOF" } : null,
           uncertain: [], statute_text_mismatch: null, citations: [], elements: [element({ status: "not_established", p_established: 0.5 })],
         }],
       },

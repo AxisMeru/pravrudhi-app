@@ -1,7 +1,10 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
-import type { AnalyseFactsResult } from "../src/lib/api";
+import { expect, test } from "./support/engineTest";
+
+import { withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
 import { MATTER_CAVEAT, MATTER_DOC_ID, MATTER_NOT_SCREENED, MATTER_OFFENCE_IDS, checkMatterText } from "../src/lib/demo/screeningMatter";
 import { CHIP_LABEL } from "../src/lib/screening/copy";
@@ -61,9 +64,10 @@ const FIXTURE: DemoFixture = {
   expect: { recorded_runs: 0, outcomes: null },
 };
 
-function rehearsalAnswer(): AnalyseFactsResult {
-  const facts = FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) }));
-  const base = { is_denial: false, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null, quote_source: "whole_fact", p_established_second: 0.8 };
+function rehearsalAnswer(): AnalyseFactsWire {
+  // The real shape: id and sha256 of the stripped fact, NO text (a mock that sent text hid the production defect the first live run found).
+  const facts = FACTS.map((text, i) => ({ id: `F${i + 1}`, sha256: createHash("sha256").update(text.trim()).digest("hex") }));
+  const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null, quote_source: "whole_fact", p_established_second: 0.8 };
   const contracts = CONTRACT_IDS.map((id, ci) => {
     const known = knownElements(id)!;
     return {
@@ -72,7 +76,7 @@ function rehearsalAnswer(): AnalyseFactsResult {
       elements: known.elements.map((element, i) => ({ ...base, element, status: i === 0 ? "established" : i === 1 ? "not_confirmed" : "not_established", p_established: 0.5, fact_id: i === 0 ? `F${(ci % facts.length) + 1}` : null })),
     };
   });
-  return { run_id: "rehearsal-invented", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice", facts, contracts } as unknown as AnalyseFactsResult;
+  return { run_id: "rehearsal-invented", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice", facts, contracts } as unknown as AnalyseFactsWire;
 }
 
 async function signIn(page: Page): Promise<void> {
@@ -118,9 +122,13 @@ for (let run = 1; run <= REPEATS; run++) {
     await page.getByRole("button", { name: "Screen these facts" }).click();
     const response = await responded;
     expect(response.ok(), `analyse-facts answered ${response.status()}`).toBe(true);
-    const result = (await response.json()) as AnalyseFactsResult;
+    const wire = (await response.json()) as AnalyseFactsWire;
     const submitted = [...FACTS];
-    expect(checkDemoResult(result, submitted, FIXTURE), "violations of the real response").toEqual([]);
+    // Attach what the engine answered and what the page sent BEFORE any assertion, so a failure can be diagnosed without a re-run (matter text omitted: it is private).
+    await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
+    await test.info().attach("request-body", { body: JSON.stringify({ ...JSON.parse(response.request().postData() ?? "{}"), facts: submitted.map((f, i) => `<fact ${i + 1}: ${f.length} chars>`) }, null, 2), contentType: "application/json" });
+    const result = await withFactText(wire, submitted);
+    expect(checkDemoResult(wire, submitted, FIXTURE), "violations of the real response").toEqual([]);
 
     // what the page shows is a plain-words reading of that response
     await expect(page.getByTestId("screening-result")).toBeVisible({ timeout: 30_000 });

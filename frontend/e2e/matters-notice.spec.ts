@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /** The data-handling notice before facts are entered, the corrected file note and the next-step link (design-partner audit gaps 1 and 4). */
 const ENGINE = JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "engineRetentionNotice.json"), "utf8")) as { text: string };
@@ -24,7 +25,7 @@ async function analyse(page: import("@playwright/test").Page) {
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-2", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        run_id: "r-invented-2", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{ contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element", elements: [], assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null }],
       },
     }),

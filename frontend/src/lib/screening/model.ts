@@ -84,7 +84,7 @@ export function rowFor(contract: AnalyseFactsContract, el: ScreenedElement, fact
     reason,
     citation: kind,
     factId: cites || kind === "model" ? el.fact_id : null,
-    factText: cites && fact ? fact.text : null,
+    factText: cites && fact && fact.text ? fact.text : null,
     note: citationNote(el),
     quote: kind === "model" && el.quote ? { text: el.quote, check: el.quote_check && Object.prototype.hasOwnProperty.call(QUOTE_CHECK_TEXT, el.quote_check) ? QUOTE_CHECK_TEXT[el.quote_check] : null } : null,
     whatToCheck: whatToCheckFor(contract.contract_id, el.element),

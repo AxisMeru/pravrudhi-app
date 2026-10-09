@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The contract picker's states and the results table's structure on /matters (design-partner audit, gaps 2 and 3). Recorded engine
@@ -34,10 +35,10 @@ test("the results table has a caption, column headers with scope, and sits in a 
     r.fulfill({
       json: {
         run_id: "r-invented-1", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented",
-        facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
-          elements: [{ element: "a promise", is_denial: false, status: "established", claimed: true, p_established: 0.9, fact_id: "f1", quote: FACT.slice(0, 40), start: 0, end: 40, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "model", quote_source: "model", error: null }],
+          elements: [{ element: "a promise", is_denial: false, screening_signal: null, citation_note: null, status: "established", claimed: true, p_established: 0.9, fact_id: "f1", quote: FACT.slice(0, 40), start: 0, end: 40, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "model", quote_source: "model", error: null }],
         }],
       },
     }),
@@ -59,7 +60,7 @@ test("a referral is listed before the other results, whatever order the engine a
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-3", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        run_id: "r-invented-3", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{ ...base, contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element" }, { ...base, contract_id: "bns85", outcome: "REFER_TO_LAWYER", reason: "uncertain" }],
       },
     }),
@@ -75,11 +76,11 @@ test("a referral is listed before the other results, whatever order the engine a
 
 test("the cited-fact cell branches on quote_source: a whole fact says so and shows no quote, the engine's citation_note is shown when sent", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69"], entries: [{ id: "bns69", validated: true }] } }));
-  const el = { is_denial: false, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
+  const el = { is_denial: false, screening_signal: null, citation_note: null, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-4", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }, { id: "f2", text: "Meena kept it.", sha256: "c".repeat(64) }],
+        run_id: "r-invented-4", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }, { id: "f2", sha256: sha("Meena kept it.") }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [
@@ -91,7 +92,8 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
     }),
   );
   await page.goto("/matters");
-  await page.getByLabel("Facts (one per line)").fill(FACT);
+  // the engine echoes exactly the facts submitted, so two echoed facts need two submitted lines
+  await page.getByLabel("Facts (one per line)").fill(`${FACT}\nMeena kept it.`);
   await page.getByText("bns69").click();
   await page.getByRole("button", { name: "Analyse" }).click();
   const notes = page.getByTestId("cited-fact-note");
@@ -105,11 +107,11 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
 
 test("an older engine (no quote_source) on the house path: the page says it cites the supporting fact, shows no quote and no quote-check cause", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["bns69"], entries: [{ id: "bns69", validated: true }] } }));
-  const el = { is_denial: false, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
+  const el = { is_denial: false, screening_signal: null, citation_note: null, status: "established", claimed: true, p_established: 0.9, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null };
   await page.route("**/api/v1/analyse-facts**", (r) =>
     r.fulfill({
       json: {
-        run_id: "r-invented-5", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", text: FACT, sha256: "b".repeat(64) }],
+        run_id: "r-invented-5", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", facts: [{ id: "f1", sha256: sha(FACT) }],
         contracts: [{
           contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
           elements: [{ ...el, element: "first", fact_id: "f1", quote: "INVENTED OLDER QUOTE", quote_source: null, quote_check: "quote_not_found" }],

@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import type { AnalyseFactsResult } from "../api";
+import { createHash } from "node:crypto";
+
+import { withFactText, type AnalyseFactsWire as AnalyseFactsResult } from "../api";
 import { buildMemo } from "../memo";
 import { checkDemoResult, checkMemoText, expectationBinds, type DemoFixture } from "./liveCheck";
 
@@ -22,7 +24,8 @@ function resultFor(fixture: DemoFixture, facts: string[], overrides: Partial<Ana
     run_id: "run-SYN-1",
     judge: "synthetic",
     score_sha256: SHA,
-    facts: facts.map((text, i) => ({ id: `F${i + 1}`, text, sha256: SHA })),
+    // the real wire shape: id and sha256 of the submitted fact, no text
+    facts: facts.map((text, i) => ({ id: `F${i + 1}`, sha256: createHash("sha256").update(text).digest("hex") })),
     provenance: "synthetic",
     retention_notice: "synthetic retention notice",
     contracts: [
@@ -77,7 +80,8 @@ test("planted failures are each caught", () => {
   const cases: [string, (r: AnalyseFactsResult) => void, RegExp][] = [
     ["no run id", (r) => (r.run_id = ""), /no run id/],
     ["bad score sha", (r) => (r.score_sha256 = "xyz"), /score sha256/],
-    ["fact not echoed", (r) => (r.facts[0].text = "different"), /not echoed word for word/],
+    ["fact not echoed", (r) => (r.facts[0].sha256 = SHA), /not echoed word for word/],
+    ["an echoed text that differs", (r) => ((r.facts[0] as { text?: string }).text = "different"), /echoed text differs/],
     ["fact count differs", (r) => r.facts.pop(), /echoed 2 facts for 3 submitted/],
     ["no retention notice", (r) => delete (r as { retention_notice?: string }).retention_notice, /retention notice/],
     ["missing elements", (r) => (r.contracts[0].elements = []), /no element rows/],
@@ -138,10 +142,10 @@ test("the recorded expectation binds only after 3 recorded runs, then a differin
   assert.deepEqual(checkDemoResult(resultFor(f, facts), facts, f), []);
 });
 
-test("the memo check passes against the real buildMemo() and catches a memo missing a quote or the run id", () => {
+test("the memo check passes against the real buildMemo() and catches a memo missing a quote or the run id", async () => {
   const f = byId("proof-path");
   const facts = f.wordings.plain;
-  const r = resultFor(f, facts);
+  const r = await withFactText(resultFor(f, facts), facts);
   const memo = buildMemo(r, { engineVersion: "0.0.0", generatedAt: "2026-01-01T00:00:00Z" });
   assert.deepEqual(checkMemoText(memo, r), []);
   assert.ok(checkMemoText(memo.replace(r.run_id, "x"), r).some((v) => /run id/.test(v)));

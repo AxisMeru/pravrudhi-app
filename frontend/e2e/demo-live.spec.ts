@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
-import type { AnalyseFactsResult } from "../src/lib/api";
+import { withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, checkMemoText, type DemoFixture } from "../src/lib/demo/liveCheck";
 
 /**
@@ -66,10 +66,12 @@ for (const fixture of FIXTURES) {
         await page.getByRole("button", { name: "Analyse" }).click();
         const response = await responded;
         expect(response.ok(), `analyse-facts answered ${response.status()}`).toBe(true);
-        const result = (await response.json()) as AnalyseFactsResult;
+        const wire = (await response.json()) as AnalyseFactsWire;
+        await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
+        const result = await withFactText(wire, facts);
 
         // The content assertions on the REAL response.
-        expect(checkDemoResult(result, facts, fixture), "violations of the demo result").toEqual([]);
+        expect(checkDemoResult(wire, facts, fixture), "violations of the demo result").toEqual([]);
 
         // What the page shows matches that response.
         await expect(page.getByText(new RegExp(`^run ${result.run_id} · score sha ${result.score_sha256}$`))).toBeVisible({ timeout: 30_000 });

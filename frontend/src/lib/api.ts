@@ -1261,6 +1261,12 @@ export interface AnalyseFactsStandardOut {
   in_judge_prompt: boolean;
 }
 
+/** What the engine sends: the facts echo carries each fact's id and sha256 only, never its text (pravrudhi nyaya_agent.py AgentRun.facts). */
+export interface AnalyseFactsWire extends Omit<AnalyseFactsResult, "facts"> {
+  facts: { id: string; sha256: string }[];
+}
+
+/** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
   run_id: string;
   judge: string;
@@ -1307,6 +1313,28 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
 // were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
 const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
 
+async function sha256Hex(text: string): Promise<string> {
+  const d = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(d), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * The engine echoes each fact as {id, sha256} (the sha256 of the stripped text) and no text, so the text shown beside a citation is the text this app
+ * submitted, paired to the echoed fact BY sha256 (never by position). An echoed fact that matches no submitted fact, and every fact when the counts
+ * differ, gets an empty text: the callers then show no cited-fact text at all rather than a wrong one.
+ */
+export async function withFactText(wire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
+  const echoed = Array.isArray(wire.facts) ? wire.facts : [];
+  if (echoed.length !== submitted.length) return { ...wire, facts: echoed.map((f) => ({ ...f, text: "" })) };
+  const bySha = new Map<string, string[]>();
+  for (const t of submitted) {
+    const stripped = t.trim();
+    const h = await sha256Hex(stripped);
+    bySha.set(h, [...(bySha.get(h) ?? []), stripped]);
+  }
+  return { ...wire, facts: echoed.map((f) => ({ ...f, text: bySha.get(f.sha256)?.shift() ?? "" })) };
+}
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
@@ -1327,7 +1355,7 @@ export async function analyseFacts(
     }
     if (!res.ok) throw err;
   }
-  return (await res.json()) as AnalyseFactsResult;
+  return await withFactText((await res.json()) as AnalyseFactsWire, facts);
 }
 
 // Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in
