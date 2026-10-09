@@ -1326,6 +1326,9 @@ async function sha256Hex(text: string): Promise<string> {
 export async function withFactText(wire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
   const echoed = Array.isArray(wire.facts) ? wire.facts : [];
   if (echoed.length !== submitted.length) return { ...wire, facts: echoed.map((f) => ({ ...f, text: "" })) };
+  // crypto.subtle exists only in a secure context (https or localhost). Without it the engine's own contract is used: it keeps the caller's order as F1..Fn
+  // and refuses an empty fact, so with equal counts the positional pairing is exact.
+  if (!globalThis.crypto?.subtle) return { ...wire, facts: echoed.map((f, i) => ({ ...f, text: submitted[i].trim() })) };
   const bySha = new Map<string, string[]>();
   for (const t of submitted) {
     const stripped = t.trim();
