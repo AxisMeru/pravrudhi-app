@@ -18,7 +18,7 @@ test("the ten offence titles (eight validated, two not), their BNS/IPC pair line
       ["abetment-outside-india", "Abetment in India of an offence outside India", "BNS 47 · IPC 108A", ["bns47"], null],
       // not on the validated list; offered so the engine's referral can be seen (#99)
       ["dishonoured-cheque", "Dishonour of a cheque", "Negotiable Instruments Act s.138", ["ni138"], null],
-      ["breach-of-trust-bns", "Criminal breach of trust (BNS 316 contracts)", "BNS 316", ["bns316_misappropriation", "bns316_use_or_disposal", "bns316_wilfully_suffers"], null],
+      ["breach-of-trust-bns", "Criminal breach of trust (BNS s.316)", "BNS 316", ["bns316_misappropriation", "bns316_use_or_disposal", "bns316_wilfully_suffers"], null],
     ],
   );
 });

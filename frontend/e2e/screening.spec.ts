@@ -156,9 +156,9 @@ test("the not-validated offences are offered with the referral line, and a suppo
   await page.goto("/screening");
   const list = page.getByTestId("offence-list");
   await expect(list).toContainText("Dishonour of a cheque");
-  await expect(list).toContainText("Criminal breach of trust (BNS 316 contracts)");
+  await expect(list).toContainText("Criminal breach of trust (BNS s.316)");
   await expect(page.getByTestId("not-validated-note")).toHaveCount(2);
-  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: the engine gives a referral for this offence, not an answer.");
+  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the engine gives a referral, not a proof or denial.");
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(NI_FACT);
   await page.getByTestId("split-facts").click();
   await list.locator("label").filter({ hasText: "Dishonour of a cheque" }).click();
