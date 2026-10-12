@@ -144,4 +144,4 @@ export const GUIDE_LIMITS: string[] = [
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
-  "The first analysis after idle can take a few minutes while the judges start; a later one can be much faster. We have not measured typical times. The page counts the time and says so if it is slow; you can cancel at any point.";
+  "The first analysis after idle can take a few minutes while the judges start; a later one can be faster. We have not measured typical times. The page counts the time and says so if it is slow; you can cancel at any point.";
