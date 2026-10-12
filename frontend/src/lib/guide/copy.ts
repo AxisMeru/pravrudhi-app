@@ -69,7 +69,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "run",
     heading: "2. Screen the facts",
-    text: "Choose Screen these facts. The first analysis after idle can take about 3 minutes while the judges start. Once they are running, one analysis took about 100 seconds in our single measurement. The page counts the time and says so if it is slow; you can cancel at any point.",
+    text: "Choose Screen these facts. The first analysis after idle can take a few minutes while the judges start (see If it seems slow). The page counts the time and says so if it is slow; you can cancel at any point.",
   },
   {
     id: "checklist",
@@ -144,4 +144,4 @@ export const GUIDE_LIMITS: string[] = [
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
-  "The first analysis after idle can take about 3 minutes while the judges start. Once they are running, one analysis took about 100 seconds in our single measurement.";
+  "The first analysis after idle can take a few minutes while the judges start; a later one can be much faster. We have not measured typical times. The page counts the time and says so if it is slow; you can cancel at any point.";
