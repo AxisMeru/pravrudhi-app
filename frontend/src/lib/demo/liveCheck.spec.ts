@@ -1,6 +1,5 @@
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -68,15 +67,8 @@ test("the fixture text carries nothing from the evaluation or the demo example, 
   assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR/);
 });
 
-// The name deny-list is NOT in the repository, not even hashed (R2, Goal: unsalted hashes of names are recoverable). It is read at test time from a private file, one name per
-// line; the path comes from INVENTED_FIXTURE_NAMES_FILE, default ~/.config/pravrudhi/fixture-names.txt. If the file is absent this test is SKIPPED with an explicit message,
-// and a CI run (#101) must treat a skipped name guard as a failure; a run with the file present checks every word of the fixtures against it.
-const NAMES_FILE = process.env.INVENTED_FIXTURE_NAMES_FILE ?? join(homedir(), ".config", "pravrudhi", "fixture-names.txt");
-test("the fixture text carries none of the names in the private deny-list", { skip: existsSync(NAMES_FILE) ? false : `NAME GUARD SKIPPED: no private names file at ${NAMES_FILE} (set INVENTED_FIXTURE_NAMES_FILE)` }, () => {
-  const names = readFileSync(NAMES_FILE, "utf8").split(/\r?\n/).map((n) => n.trim().toLowerCase()).filter(Boolean);
-  const words = new Set((JSON.stringify(FIXTURES).match(/[A-Za-z]{3,}/g) ?? []).map((w) => w.toLowerCase()));
-  for (const n of names) assert.ok(!words.has(n), "a denied name appears in the fixtures");
-});
+// Names: no real name is written into this public repository, not even hashed. The name deny-list is checked by ONE mechanism, the CI check of #101 (private file
+// INVENTED_FIXTURE_NAMES_FILE, phrase matching); there is no second, word-by-word copy of it here (R1, 12 Oct).
 
 test("a well-formed result passes for each path", () => {
   for (const f of FIXTURES) {
