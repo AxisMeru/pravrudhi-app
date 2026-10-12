@@ -88,17 +88,17 @@ test("without the private names file the name check is SKIPPED with a message lo
   assert.match(skipped.notes.join(" "), /SKIPPED the real-name check/);
   assert.match(loadConfig(dir, { HOME: home }, true).error, /REQUIRED/);
   assert.match(loadConfig(dir, { HOME: home, CI: "true" }, false).error, /REQUIRED/);
-  assert.match(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
+  assert.match(loadConfig(dir, { HOME: home, FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
   const f = path.join(dir, "names.txt");
   writeFileSync(f, `${INVENTED_NAME}\n`);
-  assert.equal(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
+  assert.equal(loadConfig(dir, { HOME: home, FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
   mkdirSync(path.join(home, ".config/pravrudhi"), { recursive: true });
   writeFileSync(path.join(home, ".config/pravrudhi/fixture-names.txt"), `${INVENTED_NAME}\n`);
   assert.equal(loadConfig(dir, { HOME: home, CI: "true" }, false).namesText.trim(), INVENTED_NAME);
 });
 
 test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean tree (names skipped), 1 when names are required but absent", () => {
-  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, CI: "", INVENTED_FIXTURE_NAMES_FILE: "", HOME: mkdtempSync(path.join(tmpdir(), "cif-home-")), ...env } });
+  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, CI: "", FIXTURE_NAMES_FILE: "", HOME: mkdtempSync(path.join(tmpdir(), "cif-home-")), ...env } });
   const clean = repo({ "frontend/src/a.ts": "const a = 1;" });
   const ok = run(clean);
   assert.equal(ok.status, 0);
@@ -116,7 +116,7 @@ test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean 
   const named = repo({ "frontend/src/a.ts": `owner ${INVENTED_NAME}` });
   const nf = path.join(named, "n.txt");
   writeFileSync(nf, INVENTED_NAME);
-  const r2 = run(named, ["--require-names"], { INVENTED_FIXTURE_NAMES_FILE: nf });
+  const r2 = run(named, ["--require-names"], { FIXTURE_NAMES_FILE: nf });
   assert.equal(r2.status, 1);
   assert.ok(!r2.stderr.toLowerCase().includes("zzyqx"));
 });

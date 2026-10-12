@@ -26,7 +26,7 @@ jobs:
         run: |
           if [ -n "$INVENTED_FIXTURE_NAMES" ]; then
             printf '%s' "$INVENTED_FIXTURE_NAMES" > "$RUNNER_TEMP/invented-names.txt"
-            INVENTED_FIXTURE_NAMES_FILE="$RUNNER_TEMP/invented-names.txt" node scripts/check-invented-fixtures.mjs --require-names
+            FIXTURE_NAMES_FILE="$RUNNER_TEMP/invented-names.txt" node scripts/check-invented-fixtures.mjs --require-names
           else
             echo "::warning::INVENTED_FIXTURE_NAMES secret is not set: the real-name check is SKIPPED (shape patterns still run)"
             node scripts/check-invented-fixtures.mjs --names-optional
