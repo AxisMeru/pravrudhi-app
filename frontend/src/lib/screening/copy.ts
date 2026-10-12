@@ -17,6 +17,8 @@ export const SCREENING_SUBTITLE =
   "Which ingredients of the alleged offence do your facts support, which do they not, and what to check before you rely on it.";
 export const WHAT_TO_CHECK_LABEL = "What to check";
 export const DEFENCE_HEADING = "A fact that may defeat the claim";
+/** Beside an offence whose contracts are not on the validated list (#99): the engine refers on them. */
+export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: the engine gives a referral for this offence, not an answer.";
 export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";
 
 /** The standing line beside every summary banner. */
