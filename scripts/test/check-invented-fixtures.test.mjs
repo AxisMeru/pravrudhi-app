@@ -12,6 +12,7 @@ const SCRIPT = path.join(path.dirname(new URL(import.meta.url).pathname), "..", 
 const INVENTED_NAME = "Zzyqx Wvutsrq";
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 
+const bad0 = () => repo({ "frontend/src/a.ts": "Crl.O.P. 4321 of 2099" });
 function repo(files) {
   const dir = mkdtempSync(path.join(tmpdir(), "cif-"));
   execFileSync("git", ["init", "-q"], { cwd: dir });
@@ -104,6 +105,10 @@ test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean 
   assert.match(ok.stdout, /SKIPPED the real-name check/);
   assert.equal(run(clean, ["--require-names"]).status, 1);
   assert.equal(run(clean, [], { CI: "true" }).status, 1); // a skipped name guard fails the job in CI
+  const opt = run(clean, ["--names-optional"], { CI: "true" }); // until the secret exists: skipped, loudly
+  assert.equal(opt.status, 0);
+  assert.match(opt.stdout, /WARNING \(--names-optional\): SKIPPED/);
+  assert.equal(run(bad0(), ["--names-optional"], { CI: "true" }).status, 1); // shapes still fail
   const bad = repo({ "frontend/src/a.ts": "Crl.O.P. 4321 of 2099" });
   const r = run(bad);
   assert.equal(r.status, 1);

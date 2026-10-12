@@ -7,7 +7,8 @@
 //     word; "#" starts a comment). CI writes it from the INVENTED_FIXTURE_NAMES secret.
 //    No private file: the name check is SKIPPED with a message locally, and FAILS the job in CI (CI=true) or with --require-names.
 // A deliberate exception is a line in scripts/invented-fixture-allow.json: {file, id, line_sha256, reason}, matched on the exact line.
-// Prints `path:line: pattern`, never the matched value. Usage: node scripts/check-invented-fixtures.mjs [--root DIR] [--require-names]
+// Prints `path:line: pattern`, never the matched value. Usage: node scripts/check-invented-fixtures.mjs [--root DIR] [--require-names | --names-optional]
+// --names-optional is for CI until the INVENTED_FIXTURE_NAMES secret exists: the name check is skipped with a visible warning instead of failing.
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -69,14 +70,14 @@ export function check(root, { namesText = null, allow = [] } = {}) {
   return out;
 }
 
-export function loadConfig(root, env, requireNames) {
+export function loadConfig(root, env, requireNames, namesOptional = false) {
   const notes = [];
   let namesText = null;
   const nf = env.INVENTED_FIXTURE_NAMES_FILE || path.join(env.HOME || os.homedir(), ".config/pravrudhi/fixture-names.txt");
-  const required = requireNames || Boolean(env.CI);
+  const required = requireNames || (Boolean(env.CI) && !namesOptional);
   if (existsSync(nf)) namesText = readFileSync(nf, "utf8");
   else if (required) return { error: "the real-name check is REQUIRED here (CI or --require-names) but the private names file is missing (INVENTED_FIXTURE_NAMES_FILE, default ~/.config/pravrudhi/fixture-names.txt); in CI it comes from the INVENTED_FIXTURE_NAMES secret" };
-  else notes.push("SKIPPED the real-name check: no private names file (INVENTED_FIXTURE_NAMES_FILE, default ~/.config/pravrudhi/fixture-names.txt). CI requires it. Shape patterns still ran.");
+  else notes.push((namesOptional ? "WARNING (--names-optional): " : "") + "SKIPPED the real-name check: no private names file (INVENTED_FIXTURE_NAMES_FILE, default ~/.config/pravrudhi/fixture-names.txt). CI requires it. Shape patterns still ran.");
   const af = path.join(root, "scripts/invented-fixture-allow.json");
   const allow = existsSync(af) ? JSON.parse(readFileSync(af, "utf8")) : [];
   return { namesText, allow, notes };
@@ -85,7 +86,7 @@ export function loadConfig(root, env, requireNames) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const i = process.argv.indexOf("--root");
   const root = i > 0 ? path.resolve(process.argv[i + 1]) : path.resolve(HERE, "..");
-  const cfg = loadConfig(root, process.env, process.argv.includes("--require-names"));
+  const cfg = loadConfig(root, process.env, process.argv.includes("--require-names"), process.argv.includes("--names-optional"));
   if (cfg.error) { console.error(`check-invented-fixtures: ${cfg.error}`); process.exit(1); }
   for (const n of cfg.notes) console.log(`check-invented-fixtures: ${n}`);
   const violations = check(root, cfg);
