@@ -99,3 +99,12 @@ export const FILE_NOTE =
 export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
 // Citation check: R1's text (checked against engine v0.5.46). The API-key and audit detail belongs in the API docs, not on this page.
 export const CITATION_RETENTION = "The citation check does not save the citation or the quote you enter.";
+
+/** Shown instead of sending anything when the engine says this browser is not signed in (R1 reads, 12 Oct). The anonymous demo is only ever started by the user's own choice. */
+export const SIGNING_IN_TEXT = "Signing you in…";
+export const NOT_SIGNED_IN_TEXT = "You are not signed in, so nothing has been sent. Sign in to screen your facts, or choose the anonymous demo instead.";
+export const ANONYMOUS_DEMO_BUTTON = "Use the anonymous demo";
+// The retention period is taken from the engine's own retention notice above (PRE_SUBMIT_RETENTION, drift-tested against fixtures/engineRetentionNotice.json), not typed here.
+const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept up to \d+ days/)?.[0] ?? "";
+export const ANONYMOUS_DEMO_NOTE = `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${ANONYMOUS_RETENTION_PHRASE}.`;
+export const SIGN_IN_LINK_TEXT = "Sign in";

@@ -5,6 +5,7 @@
 import { Loader2, ScanSearch } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
@@ -21,7 +22,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { ipcDisclosure, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -50,6 +51,8 @@ export default function ScreeningPage() {
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
@@ -109,7 +112,7 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
 
-  async function submit() {
+  async function submit(anonymous: boolean = false) {
     const cleaned = facts.map((f) => f.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
     const check = checkFacts(cleaned.join("\n"));
     if (!check.ok) return setError(check.message);
@@ -117,22 +120,26 @@ export default function ScreeningPage() {
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
     setError(null);
+    setNotSignedIn(null);
+    setSigningIn(false);
     setResult(null);
     setElapsed(0);
     const ticker = window.setInterval(() => setElapsed((s) => s + 1), 1000);
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal);
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, onSigningIn: () => setSigningIn(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
     } catch (e) {
       const c = classifyAnalyseError(e);
-      setError(c.message);
+      if (c.kind === "not_signed_in") setNotSignedIn(c.message);
+      else setError(c.message);
       if (c.kind === "outside_window") fetchServiceStatus().then(setSvc);
     } finally {
       window.clearInterval(ticker);
       abortRef.current = null;
+      setSigningIn(false);
       setLoading(false);
     }
   }
@@ -278,7 +285,7 @@ export default function ScreeningPage() {
 
           <button
             type="button"
-            onClick={submit}
+            onClick={() => submit()}
             disabled={loading || closed || offline}
             className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
@@ -300,10 +307,11 @@ export default function ScreeningPage() {
               <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="w-fit text-sm text-[var(--color-text-dim)] underline">
                 Cancel
               </button>
-              <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
+              {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
+              {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
                 Warming up the judge and Lean checker — a first run after idle can take about 3 minutes.{" "}
                 <span className="font-mono">{String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span> elapsed.
-              </p>
+              </p>}
             </>
           )}
           {loading && elapsed >= SLOW_START_SECONDS && (
@@ -311,6 +319,7 @@ export default function ScreeningPage() {
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
+          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
           {error && <p className="text-sm text-red-400" role="alert" data-testid="screening-error">{error}</p>}
         </section>
 

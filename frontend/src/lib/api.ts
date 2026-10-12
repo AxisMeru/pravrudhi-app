@@ -1338,14 +1338,62 @@ export async function withFactText(wire: AnalyseFactsWire, submitted: string[]):
   return { ...wire, facts: echoed.map((f) => ({ ...f, text: bySha.get(f.sha256)?.shift() ?? "" })) };
 }
 
+/** Thrown instead of sending the facts when the engine says this browser is not signed in (12 Oct: a call after a 401 on /api/me was served as an anonymous demo call). */
+export class NotSignedInError extends Error {
+  constructor() {
+    super("not signed in");
+    this.name = "NotSignedInError";
+  }
+}
+
+/** Bounded: three looks at /api/me, 1.5 s apart (the first renews the web session). Mutable only so a test can set the pause to 0. */
+export const signInPolicy = { attempts: 3, pauseMs: 1500 };
+
+type SessionState = "signed_in" | "signed_out" | "unknown";
+
+/** What GET /api/me says. 200 is signed in (or a local engine with identity off); 401 is signed out; anything else, or no answer, is unknown and does not block. */
+async function sessionState(signal?: AbortSignal): Promise<SessionState> {
+  try {
+    const res = await engineFetch(`${detectBase()}/api/me`, { cache: "no-store", authOptional: true, signal });
+    if (res.status === 401) return "signed_out";
+    return res.ok ? "signed_in" : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Resolves only when the engine does not say "signed out". On a 401 it retries the session a bounded number of times (the first retry renews the web
+ * session inside engineFetch), calling `onSigningIn` once, and throws NotSignedInError if it is still signed out. Facts are never sent before this resolves.
+ */
+export async function requireSession(opts: { onSigningIn?: () => void; signal?: AbortSignal; attempts?: number; pauseMs?: number } = {}): Promise<void> {
+  const attempts = opts.attempts ?? signInPolicy.attempts;
+  for (let i = 0; i < attempts; i++) {
+    if ((await sessionState(opts.signal)) !== "signed_out") return;
+    if (i === 0) opts.onSigningIn?.();
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, opts.pauseMs ?? signInPolicy.pauseMs));
+    if (opts.signal?.aborted) throw new DOMException("cancelled", "AbortError");
+  }
+  throw new NotSignedInError();
+}
+
+export interface AnalyseFactsOptions {
+  /** The user chose the anonymous demo explicitly: skip the sign-in check. Never set by the app on its own. */
+  allowAnonymous?: boolean;
+  /** Called once when the session is being retried ("Signing you in…"). */
+  onSigningIn?: () => void;
+}
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
   narrative?: string,
   signal?: AbortSignal,
+  opts: AnalyseFactsOptions = {},
 ): Promise<AnalyseFactsResult> {
   const path = "/api/v1/analyse-facts";
   if (IS_DEMO) throw new ApiError(501, path);
+  if (!opts.allowAnonymous) await requireSession({ onSigningIn: opts.onSigningIn, signal });
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "" });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
