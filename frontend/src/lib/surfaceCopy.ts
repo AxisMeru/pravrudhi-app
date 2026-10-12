@@ -102,3 +102,13 @@ export const CITATION_RETENTION = "The citation check does not save the citation
 
 /** Shown while a first analysis is warming up, on Screening and Matters. Figure-free: the only timing evidence is a handful of single calls (R1, R2, Goal, 12 Oct), so none is stated. */
 export const WARM_UP_NOTE = "Warming up the judge and Lean checker — a first run after idle can take a few minutes while the judges start.";
+/** Shown instead of sending anything when the engine says this browser is not signed in (R1 reads, 12 Oct). The anonymous demo is only ever started by the user's own choice. */
+export const SIGNING_IN_TEXT = "Signing you in…";
+export const NOT_SIGNED_IN_TEXT = "You are not signed in, so nothing has been sent. Sign in to screen your facts, or choose the anonymous demo instead.";
+/** When the sign-in check gets no answer: nothing is sent and there is no anonymous fallback (R2). */
+export const SIGN_IN_UNVERIFIED_TEXT = "We could not check your sign-in, so nothing was sent. Try again in a moment.";
+export const ANONYMOUS_DEMO_BUTTON = "Use the anonymous demo";
+// The retention period is taken from the engine's own retention notice above (PRE_SUBMIT_RETENTION, drift-tested against fixtures/engineRetentionNotice.json), not typed here.
+const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept up to \d+ days/)?.[0] ?? "";
+export const ANONYMOUS_DEMO_NOTE = `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${ANONYMOUS_RETENTION_PHRASE}.`;
+export const SIGN_IN_LINK_TEXT = "Sign in";

@@ -27,11 +27,12 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
-import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
+import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -271,6 +272,8 @@ export default function MattersPage() {
   const [loading, setLoading] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
   const [contractsError, setContractsError] = useState<string | null>(null);
   const [contractsLoaded, setContractsLoaded] = useState(false);
   const [contractsTry, setContractsTry] = useState(0);
@@ -348,7 +351,7 @@ export default function MattersPage() {
     });
   }
 
-  async function submit() {
+  async function submit(anonymous: boolean = false) {
     const check = checkFacts(factsText);
     if (!check.ok) {
       setError(check.message);
@@ -361,6 +364,8 @@ export default function MattersPage() {
     }
     setLoading(true);
     setError(null);
+    setNotSignedIn(null);
+    setSigningIn(false);
     setResult(null);
     setElapsedSeconds(0);
     // Real ticking clock, not a spinner that could look hung: the operator's decision (2026-09-24, no warm
@@ -370,15 +375,17 @@ export default function MattersPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(facts, Array.from(selected), narrative, ac.signal);
+      const r = await analyseFacts(facts, Array.from(selected), narrative, ac.signal, { allowAnonymous: anonymous, onSigningIn: () => setSigningIn(true) });
       setResult(r);
     } catch (e) {
       const c = classifyAnalyseError(e);
-      setError(c.message);
+      if (c.kind === "not_signed_in") setNotSignedIn(c.message);
+      else setError(c.message);
       if (c.kind === "outside_window") fetchServiceStatus().then(setSvc);
     } finally {
       window.clearInterval(ticker);
       abortRef.current = null;
+      setSigningIn(false);
       setLoading(false);
     }
   }
@@ -487,7 +494,7 @@ export default function MattersPage() {
 
           <button
             type="button"
-            onClick={submit}
+            onClick={() => submit()}
             disabled={loading || closed || offline}
             className="mt-2 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
           >
@@ -510,7 +517,10 @@ export default function MattersPage() {
               Cancel
             </button>
           )}
-          {loading && (
+          {loading && signingIn && (
+            <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>
+          )}
+          {loading && !signingIn && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
               {WARM_UP_NOTE}{" "}
               <span className="font-mono">
@@ -525,6 +535,7 @@ export default function MattersPage() {
               and try again later; no result is returned until they answer.
             </p>
           )}
+          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
           {error && (
             <p className="text-sm text-red-400" role="alert" data-testid="matters-error">
               {error}

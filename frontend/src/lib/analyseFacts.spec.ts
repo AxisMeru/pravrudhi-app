@@ -84,7 +84,7 @@ test("analyseFacts: narrative defaults to an empty string when omitted", async (
   } finally {
     restore();
   }
-  const body = JSON.parse(String(calls[0].init?.body));
+  const body = JSON.parse(String(calls.find((c) => c.url.includes("/api/v1/analyse-facts"))!.init?.body));
   assert.equal(body.narrative, "");
 });
 
@@ -335,4 +335,156 @@ test("withFactText: without crypto.subtle (an insecure context) the engine's ord
   } finally {
     if (desc) Object.defineProperty(globalThis, "crypto", desc);
   }
+});
+
+// 12 Oct: after GET /api/me answered 401 the page still sent the facts, and the engine served them as an ANONYMOUS demo call. Nothing is sent while the engine says signed out.
+const me = (status: number) => (url: string) => (url.includes("/api/me") ? new Response("{}", { status }) : url.includes("/api/v1/analyse-facts") ? ok(FAKE_RESULT) : ok({ token: "t" }));
+const posts = (calls: { url: string }[]) => calls.filter((c) => c.url.includes("/api/v1/analyse-facts"));
+
+test("analyseFacts: /api/me 401 sends NO analyse-facts request, retries the session a bounded number of times, and throws NotSignedInError", async () => {
+  const { analyseFacts, NotSignedInError, signInPolicy } = await import("./api");
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { restore, calls } = mockFetch(me(401));
+  const old = { ...signInPolicy };
+  signInPolicy.pauseMs = 0;
+  let signingIn = 0;
+  try {
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"], undefined, undefined, { onSigningIn: () => { signingIn += 1; } }), (e: unknown) => {
+      assert.ok(e instanceof NotSignedInError);
+      assert.equal(classifyAnalyseError(e).kind, "not_signed_in");
+      return true;
+    });
+  } finally {
+    Object.assign(signInPolicy, old);
+    restore();
+  }
+  assert.equal(posts(calls).length, 0, "no facts were sent");
+  assert.equal(signingIn, 1, "Signing you in… is announced once");
+  assert.equal(calls.filter((c) => c.url.includes("/api/me")).length, old.attempts, "a bounded number of looks at /api/me");
+});
+
+test("analyseFacts: /api/me 200 sends the facts; a signed-out answer that turns into 200 on a retry also sends them", async () => {
+  const { analyseFacts, signInPolicy } = await import("./api");
+  const ok200 = mockFetch(me(200));
+  try {
+    await analyseFacts(["fact"], ["bns69"]);
+    assert.equal(posts(ok200.calls).length, 1);
+  } finally {
+    ok200.restore();
+  }
+  let n = 0;
+  const retry = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status: ++n < 2 ? 401 : 200 }) : url.includes("/api/v1/analyse-facts") ? ok(FAKE_RESULT) : ok({ token: "t" })));
+  const old = { ...signInPolicy };
+  signInPolicy.pauseMs = 0;
+  try {
+    await analyseFacts(["fact"], ["bns69"]);
+    assert.equal(posts(retry.calls).length, 1);
+  } finally {
+    Object.assign(signInPolicy, old);
+    retry.restore();
+  }
+});
+
+test("analyseFacts: the anonymous demo is sent only when the caller says so explicitly, and then /api/me is not even asked", async () => {
+  const { analyseFacts } = await import("./api");
+  const { restore, calls } = mockFetch(me(401));
+  try {
+    await analyseFacts(["fact"], ["bns69"], undefined, undefined, { allowAnonymous: true });
+  } finally {
+    restore();
+  }
+  assert.equal(posts(calls).length, 1);
+  assert.equal(calls.filter((c) => c.url.includes("/api/me")).length, 0);
+});
+
+test("analyseFacts: 404 or 405 from /api/me (this engine has no identity endpoint, a local engine) does not block", async () => {
+  const { analyseFacts } = await import("./api");
+  for (const status of [404, 405]) {
+    const { restore, calls } = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status }) : url.includes("/api/v1/analyse-facts") ? ok(FAKE_RESULT) : ok({ token: "t" })));
+    try {
+      await analyseFacts(["fact"], ["bns69"]);
+    } finally {
+      restore();
+    }
+    assert.equal(posts(calls).length, 1, String(status));
+  }
+});
+
+// R2 (12 Oct) gap 1: an answer that is neither 200, 401 nor "no such endpoint" is UNVERIFIED, never signed in: nothing is sent and there is no anonymous fallback.
+test("analyseFacts: /api/me 503, 403 or a thrown fetch error is unverified: no POST, bounded retries, SignInUnverifiedError, no anonymous fallback", async () => {
+  const { analyseFacts, SignInUnverifiedError, signInPolicy } = await import("./api");
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const old = { ...signInPolicy };
+  signInPolicy.pauseMs = 0;
+  try {
+    const cases: [string, (url: string) => Response][] = [
+      ["503", (url) => (url.includes("/api/me") ? new Response("{}", { status: 503 }) : ok(FAKE_RESULT))],
+      ["403", (url) => (url.includes("/api/me") ? new Response("{}", { status: 403 }) : ok(FAKE_RESULT))],
+      ["thrown", (url) => { if (url.includes("/api/me")) throw new TypeError("network"); return ok(FAKE_RESULT); }],
+    ];
+    for (const [name, handler] of cases) {
+      const { restore, calls } = mockFetch(handler);
+      try {
+        await assert.rejects(() => analyseFacts(["fact"], ["bns69"]), (e: unknown) => {
+          assert.ok(e instanceof SignInUnverifiedError, name);
+          assert.equal(classifyAnalyseError(e).kind, "sign_in_unverified");
+          assert.match(classifyAnalyseError(e).message, /could not check your sign-in, so nothing was sent/);
+          return true;
+        });
+      } finally {
+        restore();
+      }
+      assert.equal(posts(calls).length, 0, `${name}: no facts were sent`);
+      assert.equal(calls.filter((c) => c.url.includes("/api/me")).length, old.attempts, `${name}: bounded looks`);
+    }
+  } finally {
+    Object.assign(signInPolicy, old);
+  }
+});
+
+test("analyseFacts: a first /api/me hiccup (503) that then answers 200 sends the facts", async () => {
+  const { analyseFacts, signInPolicy } = await import("./api");
+  let n = 0;
+  const { restore, calls } = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status: ++n < 2 ? 503 : 200 }) : url.includes("/api/v1/analyse-facts") ? ok(FAKE_RESULT) : ok({ token: "t" })));
+  const old = { ...signInPolicy };
+  signInPolicy.pauseMs = 0;
+  try {
+    await analyseFacts(["fact"], ["bns69"]);
+  } finally {
+    Object.assign(signInPolicy, old);
+    restore();
+  }
+  assert.equal(posts(calls).length, 1);
+});
+
+// R2 gap 3: the note says the anonymous demo is "not tied to your account", so the explicit anonymous call must carry NO bearer token, while a normal call carries the session's.
+test("analyseFacts: a normal call carries the session's bearer token; the explicit anonymous call carries none", async () => {
+  const { analyseFacts } = await import("./api");
+  const { setSession, clearSession } = await import("./auth");
+  const g = globalThis as { window?: unknown };
+  const hadWindow = "window" in g;
+  g.window = g.window ?? {};
+  setSession("session-token-123", { id: "u1", email: "u@example.test" } as never);
+  const auth = (c: { init?: RequestInit }) => new Headers(c.init?.headers).get("authorization");
+  try {
+    const normal = mockFetch(me(200));
+    try { await analyseFacts(["fact"], ["bns69"]); } finally { normal.restore(); }
+    assert.equal(auth(posts(normal.calls)[0] as never), "Bearer session-token-123");
+    const anon = mockFetch(me(401));
+    try { await analyseFacts(["fact"], ["bns69"], undefined, undefined, { allowAnonymous: true }); } finally { anon.restore(); }
+    assert.equal(posts(anon.calls).length, 1);
+    assert.equal(auth(posts(anon.calls)[0] as never), null, "no Authorization header on the anonymous call");
+  } finally {
+    clearSession();
+    if (!hadWindow) delete g.window;
+  }
+});
+
+test("the anonymous-demo note takes its retention period from the engine's own retention notice (R1, 12 Oct)", async () => {
+  const { ANONYMOUS_DEMO_NOTE, PRE_SUBMIT_RETENTION } = await import("./surfaceCopy");
+  const phrase = PRE_SUBMIT_RETENTION.match(/kept up to \d+ days/)?.[0];
+  assert.ok(phrase, "the retention notice names a period");
+  assert.ok(ANONYMOUS_DEMO_NOTE.includes(phrase!));
+  assert.equal(ANONYMOUS_DEMO_NOTE, `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${phrase}.`);
+  assert.doesNotMatch(ANONYMOUS_DEMO_NOTE, /does not use the second judge/);
 });
