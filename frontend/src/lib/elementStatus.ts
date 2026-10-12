@@ -97,7 +97,7 @@ export function elementStatusPresentation(
       // Unchanged from the pre-extraction page, deliberately: the established case must look exactly as it did.
       return {
         status: raw,
-        label: "established",
+        label: "supported by a fact",
         tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
         verdict: "established",
         explanation: ELEMENT_STATUS_EXPLANATION.established,
@@ -115,7 +115,7 @@ export function elementStatusPresentation(
     case "not_established":
       return {
         status: raw,
-        label: "not established",
+        label: "not supported by these facts",
         tone: "text-[var(--color-text-dim)] border-[var(--color-border)]",
         verdict: "not_established",
         explanation: ELEMENT_STATUS_EXPLANATION.not_established,

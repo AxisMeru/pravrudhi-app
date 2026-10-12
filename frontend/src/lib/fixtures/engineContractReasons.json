@@ -1,14 +1,14 @@
 {
-  "_source": "Copied by hand from the engine, which the app cannot import. AxisMeru/pravrudhi @ 38addbdc0205636f2cd61334778ab53c6ca33164 (main, 2026-10-06): src/pravrudhi/application/nyaya_agent.py lines 92-96 (the ContractReason Literal, all reasons) and lines 1571-1593 (every finish(\"REFER_TO_LAWYER\", <reason>) call, which is the `refer` list below). When the engine adds or renames a reason, update this file from those lines in the same PR as the app change; the test in referReason.spec.ts then holds the app's list equal to it.",
+  "_source": "Copied by hand from the engine, which the app cannot import. AxisMeru/pravrudhi @ ef9aff965d946bd7ee98402194c51d6764579cab (main, 2026-10-08; adds input_too_long from #350, which is also in docs/api/reason-codes.md): src/pravrudhi/application/nyaya_agent.py lines 92-96 (the ContractReason Literal, all reasons) and lines 1571-1593 (every finish(\"REFER_TO_LAWYER\", <reason>) call, which is the `refer` list below). When the engine adds or renames a reason, update this file from those lines in the same PR as the app change; the test in referReason.spec.ts then holds the app's list equal to it.",
   "all": [
     "all_elements_established", "denial_established", "missing_element", "no_training_statute_text",
     "judge_error", "assembly_lean_mismatch", "denial_unquotable", "second_judge_defeater_disagreement",
     "uncertain", "uncertain_second_judge", "second_judge_unavailable", "gate1_unavailable",
-    "gate1_not_entailed", "gate1_contradiction", "contract_not_validated"
+    "gate1_not_entailed", "gate1_contradiction", "contract_not_validated", "input_too_long"
   ],
   "refer": [
     "denial_unquotable", "second_judge_defeater_disagreement", "uncertain", "uncertain_second_judge",
     "second_judge_unavailable", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction",
-    "contract_not_validated"
+    "contract_not_validated", "input_too_long"
   ]
 }

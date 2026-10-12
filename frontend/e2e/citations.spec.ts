@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 /**
  * The citation check (#539), against RECORDED engine answers (page.route), not an index: the preview label, the status shown verbatim
@@ -33,7 +33,7 @@ for (const [status, note] of Object.entries(NOTES)) {
     let body: unknown = null;
     await page.route("**/api/v1/verify-citations", (r) => {
       body = r.request().postDataJSON();
-      return r.fulfill({ json: { result: status, note } });
+      return r.fulfill({ json: { result: status, note, status: status.toLowerCase(), label: status, verified: status === "VERIFIED", preview: true } });
     });
     await run(page);
     await expect(page.getByTestId("citation-status")).toHaveText(status);
@@ -45,7 +45,7 @@ for (const [status, note] of Object.entries(NOTES)) {
 }
 
 test("an engine note carrying the word \"fake\" is withheld, the status still shown", async ({ page }) => {
-  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "NOT_IN_INDEX", note: "Not a finding that the citation is fake." } }));
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "NOT_IN_INDEX", note: "Not a finding that the citation is fake.", status: "not_in_index", label: "not in index", verified: false, preview: true } }));
   await run(page);
   await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
   await expect(page.getByTestId("citation-note")).toHaveCount(0);
@@ -70,7 +70,7 @@ test("empty inputs send no request", async ({ page }) => {
   let calls = 0;
   await page.route("**/api/v1/verify-citations", (r) => {
     calls += 1;
-    return r.fulfill({ json: { result: "VERIFIED", note: "" } });
+    return r.fulfill({ json: { result: "VERIFIED", note: "", status: "verified", label: "verified", verified: true, preview: true } });
   });
   await page.goto("/citations");
   await page.getByRole("button", { name: "Check" }).click();

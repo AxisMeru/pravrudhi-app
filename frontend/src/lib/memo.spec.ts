@@ -112,7 +112,7 @@ test("buildMemo: a quote with a pipe cannot break the element table; an element 
   const { buildMemo } = await import("./memo");
   const md = buildMemo(FIXTURE, OPTS);
   assert.ok(md.includes("never intended \\| to"));
-  assert.match(md, /no supporting quote/i);
+  assert.match(md, /no cited fact/i);
 });
 
 test("buildMemo: REFER and ABSTAIN state the reason in plain language and make no finding", async () => {

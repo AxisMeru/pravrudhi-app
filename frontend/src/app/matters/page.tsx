@@ -1,7 +1,7 @@
 "use client";
 
 // The matters page: enter the facts of a real situation, get back — per selected contract — which elements
-// the house judge found established, the verbatim quote each one cites (quote-checked against the submitted
+// the house judge found established, the supporting fact each one cites (checked against the submitted
 // facts, not checked for relevance), Lean's structural check (the right element set, nothing about the facts
 // or quotes themselves) and the exact score sha that produced it, and a
 // REFER banner when the outcome says a lawyer should look at this rather than the page. Calls POST
@@ -13,20 +13,25 @@
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
-import { analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
+import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
-import { highlightQuote, leanAttestationView } from "@/lib/quoteHighlight";
+import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { referFirst } from "@/lib/contractOrder";
+import { citationNote } from "@/lib/citedFact";
+import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
-import { validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
+import Link from "next/link";
+import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
+import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -63,9 +68,10 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
   // Why a quote was rejected (the engine's quote check), and which judge's threshold a non-established element failed.
-  const quoteCheck = quoteCheckPresentation(el.quote_check);
+  // A quote-check cause is only meaningful for a model quote; a whole-fact or unstated citation has no quote to check (R1, 8 Oct).
+  const quoteCheck = el.quote_source === "model" ? quoteCheckPresentation(el.quote_check) : null;
   const leg = el.status === "established" ? null : bindingLegText(el.binding_leg);
-  const view = highlightQuote(facts, el);
+  const view = citedFactView(facts, el);
   return (
     <tr className="border-t border-[var(--color-border)]">
       <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
@@ -87,23 +93,33 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
       <td className="py-2 align-top text-sm text-[var(--color-text-dim)]">
         {el.quote ? (
           <>
-            <span className="italic">&ldquo;{el.quote}&rdquo;</span>
-            {el.quote_source && <span className="ml-1.5 text-[11px]">— {el.quote_source}</span>}
-            {view.kind === "highlight" && (
-              <div className="mt-1 text-xs not-italic" data-testid="quote-in-fact">
-                <span className="text-[11px]">In fact {view.factId}: </span>
+            {view.kind === "passage" ? (
+              <div className="text-xs not-italic" data-testid="cited-passage">
+                <span className="text-[11px]">Passage within the cited fact {view.factId}: </span>
                 {view.cutBefore && "…"}
                 {view.before}
                 <mark className="rounded-sm bg-amber-500/25 px-0.5 text-[var(--color-text)]">{view.quote}</mark>
                 {view.after}
                 {view.cutAfter && "…"}
               </div>
+            ) : view.kind === "fact" ? (
+              <div className="text-xs not-italic" data-testid="cited-fact">
+                <span className="text-[11px]">Cited fact {view.factId}: </span>
+                {view.text}
+              </div>
+            ) : (
+              <span className="italic" data-testid="cited-fact-fallback">
+                <span className="text-[11px] not-italic">Cited fact: </span>
+                {/* curly marks only for words a judge wrote; a whole fact cited in full is not a quotation */}
+                {el.quote_source === "model" ? <>&ldquo;{el.quote}&rdquo;</> : el.quote}
+              </span>
             )}
+            {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
           </>
         ) : el.error ? (
           <span className="text-red-400">{el.error}</span>
         ) : (
-          <span>no quote</span>
+          <span>no cited fact</span>
         )}
         {quoteCheck?.show && (
           <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="quote-check-cause">
@@ -130,8 +146,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-          No judge has been trained on this contract&apos;s statute text yet — this is a gap in coverage, not a
-          failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
+          No judge has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers
+          instead. That is not a failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
         </p>
       </article>
     );
@@ -169,23 +185,32 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       })()}
 
       {c.elements.length > 0 && (
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="text-xs text-[var(--color-text-dim)]">
-              <th className="pb-1 pr-3 font-medium">element</th>
-              <th className="pb-1 pr-3 font-medium">status</th>
-              <th className="pb-1 font-medium">quote (verbatim from your facts)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {c.elements.map((el, i) => (
-              <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
+            <thead>
+              <tr className="text-xs text-[var(--color-text-dim)]">
+                <th scope="col" className="pb-1 pr-3 font-medium">element</th>
+                <th scope="col" className="pb-1 pr-3 font-medium">status</th>
+                <th scope="col" className="pb-1 font-medium">cited fact</th>
+              </tr>
+            </thead>
+            <tbody>
+              {c.elements.map((el, i) => (
+                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <StatuteBeside citations={c.citations} />
+
+      {noStructuralCheckLine(c.outcome, c.lean) && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="no-structural-check">
+          {noStructuralCheckLine(c.outcome, c.lean)}
+        </p>
+      )}
 
       {c.lean && (
         <div className="rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-3 text-xs">
@@ -194,8 +219,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           </div>
           <div className="mt-1 text-[var(--color-text-dim)]">
             Lean checks that the right elements for this contract were addressed — it does not read the facts
-            or quotes. The element findings above come from the judge and are quote-checked against the facts
-            you supplied.
+            or the cited facts. The element findings above come from the judge, which cites the supporting fact
+            from the facts you supplied.
           </div>
           {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
           {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
@@ -247,6 +272,8 @@ export default function MattersPage() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [contractsError, setContractsError] = useState<string | null>(null);
+  const [contractsLoaded, setContractsLoaded] = useState(false);
+  const [contractsTry, setContractsTry] = useState(0);
   // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
   const [exampleActive, setExampleActive] = useState(false);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
@@ -254,6 +281,7 @@ export default function MattersPage() {
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
     let off = false;
@@ -295,7 +323,9 @@ export default function MattersPage() {
     nyayaRegistryContracts()
       .then((cs) => {
         if (off) return;
+        setContractsError(null);
         setContracts(cs);
+        setContractsLoaded(true);
         if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
           setSelected(new Set(EXAMPLE_CONTRACTS.filter((id) => cs.includes(id))));
         }
@@ -307,7 +337,7 @@ export default function MattersPage() {
     return () => {
       off = true;
     };
-  }, []);
+  }, [contractsTry]);
 
   function toggleContract(id: string) {
     setSelected((prev) => {
@@ -359,7 +389,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element is tied to a verbatim quote from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
@@ -368,6 +398,7 @@ export default function MattersPage() {
         )}
         <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
           </label>
@@ -398,7 +429,7 @@ export default function MattersPage() {
             }}
           />
           <p className="text-xs text-[var(--color-text-dim)]">
-            Files are read in your browser and never uploaded. Review and edit the text before analysing.
+            {FILE_NOTE}
           </p>
           <textarea
             id="matters-facts"
@@ -423,10 +454,17 @@ export default function MattersPage() {
 
           <fieldset className="flex flex-col gap-2">
             <legend className="text-sm font-medium text-[var(--color-text)]">Contracts to check against</legend>
-            {contractsError ? (
-              <p className="text-sm text-red-400">{contractsError}</p>
-            ) : contracts.length === 0 ? (
-              <p className="text-sm text-[var(--color-text-dim)]">Loading…</p>
+            {picker === "error" ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
+                  Try again
+                </button>
+              </div>
+            ) : picker === "empty" ? (
+              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+            ) : picker === "loading" ? (
+              <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {contracts.map((id) => (
@@ -509,6 +547,11 @@ export default function MattersPage() {
                 </div>
               );
             })()}
+            {CITATION_NAV_ENABLED && (
+              <p className="text-sm text-[var(--color-text-dim)] print:hidden" data-testid="citation-next-step">
+                <Link href="/citations" className="underline">{CITATION_NEXT_STEP}</Link>
+              </p>
+            )}
             <div className="flex gap-2 print:hidden" data-testid="memo-actions">
               <button
                 type="button"
@@ -525,7 +568,7 @@ export default function MattersPage() {
                 Print / save as PDF
               </button>
             </div>
-            {result.contracts.map((c) => (
+            {referFirst(result.contracts).map((c) => (
               <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} facts={result.facts} />
             ))}
             <StatuteNotice />

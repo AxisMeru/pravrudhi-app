@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * The referral layout and the status explanations, against RECORDED responses (page.route), not a judge: the heading "Referred to a
@@ -6,12 +7,12 @@ import { expect, test } from "@playwright/test";
  * status that is not a verdict. The wording itself is held to the signed table by src/lib/reasonStringsDrift.spec.ts.
  */
 const FACTS = ["TOY: a promise was made.", "TOY: it was relied on."];
-const el = (status: string) => ({ element: "promise", is_denial: false, status, claimed: false, p_established: null, fact_id: null, quote: null, start: null, end: null, quote_check: null, attempts: 1, occurrences: 0, offsets_source: null, quote_source: null, error: null });
+const el = (status: string) => ({ element: "promise", is_denial: false, screening_signal: null, citation_note: null, status, claimed: false, p_established: null, fact_id: null, quote: null, start: null, end: null, quote_check: null, attempts: 1, occurrences: 0, offsets_source: null, quote_source: null, error: null });
 const RESULT = (reason: string) => ({
   run_id: "run-TOY-1",
   judge: "recorded",
   score_sha256: "a".repeat(64),
-  facts: FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) })),
+  facts: FACTS.map((t, i) => ({ id: `F${i + 1}`, sha256: sha(t) })),
   provenance: "recorded",
   retention_notice: "recorded retention notice",
   contracts: [
@@ -35,7 +36,7 @@ test("a referral shows the heading, then the signed sentence on its own", async 
   await runWith(page, "gate1_unavailable");
   await expect(page.getByTestId("referred-heading")).toHaveText("Referred to a lawyer");
   await expect(page.getByTestId("referred-sentence")).toHaveText(
-    "The entailment check (a separate check of the quoted words against the claim) was unavailable, so we give a referral, not an answer.",
+    "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
   );
   await expect(page.getByTestId("referred-two-judges")).toHaveCount(0);
   await expect(page.getByText(/must decide this matter|should be reviewed by a lawyer/)).toHaveCount(0);

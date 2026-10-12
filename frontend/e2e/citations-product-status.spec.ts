@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 /**
  * The product status wording (#533), switched ON. It runs only against a build made with NEXT_PUBLIC_CITATION_PRODUCT_STATUS=1 and

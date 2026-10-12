@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
+import { sha } from "./support/sha";
 
 /**
  * #32: the matter view shows the standard line applied next to the verdict. This runs against RECORDED responses (page.route),
@@ -9,7 +10,7 @@ const RESULT = (standard: unknown) => ({
   run_id: "run-TOY-1",
   judge: "recorded",
   score_sha256: "a".repeat(64),
-  facts: FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) })),
+  facts: FACTS.map((t, i) => ({ id: `F${i + 1}`, sha256: sha(t) })),
   provenance: "recorded",
   retention_notice: "recorded retention notice",
   ...(standard === undefined ? {} : { standard }),
@@ -33,7 +34,7 @@ async function runWith(page: import("@playwright/test").Page, standard: unknown)
 
 test("a response without a standard says the engine reported none", async ({ page }) => {
   await runWith(page, undefined);
-  await expect(page.getByTestId("standard-line")).toHaveText("standard: not reported by this engine (the default is proved)");
+  await expect(page.getByTestId("standard-line")).toHaveText("standard: not reported by this engine (judged at the default standard of proof)");
   await expect(page.getByTestId("standard-notice")).toHaveCount(0);
 });
 

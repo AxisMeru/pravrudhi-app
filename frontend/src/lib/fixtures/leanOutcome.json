@@ -1,0 +1,12 @@
+{
+ "_source": "pravrudhi docs/api/openapi-v1.json ContractResultOut.lean_outcome (copied)",
+ "_engine_sha": "8f2c8ae5d3f9c80777bd76cc7878cf10a386dc6f",
+ "lean_outcome_enum": [
+  "PROOF",
+  "DENIAL",
+  "ABSTAIN",
+  "REFER_TO_LAWYER"
+ ],
+ "lean_pass": "PROOF",
+ "_why": "outcome_from_lean (nyaya_agent.py) returns PROOF only for Lean verdict 'grounded' with no denied or unlicensed claims"
+}

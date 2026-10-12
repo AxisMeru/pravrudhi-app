@@ -4,6 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
+import { CITATION_RETENTION } from "@/lib/surfaceCopy";
 import { verifyCitation } from "@/lib/api";
 import {
   CITATION_MAX,
@@ -61,6 +62,7 @@ export default function CitationsPage() {
           spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does
           not show whether the citation is real, because the index does not hold every judgment.
         </p>
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
           <input

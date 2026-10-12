@@ -12,6 +12,10 @@ import { expect, test } from "@playwright/test";
  * result that renders nothing at all.
  */
 
+// Nyaya is the improvement loop's page and free-form Ask is out of the MVP (#525): both closed to a member, and the nightly
+// account is a member. The whole file is skipped, not deleted, so it can come back if Ask returns to the product.
+test.skip(true, "the Nyaya page is closed to a member on the law-firm product (#525)");
+
 const E2E_EMAIL = process.env.E2E_EMAIL;
 const E2E_PASSWORD = process.env.E2E_PASSWORD;
 

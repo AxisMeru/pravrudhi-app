@@ -144,8 +144,9 @@ same guard that keeps CI (which has no such account) from ever being asked to ru
 ```bash
 cd frontend
 set -a && source ~/.config/pravrudhi/e2e.env && source ~/.config/pravrudhi/supabase.env && set +a
-npx playwright test --project=live-chromium   # signed-in browser checks, incl. a real analyse-facts call
-npx playwright test --project=live-api        # partner API only, no browser, no judge cost
+# the live projects refuse to load without an explicit go (LIVE_E2E_GO=1); they hit the deployed site
+LIVE_E2E_GO=1 npx playwright test --project=live-chromium   # signed-in browser checks, incl. a real analyse-facts call
+LIVE_E2E_GO=1 npx playwright test --project=live-api        # partner API only, no browser, no judge cost
 ```
 
 `LIVE_URL` overrides the Vercel origin `live-chromium` uses (a rehearsal against a preview deployment);

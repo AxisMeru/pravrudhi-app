@@ -18,7 +18,7 @@ export interface StandardLine {
   notice: string | null;
 }
 
-export const STANDARD_MISSING_TEXT = "standard: not reported by this engine (the default is proved)";
+export const STANDARD_MISSING_TEXT = "standard: not reported by this engine (judged at the default standard of proof)";
 export const STANDARD_NOT_IN_PROMPT_NOTICE =
   "The judge was not told this standard, so it did not shape this result; the standard is recorded for the audit only.";
 
