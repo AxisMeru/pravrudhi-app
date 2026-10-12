@@ -16,7 +16,9 @@ export const SCREENING_TITLE = "Screening";
 export const SCREENING_SUBTITLE =
   "Which ingredients of the alleged offence do your facts support, which do they not, and what to check before you rely on it.";
 export const WHAT_TO_CHECK_LABEL = "What to check";
-export const DEFENCE_HEADING = "A fact that may defeat the claim";
+/** One phrase for a denial, in both views (R1, #97): a DENIAL is a fact the judge found that may defeat the claim, never "not established". */
+export const DEFENCE_PHRASE = "a fact that may defeat the claim";
+export const DEFENCE_HEADING = DEFENCE_PHRASE.charAt(0).toUpperCase() + DEFENCE_PHRASE.slice(1);
 export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";
 
 /** The standing line beside every summary banner. */
