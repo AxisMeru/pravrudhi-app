@@ -8,7 +8,7 @@ import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
 export const MEMO_DISCLAIMER = MEMO_DISCLAIMER_TEXT;
 
 export const MEMO_VALIDATION_TIER =
-  "Validation tier: the judge behind this memo was validated on constructed, in-distribution sets (pipeline-measured). " +
+  "Measurement basis: the judge behind this memo was measured on constructed, in-distribution sets (pipeline-measured). " +
   "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
 
 export const PROVISION_HEADING = "Provision text (for reference)";

@@ -152,7 +152,8 @@ test("buildMemo: states the validation tier of the judge, so a verdict is never 
   const { buildMemo, MEMO_VALIDATION_TIER } = await import("./memo");
   const memo = buildMemo(FIXTURE, { engineVersion: "0.5.42", generatedAt: "2026-10-02T10:00:00Z" });
   assert.ok(memo.includes(MEMO_VALIDATION_TIER));
-  assert.match(MEMO_VALIDATION_TIER, /constructed, in-distribution sets/);
+  assert.match(MEMO_VALIDATION_TIER, /^Measurement basis: the judge behind this memo was measured on constructed, in-distribution sets \(pipeline-measured\)\. /);
+  assert.doesNotMatch(MEMO_VALIDATION_TIER, /Validation tier|was validated/);
   assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
 });
 
