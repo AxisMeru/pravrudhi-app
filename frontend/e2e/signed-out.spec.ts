@@ -74,3 +74,11 @@ test("signed out (/api/me 401): the Matters page also sends nothing and offers t
   expect(posts).toEqual([]);
   await expect(page.getByTestId("not-signed-in-anonymous")).toBeVisible();
 });
+
+test("/api/me answering 503: nothing is sent, the page says it could not check, and there is no anonymous button", async ({ page }) => {
+  const s = await setup(page, 503);
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toContainText("We could not check your sign-in, so nothing was sent.", { timeout: 15_000 });
+  await expect(page.getByTestId("not-signed-in-anonymous")).toHaveCount(0);
+  expect(s.posts).toEqual([]);
+});
