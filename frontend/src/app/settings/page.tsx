@@ -363,7 +363,7 @@ function TelegramSection() {
             value={chatId}
             disabled={IS_DEMO || busy}
             onChange={(e) => setChatId(e.target.value)}
-            placeholder="8679892510"
+            placeholder="123456789"
             className="mt-1 w-full rounded border border-[var(--color-border)] bg-[var(--color-bg)] p-2 font-mono text-xs"
           />
         </label>

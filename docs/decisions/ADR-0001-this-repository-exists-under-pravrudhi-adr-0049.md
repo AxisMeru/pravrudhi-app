@@ -19,7 +19,7 @@ This repository is the product altitude. It:
 - Builds desktop installers for Linux, macOS, and Windows
 - Assumes a clean-slate user who installs Pravrudhi, states one objective, and creates one artifact repository
 
-Governance is inherited from the main Pravrudhi repository: the same kernel and spec rules apply. Commits follow the house identity rule: `SharathSPhD <qbz506@york.ac.uk>`, no `Co-Authored-By` trailer.
+Governance is inherited from the main Pravrudhi repository: the same kernel and spec rules apply. Commits follow the house identity rule (the team identity; commits under the operator's earlier personal identities are not rewritten), no `Co-Authored-By` trailer.
 
 ## Consequences
 

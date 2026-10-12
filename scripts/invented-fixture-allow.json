@@ -1,0 +1,38 @@
+[
+  {
+    "file": "frontend/src/lib/memo.spec.ts",
+    "id": "email address (use @example.com)",
+    "line_sha256": "da9ce32cad3f6ff84a4038118857babee1ee87ab0a4a6c188fc6d5b956984113",
+    "reason": "test input: a URL carrying userinfo, to prove the link filter rejects it (indiacode.gov.in, not a person)"
+  },
+  {
+    "file": "frontend/src/lib/statuteNotice.spec.ts",
+    "id": "email address (use @example.com)",
+    "line_sha256": "ed62f85addb0408e4fc7c7506ae022fb394b46b59a5ec677342e849ffa67ffa7",
+    "reason": "test input: a URL carrying userinfo, to prove the link filter rejects it (indiacode.gov.in, not a person)"
+  },
+  {
+    "file": "scripts/test/check-no-private-data.test.mjs",
+    "id": "email address (use @example.com)",
+    "line_sha256": "762522c1aaea496d378b95a40ac828387fcabaeb4e1d66e378f1c636b8fb7d24",
+    "reason": "test input for the other guard (check-no-private-data): a public-provider address it must reject"
+  },
+  {
+    "file": "scripts/test/check-no-private-data.test.mjs",
+    "id": "email address (use @example.com)",
+    "line_sha256": "dc05c3180e9d7fa49cfc61fdce6b4c29792aa7808523d4c1e3b00bbab8bb9ea1",
+    "reason": "test input for the other guard (check-no-private-data): a public-provider address outside its scope"
+  },
+  {
+    "file": ".githooks/commit-msg",
+    "id": "email address (use @example.com)",
+    "line_sha256": "dd4dc9adeaca529d9734fd44d9f7baa4e1f1025dbeeef6450df9ffab82aea28b",
+    "reason": "team identity (the Axis Meru commit identity enforced by the hook), not personal data"
+  },
+  {
+    "file": ".githooks/commit-msg",
+    "id": "email address (use @example.com)",
+    "line_sha256": "b0477411736ca710679734c118118c4197c2a43dcadd09acf48b6ca47e9e6671",
+    "reason": "team identity (the Axis Meru commit identity enforced by the hook), not personal data"
+  }
+]

@@ -105,7 +105,7 @@ engine runs with identity required: every `/api` call but the health check carri
 ## The nightlies
 
 Two scheduled checks run on the operator's own box (`pravrudhi-e2e-nightly.timer`, `deploy/e2e-nightly/` in
-`AxisMeru/pravrudhi`), signed in as a real, dedicated, non-admin Supabase account (`gateway-probe@axismeru.com`):
+`AxisMeru/pravrudhi`), signed in as a real, dedicated, non-admin Supabase account (the e2e test account, see the private runbook):
 
 - **The web nightly** (project `live-chromium`) signs in against the real hosted door
   (`https://pravrudhi-app.vercel.app`) and runs:
