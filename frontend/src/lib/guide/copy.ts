@@ -92,7 +92,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "citations",
     heading: "6. Check citations",
-    text: "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It is not a finding that a citation is fake.",
+    text: "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It is not a finding that a citation is fake. The panel is dev stack only: it is not served in the hosted deployment.",
     image: GUIDE_IMAGES.citations,
   },
   {
@@ -137,7 +137,7 @@ export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [
   BANNER_STANDING_LINE,
   "The assistant reads only the facts you give it. A missing ingredient can mean the fact is not in your text.",
-  "The citation check is not yet served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.",
+  "The citation check is dev stack only; it is not served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.",
   FRONTIER_QUOTE_LIMIT_TEXT,
   "The frontier route is opt-in and off by default. When you switch it on, your facts are sent to the provider named at the toggle, under your organisation's key. It is advisory and never changes a status above it.",
 ];

@@ -36,7 +36,7 @@ test("the six screenshots are the files the guide names, each with plain alt tex
 test("the guide states each limit it was asked to: not legal advice, the citation check not served in the hosted deployment, the frontier route opt-in and exact-text, and the cold start", () => {
   const text = GUIDE_LIMITS.join(" ");
   assert.match(text, /not legal advice/);
-  assert.match(text, /not yet served in the hosted deployment/);
+  assert.match(text, /dev stack only; it is not served in the hosted deployment/);
   assert.match(text, /opt-in/);
   assert.match(text, /exact-text/);
   assert.match(copySource, /first analysis after the service has been idle can take a few minutes while the judges start/);
