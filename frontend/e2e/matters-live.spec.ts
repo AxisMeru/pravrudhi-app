@@ -55,7 +55,7 @@ test("a real analyse-facts call against the deployed app, run anonymously, retur
   // Every requested contract reached one of the real outcome values analyseFacts()'s own
   // AnalyseFactsContract["outcome"] type allows -- not a placeholder, not a blank card.
   const outcomeBadges = page.locator("article").locator("span", {
-    hasText: /^(every condition supported by a fact|not supported by these facts|abstained|refer to a lawyer|not yet covered)$/,
+    hasText: /^(every condition supported by a fact|a fact that may defeat the claim|abstained|refer to a lawyer|not yet covered)$/,
   });
   expect(await outcomeBadges.count(), "every requested contract must produce a result card with a real outcome").toBeGreaterThan(0);
 

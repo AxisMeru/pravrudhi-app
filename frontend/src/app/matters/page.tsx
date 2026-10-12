@@ -30,6 +30,7 @@ import { CaveatStrip } from "@/components/CaveatStrip";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
+import { DEFENCE_PHRASE } from "@/lib/screening/copy";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
 import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
@@ -42,7 +43,7 @@ const UNCOVERED_REASON_TOKEN = "no_training_statute_text";
 
 const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckCircle2 }> = {
   PROOF: { label: "every condition supported by a fact", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
-  DENIAL: { label: "not supported by these facts", tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
+  DENIAL: { label: DEFENCE_PHRASE, tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
   ABSTAIN: { label: "abstained", tone: "text-sky-400 border-sky-500/40 bg-sky-500/10", Icon: HelpCircle },
   REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
 };
