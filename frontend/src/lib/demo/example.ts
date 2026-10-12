@@ -1,14 +1,13 @@
 // The demo example (Lead-2's decision, 2026-10-06): the ALLEGATIONS recited in a public Madras High Court order, loaded
 // as the facts of a matter so a visitor can watch the analysis run. Words are the order's own (paras 1-3 of the order in
-// Crl.O.P. No. 13624 of 2024); the court's reasoning and decision are NOT included. The text was guard-checked as exactly this
+// the public order of 12 June 2024); the court's reasoning and decision are NOT included. The text was guard-checked as exactly this
 // string (sha256 below); changing a character changes the sha, fails the test, and requires a new guard check.
-export const EXAMPLE_ID = "madras-crl-op-13624-2024";
+export const EXAMPLE_ID = "madras-public-order-2024";
 
-// The label names the case by what the order's own header says (court, case number, date), which anyone can check against
-// the order. The CNR in the team's source index is NOT shown: the index row's cnr field reads "unavailable" and the CNR is
-// not in the order's text, so it cannot be verified from the judgment (Lead-2, 2026-10-06).
+// The label names the order by court and date only (Lead-2, 12 Oct 2026): this public repository and app carry no real case identifier,
+// the same rule as for party names. The case number and the CNR are NOT shown.
 export const EXAMPLE_LABEL =
-  "Public Madras High Court judgment (Crl.O.P. No. 13624 of 2024, order dated 12 June 2024), example only. The output of " +
+  "A public Madras High Court judgment (order of 12 June 2024), example only. The output of " +
   "this demo is illustrative, not evidence, and no measure is quoted from it.";
 
 // The paragraphs, one per line when loaded. Allegations in a complaint, as recited by the Court: not findings.

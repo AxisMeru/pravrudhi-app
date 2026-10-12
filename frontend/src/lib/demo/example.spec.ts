@@ -21,11 +21,12 @@ test("the example is the allegations only: no decision, no reasoning, no outcome
 });
 
 test("the label says what the example is and is not, and carries no claim on the do-not-claim list", () => {
-  assert.match(EXAMPLE_LABEL, /Public Madras High Court judgment \(Crl\.O\.P\. No\. 13624 of 2024, order dated 12 June 2024\), example only/);
+  assert.match(EXAMPLE_LABEL, /^A public Madras High Court judgment \(order of 12 June 2024\), example only\./);
+  assert.doesNotMatch(EXAMPLE_LABEL + EXAMPLE_ID, /13624|Crl|\bNo\.\s*\d|\d+ of \d{4}/, "no real case identifier in the label or the id (Lead-2, 12 Oct)");
   assert.doesNotMatch(EXAMPLE_LABEL, /CNR|HCMA/); // the CNR cannot be verified from the order's text, so it is not shown
   assert.match(EXAMPLE_LABEL, /illustrative, not evidence/);
   for (const re of DO_NOT_CLAIM) assert.doesNotMatch(EXAMPLE_LABEL, re);
-  assert.equal(EXAMPLE_ID, "madras-crl-op-13624-2024");
+  assert.equal(EXAMPLE_ID, "madras-public-order-2024");
 });
 
 test("the example selects the IPC contracts for the sections the complaint names", () => {
