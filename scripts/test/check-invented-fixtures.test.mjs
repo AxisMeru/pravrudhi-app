@@ -1,7 +1,7 @@
 // All names and numbers here are INVENTED for these tests (the guard's job is to catch the real ones, which are never spelled in the repo).
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -40,6 +40,7 @@ test("planted failure: every case/crime-number shape in a fixture fails, and the
     for (const x of v) assert.ok(!/777|8888|55\/2099|010012342099|31 of 2099|07\.11\.2099/.test(x), `${name}: value printed: ${x}`);
   }
   assert.equal(SHAPES.length, 8);
+  assert.ok(!existsSync(path.join(path.dirname(SCRIPT), "invented-fixture-name-tokens.sha256")), "no hash list in the repository");
 });
 
 test("a label without a number, an ISO date and prose mentioning the words are not leaks", () => {
@@ -50,10 +51,10 @@ test("a label without a number, an ISO date and prose mentioning the words are n
   assert.deepEqual(check(dir), []);
 });
 
-test("scope: src, e2e, fixtures, docs and public are scanned; scripts/ and files outside them are not", () => {
-  const leak = "Cr.No.777 of 2099";
-  for (const rel of ["frontend/src/a.ts", "frontend/e2e/a.spec.ts", "frontend/public/a.json", "docs/a.md", "frontend/src/lib/fixtures/a.json"]) assert.equal(check(repo({ [rel]: leak })).length >= 1, true, rel);
-  for (const rel of ["scripts/a.mjs", "README.md", "engine/a.py"]) assert.deepEqual(check(repo({ [rel]: leak })), [], rel);
+test("scope: the whole repository is scanned (src, e2e, public, docs, desktop, engine, scripts, README); only the guard, its test and its exception list are not", () => {
+  const leak = "Cr.No.777 of 2099 dated 07.11.2099";
+  for (const rel of ["frontend/src/a.ts", "frontend/e2e/a.spec.ts", "frontend/public/a.json", "docs/a.md", "frontend/src/lib/fixtures/a.json", "desktop/a.js", "engine/a.py", "scripts/a.mjs", "README.md"]) assert.equal(check(repo({ [rel]: leak })).length >= 2, true, rel);
+  for (const rel of ["scripts/check-invented-fixtures.mjs", "scripts/test/check-invented-fixtures.test.mjs", "scripts/invented-fixture-allow.json"]) assert.deepEqual(check(repo({ [rel]: leak })), [], rel);
 });
 
 test("planted failure: an invented name from the private file fails (phrase and single-word forms), case-insensitively, and is never printed", () => {
@@ -63,13 +64,6 @@ test("planted failure: an invented name from the private file fails (phrase and 
   assert.ok(v.some((x) => x.includes("p.json:1")) && v.some((x) => x.includes("c.ts:1")));
   for (const x of v) assert.ok(!/zzyqx|wvutsrq|quuxplugh/i.test(x), x);
   assert.deepEqual(check(dir, { namesText: "" }), []);
-});
-
-test("planted failure: a name token matched by its sha256 in the repo list fails; an unlisted token passes", () => {
-  const dir = repo({ "frontend/src/a.ts": 'const party = "Zzyqx";', "frontend/src/b.ts": 'const party = "Plainword";' });
-  const v = check(dir, { hashes: new Set([sha("zzyqx")]) });
-  assert.equal(v.length, 1);
-  assert.match(v[0], /a\.ts:1/);
 });
 
 test("an exception counts only with the exact line hash, the file, the shape id and a reason", () => {
@@ -85,25 +79,31 @@ test("an exception counts only with the exact line hash, the file, the shape id 
   }
 });
 
-test("without the private names file the name check is skipped with a message; with --require-names it fails", () => {
+test("without the private names file the name check is SKIPPED with a message locally; in CI or with --require-names it FAILS; the default path is ~/.config/pravrudhi/fixture-names.txt", () => {
   const dir = repo({ "frontend/src/a.ts": "const a = 1;" });
-  const skipped = loadConfig(dir, {}, false);
+  const home = mkdtempSync(path.join(tmpdir(), "cif-home-"));
+  const skipped = loadConfig(dir, { HOME: home }, false);
   assert.equal(skipped.namesText, null);
   assert.match(skipped.notes.join(" "), /SKIPPED the real-name check/);
-  assert.match(loadConfig(dir, {}, true).error, /REQUIRED/);
-  assert.match(loadConfig(dir, { INVENTED_FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
+  assert.match(loadConfig(dir, { HOME: home }, true).error, /REQUIRED/);
+  assert.match(loadConfig(dir, { HOME: home, CI: "true" }, false).error, /REQUIRED/);
+  assert.match(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
   const f = path.join(dir, "names.txt");
   writeFileSync(f, `${INVENTED_NAME}\n`);
-  assert.equal(loadConfig(dir, { INVENTED_FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
+  assert.equal(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
+  mkdirSync(path.join(home, ".config/pravrudhi"), { recursive: true });
+  writeFileSync(path.join(home, ".config/pravrudhi/fixture-names.txt"), `${INVENTED_NAME}\n`);
+  assert.equal(loadConfig(dir, { HOME: home, CI: "true" }, false).namesText.trim(), INVENTED_NAME);
 });
 
 test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean tree (names skipped), 1 when names are required but absent", () => {
-  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, INVENTED_FIXTURE_NAMES_FILE: "", ...env } });
+  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, CI: "", INVENTED_FIXTURE_NAMES_FILE: "", HOME: mkdtempSync(path.join(tmpdir(), "cif-home-")), ...env } });
   const clean = repo({ "frontend/src/a.ts": "const a = 1;" });
   const ok = run(clean);
   assert.equal(ok.status, 0);
   assert.match(ok.stdout, /SKIPPED the real-name check/);
   assert.equal(run(clean, ["--require-names"]).status, 1);
+  assert.equal(run(clean, [], { CI: "true" }).status, 1); // a skipped name guard fails the job in CI
   const bad = repo({ "frontend/src/a.ts": "Crl.O.P. 4321 of 2099" });
   const r = run(bad);
   assert.equal(r.status, 1);

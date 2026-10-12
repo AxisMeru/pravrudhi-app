@@ -1,1 +1,0 @@
-# One lowercase sha256 per line, of ONE lowercase name token (never the name itself). Add with: printf %s token | sha256sum
