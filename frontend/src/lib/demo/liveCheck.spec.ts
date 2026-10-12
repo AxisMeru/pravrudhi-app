@@ -64,7 +64,18 @@ test("the fixtures: three paths, invented text in two wordings, all within the e
 
 test("the fixture text carries nothing from the evaluation or the demo example, and no host path, email or CNR", () => {
   const all = JSON.stringify(FIXTURES);
-  assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR|Raghunathan|Suchithra|Kiran|Lata/);
+  assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR/);
+  // No real name is written into this public repository, even as a deny-list: each word of the fixtures is hashed and checked against the sha256 of lower-cased
+  // names that must not appear (R2, 12 Oct).
+  const DENIED = new Set([
+    "9b4eef8afba046f81202487fbed71b40ec7432193afd90508116be20d281fa16",
+    "3197433962f1e7897139e91f244ee74178db22b207a8a1e8616657a6b22ca60d",
+    "3a5d591b3b0838fb2ef2bde6f16ad26a70ddd6c3f134edcc7dcb8114d780ea0c",
+    "5d6d8c97b5d097c09949390f6e772f396d57493d9d7b02b11b1e919a007cd8c7",
+  ]);
+  for (const word of all.match(/[A-Za-z]{3,}/g) ?? []) {
+    assert.ok(!DENIED.has(createHash("sha256").update(word.toLowerCase()).digest("hex")), "a denied name appears in the fixtures");
+  }
 });
 
 test("a well-formed result passes for each path", () => {

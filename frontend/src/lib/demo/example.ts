@@ -5,20 +5,23 @@
 export const EXAMPLE_ID = "madras-public-order-2024";
 
 // The label names the order by court and date only (Lead-2, 12 Oct 2026): this public repository and app carry no real case identifier,
-// the same rule as for party names. The case number and the CNR are NOT shown.
+// the same rule as for party names. Neither the case number nor the court's record number is shown.
 export const EXAMPLE_LABEL =
-  "A public Madras High Court judgment (order of 12 June 2024), example only. The output of " +
+  "A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number withheld. The output of " +
   "this demo is illustrative, not evidence, and no measure is quoted from it.";
 
 // The paragraphs, one per line when loaded. Allegations in a complaint, as recited by the Court: not findings.
 export const EXAMPLE_FACTS: readonly string[] = [
-  "The petitioner herein is the named accused in a complaint registered by the respondent police on 07.11.2023 in Cr.No.325 of 2023 for the alleged offence under Sections 406 and 420 of IPC.",
+  "The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.",
   "As per the complaint, the petitioner herein got acquaintance with the defacto complainant and borrowed money to the tune of Rs.42,00,000/- since 2016. Further, the accused also subscribed one unauthorized chit run by the defacto complainant and drawn Rs.1,25,000/- and failed to repay it. When the defacto complainant demanded back the money, the petitioner promised to repay it after disposing the property, but, breached the promise and later gave five cheques, promissory note and other documents.",
   "Later, when the defacto complainant demanded money the first and the second accused who were husband and wife threatened as if they got separated and not responsible for repayment. At the same time, the first petitioner has transferred the house property in the name of the second petitioner in order to dispose it of to third parties and cheat the complainant."
 ];
 
-// sha256 of EXAMPLE_FACTS.join("\n") + "\n" (UTF-8), the exact text the guard checked.
-export const EXAMPLE_FACTS_SHA256 = "97df7073f7e5a82310056464e1e1a6eea340054bc4b7418658f10de008d59335";
+// sha256 of EXAMPLE_FACTS.join("\n") + "\n" (UTF-8), the exact text the guard checks. The excerpt is no longer verbatim (Lead-2 and R2, 12 Oct 2026): exactly
+// TWO substitutions were made, both in the first paragraph: the police crime number became "Cr.No.[redacted] of 2023" and the registration date became "[date]",
+// because this public repository and app carry no real case or crime number and no date tied to a case. The sha256 of the ORIGINAL guard-checked text, before
+// those substitutions, was 97df7073f7e5a82310056464e1e1a6eea340054bc4b7418658f10de008d59335.
+export const EXAMPLE_FACTS_SHA256 = "15bbc22e072d69954ae65bde222a216417eb16477ce2e460c4b31081df51d33f";
 
 export const EXAMPLE_FACTS_TEXT = EXAMPLE_FACTS.join("\n");
 
