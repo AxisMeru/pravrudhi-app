@@ -41,8 +41,8 @@ import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, val
 const UNCOVERED_REASON_TOKEN = "no_training_statute_text";
 
 const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckCircle2 }> = {
-  PROOF: { label: "established", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
-  DENIAL: { label: "not established", tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
+  PROOF: { label: "every condition supported by a fact", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
+  DENIAL: { label: "not supported by these facts", tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
   ABSTAIN: { label: "abstained", tone: "text-sky-400 border-sky-500/40 bg-sky-500/10", Icon: HelpCircle },
   REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
 };
@@ -389,7 +389,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each established element cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">

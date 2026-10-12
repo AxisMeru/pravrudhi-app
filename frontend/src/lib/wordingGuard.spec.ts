@@ -41,3 +41,12 @@ test("planted: the guard does catch each banned phrase", () => {
   const samples = ["a verbatim span of the facts", "a highlighted passage", "quote-checked against the facts", "The judge's quoted words appear", "it is accurate", "error ≤2%", "full coverage of the code", "it always proves"];
   for (const s of samples) assert.ok(BANNED.some(([, re]) => re.test(s)), s);
 });
+
+test("the matters page's outcome badges and subtitle carry no wording hit (Studio's audit): none says proof, established or verbatim", async () => {
+  const { scanSource } = await import("./wordingAudit");
+  const { readFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const file = join(__dirname, "..", "app", "matters", "page.tsx");
+  assert.deepEqual(scanSource("src/app/matters/page.tsx", readFileSync(file, "utf8")), []);
+  assert.match(readFileSync(file, "utf8"), /not supported by these facts/);
+});
