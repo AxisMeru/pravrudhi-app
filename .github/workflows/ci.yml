@@ -17,6 +17,14 @@ jobs:
         run: node --test scripts/test/*.test.mjs
       - name: no recorded-looking ids, emails or home paths in fixtures and e2e specs
         run: node scripts/check-no-private-data.mjs
+      # #101: no real name and no real case or crime number in src, e2e, fixtures, docs or public. The real names are NEVER in the repo:
+      # the private list comes from the INVENTED_FIXTURE_NAMES secret at run time, and --require-names fails the job if it is missing.
+      - name: invented fixtures only (no real name, case or crime number)
+        env:
+          INVENTED_FIXTURE_NAMES: ${{ secrets.INVENTED_FIXTURE_NAMES }}
+        run: |
+          printf '%s' "$INVENTED_FIXTURE_NAMES" > "$RUNNER_TEMP/invented-names.txt"
+          INVENTED_FIXTURE_NAMES_FILE="$RUNNER_TEMP/invented-names.txt" node scripts/check-invented-fixtures.mjs --require-names
 
   frontend:
     runs-on: ubuntu-latest
