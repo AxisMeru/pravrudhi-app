@@ -23,27 +23,27 @@ export interface GuideImage {
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
   input: {
     file: "01-screening-input.png",
-    alt: "The Screening page with an invented matter pasted and split into numbered facts F1 and F2, and the offence Cheating selected.",
+    alt: "The Screening page after Split into numbered facts: an invented plot-sale matter split into six numbered facts F1 to F6, with the offence Cheating (BNS 318 · IPC 415) ticked, and the opt-in frontier toggle and its stated limit below.",
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The ingredient checklist for the invented matter: one row per ingredient, each with a status chip, and the summary line above the standing not-legal-advice line.",
+    alt: "The result for the invented plot-sale matter: the summary 0 of 3 ingredients have a supporting fact; 2 need your review, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
   },
   citedFact: {
     file: "03-cited-fact.png",
-    alt: "One ingredient row marked Supported by a fact, with the cited fact F1 shown in full and a What to check line.",
+    alt: "One ingredient row marked Supported by a fact, naming fact F1 and showing that fact in full (an invented jewellery matter).",
   },
   needsReview: {
     file: "04-needs-your-review.png",
-    alt: "An ingredient row marked Needs your review, with its plain reason; it asks you to check, it is not an error.",
+    alt: "One ingredient row marked Needs your review, with its plain reason and a What to check line; it asks you to check, it is not an error.",
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The citations panel below the checklist: a box to paste case citations, one per line, and a button to check them.",
+    alt: "The empty Case citations panel: a preview label, a line saying how to enter citations, an empty box and a Check citations button.",
   },
   memo: {
     file: "06-memo-export.png",
-    alt: "The memo and audit-trail download buttons under the checklist.",
+    alt: "The three export buttons under the checklist: Download memo, Print / save as PDF and Download audit trail.",
   },
 };
 
