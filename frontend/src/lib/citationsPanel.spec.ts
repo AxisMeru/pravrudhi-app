@@ -2,7 +2,7 @@ import { strict as assert } from "node:assert";
 import test from "node:test";
 
 import { ApiError } from "./api";
-import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, VERIFIED_WITHOUT_QUOTE_TEXT, checkCitations, coverageLine, parseCitationLines } from "./citationsPanel";
+import { COVERAGE_NOT_REPORTED, DEV_STACK_ONLY_TEXT, MAX_CITATIONS, VERIFIED_WITHOUT_QUOTE_TEXT, checkCitations, coverageLine, parseCitationLines } from "./citationsPanel";
 
 // Invented citations and quotes only.
 
@@ -75,16 +75,6 @@ test("an aborted run stops before the next line", async () => {
   assert.equal(rows[1].state.phase, "idle");
 });
 
-test("coverage is read from the engine's field, never typed in: a string as sent, an object worded from its parts, anything else the fallback", () => {
-  assert.equal(coverageLine("Supreme Court judgments only."), "Supreme Court judgments only.");
-  assert.match(coverageLine({ courts: ["Supreme Court"], resolvable_cases: 1234, year_min: 1950, year_max: 2024 }), /^Citations resolve for 1,234 Supreme Court judgments \(1950 to 2024\); other courts answer not in index, which is no evidence either way\.$/);
-  assert.match(coverageLine({ courts: ["Supreme Court"], resolvable_cases: 12 }), /^Citations resolve for 12 Supreme Court judgments; other courts answer not in index/);
-  for (const bad of [undefined, null, "", "  ", 3, {}, { courts: [], resolvable_cases: 1 }, { courts: ["SC"], resolvable_cases: -1 }, { courts: ["SC"], resolvable_cases: "1" }]) {
-    assert.equal(coverageLine(bad), COVERAGE_NOT_REPORTED);
-  }
-  assert.doesNotMatch(COVERAGE_NOT_REPORTED + coverageLine(undefined), /Supreme|SC /);
-});
-
 test("the coverage the engine sent with a result is kept on that row", async () => {
   const verify = async () => ({ result: "NOT_IN_INDEX", note: "n", coverage: "Supreme Court judgments only." });
   const [row] = await checkCitations(verify, parseCitationLines("A | q").items);
@@ -117,14 +107,6 @@ test("the FIRST bar splits a line: later bars belong to the quote", () => {
   assert.deepEqual(items[0], { line: 1, citation: "(2020) 3 SCC 456", quote: "the sum | shall be paid | in full" });
 });
 
-test("a coverage object carrying BOTH counts prints the resolvable one and never the index total; the index total alone is the fallback", () => {
-  const both = coverageLine({ courts: ["Supreme Court"], resolvable_cases: 3984, judgments_in_index: 38657, year_min: 1950, year_max: 2024 });
-  assert.match(both, /^Citations resolve for 3,984 Supreme Court judgments \(1950 to 2024\)/);
-  assert.doesNotMatch(both, /38,657|38657/);
-  assert.equal(coverageLine({ courts: ["Supreme Court"], judgments_in_index: 38657 }), COVERAGE_NOT_REPORTED);
-  assert.equal(coverageLine({ courts: ["Supreme Court"], judgments: 38657 }), COVERAGE_NOT_REPORTED);
-});
-
 test("a line sent without a quote shows the engine's answer, and a VERIFIED answer to it is fail-closed: never shown as verified", async () => {
   const stray = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2020) 3 SCC 456").items);
   assert.equal(stray[0].state.phase, "error");
@@ -138,7 +120,51 @@ test("a line sent without a quote shows the engine's answer, and a VERIFIED answ
   assert.equal(withQuote[0].state.phase === "result" && withQuote[0].state.view.status, "VERIFIED");
 });
 
-test("the coverage the engine sends, in its final shape, is worded from courts + resolvable_cases + the year range and prints no other count", () => {
-  const real = { courts: ["Supreme Court"], resolvable_cases: 3984, judgments_in_index: 38657, year_min: 1950, year_max: 2024 };
-  assert.equal(coverageLine(real), "Citations resolve for 3,984 Supreme Court judgments (1950 to 2024); other courts answer not in index, which is no evidence either way.");
+
+// The engine's served coverage shape (pravrudhi #376, application/verify.py index_coverage), as the demo pack's captures/citations.json carried it.
+const SERVED_COURTS_RESOLVABLE: Record<string, number> = {
+  "Supreme Court": 2952, "Delhi High Court": 156, "Gujarat High Court": 128, "Punjab-Haryana High Court": 90, "Madras High Court": 70, "Allahabad High Court": 68,
+  "Madhya Pradesh High Court": 64, "Kerala High Court": 64, "Supreme Court of India": 60, "Bombay High Court": 57, "Rajasthan High Court": 53, "Delhi District Court": 49,
+  "Patna High Court": 47, "Calcutta High Court": 22, "Andhra High Court": 22, "Karnataka High Court": 16, "Orissa High Court": 11, "Himachal Pradesh High Court": 11,
+  "Jharkhand High Court": 9, "Jammu & Kashmir High Court": 8, "Income Tax Appellate Tribunal": 7, "Gauhati High Court": 7, "Chattisgarh High Court": 6,
+  "Uttarakhand High Court": 5, "High Court of Meghalaya": 1, "Customs, Excise and Gold Tribunal": 1,
+};
+const SERVED_COVERAGE = {
+  judgments_held: 38657, courts_held: { "Supreme Court": 26687, "Delhi High Court": 799 }, courts: Object.keys(SERVED_COURTS_RESOLVABLE).sort(),
+  courts_resolvable: SERVED_COURTS_RESOLVABLE, resolvable_cases: 3984, resolvable_citation_strings: 9597, year_min: 1970, year_max: 2025, held_year_min: 1950, held_year_max: 2025,
+  note: "Only SCC-family citations resolve today; a citation to any court or reporter not listed under courts_resolvable is answered not_in_index, which is no evidence either way.",
+};
+
+const R1_SENTENCE =
+  "Citations resolve for 3,984 judgments from 26 court labels (Supreme Court 3,012 under two labels; other courts 972), with years 1970 to 2025 (the index's year field); SCC-family citations only. A citation to any other court or reporter answers not in index, which is no evidence either way.";
+
+test("the served coverage object is worded exactly as R1 signed it, from resolvable_cases + courts_resolvable + the resolvable years + the note; the index total and held figures never print", () => {
+  assert.equal(coverageLine(SERVED_COVERAGE), R1_SENTENCE);
+  const line = coverageLine(SERVED_COVERAGE);
+  for (const never of ["38,657", "38657", "26,687", "1950", "9,597", "Allahabad"]) assert.ok(!line.includes(never), never);
+});
+
+test("outside the hosted app the sentence carries the dev-stack-only line; inside it does not", () => {
+  assert.equal(coverageLine(SERVED_COVERAGE, { devStack: true }), `${R1_SENTENCE} ${DEV_STACK_ONLY_TEXT}`);
+  assert.equal(DEV_STACK_ONLY_TEXT, "Dev stack only; not served in the hosted deployment.");
+  assert.ok(!coverageLine(SERVED_COVERAGE).includes("Dev stack"));
+});
+
+test("one court, one label, no SC label, and a missing SCC-family note are worded from the data, not from a template", () => {
+  const one = coverageLine({ resolvable_cases: 12, courts_resolvable: { "Delhi High Court": 12 }, year_min: 1990, year_max: 2001, note: "x" });
+  assert.equal(one, "Citations resolve for 12 judgments from 1 court label, with years 1990 to 2001 (the index's year field). A citation to any other court or reporter answers not in index, which is no evidence either way.");
+  const sc = coverageLine({ resolvable_cases: 10, courts_resolvable: { "Supreme Court": 10 }, year_min: 1990, year_max: 2001, note: "SCC-family only" });
+  assert.match(sc, /^Citations resolve for 10 judgments from 1 court label \(Supreme Court 10; other courts 0\), with years 1990 to 2001/);
+  assert.match(sc, /; SCC-family citations only\./);
+});
+
+test("coverage that is missing, malformed or does not add up gives the plain fallback, never a partial claim", () => {
+  const base = { resolvable_cases: 3984, courts_resolvable: SERVED_COURTS_RESOLVABLE, year_min: 1970, year_max: 2025, note: "SCC-family" };
+  const bad: unknown[] = [
+    undefined, null, "", "Supreme Court judgments only.", 3, {}, { ...base, resolvable_cases: 3985 }, { ...base, resolvable_cases: "3984" }, { ...base, courts_resolvable: {} },
+    { ...base, courts_resolvable: [] }, { ...base, courts_resolvable: { "Supreme Court": -1 } }, { ...base, courts_resolvable: { " ": 3984 } }, { ...base, year_min: undefined },
+    { ...base, year_max: "2025" }, { resolvable_cases: 3984, courts: ["Supreme Court"], year_min: 1970, year_max: 2025 }, { courts: ["Supreme Court"], judgments_in_index: 38657 },
+  ];
+  for (const b of bad) assert.equal(coverageLine(b), COVERAGE_NOT_REPORTED, JSON.stringify(b)?.slice(0, 60));
+  assert.doesNotMatch(COVERAGE_NOT_REPORTED, /Supreme|SC /);
 });
