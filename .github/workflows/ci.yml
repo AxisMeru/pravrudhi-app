@@ -18,24 +18,32 @@ jobs:
       - name: no recorded-looking ids, emails or home paths in fixtures and e2e specs
         run: node scripts/check-no-private-data.mjs
       # #101: no real name and no real case or crime number, email, mobile, PAN or Aadhaar-like number anywhere in the repository (every tracked text file).
-      # The shape patterns ALWAYS run, on pull requests from forks too. The real names are NEVER in the repo: the private list is the INVENTED_FIXTURE_NAMES
-      # secret, which forks cannot read. Secret set (and holding at least one non-space character): the name check is REQUIRED (--require-names; a file with no
-      # names fails). Secret absent or blank (a fork PR, or until a repo admin creates it): the name check is SKIPPED with a warning and the job still passes
-      # on the shapes (--names-optional). Flipping this to a hard requirement is one line: run with --require-names unconditionally.
+      # The shape patterns ALWAYS run. The real names are NEVER in the repo: the private list is the INVENTED_FIXTURE_NAMES secret.
+      #  - Pull requests from FORKS never get secrets: the name check is skipped with a warning, the shapes still run (--names-optional).
+      #  - The main repo: with REQUIRE_NAMES_ON_MAIN "true" the name check is REQUIRED (--require-names): a missing, blank or name-less secret FAILS the job.
+      #    With it "false" (the default NOW; temporary, Lead-2, 12 Oct, until the secret exists) a non-blank secret is still used and required, and a blank
+      #    one only warns. Flipping to a hard requirement is the one line below: REQUIRE_NAMES_ON_MAIN: "true".
       # The secret may be multi-line and Actions does not mask it per line: it is never echoed, the file is mode 600 and removed on exit.
       - name: invented fixtures only (no real name, case or crime number, no personal data)
         env:
+          REQUIRE_NAMES_ON_MAIN: "false"
+          IS_FORK_PR: ${{ github.event.pull_request.head.repo.fork }}
           INVENTED_FIXTURE_NAMES: ${{ secrets.INVENTED_FIXTURE_NAMES }}
         run: |
           set +x
           umask 077
           names="$RUNNER_TEMP/invented-names.txt"
           trap 'rm -f "$names"' EXIT
-          if [ -n "$(printf '%s' "$INVENTED_FIXTURE_NAMES" | tr -d '[:space:]')" ]; then
+          have_secret=false
+          if [ -n "$(printf '%s' "$INVENTED_FIXTURE_NAMES" | tr -d '[:space:]')" ]; then have_secret=true; fi
+          if [ "$IS_FORK_PR" = "true" ]; then
+            echo "::warning::fork pull request: no secrets, the real-name check is SKIPPED, shape patterns still run"
+            node scripts/check-invented-fixtures.mjs --names-optional
+          elif [ "$REQUIRE_NAMES_ON_MAIN" = "true" ] || [ "$have_secret" = "true" ]; then
             printf '%s' "$INVENTED_FIXTURE_NAMES" > "$names"
             INVENTED_FIXTURE_NAMES_FILE="$names" node scripts/check-invented-fixtures.mjs --require-names
           else
-            echo "::warning::INVENTED_FIXTURE_NAMES is not available (fork PR or secret not created): the real-name check is SKIPPED, shape patterns still run"
+            echo "::warning::INVENTED_FIXTURE_NAMES is not set (main-repo skip is temporary, Lead-2, 12 Oct): the real-name check is SKIPPED, shape patterns still run"
             node scripts/check-invented-fixtures.mjs --names-optional
           fi
 

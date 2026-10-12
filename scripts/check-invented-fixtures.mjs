@@ -49,6 +49,11 @@ export const SHAPES = [
   ["PAN (5 letters, 4 digits, 1 letter)", /\b[A-Z]{5}\d{4}[A-Z]\b/],
   ["Aadhaar-like 12-digit number", /(?<![\d-])\d{4}[ -]?\d{4}[ -]?\d{4}(?![\d-])/],
 ];
+// Path-scoped shape: a 9-10 digit literal in a settings or config file or an example (a chat id, an account number, a phone number) is how a real
+// identifier leaks as a "placeholder". Allowed only with an allow.json entry (file + id + exact-line hash + reason).
+export const LONG_DIGITS_ID = "9-10 digit literal in a settings/config/docs file (use an obviously invented value such as 123456789)";
+export const LONG_DIGITS = /(?<![\w.+-])\d{9,10}(?![\w.-]|,\d)/;
+export const CONFIG_PATHS = /^(?:frontend\/src\/app\/settings\/|\.github\/|docs\/)|(?:^|\/)config\/[^/]*\.(?:ts|tsx|js|mjs|json|ya?ml|toml)$|(?:^|\/)\.?env\.example$|\.env\.example$/;
 const EMAIL_OK = /@example\.(?:com|org|net)$|@[A-Za-z0-9.-]+\.(?:invalid|test|example)$|@[a-z]\.[a-z]$|@[A-Za-z0-9.-]+\.local$/i;
 // UUIDs and long hex digests contain digit runs that are not identifiers.
 const strip = (line) => line.replace(/\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g, " ").replace(/\b[0-9a-fA-F]{24,}\b/g, " ");
@@ -83,6 +88,7 @@ export function check(root, { namesText = null, allow = [] } = {}) {
       const lsha = sha(line.trim());
       const excused = (id) => allow.some((a) => a.file === rel && a.id === id && a.line_sha256 === lsha && a.reason);
       const clean = strip(line);
+      if (CONFIG_PATHS.test(rel.split(path.sep).join("/")) && LONG_DIGITS.test(clean) && !excused(LONG_DIGITS_ID)) out.push(`${rel}:${i + 1}: ${LONG_DIGITS_ID}`);
       for (const [id, re, pred] of SHAPES) { const m = clean.match(re); if (m && (!pred || pred(m)) && !excused(id)) out.push(`${rel}:${i + 1}: ${id} -- use an invented value`); }
       if (matchers.some((m) => m.test(line)) && !excused("name")) out.push(`${rel}:${i + 1}: a real name from the deny list (value not shown) -- use an invented name`);
     });

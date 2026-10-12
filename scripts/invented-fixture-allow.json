@@ -34,5 +34,11 @@
     "id": "email address (use @example.com)",
     "line_sha256": "b0477411736ca710679734c118118c4197c2a43dcadd09acf48b6ca47e9e6671",
     "reason": "team identity (the Axis Meru commit identity enforced by the hook), not personal data"
+  },
+  {
+    "file": "frontend/src/app/settings/page.tsx",
+    "id": "9-10 digit literal in a settings/config/docs file (use an obviously invented value such as 123456789)",
+    "line_sha256": "729dc9d4e23a16d4cc52b38a09da94eb9be2b2a3195adacacc3b75611e6bbdc8",
+    "reason": "obviously invented sequential placeholder (123456789) for the chat-id input, replacing a value that looked real (Lead-2, 12 Oct)"
   }
 ]
