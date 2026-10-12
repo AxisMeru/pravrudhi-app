@@ -22,7 +22,10 @@ jobs:
       #  - Pull requests from FORKS never get secrets: the name check is skipped with a warning, the shapes still run (--names-optional).
       #  - The main repo: with REQUIRE_NAMES_ON_MAIN "true" the name check is REQUIRED (--require-names): a missing, blank or name-less secret FAILS the job.
       #    With it "false" (the default NOW; temporary, Lead-2, 12 Oct, until the secret exists) a non-blank secret is still used and required, and a blank
-      #    one only warns. Flipping to a hard requirement is the one line below: REQUIRE_NAMES_ON_MAIN: "true".
+      #    one only warns, with a ::warning:: on EVERY main run that skips, so the gap is visible in each log. Until the flip, the real-name check does NOT
+      #    run on the main repo unless the secret exists. Project #1 item: pravrudhi-app #102 "Create the INVENTED_FIXTURE_NAMES repo secret and flip
+      #    REQUIRE_NAMES_ON_MAIN to true" (owner Lead-2, due Fri 16 Oct). The flip is the one line below: REQUIRE_NAMES_ON_MAIN: "true".
+      #  - Fork pull requests stay --names-optional whatever the switch says (a fork cannot read the secret).
       # The secret may be multi-line and Actions does not mask it per line: it is never echoed, the file is mode 600 and removed on exit.
       - name: invented fixtures only (no real name, case or crime number, no personal data)
         env:
