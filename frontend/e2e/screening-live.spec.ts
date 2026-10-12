@@ -14,8 +14,8 @@ import { OFFENCES } from "../src/lib/screening/offences";
 
 /**
  * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted real public matter (touched by the extraction pipeline) (Lead-2, 8 Oct): the allegation
- * paragraph of a public Madras High Court order (doc 9e77f94d), against
- * the DEPLOYED app and judge. The demo example (Crl.O.P. 13624 of 2024) is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
+ * paragraph of a public Madras High Court order (doc live-matter-a), against
+ * the DEPLOYED app and judge. The public demo example is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
  * that what the page shows is a plain-words reading of it: one checklist per contract, one row per ingredient with one of the three chips, the
  * cited fact shown in full, a what-to-check line, the summary banner per contract, the review items not styled as errors, no "proved" /
  * "established" / "verbatim" in the checklist, the memo and the audit trail.

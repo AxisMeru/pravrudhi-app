@@ -64,8 +64,11 @@ test("the fixtures: three paths, invented text in two wordings, all within the e
 
 test("the fixture text carries nothing from the evaluation or the demo example, and no host path, email or CNR", () => {
   const all = JSON.stringify(FIXTURES);
-  assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR|Raghunathan|Suchithra|Kiran|Lata/);
+  assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR/);
 });
+
+// Names: no real name is written into this public repository, not even hashed. The name deny-list is checked by ONE mechanism, the CI check of #101 (private file
+// INVENTED_FIXTURE_NAMES_FILE, phrase matching); there is no second, word-by-word copy of it here (R1, 12 Oct).
 
 test("a well-formed result passes for each path", () => {
   for (const f of FIXTURES) {

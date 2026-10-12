@@ -61,6 +61,8 @@ function toSignIn(status: number): void {
 // never rendered for an anonymous visitor at all, redirected to /signin before its own content could load.
 export interface EngineFetchInit extends RequestInit {
   authOptional?: boolean;
+  /** The user chose the anonymous demo: attach NO bearer token and do not try to renew a session for this call. */
+  anonymous?: boolean;
 }
 
 // Every call to the engine goes through here (ADR-0051 addendum 3). The bearer token of the signed-in web
@@ -71,13 +73,13 @@ export interface EngineFetchInit extends RequestInit {
 // the token, so the first signed-in operator saw "could not reach" on every page whose module was not api.ts
 // (2026-09-12); a spec now refuses any bare engine fetch outside this function.
 export async function engineFetch(input: string, init: EngineFetchInit = {}, retried = false): Promise<Response> {
-  const { authOptional, ...rest } = init;
-  const token = await webSessionToken();
+  const { authOptional, anonymous, ...rest } = init;
+  const token = anonymous ? null : await webSessionToken();
   const headers = new Headers(rest.headers);
   if (token && !headers.has("authorization")) headers.set("authorization", `Bearer ${token}`);
   const res = await fetch(input, { ...rest, headers });
   if (res.status === 401) {
-    if (!retried && (await recoverFrom401())) return engineFetch(input, init, true);
+    if (!anonymous && !retried && (await recoverFrom401())) return engineFetch(input, init, true);
     if (!authOptional) toSignIn(res.status);
   }
   return res;
@@ -1286,7 +1288,7 @@ export interface AnalyseFactsResult {
 // backend could ever have answered -- this exists so that never happens, not to bound wall-clock time.
 export const ANALYSE_FACTS_TIMEOUT_MS = 320_000;
 
-async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal): Promise<Response> {
+async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal, anonymous = false): Promise<Response> {
   const localTok = await localToken();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ANALYSE_FACTS_TIMEOUT_MS);
@@ -1299,6 +1301,7 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
       headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
       body,
       signal: controller.signal,
+      anonymous,
       // Part of the demo-anon surface -- a 401 from a genuinely anonymous caller is an ordinary ApiError
       // below, never a redirect to /signin.
       authOptional: true,
@@ -1338,22 +1341,88 @@ export async function withFactText(wire: AnalyseFactsWire, submitted: string[]):
   return { ...wire, facts: echoed.map((f) => ({ ...f, text: bySha.get(f.sha256)?.shift() ?? "" })) };
 }
 
+/** Thrown instead of sending the facts when the engine says this browser is not signed in (12 Oct: a call after a 401 on /api/me was served as an anonymous demo call). */
+export class NotSignedInError extends Error {
+  constructor() {
+    super("not signed in");
+    this.name = "NotSignedInError";
+  }
+}
+
+/** Bounded: three looks at /api/me, 1.5 s apart (the first renews the web session). Mutable only so a test can set the pause to 0. */
+/** Thrown instead of sending the facts when /api/me gave no answer we can rely on (an error status, a timeout, a dropped connection). There is no anonymous fallback. */
+export class SignInUnverifiedError extends Error {
+  constructor() {
+    super("sign-in could not be checked");
+    this.name = "SignInUnverifiedError";
+  }
+}
+
+export const signInPolicy = { attempts: 3, pauseMs: 1500 };
+
+type SessionState = "signed_in" | "signed_out" | "no_endpoint" | "unverified";
+
+/**
+ * What GET /api/me says. 200 is signed in; 401 is signed out; 404 or 405 means this engine has no identity endpoint at all (a local engine), which is not a
+ * reason to block. Anything else (403, 5xx, a dropped connection, a timeout) is UNVERIFIED: the check did not give an answer, so it is never treated as signed in.
+ */
+async function sessionState(signal?: AbortSignal): Promise<SessionState> {
+  try {
+    const res = await engineFetch(`${detectBase()}/api/me`, { cache: "no-store", authOptional: true, signal });
+    if (res.status === 401) return "signed_out";
+    if (res.status === 404 || res.status === 405) return "no_endpoint";
+    return res.ok ? "signed_in" : "unverified";
+  } catch {
+    return "unverified";
+  }
+}
+
+/**
+ * Resolves only when the engine says signed in or has no identity endpoint. On a 401, or on an answer that could not be verified, it looks again a bounded number
+ * of times (the first retry after a 401 renews the web session inside engineFetch), calling `onSigningIn` once, and then throws NotSignedInError (401) or
+ * SignInUnverifiedError (no answer). Facts are never sent before this resolves, and an unverified check never falls back to the anonymous demo.
+ *
+ * KNOWN LIMIT (R2, 12 Oct): this checks the session BEFORE the request. If the credential expires between a 200 here and the POST, the engine can still serve the call
+ * anonymously (the production call D of 12 Oct). The check cannot close that; the fix is the engine answering 401 to a failing identity header (Track C, pravrudhi 0.6.1).
+ */
+export async function requireSession(opts: { onSigningIn?: () => void; signal?: AbortSignal; attempts?: number; pauseMs?: number } = {}): Promise<void> {
+  const attempts = opts.attempts ?? signInPolicy.attempts;
+  let last: SessionState = "unverified";
+  for (let i = 0; i < attempts; i++) {
+    last = await sessionState(opts.signal);
+    if (last === "signed_in" || last === "no_endpoint") return;
+    if (i === 0 && last === "signed_out") opts.onSigningIn?.();
+    if (i < attempts - 1) await new Promise((r) => setTimeout(r, opts.pauseMs ?? signInPolicy.pauseMs));
+    if (opts.signal?.aborted) throw new DOMException("cancelled", "AbortError");
+  }
+  throw last === "signed_out" ? new NotSignedInError() : new SignInUnverifiedError();
+}
+
+export interface AnalyseFactsOptions {
+  /** The user chose the anonymous demo explicitly: skip the sign-in check. Never set by the app on its own. */
+  allowAnonymous?: boolean;
+  /** Called once when the session is being retried ("Signing you in…"). */
+  onSigningIn?: () => void;
+}
+
 export async function analyseFacts(
   facts: string[],
   contractIds: string[],
   narrative?: string,
   signal?: AbortSignal,
+  opts: AnalyseFactsOptions = {},
 ): Promise<AnalyseFactsResult> {
   const path = "/api/v1/analyse-facts";
   if (IS_DEMO) throw new ApiError(501, path);
+  if (!opts.allowAnonymous) await requireSession({ onSigningIn: opts.onSigningIn, signal });
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "" });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
-  let res = await analyseFactsAttempt(path, body, signal);
+  let res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
     if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
-      res = await analyseFactsAttempt(path, body, signal);
+      res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
       if (!res.ok) err = await apiErrorFrom(res, path);
     }
     if (!res.ok) throw err;

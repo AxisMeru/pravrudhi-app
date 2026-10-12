@@ -5,7 +5,10 @@ import test from "node:test";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_FACTS_SHA256, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "./example";
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
-test("the example text is exactly the text that was guard-checked", () => {
+test("the example text is exactly the text that was guard-checked (with its two recorded substitutions: the crime number is redacted and the registration date is withheld)", () => {
+  assert.equal(EXAMPLE_FACTS[0].match(/Cr\.No\.\[redacted\] of 2023/)?.length, 1);
+  assert.equal((EXAMPLE_FACTS_TEXT.match(/\[redacted\]|\[date\]/g) ?? []).length, 2, "exactly two substitutions");
+  assert.match(EXAMPLE_FACTS[0], /registered by the respondent police on \[date\] in Cr\.No\.\[redacted\] of 2023/);
   const sha = createHash("sha256").update(EXAMPLE_FACTS.join("\n") + "\n", "utf8").digest("hex");
   assert.equal(sha, EXAMPLE_FACTS_SHA256);
   assert.equal(EXAMPLE_FACTS_TEXT, EXAMPLE_FACTS.join("\n"));
@@ -21,11 +24,12 @@ test("the example is the allegations only: no decision, no reasoning, no outcome
 });
 
 test("the label says what the example is and is not, and carries no claim on the do-not-claim list", () => {
-  assert.match(EXAMPLE_LABEL, /Public Madras High Court judgment \(Crl\.O\.P\. No\. 13624 of 2024, order dated 12 June 2024\), example only/);
+  assert.match(EXAMPLE_LABEL, /^A public Madras High Court judgment \(order of 12 June 2024\), example only\. Excerpt from the order with the crime number and the registration date withheld\. /);
+  assert.doesNotMatch(EXAMPLE_LABEL + EXAMPLE_ID, /13624|Crl|\bNo\.\s*\d|\d+ of \d{4}/, "no real case identifier in the label or the id (Lead-2, 12 Oct)");
   assert.doesNotMatch(EXAMPLE_LABEL, /CNR|HCMA/); // the CNR cannot be verified from the order's text, so it is not shown
   assert.match(EXAMPLE_LABEL, /illustrative, not evidence/);
   for (const re of DO_NOT_CLAIM) assert.doesNotMatch(EXAMPLE_LABEL, re);
-  assert.equal(EXAMPLE_ID, "madras-crl-op-13624-2024");
+  assert.equal(EXAMPLE_ID, "madras-public-order-2024");
 });
 
 test("the example selects the IPC contracts for the sections the complaint names", () => {
@@ -40,4 +44,11 @@ test("the demo steps walk the Screening flow and do not say every ingredient has
   assert.match(text, /A supported ingredient shows the fact of yours it cites, as you wrote it/);
   assert.match(text, /Not supported by these facts, or Needs your review, with the reason/);
   assert.equal(STEPS.length, 6);
+});
+
+// R2 (12 Oct): the facts text itself carries no case or crime number, no dotted date, no CNR and no "No. N" / "N of YYYY" form (the redaction placeholders pass).
+test("the example facts carry no case identifier or dotted date", () => {
+  for (const re of [/Cr\.?\s?No(?!\.?\[redacted\])/i, /\b\d{1,2}\.\d{1,2}\.\d{4}\b/, /CNR|HCMA/, /\bNo\.\s*\d|\d+ of \d{4}/]) {
+    assert.doesNotMatch(EXAMPLE_FACTS_TEXT, re, String(re));
+  }
 });

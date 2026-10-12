@@ -133,9 +133,10 @@ test("a member who opens / lands on Screening", async ({ page }) => {
 
 test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
-  await page.goto("/screening?example=madras-crl-op-13624-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("Crl.O.P. No. 13624 of 2024");
-  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.325 of 2023/);
+  await page.goto("/screening?example=madras-public-order-2024");
+  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
+  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
   await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
   await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
 });
@@ -167,4 +168,23 @@ test("the not-validated offences are offered with the referral line, and a suppo
   const row = page.getByTestId("ingredient-row").first();
   await expect(row.getByTestId("ingredient-chip")).toHaveText("Supported by a fact");
   await expect(row.getByTestId("what-to-check")).toContainText("Check what debt or liability the cheque was given for");
+});
+
+test("while a first run warms up, the page says so without a timing figure, counts the time and offers Cancel", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  let release: () => void = () => {};
+  const held = new Promise<void>((res) => { release = res; });
+  await page.route("**/api/v1/analyse-facts**", async (r) => { await held; await r.fulfill({ json: ANSWER }); });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(`${F1}\n\n${F2}`);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const note = page.getByText(/^Warming up the judge and Lean checker/);
+  await expect(note).toContainText("a first run after idle can take a few minutes while the judges start.");
+  await expect(note).not.toContainText(/\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/);
+  await expect(note).toContainText("elapsed");
+  await expect(page.getByTestId("screening-cancel")).toBeVisible();
+  release();
+  await expect(page.getByTestId("checklist")).toBeVisible();
 });

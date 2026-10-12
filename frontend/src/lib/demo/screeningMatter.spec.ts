@@ -33,7 +33,7 @@ test("the checker passes exactly the expected text, and each condition fails alo
 test("the real expectations are the accepted file's: 64 hex, 1,105 characters, doc id", () => {
   assert.match(MATTER_FILE_SHA256, /^[0-9a-f]{64}$/);
   assert.equal(MATTER_LENGTH, 1105);
-  assert.equal(MATTER_DOC_ID, "9e77f94d");
+  assert.equal(MATTER_DOC_ID, "live-matter-a");
   assert.ok(checkMatterText("x".repeat(MATTER_LENGTH)).some((v) => /sha256/.test(v)));
   assert.ok(checkMatterText("short").some((v) => /characters/.test(v)));
 });

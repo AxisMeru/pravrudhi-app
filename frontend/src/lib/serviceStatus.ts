@@ -1,5 +1,6 @@
 import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
+import { NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
 
 export interface ServiceWindowStatus {
   timezone: string;
@@ -78,6 +79,8 @@ export type AnalyseErrorKind =
   | "cancelled"
   | "rate_limited"
   | "signed_out"
+  | "not_signed_in"
+  | "sign_in_unverified"
   | "judge_unavailable"
   | "service_config_missing"
   | "agent_at_capacity"
@@ -100,6 +103,8 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     return { kind: "timeout", message: "The analysis models did not answer in time, so we stopped waiting. They may be switched off at the moment. No result was returned. Try again later." };
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
+  if (name === "NotSignedInError") return { kind: "not_signed_in", message: NOT_SIGNED_IN_TEXT };
+  if (name === "SignInUnverifiedError") return { kind: "sign_in_unverified", message: SIGN_IN_UNVERIFIED_TEXT };
   if (e instanceof ApiError) {
     if (e.status === 429) {
       // Signed sentence verbatim; the seconds the engine asked for follow it, since the signed text says "the number of seconds shown".
