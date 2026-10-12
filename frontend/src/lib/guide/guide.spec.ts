@@ -39,5 +39,6 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.match(text, /dev stack only; it is not served in the hosted deployment/);
   assert.match(text, /opt-in/);
   assert.match(text, /exact-text/);
-  assert.match(copySource, /The first analysis can take a few minutes while the judges start; a warm analysis takes about 100 to 180 seconds\./);
+  assert.doesNotMatch(copySource, /180/, "no 180 s figure: it was a cold start, not a warm run");
+  assert.match(copySource, /The first analysis after idle can take about 3 minutes while the judges start\. Once they are running, one analysis took about 100 seconds in our single measurement\./);
 });
