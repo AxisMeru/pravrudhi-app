@@ -9,7 +9,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-step")).toHaveCount(7);
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("a few minutes while the judges start");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("The first analysis can take a few minutes while the judges start; a warm analysis takes about 100 to 180 seconds.");
   const imgs = page.locator('[data-testid="guide"] img');
   await expect(imgs).toHaveCount(6);
   for (let i = 0; i < 6; i++) {

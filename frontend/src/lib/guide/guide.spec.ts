@@ -39,5 +39,5 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.match(text, /dev stack only; it is not served in the hosted deployment/);
   assert.match(text, /opt-in/);
   assert.match(text, /exact-text/);
-  assert.match(copySource, /first analysis after the service has been idle can take a few minutes while the judges start/);
+  assert.match(copySource, /The first analysis can take a few minutes while the judges start; a warm analysis takes about 100 to 180 seconds\./);
 });
