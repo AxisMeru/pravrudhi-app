@@ -1414,7 +1414,7 @@ export const VERIFY_CITATION_TIMEOUT_MS = 20_000;
 
 export async function verifyCitation(
   citation: string,
-  quote: string,
+  quote: string | null,
   signal?: AbortSignal,
 ): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown }> {
   const path = "/api/v1/verify-citations";
@@ -1429,7 +1429,8 @@ export async function verifyCitation(
     const res = await engineFetch(`${detectBase()}${path}`, {
       method: "POST",
       headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
-      body: JSON.stringify({ citation, quote }),
+      // no quote = existence-only: the field is left out, never sent empty (an empty quote verifies nothing)
+      body: JSON.stringify(quote === null ? { citation } : { citation, quote }),
       signal: controller.signal,
       authOptional: true,
     });
