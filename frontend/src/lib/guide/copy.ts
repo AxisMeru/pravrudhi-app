@@ -92,7 +92,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "citations",
     heading: "6. Check citations",
-    text: "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It is not a finding that a citation is fake. The panel is dev stack only: it is not served in the hosted deployment.",
+    text: "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It does not tell you whether a citation is genuine. The panel is dev stack only: it is not served in the hosted deployment.",
     image: GUIDE_IMAGES.citations,
   },
   {
