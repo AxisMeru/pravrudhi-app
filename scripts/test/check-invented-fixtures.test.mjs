@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { check, loadConfig, SHAPES } from "../check-invented-fixtures.mjs";
+import { check, loadConfig, SHAPES, LONG_DIGITS_ID } from "../check-invented-fixtures.mjs";
 
 const SCRIPT = path.join(path.dirname(new URL(import.meta.url).pathname), "..", "check-invented-fixtures.mjs");
 const INVENTED_NAME = "Zzyqx Wvutsrq";
@@ -111,7 +111,7 @@ test("planted failure: personal data: an email, an Indian mobile, a PAN and an A
   const bad = { email: "write to someone@mail-invented.in", mobile: "call 9876543210", mobile91: "call +91 98765 43210".replace(/ /g, ""), pan: "pan ABCDE1234F", aadhaar: "id 1234 5678 9012", aadhaar2: "id 123456789012" };
   for (const [k, line] of Object.entries(bad)) assert.ok(check(repo({ "docs/a.md": line })).length >= 1, `${k} must fail`);
   const ok = ["write to a@example.com or b@example.org", "x@y.invalid", "00000000-0000-4000-8000-000000000001", "sha " + "a1b2c3d4".repeat(8), "call 1234567890 or 5432167890", "pan ABCDE12345", "version 1.2.3, 2026-10-12, port 8008"];
-  for (const line of ok) assert.deepEqual(check(repo({ "docs/a.md": line })), [], line);
+  for (const line of ok) assert.deepEqual(check(repo({ "frontend/src/lib/a.ts": line })), [], line); // outside the settings/config/docs paths, where the 9-10 digit rule applies
 });
 
 test("--require-names fails when the names file holds NO names (empty, whitespace, comments only): the check must not pass having checked nothing", () => {
@@ -135,6 +135,22 @@ test("the exception key is file + shape id + exact-line hash + reason (a repeate
   const v = check(dir, { allow: [{ file: "frontend/src/a.ts", id, line_sha256: sha(line), reason: "invented" }] });
   assert.ok(!v.some((x) => /a\.ts:(1|3):.*Cr\.No/.test(x)));
   assert.ok(v.some((x) => /a\.ts:4:.*Cr\.No/.test(x)));
+});
+
+test("planted failure: a 9-10 digit literal in a settings, config, .github or docs file fails (value never printed); the same digits elsewhere, in a UUID or a decimal do not; an allow entry excuses it", () => {
+  const planted = { "frontend/src/app/settings/page.tsx": 'placeholder="4455667788"', "frontend/src/config/app.ts": "export const CHAT = 445566778;", "config/prod.yaml": "chat_id: 4455667788", "frontend/.env.example": "CHAT_ID=4455667788", ".github/workflows/x.yml": "id: 4455667788", "docs/runbook.md": "send to 4455667788" };
+  for (const [rel, line] of Object.entries(planted)) {
+    const v = check(repo({ [rel]: line }));
+    assert.ok(v.some((x) => x.includes(LONG_DIGITS_ID)), `${rel} must fail`);
+    for (const x of v) assert.ok(!/4455667788|445566778/.test(x), `value printed for ${rel}`);
+  }
+  for (const [rel, line] of Object.entries({ "frontend/src/lib/a.ts": "const t = 4455667788;", "docs/a.md": "uuid 00000000-0000-4000-8000-000000000001 and 12.4455667788 and v1234567890x and 12345678", "frontend/src/app/settings/b.ts": "const n = 1234567;" })) {
+    assert.ok(!check(repo({ [rel]: line })).some((x) => x.includes(LONG_DIGITS_ID)), rel);
+  }
+  const line = 'placeholder="4455667788"';
+  const dir = repo({ "frontend/src/app/settings/page.tsx": line });
+  assert.equal(check(dir, { allow: [{ file: "frontend/src/app/settings/page.tsx", id: LONG_DIGITS_ID, line_sha256: sha(line), reason: "invented" }] }).filter((x) => x.includes(LONG_DIGITS_ID)).length, 0);
+  assert.equal(check(dir, { allow: [{ file: "frontend/src/app/settings/page.tsx", id: LONG_DIGITS_ID, line_sha256: sha("x"), reason: "invented" }] }).length, 1);
 });
 
 test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean tree (names skipped), 1 when names are required but absent", () => {
