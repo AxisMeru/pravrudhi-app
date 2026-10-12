@@ -17,18 +17,25 @@ jobs:
         run: node --test scripts/test/*.test.mjs
       - name: no recorded-looking ids, emails or home paths in fixtures and e2e specs
         run: node scripts/check-no-private-data.mjs
-      # #101: no real name and no real case or crime number anywhere in the repository. The real names are NEVER in the repo: the private
-      # list comes from the INVENTED_FIXTURE_NAMES secret at run time. Secret present: the name check is REQUIRED (--require-names).
-      # Secret absent (until a repo admin creates it): the shape patterns still run and the log says the name check was skipped.
-      - name: invented fixtures only (no real name, case or crime number)
+      # #101: no real name and no real case or crime number, email, mobile, PAN or Aadhaar-like number anywhere in the repository (every tracked text file).
+      # The shape patterns ALWAYS run, on pull requests from forks too. The real names are NEVER in the repo: the private list is the INVENTED_FIXTURE_NAMES
+      # secret, which forks cannot read. Secret set (and holding at least one non-space character): the name check is REQUIRED (--require-names; a file with no
+      # names fails). Secret absent or blank (a fork PR, or until a repo admin creates it): the name check is SKIPPED with a warning and the job still passes
+      # on the shapes (--names-optional). Flipping this to a hard requirement is one line: run with --require-names unconditionally.
+      # The secret may be multi-line and Actions does not mask it per line: it is never echoed, the file is mode 600 and removed on exit.
+      - name: invented fixtures only (no real name, case or crime number, no personal data)
         env:
           INVENTED_FIXTURE_NAMES: ${{ secrets.INVENTED_FIXTURE_NAMES }}
         run: |
-          if [ -n "$INVENTED_FIXTURE_NAMES" ]; then
-            printf '%s' "$INVENTED_FIXTURE_NAMES" > "$RUNNER_TEMP/invented-names.txt"
-            FIXTURE_NAMES_FILE="$RUNNER_TEMP/invented-names.txt" node scripts/check-invented-fixtures.mjs --require-names
+          set +x
+          umask 077
+          names="$RUNNER_TEMP/invented-names.txt"
+          trap 'rm -f "$names"' EXIT
+          if [ -n "$(printf '%s' "$INVENTED_FIXTURE_NAMES" | tr -d '[:space:]')" ]; then
+            printf '%s' "$INVENTED_FIXTURE_NAMES" > "$names"
+            INVENTED_FIXTURE_NAMES_FILE="$names" node scripts/check-invented-fixtures.mjs --require-names
           else
-            echo "::warning::INVENTED_FIXTURE_NAMES secret is not set: the real-name check is SKIPPED (shape patterns still run)"
+            echo "::warning::INVENTED_FIXTURE_NAMES is not available (fork PR or secret not created): the real-name check is SKIPPED, shape patterns still run"
             node scripts/check-invented-fixtures.mjs --names-optional
           fi
 

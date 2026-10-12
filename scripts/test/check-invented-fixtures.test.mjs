@@ -40,7 +40,7 @@ test("planted failure: every case/crime-number shape in a fixture fails, and the
     assert.ok(v.length >= 1, `${name} must fail`);
     for (const x of v) assert.ok(!/777|8888|55\/2099|010012342099|31 of 2099|07\.11\.2099/.test(x), `${name}: value printed: ${x}`);
   }
-  assert.equal(SHAPES.length, 8);
+  assert.ok(SHAPES.length >= 20);
   assert.ok(!existsSync(path.join(path.dirname(SCRIPT), "invented-fixture-name-tokens.sha256")), "no hash list in the repository");
 });
 
@@ -88,17 +88,57 @@ test("without the private names file the name check is SKIPPED with a message lo
   assert.match(skipped.notes.join(" "), /SKIPPED the real-name check/);
   assert.match(loadConfig(dir, { HOME: home }, true).error, /REQUIRED/);
   assert.match(loadConfig(dir, { HOME: home, CI: "true" }, false).error, /REQUIRED/);
-  assert.match(loadConfig(dir, { HOME: home, FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
+  assert.match(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: path.join(dir, "missing.txt") }, true).error, /REQUIRED/);
   const f = path.join(dir, "names.txt");
   writeFileSync(f, `${INVENTED_NAME}\n`);
-  assert.equal(loadConfig(dir, { HOME: home, FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
+  assert.equal(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f }, true).namesText.trim(), INVENTED_NAME);
   mkdirSync(path.join(home, ".config/pravrudhi"), { recursive: true });
   writeFileSync(path.join(home, ".config/pravrudhi/fixture-names.txt"), `${INVENTED_NAME}\n`);
   assert.equal(loadConfig(dir, { HOME: home, CI: "true" }, false).namesText.trim(), INVENTED_NAME);
 });
 
+test("planted failure: each added label+number shape, with an invented number", () => {
+  const planted = ["Crime No. 555/2099", "Crime Number 555", "FIR Number 88/99", "W.P.(C) 4321", "W.P. No. 4321", "SLP (Crl.) No. 777", "Crl.M.P. No. 91", "Cr.M.P. 91", "Crl.A. No. 12", "Crl.R.C. No. 12", "Crl.Rev. No. 12", "O.S. No. 33", "S.C. No. 45", "Case No. 67"];
+  for (const line of planted) {
+    const v = check(repo({ "frontend/src/a.ts": `const t = "${line}";` }));
+    assert.ok(v.length >= 1, `${line} must fail`);
+    for (const x of v) assert.ok(!/555|88\/99|4321|777|\b91\b|\b12\b|\b33\b|\b45\b|\b67\b/.test(x), `value printed for ${line}: ${x}`);
+  }
+  assert.deepEqual(check(repo({ "frontend/src/a.ts": 'const t = "a Case No label, W.P. in a sentence, Crime Number and S.C. No are named";' })), []);
+});
+
+test("planted failure: personal data: an email, an Indian mobile, a PAN and an Aadhaar-like number fail; example domains, UUIDs and hashes do not", () => {
+  const bad = { email: "write to someone@mail-invented.in", mobile: "call 9876543210", mobile91: "call +91 98765 43210".replace(/ /g, ""), pan: "pan ABCDE1234F", aadhaar: "id 1234 5678 9012", aadhaar2: "id 123456789012" };
+  for (const [k, line] of Object.entries(bad)) assert.ok(check(repo({ "docs/a.md": line })).length >= 1, `${k} must fail`);
+  const ok = ["write to a@example.com or b@example.org", "x@y.invalid", "00000000-0000-4000-8000-000000000001", "sha " + "a1b2c3d4".repeat(8), "call 1234567890 or 5432167890", "pan ABCDE12345", "version 1.2.3, 2026-10-12, port 8008"];
+  for (const line of ok) assert.deepEqual(check(repo({ "docs/a.md": line })), [], line);
+});
+
+test("--require-names fails when the names file holds NO names (empty, whitespace, comments only): the check must not pass having checked nothing", () => {
+  const dir = repo({ "frontend/src/a.ts": "const a = 1;" });
+  const home = mkdtempSync(path.join(tmpdir(), "cif-home-"));
+  for (const body of ["", "   \n\t\n", "# only a comment\n  # another\n", "~\n"]) {
+    const f = path.join(dir, "n.txt");
+    writeFileSync(f, body);
+    assert.match(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f }, true).error, /NO names/, JSON.stringify(body));
+    assert.equal(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f, CI: "true" }, false).error?.includes("NO names"), true);
+    assert.match(loadConfig(dir, { HOME: home, INVENTED_FIXTURE_NAMES_FILE: f }, false).notes.join(" "), /holds no names/);
+    const r = spawnSync("node", [SCRIPT, "--root", dir, "--require-names"], { encoding: "utf8", env: { ...process.env, HOME: home, CI: "", INVENTED_FIXTURE_NAMES_FILE: f } });
+    assert.equal(r.status, 1, JSON.stringify(body));
+  }
+});
+
+test("the exception key is file + shape id + exact-line hash + reason (a repeated identical line is excused too, a different line is not)", () => {
+  const line = "see Cr.No.777 of 2099";
+  const dir = repo({ "frontend/src/a.ts": `${line}\nother\n${line}\nsee Cr.No.778 of 2099` });
+  const id = "Cr.No <number> (crime number)";
+  const v = check(dir, { allow: [{ file: "frontend/src/a.ts", id, line_sha256: sha(line), reason: "invented" }] });
+  assert.ok(!v.some((x) => /a\.ts:(1|3):.*Cr\.No/.test(x)));
+  assert.ok(v.some((x) => /a\.ts:4:.*Cr\.No/.test(x)));
+});
+
 test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean tree (names skipped), 1 when names are required but absent", () => {
-  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, CI: "", FIXTURE_NAMES_FILE: "", HOME: mkdtempSync(path.join(tmpdir(), "cif-home-")), ...env } });
+  const run = (dir, args = [], env = {}) => spawnSync("node", [SCRIPT, "--root", dir, ...args], { encoding: "utf8", env: { ...process.env, CI: "", INVENTED_FIXTURE_NAMES_FILE: "", HOME: mkdtempSync(path.join(tmpdir(), "cif-home-")), ...env } });
   const clean = repo({ "frontend/src/a.ts": "const a = 1;" });
   const ok = run(clean);
   assert.equal(ok.status, 0);
@@ -116,7 +156,7 @@ test("CLI: exits 1 on a planted case number and on a planted name, 0 on a clean 
   const named = repo({ "frontend/src/a.ts": `owner ${INVENTED_NAME}` });
   const nf = path.join(named, "n.txt");
   writeFileSync(nf, INVENTED_NAME);
-  const r2 = run(named, ["--require-names"], { FIXTURE_NAMES_FILE: nf });
+  const r2 = run(named, ["--require-names"], { INVENTED_FIXTURE_NAMES_FILE: nf });
   assert.equal(r2.status, 1);
   assert.ok(!r2.stderr.toLowerCase().includes("zzyqx"));
 });
