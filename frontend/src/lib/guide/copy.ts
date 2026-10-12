@@ -38,7 +38,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The citations panel below the checklist, with the frontier toggle off.",
+    alt: "The citations panel below the checklist: a box to paste case citations, one per line, and a button to check them.",
   },
   memo: {
     file: "06-memo-export.png",
