@@ -1,6 +1,6 @@
 "use client";
 
-import { FRONTIER_TOGGLE_LABEL, frontierToggleState } from "@/lib/frontierReader";
+import { FRONTIER_QUOTE_LIMIT_TEXT, FRONTIER_TOGGLE_LABEL, frontierToggleState } from "@/lib/frontierReader";
 
 /** The opt-in frontier reader switch. Off by default; disabled with a plain reason until the engine says the reader is available. */
 export function FrontierToggle({
@@ -23,6 +23,9 @@ export function FrontierToggle({
         <input type="checkbox" checked={s.checked} disabled={s.disabled} onChange={(e) => onChange(e.target.checked)} />
         {FRONTIER_TOGGLE_LABEL}
       </label>
+      <p className="text-xs text-[var(--color-text-dim)]" data-testid="frontier-limit">
+        {FRONTIER_QUOTE_LIMIT_TEXT}
+      </p>
       {s.reason && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="frontier-unavailable">
           {s.reason}

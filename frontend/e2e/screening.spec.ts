@@ -119,6 +119,7 @@ test("the Citations panel is below the checklist and the frontier toggle is off 
   await run(page);
   await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).not.toBeChecked();
   await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).toBeDisabled();
+  await expect(page.getByTestId("frontier-limit")).toHaveText("On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
   const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
   await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
   expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
