@@ -24,7 +24,7 @@ test("the example is the allegations only: no decision, no reasoning, no outcome
 });
 
 test("the label says what the example is and is not, and carries no claim on the do-not-claim list", () => {
-  assert.match(EXAMPLE_LABEL, /^A public Madras High Court judgment \(order of 12 June 2024\), example only\. Excerpt from the order with the crime number withheld\. /);
+  assert.match(EXAMPLE_LABEL, /^A public Madras High Court judgment \(order of 12 June 2024\), example only\. Excerpt from the order with the crime number and the registration date withheld\. /);
   assert.doesNotMatch(EXAMPLE_LABEL + EXAMPLE_ID, /13624|Crl|\bNo\.\s*\d|\d+ of \d{4}/, "no real case identifier in the label or the id (Lead-2, 12 Oct)");
   assert.doesNotMatch(EXAMPLE_LABEL, /CNR|HCMA/); // the CNR cannot be verified from the order's text, so it is not shown
   assert.match(EXAMPLE_LABEL, /illustrative, not evidence/);

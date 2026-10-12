@@ -1,5 +1,6 @@
 import { strict as assert } from "node:assert";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -65,17 +66,16 @@ test("the fixtures: three paths, invented text in two wordings, all within the e
 test("the fixture text carries nothing from the evaluation or the demo example, and no host path, email or CNR", () => {
   const all = JSON.stringify(FIXTURES);
   assert.doesNotMatch(all, /\/home\/|@[a-z0-9-]+\.[a-z]{2,}|HCMA|Crl\.O\.P|CNR/);
-  // No real name is written into this public repository, even as a deny-list: each word of the fixtures is hashed and checked against the sha256 of lower-cased
-  // names that must not appear (R2, 12 Oct).
-  const DENIED = new Set([
-    "9b4eef8afba046f81202487fbed71b40ec7432193afd90508116be20d281fa16",
-    "3197433962f1e7897139e91f244ee74178db22b207a8a1e8616657a6b22ca60d",
-    "3a5d591b3b0838fb2ef2bde6f16ad26a70ddd6c3f134edcc7dcb8114d780ea0c",
-    "5d6d8c97b5d097c09949390f6e772f396d57493d9d7b02b11b1e919a007cd8c7",
-  ]);
-  for (const word of all.match(/[A-Za-z]{3,}/g) ?? []) {
-    assert.ok(!DENIED.has(createHash("sha256").update(word.toLowerCase()).digest("hex")), "a denied name appears in the fixtures");
-  }
+});
+
+// The name deny-list is NOT in the repository, not even hashed (R2, Goal: unsalted hashes of names are recoverable). It is read at test time from a private file, one name per
+// line; the path comes from FIXTURE_NAMES_FILE, default ~/.config/pravrudhi/fixture-names.txt. If the file is absent this test is SKIPPED with an explicit message,
+// and a CI run (#101) must treat a skipped name guard as a failure; a run with the file present checks every word of the fixtures against it.
+const NAMES_FILE = process.env.FIXTURE_NAMES_FILE ?? join(homedir(), ".config", "pravrudhi", "fixture-names.txt");
+test("the fixture text carries none of the names in the private deny-list", { skip: existsSync(NAMES_FILE) ? false : `NAME GUARD SKIPPED: no private names file at ${NAMES_FILE} (set FIXTURE_NAMES_FILE)` }, () => {
+  const names = readFileSync(NAMES_FILE, "utf8").split(/\r?\n/).map((n) => n.trim().toLowerCase()).filter(Boolean);
+  const words = new Set((JSON.stringify(FIXTURES).match(/[A-Za-z]{3,}/g) ?? []).map((w) => w.toLowerCase()));
+  for (const n of names) assert.ok(!words.has(n), "a denied name appears in the fixtures");
 });
 
 test("a well-formed result passes for each path", () => {

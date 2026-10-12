@@ -134,7 +134,7 @@ test("a member who opens / lands on Screening", async ({ page }) => {
 test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
   await page.goto("/screening?example=madras-public-order-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number withheld.");
+  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
   await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
   await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();

@@ -7,7 +7,7 @@ export const EXAMPLE_ID = "madras-public-order-2024";
 // The label names the order by court and date only (Lead-2, 12 Oct 2026): this public repository and app carry no real case identifier,
 // the same rule as for party names. Neither the case number nor the court's record number is shown.
 export const EXAMPLE_LABEL =
-  "A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number withheld. The output of " +
+  "A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld. The output of " +
   "this demo is illustrative, not evidence, and no measure is quoted from it.";
 
 // The paragraphs, one per line when loaded. Allegations in a complaint, as recited by the Court: not findings.
