@@ -23,7 +23,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { ipcDisclosure, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, PRE_SUBMIT_RETENTION, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -306,7 +306,7 @@ export default function ScreeningPage() {
                 Cancel
               </button>
               <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-                Warming up the judge and Lean checker — a first run after idle can take about 3 minutes.{" "}
+                {WARM_UP_NOTE}{" "}
                 <span className="font-mono">{String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span> elapsed.
               </p>
             </>

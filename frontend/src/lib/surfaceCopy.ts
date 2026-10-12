@@ -99,3 +99,6 @@ export const FILE_NOTE =
 export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
 // Citation check: R1's text (checked against engine v0.5.46). The API-key and audit detail belongs in the API docs, not on this page.
 export const CITATION_RETENTION = "The citation check does not save the citation or the quote you enter.";
+
+/** Shown while a first analysis is warming up, on Screening and Matters. Figure-free: the only timing evidence is a handful of single calls (R1, R2, Goal, 12 Oct), so none is stated. */
+export const WARM_UP_NOTE = "Warming up the judge and Lean checker — a first run after idle can take a few minutes while the judges start.";

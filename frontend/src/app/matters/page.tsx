@@ -31,7 +31,7 @@ import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
-import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
+import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -512,7 +512,7 @@ export default function MattersPage() {
           )}
           {loading && (
             <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-              Warming up the judge and Lean checker — a first run after idle can take about 3 minutes.{" "}
+              {WARM_UP_NOTE}{" "}
               <span className="font-mono">
                 {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:{String(elapsedSeconds % 60).padStart(2, "0")}
               </span>{" "}
