@@ -11,7 +11,8 @@ export const GUIDE_LANDING_LINK = "New here? Read the user guide.";
 export const GUIDE_TITLE = "User guide";
 export const GUIDE_SUBTITLE = "How to use the screening assistant, what each status means, and what it does not do.";
 
-export const GUIDE_SCREENSHOT_NOTE = "The screens below show an invented matter with toy parties. Nothing on them is a real person or a real case.";
+export const GUIDE_SCREENSHOT_NOTE =
+  "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read; they are not evidence about how well the assistant performs, and no accuracy claim is made.";
 
 export interface GuideImage {
   file: string;
@@ -110,11 +111,11 @@ export interface GuideStatus {
 export const GUIDE_STATUSES: GuideStatus[] = [
   {
     label: CHIP_LABEL.supported,
-    meaning: "A judge found a fact in your facts that supports this ingredient, and the page shows it. Read the fact and confirm.",
+    meaning: "A screening judge points to a fact in your facts that may support this ingredient, and the page shows it. It is a suggestion to check, not a finding.",
   },
   {
     label: CHIP_LABEL.suggested,
-    meaning: "A lighter signal from the screening judge. It is not a cited fact, and it is counted apart. Treat it as a pointer to check.",
+    meaning: "A lighter signal from the screening judge. It is not a cited fact and it carries no probability. Treat it as a pointer to check.",
   },
   {
     label: CHIP_LABEL.not_supported,
@@ -136,7 +137,7 @@ export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [
   BANNER_STANDING_LINE,
   "The assistant reads only the facts you give it. A missing ingredient can mean the fact is not in your text.",
-  "The citation check is not served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked.",
+  "The citation check is not yet served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.",
   FRONTIER_QUOTE_LIMIT_TEXT,
   "The frontier route is opt-in and off by default. When you switch it on, your facts are sent to the provider named at the toggle, under your organisation's key. It is advisory and never changes a status above it.",
 ];
