@@ -3,6 +3,7 @@
 // The Screening view (O8, #830): paste or upload the facts, pick the offence, see which ingredients the facts support. The checklist is the hero;
 // every new string is in lib/screening/copy.ts (R1 reviews that list). The engine's decisions are shown in plain words and never changed here.
 import { Loader2, ScanSearch } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { CaveatStrip } from "@/components/CaveatStrip";
@@ -12,6 +13,7 @@ import { FrontierToggle } from "@/components/screening/FrontierToggle";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
+import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
@@ -144,6 +146,9 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
+        <p className="text-sm" data-testid="guide-link">
+          <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
+        </p>
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
             {EXAMPLE_LABEL}

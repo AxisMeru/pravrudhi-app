@@ -20,6 +20,7 @@ import {
   Rocket,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -28,6 +29,7 @@ import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
+import { GUIDE_NAV_LABEL } from "@/lib/guide/copy";
 import { IS_DEMO } from "@/lib/api";
 import { canSeeNotifications, canSeeRuns } from "@/lib/runsAccess";
 
@@ -54,6 +56,7 @@ const NAV: NavItem[] = [
   { href: "/benchmarks", label: "Benchmarks", icon: LineChart },
   { href: "/runs", label: "Runs", icon: History },
   { href: "/models", label: "Models", icon: Package },
+  { href: "/guide", label: GUIDE_NAV_LABEL, icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/install", label: "Install", icon: Download },
 ];
