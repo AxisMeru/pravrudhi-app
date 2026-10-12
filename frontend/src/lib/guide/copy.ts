@@ -17,7 +17,11 @@ export const GUIDE_SCREENSHOT_NOTE =
 export interface GuideImage {
   file: string;
   alt: string;
+  /** Shown under the image when the shot needs a standing condition (R1). */
+  caption?: string;
 }
+
+export const GUIDE_CITATIONS_CAPTION = "Dev stack only: the citation check is not yet served in the hosted deployment.";
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
@@ -39,7 +43,8 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The empty Case citations panel: a preview label, a line saying how to enter citations, an empty box and a Check citations button.",
+    alt: `The empty Case citations panel: a preview label, a line saying how to enter citations, an empty box and a Check citations button. ${GUIDE_CITATIONS_CAPTION}`,
+    caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
     file: "06-memo-export.png",

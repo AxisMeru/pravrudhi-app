@@ -26,6 +26,7 @@ export default function GuidePage() {
                 // eslint-disable-next-line @next/next/no-img-element -- a static export; the screenshots are plain files in public/guide
                 <img src={`/guide/${s.image.file}`} alt={s.image.alt} className="w-full rounded-md border border-[var(--color-border)]" loading="lazy" />
               )}
+              {s.image?.caption && <p className="text-xs text-[var(--color-text-dim)]" data-testid="guide-caption">{s.image.caption}</p>}
             </article>
           ))}
         </section>

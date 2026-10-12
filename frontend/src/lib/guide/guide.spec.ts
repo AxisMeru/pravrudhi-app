@@ -55,3 +55,11 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
     assert.doesNotMatch(src, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, `${page} states no production timing figure`);
   }
 });
+
+test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt is the words version, not the digits", () => {
+  const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
+  assert.equal(GUIDE_IMAGES.citations.caption, sentence);
+  assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
+  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients has a supporting fact and two need your review/);
+  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
+});
