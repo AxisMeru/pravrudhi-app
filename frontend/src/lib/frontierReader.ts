@@ -12,6 +12,9 @@ export const FRONTIER_UNAVAILABLE_TEXT = "Not available: this deployment has not
 
 export const FRONTIER_ADVISORY_TEXT = "Advisory only: the frontier reader never changes a status above.";
 
+/** The stated limit of the quote check, shown at the toggle (engine #383, post-MVP fix): plain, and it claims no accuracy. */
+export const FRONTIER_QUOTE_LIMIT_TEXT = "On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.";
+
 export const QUOTE_PASSED_TEXT = "passed the quote check";
 export const QUOTE_NOT_FOUND_TEXT = "quote not found in your facts";
 
