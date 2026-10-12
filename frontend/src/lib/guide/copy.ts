@@ -27,7 +27,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The result for the invented plot-sale matter: the summary 0 of 3 ingredients have a supporting fact; 2 need your review, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
+    alt: "The result for the invented plot-sale matter: the summary saying that none of the three ingredients has a supporting fact and two need your review, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
   },
   citedFact: {
     file: "03-cited-fact.png",
@@ -131,7 +131,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   },
 ];
 export const GUIDE_BANNER_TEXT =
-  "The summary line reads, for example, 1 of 3 ingredients have a supporting fact; 2 need your review. It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
+  "The summary line can read, for example, that one of the three ingredients has a supporting fact and two need your review. It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
 
 export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [
