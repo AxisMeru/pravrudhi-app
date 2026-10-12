@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sākṣī rule (CHARTER §6, updated 2026-09-12 by operator instruction): the project migrated from a personal
 # account to the Axis Meru team account; commit as SharathSPhD <admin@axismeru.com> going forward. Commits before
-# this date under qbz506@york.ac.uk or sharath.sathish@gmail.com are not rewritten.
+# this date, under two earlier personal identities, are not rewritten.
 # Strips Co-Authored-By / Claude-Session lines; fails if the author identity differs.
 set -euo pipefail
 MSG="$1"
