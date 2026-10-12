@@ -25,7 +25,7 @@ const el = (i: number, over: Partial<AnalyseFactsElement> = {}): AnalyseFactsEle
 const contract = (elements: AnalyseFactsElement[], over: Partial<AnalyseFactsContract> = {}): AnalyseFactsContract =>
   ({ contract_id: CID, outcome: "PROOF", reason: "all_elements_established", elements, assertions: null, lean: null, lean_outcome: "PROOF", uncertain: [], statute_text_mismatch: null, ...over }) as AnalyseFactsContract;
 
-test("data: every element and defence of the 14 contracts has exactly one what-to-check line, and no line is orphaned", () => {
+test("data: every element and defence of the 18 contracts has exactly one what-to-check line, and no line is orphaned", () => {
   const keys = new Set(Object.keys(whatToCheck.checks));
   let n = 0;
   for (const [id, c] of Object.entries(contractElements.contracts)) {
@@ -35,14 +35,17 @@ test("data: every element and defence of the 14 contracts has exactly one what-t
     }
   }
   assert.equal(keys.size, 0, `orphans: ${[...keys].join(" | ")}`);
-  assert.equal(n, 38);
+  assert.equal(n, 52);
   for (const t of Object.values(whatToCheck.checks)) assert.match(t, /^Check /);
 });
 
-test("data: the offence table covers the 14 validated contracts exactly once, each has its sections on one line", () => {
+test("data: the offence table covers the 14 validated contracts and the 4 not-validated ones (ni138, bns316) exactly once; only the last two offences are flagged not validated, each has its sections on one line", () => {
   const ids = OFFENCES.flatMap((o) => [...o.contracts]);
   assert.deepEqual([...ids].sort(), Object.keys(contractElements.contracts).sort());
   assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(OFFENCES.filter((o) => o.notValidated).map((o) => o.id), ["dishonoured-cheque", "breach-of-trust-bns"]);
+  assert.match(contractElements.contracts.ni138.sources, /Negotiable Instruments Act §138/);
+  assert.match(contractElements.contracts.bns316_misappropriation.sources, /Bharatiya Nyaya Sanhita §316/);
   assert.equal(offenceOf("bns85")?.sections, "BNS 85, 86 · IPC 498A");
   assert.equal(offenceOf("bns69")?.sections, "BNS 69 · no IPC counterpart");
   // the sources the pinned checker lists agree with the pair on each line
@@ -140,6 +143,7 @@ test("R1 (8 Oct): the IPC-text disclosure is on exactly the four IPC-family offe
   assert.deepEqual(disclosed, {
     "breach-of-trust": "405", cheating: "415", "cheating-personation": "416", "false-information": "182",
     "promise-to-marry": null, cruelty: null, abetment: null, "abetment-outside-india": null,
+    "dishonoured-cheque": null, "breach-of-trust-bns": null,
   });
   assert.equal(ipcDisclosure("405"), "Checked against the IPC text (s.405); the BNS counterpart is not validated.");
 });

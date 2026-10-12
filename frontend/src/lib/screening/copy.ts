@@ -19,6 +19,8 @@ export const WHAT_TO_CHECK_LABEL = "What to check";
 /** One phrase for a denial, in both views (R1, #97): a DENIAL is a fact the judge found that may defeat the claim, never "not established". */
 export const DEFENCE_PHRASE = "a fact that may defeat the claim";
 export const DEFENCE_HEADING = DEFENCE_PHRASE.charAt(0).toUpperCase() + DEFENCE_PHRASE.slice(1);
+/** Beside an offence whose contracts are not on the validated list (#99): the engine refers on them. */
+export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the engine gives a referral, not a proof or denial.";
 export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";
 
 /** The standing line beside every summary banner. */
