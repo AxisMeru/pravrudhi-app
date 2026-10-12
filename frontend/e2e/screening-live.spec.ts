@@ -1,7 +1,11 @@
-import { readFileSync } from "node:fs";
-import { expect, test, type Page } from "@playwright/test";
+import { createHash } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import type { Page } from "@playwright/test";
 
-import type { AnalyseFactsResult } from "../src/lib/api";
+import { expect, test } from "./support/engineTest";
+
+import { withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
 import { MATTER_CAVEAT, MATTER_DOC_ID, MATTER_NOT_SCREENED, MATTER_OFFENCE_IDS, checkMatterText } from "../src/lib/demo/screeningMatter";
 import { CHIP_LABEL } from "../src/lib/screening/copy";
@@ -19,7 +23,7 @@ import { OFFENCES } from "../src/lib/screening/offences";
  * NOT RUN BY DEFAULT. A production run needs Lead-2's written go: set SCREENING_LIVE_GO=1 for the window it was granted for (the go names the
  * call count and the $ cap; one run is ONE analyse-facts call), the e2e member account in the environment (E2E_EMAIL / E2E_PASSWORD), and
  * #59, #60 and #61 merged first (see docs/demo-runbook.md). Skipped, not failed, outside the service window, with the reason.
- * SCREENING_LIVE_REPEATS (default 1) runs it more than once in the window; each run attaches `observed-screening` JSON with run id and the
+ * SCREENING_LIVE_REPEATS (default 1) runs it more than once in the window; each run attaches `observed-screening` JSON and writes it (and the raw response) to SCREENING_OUT_DIR, printing the path, with run id and the
  * per-contract chip counts (pipeline-measured, n = the runs in the window, no performance claim).
  */
 const GO = process.env.SCREENING_LIVE_GO === "1";
@@ -52,6 +56,9 @@ const MATTER_OFFENCES = OFFENCES.filter((o) => MATTER_OFFENCE_IDS.includes(o.id)
 const CONTRACT_IDS = MATTER_OFFENCES.flatMap((o) => [...o.contracts]);
 test.skip(GO && !REHEARSAL && !MATTER_FILE, "SCREENING_MATTER_FILE is not set: the matter text is not in the repository (see src/lib/demo/screeningMatter.ts)");
 
+/** Where the observed-screening and raw-response JSON are written whatever the reporter; SCREENING_OUT_DIR overrides (default frontend/test-results/screening-live). */
+const OUT_DIR = resolve(process.env.SCREENING_OUT_DIR ?? join("test-results", "screening-live"));
+
 const FIXTURE: DemoFixture = {
   id: `matter-${MATTER_DOC_ID}`,
   label: "the accepted fresh matter's allegations",
@@ -61,9 +68,10 @@ const FIXTURE: DemoFixture = {
   expect: { recorded_runs: 0, outcomes: null },
 };
 
-function rehearsalAnswer(): AnalyseFactsResult {
-  const facts = FACTS.map((text, i) => ({ id: `F${i + 1}`, text, sha256: "b".repeat(64) }));
-  const base = { is_denial: false, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null, quote_source: "whole_fact", p_established_second: 0.8 };
+function rehearsalAnswer(): AnalyseFactsWire {
+  // The real shape: id and sha256 of the stripped fact, NO text (a mock that sent text hid the production defect the first live run found).
+  const facts = FACTS.map((text, i) => ({ id: `F${i + 1}`, sha256: createHash("sha256").update(text.trim()).digest("hex") }));
+  const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null, quote_source: "whole_fact", p_established_second: 0.8 };
   const contracts = CONTRACT_IDS.map((id, ci) => {
     const known = knownElements(id)!;
     return {
@@ -72,7 +80,7 @@ function rehearsalAnswer(): AnalyseFactsResult {
       elements: known.elements.map((element, i) => ({ ...base, element, status: i === 0 ? "established" : i === 1 ? "not_confirmed" : "not_established", p_established: 0.5, fact_id: i === 0 ? `F${(ci % facts.length) + 1}` : null })),
     };
   });
-  return { run_id: "rehearsal-invented", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice", facts, contracts } as unknown as AnalyseFactsResult;
+  return { run_id: "rehearsal-invented", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice", facts, contracts } as unknown as AnalyseFactsWire;
 }
 
 async function signIn(page: Page): Promise<void> {
@@ -118,9 +126,15 @@ for (let run = 1; run <= REPEATS; run++) {
     await page.getByRole("button", { name: "Screen these facts" }).click();
     const response = await responded;
     expect(response.ok(), `analyse-facts answered ${response.status()}`).toBe(true);
-    const result = (await response.json()) as AnalyseFactsResult;
+    const wire = (await response.json()) as AnalyseFactsWire;
     const submitted = [...FACTS];
-    expect(checkDemoResult(result, submitted, FIXTURE), "violations of the real response").toEqual([]);
+    // Attach what the engine answered and what the page sent BEFORE any assertion, so a failure can be diagnosed without a re-run (matter text omitted: it is private).
+    await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
+    mkdirSync(OUT_DIR, { recursive: true });
+    writeFileSync(join(OUT_DIR, `raw-response-${MATTER_DOC_ID}-run${run}-${wire.run_id}.json`), JSON.stringify(wire, null, 2) + "\n");
+    await test.info().attach("request-body", { body: JSON.stringify({ ...JSON.parse(response.request().postData() ?? "{}"), facts: submitted.map((f, i) => `<fact ${i + 1}: ${f.length} chars>`) }, null, 2), contentType: "application/json" });
+    const result = await withFactText(wire, submitted);
+    expect(checkDemoResult(wire, submitted, FIXTURE), "violations of the real response").toEqual([]);
 
     // what the page shows is a plain-words reading of that response
     await expect(page.getByTestId("screening-result")).toBeVisible({ timeout: 30_000 });
@@ -179,15 +193,18 @@ for (let run = 1; run <= REPEATS; run++) {
     expect(audit.response.run_id).toBe(result.run_id);
     expect(audit.request.facts).toEqual(submitted);
 
-    await test.info().attach("observed-screening", {
-      contentType: "application/json",
-      body: JSON.stringify({
-        run, run_id: result.run_id, contracts: observed,
-        matter: MATTER_DOC_ID,
-        caveat: MATTER_CAVEAT,
-        not_screened: MATTER_NOT_SCREENED,
-        rehearsal: REHEARSAL,
-      }),
+    const observedJson = JSON.stringify({
+      run, run_id: result.run_id, contracts: observed,
+      matter: MATTER_DOC_ID,
+      caveat: MATTER_CAVEAT,
+      not_screened: MATTER_NOT_SCREENED,
+      rehearsal: REHEARSAL,
     });
+    await test.info().attach("observed-screening", { contentType: "application/json", body: observedJson });
+    // Attachments are only saved by some reporters (not --reporter=list), so the same JSON is ALWAYS written to a file; the path is printed.
+    const file = join(OUT_DIR, `observed-screening-${MATTER_DOC_ID}-run${run}-${result.run_id}.json`);
+    mkdirSync(OUT_DIR, { recursive: true });
+    writeFileSync(file, observedJson + "\n");
+    console.log(`observed-screening written to ${file}`);
   });
 }

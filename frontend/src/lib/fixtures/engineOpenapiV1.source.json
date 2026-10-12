@@ -1,0 +1,6 @@
+{
+  "source": "AxisMeru/pravrudhi docs/api/openapi-v1.json",
+  "commit": "8c4f7bc8 (#832 Screening engine batch 1, #376), read from origin/main 59dd5174",
+  "sha256": "039ca909a357cf4c0400924a73b41cca7fa2935be11339c9e2a6c590f0833dab",
+  "note": "Copied unchanged into engineOpenapiV1.json; the mock-schema test checks the sha256. Re-pin by copying the file and updating this record in the same PR."
+}

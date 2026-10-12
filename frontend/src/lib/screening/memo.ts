@@ -28,7 +28,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
   const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, "", `> ${BANNER_STANDING_LINE}`, ""];
   out.push(`- Run id: ${result.run_id}`, `- Engine version: ${opts.engineVersion ?? "unknown"}`, `- Score sha256: ${result.score_sha256}`);
   out.push(`- Contract checker pin (sha256): ${contractElements._binary_sha256}`, `- Generated: ${opts.generatedAt}`, "", "## Facts", "");
-  for (const f of result.facts) out.push(`- **${f.id}**: ${line(f.text)}`);
+  for (const f of result.facts) out.push(f.text ? `- **${f.id}**: ${line(f.text)}` : `- **${f.id}** (sha256 ${f.sha256})`);
   out.push("");
   for (const c of result.contracts) {
     const rows = rowsFor(c, result.facts);

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 // #14: with the engine's status reporting the service window closed, /matters says so, disables Analyse and
 // sends no analyse-facts request. The status endpoint is mocked; nothing here needs a live engine.

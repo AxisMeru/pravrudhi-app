@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 import { buildDocx, buildPdf } from "../src/lib/docFixtures";
 import { MAX_FACTS, MAX_FACT_CHARS, MAX_FILE_BYTES, NO_TEXT_MESSAGE } from "../src/lib/factsInput";

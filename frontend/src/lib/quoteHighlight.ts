@@ -34,7 +34,7 @@ const isIndex = (n: unknown): n is number => typeof n === "number" && Number.isI
 export function citedFactView(facts: ReadonlyArray<{ id: string; text: string }>, el: QuoteFields, context: number = CONTEXT_CHARS): QuoteView {
   if (!el.quote) return { kind: "plain", reason: "no_quote" };
   const fact = el.fact_id === null ? undefined : facts.find((f) => f.id === el.fact_id);
-  if (!fact) return { kind: "plain", reason: "fact_not_found" };
+  if (!fact || !fact.text) return { kind: "plain", reason: "fact_not_found" };
   const whole: QuoteView = { kind: "fact", factId: fact.id, text: fact.text };
   if (el.offsets_source !== "system") return whole;
   const cps = Array.from(fact.text);

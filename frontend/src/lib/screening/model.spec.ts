@@ -178,3 +178,9 @@ test("R2 (8 Oct): the quote-check sentence is looked up by the table's OWN keys 
   }
   assert.match(rowsFor(contract([el(0, { quote_source: "model", quote: "q", quote_check: "ok" })]), FACTS).ingredients[0].quote?.check ?? "", /exactly once/);
 });
+
+test("a cited fact whose text could not be paired shows no fact block text (never an empty 'Cited fact' line)", () => {
+  const c = { contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element", elements: [{ element: "e", is_denial: false, status: "established", claimed: true, fact_id: "F1", quote_source: "whole_fact", quote: null }], lean: null, lean_outcome: null, uncertain: [], assertions: null, statute_text_mismatch: null } as never;
+  const row = rowsFor(c, [{ id: "F1", text: "", sha256: "a".repeat(64) }]).ingredients[0];
+  assert.equal(row.factText, null);
+});

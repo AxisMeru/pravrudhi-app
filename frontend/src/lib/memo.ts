@@ -120,7 +120,7 @@ export function buildMemo(result: AnalyseFactsResult, opts: MemoOptions): string
     "",
   ];
   for (const f of result.facts) {
-    out.push(`**${f.id}** (sha256 ${f.sha256})`, "", ...f.text.split(/\r?\n/).map((l) => `> ${l}`), "");
+    out.push(`**${f.id}** (sha256 ${f.sha256})`, "", ...(f.text ? f.text.split(/\r?\n/).map((l) => `> ${l}`).concat("") : []));
   }
   for (const c of result.contracts) out.push(contractSection(c));
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";

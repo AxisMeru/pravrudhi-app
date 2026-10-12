@@ -2,7 +2,9 @@
 // as a pure function so the checks themselves are unit-tested (including planted failures) against recorded or synthetic
 // results, and the live Playwright spec only has to fetch a real response and call them. A violation is a plain string.
 
-import type { AnalyseFactsContract, AnalyseFactsResult } from "../api";
+import { createHash } from "node:crypto";
+
+import type { AnalyseFactsContract, AnalyseFactsResult, AnalyseFactsWire } from "../api";
 import { nonReferReasonText } from "../reasonText";
 import { referReasonPresentation } from "../referReason";
 
@@ -61,7 +63,7 @@ function checkContract(c: AnalyseFactsContract, submitted: string[], factIds: Se
 }
 
 /** Violations of a real response for one fixture run. An empty list is a pass. */
-export function checkDemoResult(result: AnalyseFactsResult, submitted: string[], fixture: DemoFixture): string[] {
+export function checkDemoResult(result: AnalyseFactsWire, submitted: string[], fixture: DemoFixture): string[] {
   const out: string[] = [];
   if (!result || typeof result !== "object") return ["no result"];
   if (!result.run_id) out.push("no run id");
@@ -70,8 +72,12 @@ export function checkDemoResult(result: AnalyseFactsResult, submitted: string[],
     out.push(`the engine echoed ${Array.isArray(result.facts) ? result.facts.length : "no"} facts for ${submitted.length} submitted`);
   } else {
     result.facts.forEach((f, i) => {
-      if (f.text !== submitted[i]) out.push(`fact ${i + 1} was not echoed word for word`);
+      // The engine echoes each fact as {id, sha256} and no text, so the echo is checked by hash of the (stripped) submitted fact. A text, if a
+      // later engine sends one, must also be the submitted text.
       if (!SHA256.test(f.sha256 ?? "")) out.push(`fact ${i + 1} has no 64-hex sha256`);
+      else if (f.sha256 !== createHash("sha256").update(submitted[i].trim()).digest("hex")) out.push(`fact ${i + 1} was not echoed word for word (sha256 differs)`);
+      const text = (f as { text?: unknown }).text;
+      if (text !== undefined && text !== submitted[i].trim()) out.push(`fact ${i + 1} echoed text differs from the submitted text`);
     });
   }
   if (!result.retention_notice) out.push("no retention notice in the response");
