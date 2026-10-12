@@ -8,7 +8,7 @@ export const CITATION_CHECK_TITLE = "Citation check";
 export const PREVIEW_LABEL = "preview: accuracy not yet measured";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
-export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;
+export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;
 export type VerifyStatus = (typeof VERIFY_STATUSES)[number];
 
 export interface VerifyReply {
@@ -28,7 +28,7 @@ export interface VerifyReply {
 export const PRODUCT_STATUS_ENABLED = process.env.NEXT_PUBLIC_CITATION_PRODUCT_STATUS === "1";
 
 /** The product statuses the engine can send (application/citation_status.py), in its order. */
-export const PRODUCT_STATUSES = ["verified", "quote_not_found", "not_in_index", "conflict", "malformed"] as const;
+export const PRODUCT_STATUSES = ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed"] as const;
 /** Words that never appear in a status label shown by this page. */
 const LABEL_BANNED = /\b(fake|fabricated|hallucinated|invalid|false)\b/i;
 
@@ -36,12 +36,19 @@ const LABEL_BANNED = /\b(fake|fabricated|hallucinated|invalid|false)\b/i;
 const RESULT_TO_STATUS: Record<string, string> = {
   VERIFIED: "verified",
   EXISTS_QUOTE_NOT_FOUND: "quote_not_found",
+  IN_INDEX: "in_index",
   NOT_IN_INDEX: "not_in_index",
   CONFLICT: "conflict",
   MALFORMED: "malformed",
 };
 /** Positive-claim words; a label carrying one anywhere is refused on every status but "verified". */
 const LABEL_POSITIVE = /\b(verif\w*|confirm\w*|authentic\w*|genuine|valid|correct|accurate|real|exists?|resolves?|appears)\b/;
+/**
+ * The ONE sanctioned exception to the positive-claim guard (#832, R1): the engine's existence-only label says the word "verification" only to deny it
+ * ("... so this is not a verification."). It is accepted for status in_index when it matches the engine's text exactly (fixtures/engineCitationLabels.json
+ * pins this copy to the engine), and nothing else is exempt: any other label, or the same words on another status, is still refused.
+ */
+export const IN_INDEX_ENGINE_LABEL = "Found in the index (existence only): no quote was checked, so this is not a verification.";
 /** Case, width and invisible-character tricks must not slip a banned or positive word past the guards. */
 const foldLabel = (label: string): string => label.normalize("NFKC").replace(/[\p{Cf}]/gu, "").toLowerCase();
 
@@ -67,7 +74,7 @@ export interface VerifyView {
 }
 
 /**
- * The product status for a reply, or null. Fail closed: the flag must be on; the status must be one of the five; the label must be non-empty and
+ * The product status for a reply, or null. Fail closed: the flag must be on; the status must be one of the six; the label must be non-empty and
  * free of the banned words; a positive-claim word (verified, confirmed, exists, ...) may appear in a label ONLY for status "verified"; `result` and `status` must be the engine's own pair; `verified` must agree with the status. Anything
  * else falls back to the engine's `result` and `note`, never to a positive wording.
  */
@@ -78,7 +85,8 @@ export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STA
   if (!(PRODUCT_STATUSES as readonly string[]).includes(status) || !label) return null;
   const folded = foldLabel(label);
   if (LABEL_BANNED.test(folded)) return null;
-  if (status !== "verified" && LABEL_POSITIVE.test(folded)) return null;
+  const sanctioned = status === "in_index" && folded === foldLabel(IN_INDEX_ENGINE_LABEL);
+  if (status !== "verified" && !sanctioned && LABEL_POSITIVE.test(folded)) return null;
   if (RESULT_TO_STATUS[reply.result] !== status) return null;
   if (status === "verified" ? reply.verified === false : reply.verified === true) return null;
   return { status, label, preview: reply.preview !== false };
