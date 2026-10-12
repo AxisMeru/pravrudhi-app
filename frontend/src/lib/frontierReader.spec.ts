@@ -77,8 +77,9 @@ test("a label is looked up as an OWN key: names inherited from Object.prototype 
 test("the toggle states the quote check's limit in plain words, switched off or on, and claims no accuracy", () => {
   assert.equal(FRONTIER_QUOTE_LIMIT_TEXT, "On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
   assert.doesNotMatch(FRONTIER_QUOTE_LIMIT_TEXT, /\b(verified|accurate|accuracy|correct)\b/i);
-  for (const available of [false, true]) {
-    const out = html(createElement(FrontierToggle, { value: false, onChange: () => {}, available }));
-    assert.ok(out.includes(FRONTIER_QUOTE_LIMIT_TEXT), `available=${available}`);
+  // unavailable, available and off, and available and switched ON (the state that sends facts to a model)
+  for (const [available, value] of [[false, false], [true, false], [true, true]] as const) {
+    const out = html(createElement(FrontierToggle, { value, onChange: () => {}, available, provider: "ExampleAI" }));
+    assert.ok(out.includes(FRONTIER_QUOTE_LIMIT_TEXT), `available=${available} value=${value}`);
   }
 });
