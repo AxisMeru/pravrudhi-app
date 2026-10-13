@@ -31,6 +31,7 @@ import { RetentionBefore } from "@/components/RetentionBefore";
 import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
+import { displayElementName, referenceOf } from "@/lib/screening/reference";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
 import { DEFENCE_PHRASE, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
@@ -68,7 +69,7 @@ function OutcomeBadge({ outcome }: { outcome: string }) {
   );
 }
 
-function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number]; facts: ReadonlyArray<{ id: string; text: string }> }) {
+function ElementRow({ el, facts, name }: { el: AnalyseFactsContract["elements"][number]; facts: ReadonlyArray<{ id: string; text: string }>; name: string }) {
   // Label and tone come from lib/elementStatus.ts, not from a boolean here: the engine has four statuses and
   // an unrecognised one must not be shown as a definite negative (AxisMeru/pravrudhi#37).
   const status = elementStatusPresentation(el.status);
@@ -79,7 +80,7 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
   const view = citedFactView(facts, el);
   return (
     <tr className="border-t border-[var(--color-border)]">
-      <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{el.element}</td>
+      <td className="py-2 pr-3 align-top text-sm text-[var(--color-text)]">{name}</td>
       <td className="py-2 pr-3 align-top">
         <span
           className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium ${status.tone}`}
@@ -199,14 +200,14 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
             </thead>
             <tbody>
               {c.elements.map((el, i) => (
-                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} />
+                <ElementRow key={`${el.element}-${i}`} el={el} facts={facts} name={displayElementName(c, el) ?? el.element} />
               ))}
             </tbody>
           </table>
         </div>
       )}
 
-      <StatuteBeside citations={c.citations} />
+      {!referenceOf(c.contract_id) && <StatuteBeside citations={c.citations} />}
 
       {noStructuralCheckLine(c.outcome, c.lean) && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="no-structural-check">
@@ -224,9 +225,9 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
             or the cited facts. The element findings above come from the judge, which cites the supporting fact
             from the facts you supplied.
           </div>
-          {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
-          {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
-          {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
           {(() => {
             const att = leanAttestationView(c.lean_attestation);
             return att && (

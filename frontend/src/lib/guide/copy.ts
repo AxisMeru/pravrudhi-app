@@ -4,7 +4,7 @@
 // (whose sentence is imported from the frontier files, not written here).
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
-import { OFFENCES } from "../screening/offences";
+import { OFFENCES, offenceLabel } from "../screening/offences";
 import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
@@ -68,7 +68,7 @@ export const GUIDE_ABOUT = ABOUT_LINE;
 
 export const GUIDE_COVERED_HEADING = "Offences it covers";
 /** The offences whose contracts are on the validated list, as the Screening page offers them (the two flagged not validated are left out). */
-export const GUIDE_COVERED: string[] = OFFENCES.filter((o) => !o.notValidated).map((o) => `${o.title} (${o.sections})`);
+export const GUIDE_COVERED: string[] = OFFENCES.filter((o) => !o.notValidated).map(offenceLabel);
 export const GUIDE_COVERED_NOTE = "Offences not on this list are referred back to you.";
 
 export const GUIDE_BEFORE_HEADING = "Before you start";

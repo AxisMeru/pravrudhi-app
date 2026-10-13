@@ -5,7 +5,7 @@ import contractElements from "../fixtures/contractElements.json";
 import { MEMO_DISCLAIMER } from "../memo";
 import { CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
-import { offenceOf } from "./offences";
+import { offenceLabel, offenceOf } from "./offences";
 
 const line = (s: string): string => s.replace(/\r?\n/g, " ");
 
@@ -34,7 +34,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     const rows = rowsFor(c, result.facts);
     const s = summarize(c, rows);
     const off = offenceOf(c.contract_id);
-    out.push(`## ${off ? `${off.title} (${off.sections})` : c.contract_id}`, "", `Contract: ${c.contract_id}`, "");
+    out.push(`## ${off ? offenceLabel(off) : c.contract_id}`, "", `Contract: ${c.contract_id}`, "");
     if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
     // The banner sentence never appears without the standing line directly under it (R1).
     out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");

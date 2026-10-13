@@ -6,7 +6,7 @@ import test from "node:test";
 import { BANNED, scanSource } from "../wordingAudit";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
-import { OFFENCES } from "../screening/offences";
+import { OFFENCES, offenceLabel } from "../screening/offences";
 import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
 const root = join(__dirname, "..", "..", "..");
@@ -70,7 +70,7 @@ test("R1's conditions on the images: the citations shot carries the dev-stack ca
 test("the guide for firm users: R1's two lines, the covered offences (the validated ones only, with 'others are referred'), no bare 'defeater', the glossary entry exactly", () => {
   assert.equal(GUIDE_INTRO, PRODUCT_LINE);
   assert.equal(GUIDE_ABOUT, ABOUT_LINE);
-  assert.deepEqual(GUIDE_COVERED, OFFENCES.filter((o) => !o.notValidated).map((o) => `${o.title} (${o.sections})`));
+  assert.deepEqual(GUIDE_COVERED, OFFENCES.filter((o) => !o.notValidated).map(offenceLabel));
   assert.equal(GUIDE_COVERED.length, 8);
   assert.ok(!GUIDE_COVERED.some((c) => /cheque|s\.316/i.test(c)), "the two not-validated offences are not listed as covered");
   assert.equal(GUIDE_COVERED_NOTE, "Offences not on this list are referred back to you.");
