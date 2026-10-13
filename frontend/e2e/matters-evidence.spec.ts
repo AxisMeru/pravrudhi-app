@@ -23,7 +23,7 @@ async function analyse(page: import("@playwright/test").Page, elements: object[]
         run_id: "r-invented-2", judge: "invented", score_sha256: "c".repeat(64), provenance: "invented",
         facts: [{ id: "F1", sha256: sha(F1) }, { id: "F2", sha256: sha(F2) }],
         contracts: [{
-          contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: { a: true },
+          contract_id: "bns69", outcome: "PROOF", reason: "all_elements_established", assertions: { "a promise": true }, // keyed by the contract's element names, as the engine does
           lean, lean_outcome: lean ? "PROOF" : null,
           lean_attestation: lean ? { binary_sha256: BIN, wire_sha256: WIRE, verdict: "PROOF" } : null,
           uncertain: [], statute_text_mismatch: null, citations: [], elements,

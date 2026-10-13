@@ -27,7 +27,6 @@ function resultFor(fixture: DemoFixture, facts: string[], overrides: Partial<Ana
     // the real wire shape: id and sha256 of the submitted fact, no text
     facts: facts.map((text, i) => ({ id: `F${i + 1}`, sha256: createHash("sha256").update(text).digest("hex") })),
     provenance: "synthetic",
-    retention_notice: "synthetic retention notice",
     contracts: [
       {
         contract_id: cid,
@@ -86,7 +85,6 @@ test("planted failures are each caught", () => {
     ["fact not echoed", (r) => (r.facts[0].sha256 = SHA), /not echoed word for word/],
     ["an echoed text that differs", (r) => ((r.facts[0] as { text?: string }).text = "different"), /echoed text differs/],
     ["fact count differs", (r) => r.facts.pop(), /echoed 2 facts for 3 submitted/],
-    ["no retention notice", (r) => delete (r as { retention_notice?: string }).retention_notice, /retention notice/],
     ["missing elements", (r) => (r.contracts[0].elements = []), /no element rows/],
     ["a model-cited element without a quote", (r) => (r.contracts[0].elements[0].quote = null), /no quote/],
     ["a model quote not in the facts", (r) => (r.contracts[0].elements[0].quote = "words that were never submitted"), /not verbatim/],

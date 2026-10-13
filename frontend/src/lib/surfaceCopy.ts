@@ -109,6 +109,8 @@ export const SIGNING_IN_TEXT = "Signing you in…";
 export const NOT_SIGNED_IN_TEXT = "You are not signed in, so nothing has been sent. Sign in to screen your facts, or choose the anonymous demo instead.";
 /** When the sign-in check gets no answer: nothing is sent and there is no anonymous fallback (R2). */
 export const SIGN_IN_UNVERIFIED_TEXT = "We could not check your sign-in, so nothing was sent. Try again in a moment.";
+/** R1's final string (13 Oct, #114): the whole answer is unreadable (a listed field of the wrong type, or an unknown assertions key). Used on Screening and Matters; no second wording. */
+export const INVALID_ENGINE_ANSWER_TEXT = "The engine's answer could not be read, so no result is shown. This says nothing about your facts. Try again, or ask a lawyer to review the matter.";
 export const ANONYMOUS_DEMO_BUTTON = "Use the anonymous demo";
 // The retention period is taken from the notice above (PRE_SUBMIT_RETENTION), not typed here.
 const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept for up to \d+ days/)?.[0] ?? "";

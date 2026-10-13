@@ -3,6 +3,7 @@
 // Every function here can fail — there may be no engine running, or an endpoint may not exist yet on an
 // older engine build. Callers are expected to handle rejection; nothing here retries or hides a failure.
 
+import contractElements from "./fixtures/contractElements.json";
 
 function detectBase(): string {
   const configured = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "");
@@ -1268,6 +1269,116 @@ export interface AnalyseFactsWire extends Omit<AnalyseFactsResult, "facts"> {
   facts: { id: string; sha256: string }[];
 }
 
+/**
+ * The display rule for the screening result (AxisMeru/pravrudhi-app#113, Lead-2, 13 Oct): the result is rendered ONLY from the decide tool result, never from free text an
+ * agent wrote around it. This is the one boundary, and it picks DEEP: the answer is rebuilt field by field from the lists below at every level (top level, each contract,
+ * each element, each fact, the standard, citations, Lean and attestation objects). Any other field, at any depth, is dropped here and cannot reach a page, the memo or the
+ * run record. The lists are the engine schema's own field names (src/lib/decideResult.spec.ts fails if the pinned schema gains one that is not decided on). The app states
+ * retention itself and reads neither the engine's retention notice nor its set-version fields, so those are not listed.
+ */
+export const DECIDE_TOP_KEYS = ["run_id", "judge", "score_sha256", "facts", "contracts", "provenance", "standard"] as const;
+export const DECIDE_CONTRACT_KEYS = ["assertions", "citations", "contract_id", "elements", "judge_rule_text", "lean", "lean_attestation", "lean_outcome", "outcome", "reason", "rule_text", "rule_text_source", "statute_text_mismatch", "uncertain"] as const;
+export const DECIDE_ELEMENT_KEYS = ["attempts", "binding_leg", "citation_note", "claimed", "defeater_second_disagreement", "element", "end", "error", "fact_id", "fact_id_disagreement", "is_denial", "occurrences", "offsets_source", "p_established", "p_established_second", "quote", "quote_check", "quote_source", "screening_signal", "second_fact_id", "second_logit_distance", "second_refer_band_fired", "second_skip_reason", "second_unavailable", "start", "status", "tau_second"] as const;
+export const DECIDE_FACT_KEYS = ["id", "text", "sha256"] as const;
+export const DECIDE_STANDARD_KEYS = ["applied", "in_judge_prompt", "proceeding_posture", "requested", "source"] as const;
+export const DECIDE_CITATION_KEYS = ["act", "corpus_id", "in_corpus", "section", "title"] as const;
+export const DECIDE_LEAN_KEYS = ["verdict", "denied_claims", "unlicensed_claims", "omitted_claims"] as const;
+export const DECIDE_ATTESTATION_KEYS = ["binary_sha256", "wire_sha256", "verdict"] as const;
+export const DECIDE_SIGNAL_KEYS = ["p", "supported"] as const;
+
+/** Thrown when the engine's answer has a listed field of the wrong type, or an assertions key that is not one of the contract's own element or denial names: the whole answer is unreadable and nothing from it is shown. */
+export class InvalidEngineAnswerError extends Error {
+  readonly runId: string | null;
+  constructor(runId: string | null) {
+    super("invalid engine answer");
+    this.name = "InvalidEngineAnswerError";
+    this.runId = runId;
+  }
+}
+/** The run-record download for an unreadable answer: a machine marker and the run id, nothing else. */
+export const invalidAnswerRecord = (runId: string | null): string => JSON.stringify({ invalid_engine_answer: true, run_id: runId }, null, 2);
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const isScalar = (v: unknown): boolean => v === null || typeof v === "string" || typeof v === "number" || typeof v === "boolean";
+type Shape = { keys: readonly string[]; lists?: Record<string, "objects" | "strings">; objects?: Record<string, Shape | "booleans">; };
+const FACT: Shape = { keys: DECIDE_FACT_KEYS };
+const CITATION: Shape = { keys: DECIDE_CITATION_KEYS };
+const SIGNAL: Shape = { keys: DECIDE_SIGNAL_KEYS };
+const ELEMENT: Shape = { keys: DECIDE_ELEMENT_KEYS, objects: { screening_signal: SIGNAL } };
+const LEAN: Shape = { keys: DECIDE_LEAN_KEYS, lists: { denied_claims: "strings", unlicensed_claims: "strings", omitted_claims: "strings" } };
+const ATTESTATION: Shape = { keys: DECIDE_ATTESTATION_KEYS };
+const STANDARD: Shape = { keys: DECIDE_STANDARD_KEYS };
+
+/**
+ * Check one object against its shape and return a copy holding only the listed fields. Any listed field of the wrong type throws: a scalar field must be a string, number, boolean
+ * or null; a list field must be a list (null allowed where the schema allows it) of objects or strings as named; an object field must be an object or null.
+ */
+function shaped(v: unknown, shape: Shape, runId: () => string | null, lists: Record<string, Shape | "strings"> = {}, nullable: readonly string[] = []): Record<string, unknown> {
+  const bad = (): never => { throw new InvalidEngineAnswerError(runId()); };
+  if (!isObj(v)) return bad();
+  const out: Record<string, unknown> = {};
+  for (const k of shape.keys) {
+    const x = v[k];
+    if (x === undefined) continue;
+    if (shape.objects && k in shape.objects) {
+      if (x === null) out[k] = null;
+      else if (shape.objects[k] === "booleans") out[k] = x;
+      else out[k] = shaped(x, shape.objects[k] as Shape, runId);
+    } else if (k in lists) {
+      if (x === null && nullable.includes(k)) { out[k] = null; continue; }
+      if (!Array.isArray(x)) return bad();
+      const kind = lists[k];
+      out[k] = x.map((item) => (kind === "strings" ? (typeof item === "string" ? item : bad()) : shaped(item, kind, runId)));
+    } else if (shape.lists && k in shape.lists) {
+      if (x === null || !Array.isArray(x) || !x.every((i) => typeof i === "string")) return bad();
+      out[k] = x;
+    } else {
+      if (!isScalar(x)) return bad();
+      out[k] = x;
+    }
+  }
+  return out;
+}
+
+export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
+  const runId = (): string | null => (isObj(wire) && typeof (wire as unknown as Record<string, unknown>).run_id === "string" ? ((wire as unknown as Record<string, unknown>).run_id as string) : null);
+  const bad = (): never => { throw new InvalidEngineAnswerError(runId()); };
+  const top = shaped(wire, { keys: DECIDE_TOP_KEYS.filter((k) => k !== "facts" && k !== "contracts" && k !== "standard") }, runId);
+  const w = wire as unknown as Record<string, unknown>;
+  if (w.facts !== undefined) top.facts = (Array.isArray(w.facts) ? w.facts : bad()).map((f) => shaped(f, FACT, runId));
+  if (w.standard !== undefined) top.standard = w.standard === null ? null : shaped(w.standard, STANDARD, runId);
+  if (w.contracts !== undefined) {
+    top.contracts = (Array.isArray(w.contracts) ? w.contracts : bad()).map((c) => {
+      const out = shaped(c, { keys: DECIDE_CONTRACT_KEYS.filter((k) => !["assertions", "citations", "elements", "lean", "lean_attestation", "uncertain"].includes(k)) }, runId);
+      const cc = c as Record<string, unknown>;
+      if (cc.elements !== undefined) out.elements = (Array.isArray(cc.elements) ? cc.elements : bad()).map((e) => shaped(e, ELEMENT, runId));
+      if (cc.citations !== undefined) out.citations = cc.citations === null ? null : (Array.isArray(cc.citations) ? cc.citations : bad()).map((x) => shaped(x, CITATION, runId));
+      if (cc.lean !== undefined) out.lean = cc.lean === null ? null : shaped(cc.lean, LEAN, runId);
+      if (cc.lean_attestation !== undefined) out.lean_attestation = cc.lean_attestation === null ? null : shaped(cc.lean_attestation, ATTESTATION, runId);
+      if (cc.uncertain !== undefined) out.uncertain = (Array.isArray(cc.uncertain) ? cc.uncertain : bad()).map((x) => (typeof x === "string" ? x : bad()));
+      if (cc.assertions !== undefined) {
+        if (cc.assertions === null) out.assertions = null;
+        else {
+          if (!isObj(cc.assertions)) return bad();
+          // The engine keys the assertions by the contract's own element and denial names (nyaya_agent.assemble_assertions).
+          const id = typeof out.contract_id === "string" ? out.contract_id : "";
+          const known = (contractElements.contracts as Record<string, { elements: string[]; denials: string[] }>)[id] ?? null;
+          const own = Array.isArray(out.elements) ? (out.elements as Array<Record<string, unknown>>).map((e) => e.element) : [];
+          const names = new Set<unknown>([...(known ? [...known.elements, ...known.denials] : []), ...own]);
+          const a: Record<string, boolean> = {};
+          for (const [key, val] of Object.entries(cc.assertions)) {
+            if (typeof val !== "boolean" || !names.has(key)) return bad();
+            a[key] = val;
+          }
+          out.assertions = a;
+        }
+      }
+      return out;
+    });
+  }
+  return top as unknown as AnalyseFactsWire;
+}
+
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
   run_id: string;
@@ -1278,8 +1389,6 @@ export interface AnalyseFactsResult {
   provenance: string;
   // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
   standard?: AnalyseFactsStandardOut | null;
-  // The engine's own retention notice. The app does not display it (CaveatStrip): the text can carry a promise the app does not enforce.
-  retention_notice?: string;
 }
 
 // 320s: a generous margin above RunPod LB's own ~300s execution ceiling and the ~2.5 minute worst-case cold
@@ -1326,7 +1435,8 @@ async function sha256Hex(text: string): Promise<string> {
  * submitted, paired to the echoed fact BY sha256 (never by position). An echoed fact that matches no submitted fact, and every fact when the counts
  * differ, gets an empty text: the callers then show no cited-fact text at all rather than a wrong one.
  */
-export async function withFactText(wire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
+export async function withFactText(rawWire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
+  const wire = decideResultOnly(rawWire);
   const echoed = Array.isArray(wire.facts) ? wire.facts : [];
   if (echoed.length !== submitted.length) return { ...wire, facts: echoed.map((f) => ({ ...f, text: "" })) };
   // crypto.subtle exists only in a secure context (https or localhost). Without it the engine's own contract is used: it keeps the caller's order as F1..Fn

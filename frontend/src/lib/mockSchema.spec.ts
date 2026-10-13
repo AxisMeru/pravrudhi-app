@@ -43,11 +43,14 @@ test("verify-citations: the full answer passes, a partial one does not", () => {
   assert.match(mockViolations("verify-citations", { result: "NOT_IN_INDEX", note: "n" }).join("\n"), /missing required "status"/);
 });
 
+// Specs whose mock answers are WRONG ON PURPOSE (padded with agent free text, or wrong-typed), so the schema-checked drop-in would reject them. Each says so in its own header.
+const OFF_SCHEMA_ON_PURPOSE = ["decide-only.spec.ts", "invalid-answer.spec.ts"];
+
 test("every e2e spec that mocks analyse-facts or verify-citations uses the schema-checked test", () => {
   const dir = join(__dirname, "..", "..", "e2e");
   const bad = readdirSync(dir).filter((f) => f.endsWith(".spec.ts")).filter((f) => {
     const s = readFileSync(join(dir, f), "utf8");
-    return /page\.route\([^)]*\/api\/v1\/(analyse-facts|verify-citations)/.test(s) && !s.includes("./support/engineTest");
+    return /page\.route\([^)]*\/api\/v1\/(analyse-facts|verify-citations)/.test(s) && !s.includes('from "./support/engineTest"') && !OFF_SCHEMA_ON_PURPOSE.includes(f);
   });
   assert.deepEqual(bad, [], "these specs mock an engine answer without the schema check");
 });
