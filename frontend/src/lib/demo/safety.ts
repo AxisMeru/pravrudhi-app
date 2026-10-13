@@ -1,4 +1,4 @@
-// The safety page's words (R1's value statements, 14 Oct 2026; Lead-2 decision: the product leads with what the firm gets, with no figures). Every sentence is R1's, word for word.
+// The safety page's words (R1's value statements, 13 Oct 2026; Lead-2 decision: the product leads with what the firm gets, with no figures). Every sentence is R1's, word for word.
 // Nothing here is a claim about production traffic, another court population or another product. The checks in safety.spec.ts keep these strings exactly.
 
 export const SAFETY_SUBTITLE = "How the screen behaves on real court material, and what that does not cover.";

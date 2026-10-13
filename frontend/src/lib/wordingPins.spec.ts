@@ -58,7 +58,7 @@ const memo = (contracts: Partial<AnalyseFactsContract>[]) =>
     { engineVersion: "0.6.0", generatedAt: "2026-10-08T10:00:00Z" },
   );
 
-test("memo table: header with no score column (Lead-2, 14 Oct), cited fact with quotation marks only for a model quote", () => {
+test("memo table: header with no score column (Lead-2, 13 Oct), cited fact with quotation marks only for a model quote", () => {
   const md = memo([{ elements: [el({}) as never, el({ element: "b", quote: "words a judge wrote", quote_source: "model" }) as never, el({ element: "c", quote: null, fact_id: null, quote_source: null }) as never] }]);
   assert.ok(md.includes("| Element | Status | Cited fact |"));
   assert.doesNotMatch(md, /Judge score|0\.50/);

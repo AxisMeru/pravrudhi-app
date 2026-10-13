@@ -17,7 +17,7 @@ const EXEMPT_FILES = new Map<string, string>([
   ["package-lock.json", "dependency names, not copy"],
   ["e2e/support/reviewedSentences.ts", "the reviewed list quotes the benchmark sentence that is exempt above, split as the scan splits it"],
 ]);
-const EXEMPT_SENTENCES: readonly string[] = []; // none now: the benchmark-set sentence that was exempt here left with the figures (14 Oct)
+const EXEMPT_SENTENCES: readonly string[] = []; // none now: the benchmark-set sentence that was exempt here left with the figures (13 Oct)
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

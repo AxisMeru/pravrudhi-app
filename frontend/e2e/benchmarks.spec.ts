@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 
-// The benchmarks page is short and static (R1's strings, 14 Oct): what we check, how we test, what the checks do and do not show. No figure.
+// The benchmarks page is short and static (R1's strings, 13 Oct): what we check, how we test, what the checks do and do not show. No figure.
 test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure", async ({ page }) => {
   await page.goto("/benchmarks");
   await expect(page.getByRole("heading", { name: "Benchmarks", level: 1 })).toBeVisible();
@@ -15,7 +15,7 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
   const text = await page.locator("main").innerText();
   expect(text).not.toMatch(/%|interval|upper bound|Result pending|Registered bar|Inconclusive/i);
-  expect(text.replace(/NyayaSiddhi v0/, "")).not.toMatch(/\d/);
+  expect(text.replace(/NyayaSiddhi v0\.2/, "")).not.toMatch(/\d/);
 });
 
 test("the page works at phone width: no horizontal scroll of the page", async ({ page }) => {
@@ -30,7 +30,7 @@ test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and
   for (const path of ["/benchmarks", "/demo"]) {
     await page.goto(path);
     const link = page.getByTestId("nyayasiddhi-link");
-    await expect(link).toHaveText("NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)");
+    await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)");
     await expect(link).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
     await expect(page.getByTestId("nyayasiddhi-blurb")).toHaveText("development benchmark; descriptive; no ranking");
     await expect(page.getByTestId("nyayasiddhi")).not.toContainText(/\d+(\.\d+)?%/);

@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { BENCHMARK_COPY, BENCHMARK_STATEMENTS, FOOTER_TEXT, HOW_WE_TEST, HOW_WE_TEST_HEADING, NYAYASIDDHI_BLURB, NYAYASIDDHI_LINK_TEXT, NYAYASIDDHI_URL, PAGE_SUBTITLE, PAGE_TITLE } from "./benchmarks";
 
-test("the benchmarks page says exactly R1's strings (14 Oct), in his order", () => {
+test("the benchmarks page says exactly R1's strings (13 Oct), in his order", () => {
   assert.equal(PAGE_TITLE, "Benchmarks");
   assert.equal(PAGE_SUBTITLE, "What we check, and what the checks do and do not show.");
   assert.deepEqual([...BENCHMARK_STATEMENTS], [
@@ -15,10 +15,10 @@ test("the benchmarks page says exactly R1's strings (14 Oct), in his order", () 
   assert.equal(HOW_WE_TEST_HEADING, "How we test");
   assert.equal(
     HOW_WE_TEST,
-    "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer. Results are dated, so you can see when each was last run.",
+    "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer.",
   );
   assert.equal(NYAYASIDDHI_URL, "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
-  assert.equal(NYAYASIDDHI_LINK_TEXT, "NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)");
+  assert.equal(NYAYASIDDHI_LINK_TEXT, "NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)");
   assert.equal(NYAYASIDDHI_BLURB, "development benchmark; descriptive; no ranking");
   assert.equal(FOOTER_TEXT, "Research results, not legal advice.");
 });
@@ -27,7 +27,7 @@ test("the benchmarks page says exactly R1's strings (14 Oct), in his order", () 
 test("the lint: no banned word, no digit, no percentage, no interval, bound, n or p value in anything the page shows", () => {
   for (const s of BENCHMARK_COPY) {
     assert.doesNotMatch(s, /\b(proof|proofs|proved|proven|prove|proves|established|verbatim|word[- ]for[- ]word)\b/i, s); // "quote" is allowed here: R1's citation-checker line is about quotes
-    assert.doesNotMatch(s.replace(/NyayaSiddhi v0/, "NyayaSiddhi"), /\d/, s);
+    assert.doesNotMatch(s.replace(/NyayaSiddhi v0\.2/, "NyayaSiddhi"), /\d/, s);
     assert.doesNotMatch(s, /%|interval|upper bound|\bbound\b|McNemar|\bn\s*=|p value|chance level|leaderboard|\brank/i, s);
   }
 });

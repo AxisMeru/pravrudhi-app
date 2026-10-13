@@ -1,4 +1,4 @@
-// The benchmarks page (R1's value statements, 14 Oct 2026; Lead-2 decision: a short "How we test" page with no figures). Every sentence is R1's, word for word.
+// The benchmarks page (R1's value statements, 13 Oct 2026; Lead-2 decision: a short "How we test" page with no figures). Every sentence is R1's, word for word.
 // The earlier results machinery (reviewed blocks, tables, bounds, paired tests, outcome chips, the loader and its validator) is retired for the MVP; the page is static.
 // What stays of the validator is a banned-word lint over these strings (benchmarks.spec.ts).
 
@@ -14,11 +14,11 @@ export const BENCHMARK_STATEMENTS: readonly string[] = [
 
 export const HOW_WE_TEST_HEADING = "How we test";
 export const HOW_WE_TEST =
-  "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer. Results are dated, so you can see when each was last run.";
+  "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer.";
 
 /** NyayaSiddhi (the open development benchmark, #638): a link and a short blurb under it, no figure. Strings unchanged. */
 export const NYAYASIDDHI_URL = "https://huggingface.co/datasets/AxisMeru/nyayasiddhi";
-export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0: open Indian element-proof development benchmark (data + scorer)";
+export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)";
 export const NYAYASIDDHI_BLURB = "development benchmark; descriptive; no ranking";
 
 export const FOOTER_TEXT = "Research results, not legal advice.";

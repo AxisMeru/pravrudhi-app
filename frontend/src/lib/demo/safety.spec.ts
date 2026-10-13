@@ -4,7 +4,7 @@ import test from "node:test";
 import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_COPY, SAFETY_STATEMENTS, SAFETY_SUBTITLE } from "./safety";
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
-test("the safety page says exactly R1's four value statements (14 Oct), then the assist line and the evidence line", () => {
+test("the safety page says exactly R1's four value statements (13 Oct), then the assist line and the evidence line", () => {
   assert.deepEqual([...SAFETY_STATEMENTS], [
     "The screen never states a conclusion about your matter. It suggests facts to check, and anything it cannot support goes back to the lawyer.",
     "In our checks on real court-rejected items it did not return a proof for any of them.",
@@ -16,7 +16,7 @@ test("the safety page says exactly R1's four value statements (14 Oct), then the
   assert.equal(EVIDENCE_LINE, "Evidence, not legal advice.");
 });
 
-test("the safety page carries no figure, bound, count, threshold, model size or internal record (Lead-2, 14 Oct)", () => {
+test("the safety page carries no figure, bound, count, threshold, model size or internal record (Lead-2, 13 Oct)", () => {
   const text = SAFETY_COPY.join(" ");
   assert.doesNotMatch(text, /\d/);
   assert.doesNotMatch(text, /upper bound|\bbound\b|one-sided|threshold|worst case|confidence|AxisMeru|prabhasa|commit|private repository|\b4B\b|\b32B\b|Obj-1b/i);
