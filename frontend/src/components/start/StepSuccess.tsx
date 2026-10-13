@@ -112,7 +112,7 @@ export function StepSuccess({
                         title="better means higher"
                         className={`rounded p-1 ${
                           spec.direction === "up"
-                            ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
+                            ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                             : "text-[var(--color-text-dim)]"
                         }`}
                       >
@@ -123,7 +123,7 @@ export function StepSuccess({
                         title="better means lower"
                         className={`rounded p-1 ${
                           spec.direction === "down"
-                            ? "bg-[var(--color-accent)] text-[var(--color-bg)]"
+                            ? "bg-[var(--color-accent)] text-[var(--color-on-accent)]"
                             : "text-[var(--color-text-dim)]"
                         }`}
                       >

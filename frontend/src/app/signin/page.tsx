@@ -113,13 +113,13 @@ export default function SignInPage() {
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="rounded-md border border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] p-3 text-sm text-[var(--color-danger)]">
             {error}
           </div>
         )}
 
         {confirmationMessage && (
-          <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+          <div className="rounded-md border border-[var(--color-info-border)] bg-[var(--color-info-bg)] p-3 text-sm text-[var(--color-info)]">
             {confirmationMessage}
           </div>
         )}

@@ -39,7 +39,7 @@ export const ELEMENT_STATUSES = [
 export type ElementStatus = (typeof ELEMENT_STATUSES)[number];
 
 // Which finding a presentation asserts. `null` means "no finding either way" — used for not_confirmed (the
-// judges leaned established but the bar was not met), for both not-evaluated cases, and for an
+// judges leaned established but the bar was not met), for the two cases where no verdict was produced, and for an
 // unrecognised status. Only `established` and `not_established` are verdicts.
 export type ElementVerdict = "established" | "not_established";
 
@@ -51,7 +51,7 @@ export interface ElementStatusPresentation {
   status: ElementStatus | null;
   label: string;
   // Tailwind utility classes for the badge, in the same shape as the page's own OUTCOME tones. Distinct per
-  // status: not_confirmed, not_established and the two not-evaluated cases must never look alike.
+  // status: not_confirmed, not_established and the two no-verdict cases must never look alike.
   tone: string;
   verdict: ElementVerdict | null;
   /** The signed sentence for what this status means; null for an unrecognised status (no signed wording for it). */
@@ -98,7 +98,7 @@ export function elementStatusPresentation(
       return {
         status: raw,
         label: "supported by a fact",
-        tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
+        tone: "text-[var(--color-ok)] border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]",
         verdict: "established",
         explanation: ELEMENT_STATUS_EXPLANATION.established,
         unknown: false,
@@ -107,7 +107,7 @@ export function elementStatusPresentation(
       return {
         status: raw,
         label: "not confirmed at the required confidence",
-        tone: "text-amber-400 border-amber-500/40 bg-amber-500/10",
+        tone: "text-[var(--color-warn)] border-[var(--color-warn-border)] bg-[var(--color-warn-bg)]",
         verdict: null,
         explanation: ELEMENT_STATUS_EXPLANATION.not_confirmed,
         unknown: false,
@@ -125,7 +125,7 @@ export function elementStatusPresentation(
       return {
         status: raw,
         label: "not evaluated — second judge unavailable",
-        tone: "text-sky-400 border-sky-500/40 bg-sky-500/10",
+        tone: "text-[var(--color-info)] border-[var(--color-info-border)] bg-[var(--color-info-bg)]",
         verdict: null,
         explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_second_unavailable,
         unknown: false,
@@ -141,7 +141,7 @@ export function elementStatusPresentation(
       return {
         status: raw,
         label: "not evaluated — entailment check unavailable",
-        tone: "text-violet-400 border-violet-500/40 bg-violet-500/10",
+        tone: "text-[var(--color-note)] border-[var(--color-note-border)] bg-[var(--color-note-bg)]",
         verdict: null,
         explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_gate1_unavailable,
         unknown: false,

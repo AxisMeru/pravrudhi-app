@@ -1,8 +1,8 @@
 import { CAVEATS, WARMING_NOTE } from "@/lib/surfaceCopy";
 
-// One strip, always shown on the surface's result pages. The retention notice is the engine's own text, shown verbatim
-// once a result carries it; the warming line appears only while the judges report they are warming.
-export function CaveatStrip({ retentionNotice, warming }: { retentionNotice?: string | null; warming?: boolean }) {
+// One strip, always shown on the surface's result pages. It does not show the engine's retention_notice (which can carry a promise the app does not
+// enforce): retention is stated once, by RetentionBefore. The warming line appears only while the judges report they are warming.
+export function CaveatStrip({ warming }: { warming?: boolean }) {
   return (
     <aside
       className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs text-[var(--color-text-dim)]"
@@ -13,7 +13,6 @@ export function CaveatStrip({ retentionNotice, warming }: { retentionNotice?: st
         {CAVEATS.map((c) => (
           <li key={c.id}>{c.text}</li>
         ))}
-        {retentionNotice && <li data-testid="retention-notice">{retentionNotice}</li>}
         {warming && <li data-testid="warming-note">{WARMING_NOTE}</li>}
       </ul>
     </aside>

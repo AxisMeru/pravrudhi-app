@@ -24,7 +24,7 @@ test("a real analyse-facts call against the deployed app, run anonymously, retur
 }) => {
   test.setTimeout(360_000);
   await page.goto("/matters");
-  await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
+  await page.locator("main").getByRole("heading", { name: "Offence rules", exact: true }).waitFor();
 
   // No sign-in step here on purpose -- this run must succeed without one.
   const contracts = page.getByRole("group", { name: "Contracts to check against" });

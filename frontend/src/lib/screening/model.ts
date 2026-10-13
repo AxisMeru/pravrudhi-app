@@ -98,6 +98,11 @@ export function rowsFor(contract: AnalyseFactsContract, facts: AnalyseFactsResul
   return { ingredients: all.filter((r) => !r.isDefence), defences };
 }
 
+/** True when a defence is shown for this contract: a DENIAL outcome, or any defence row the checklist keeps (rowsFor drops only the plain "not supported" ones; a suggested or uncertain one stays). One rule for the checklist, the memos and Matters. */
+export function defenceShown(contract: AnalyseFactsContract): boolean {
+  return contract.outcome === "DENIAL" || rowsFor(contract, []).defences.length > 0;
+}
+
 /**
  * The matter summary banner. The all-supported line needs EVERY ingredient supported by the judges (a suggestion from the screening signal does
  * not count), the engine's own PROOF outcome, the second judge having answered on every supported ingredient, the Lean structural check agreeing

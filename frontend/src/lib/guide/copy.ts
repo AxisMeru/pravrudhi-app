@@ -3,13 +3,15 @@
 // that may defeat the claim" for a denial, "Not supported by these facts" for a missing ingredient, "quote" only about the opt-in frontier route
 // (whose sentence is imported from the frontier files, not written here).
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING } from "../screening/copy";
+import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
+import { OFFENCES } from "../screening/offences";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, EXPORT_LABELS } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
 export const GUIDE_LANDING_LINK = "New here? Read the user guide.";
 export const GUIDE_TITLE = "User guide";
-export const GUIDE_SUBTITLE = "How to use the screening assistant, what each status means, and what it does not do.";
+export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each status means, and what it does not do.";
 
 export const GUIDE_SCREENSHOT_NOTE =
   "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read; they are not evidence about how well the assistant performs, and no accuracy claim is made.";
@@ -48,7 +50,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   memo: {
     file: "06-memo-export.png",
-    alt: "The three export buttons under the checklist: Download memo, Print / save as PDF and Download audit trail.",
+    alt: `The three export buttons under the checklist: ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${EXPORT_LABELS.runRecord}.`,
   },
 };
 
@@ -59,11 +61,22 @@ export interface GuideStep {
   image?: GuideImage;
 }
 
-export const GUIDE_INTRO_HEADING = "What this does";
-export const GUIDE_INTRO =
-  "The screening assistant reads the facts of a matter and shows, ingredient by ingredient, which parts of an alleged offence your facts support, which they do not, and what to check next. It refers a point to you whenever it is unsure. It is a screening aid for a lawyer. It does not decide anything.";
+export const GUIDE_INTRO_HEADING = "What Pravrudhi-Nyaya does";
+export const GUIDE_INTRO = PRODUCT_LINE;
+export const GUIDE_ABOUT_HEADING = "About the name";
+export const GUIDE_ABOUT = ABOUT_LINE;
 
-export const GUIDE_STEPS_HEADING = "How to use it";
+export const GUIDE_COVERED_HEADING = "Offences it covers";
+/** The offences whose contracts are on the validated list, as the Screening page offers them (the two flagged not validated are left out). */
+export const GUIDE_COVERED: string[] = OFFENCES.filter((o) => !o.notValidated).map((o) => `${o.title} (${o.sections})`);
+export const GUIDE_COVERED_NOTE = "Offences not on this list are referred back to you.";
+
+export const GUIDE_BEFORE_HEADING = "Before you start";
+export const GUIDE_BEFORE =
+  "Do not enter real names or case details unless your firm's setup allows it. What leaves your firm, where it is processed and how long it is kept are set out on the Data handling page.";
+export const GUIDE_BEFORE_LINK = "Read Data handling";
+
+export const GUIDE_STEPS_HEADING = "Screening, step by step";
 export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "paste",
@@ -103,15 +116,16 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Download the screening memo for your file, and the audit trail, which records what was sent and what came back. Both carry the run, the versions and the standing line that this is a screening aid.",
+    text: "Download the screening memo for your file, and the run record. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both files are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
     image: GUIDE_IMAGES.memo,
   },
 ];
 
-export const GUIDE_STATUS_HEADING = "What each status means";
+export const GUIDE_STATUS_HEADING = "Reading the checklist";
 export interface GuideStatus {
   label: string;
   meaning: string;
+  note?: string;
 }
 export const GUIDE_STATUSES: GuideStatus[] = [
   {
@@ -133,6 +147,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   {
     label: DEFENCE_HEADING,
     meaning: "A fact the judge found that may weaken the claim. It is shown for you to weigh and is not counted among the ingredients.",
+    note: DEFENCE_UNMEASURED_NOTE,
   },
 ];
 export const GUIDE_BANNER_TEXT =
@@ -150,3 +165,12 @@ export const GUIDE_LIMITS: string[] = [
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
   "The first analysis after idle can take a few minutes while the judges start; a later one can be faster. We have not measured typical times. The page counts the time and says so if it is slow; you can cancel at any point.";
+
+export const GUIDE_GLOSSARY_HEADING = "Glossary";
+export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] = [
+  { term: "Ingredient", meaning: "one element the law requires for an offence, as the section lists it." },
+  { term: "Referral", meaning: "the screening does not decide the point and hands it back to you." },
+  { term: "Supported", meaning: "shown only where a cited fact appears to carry the ingredient; a suggestion for you to check, never a finding." },
+  // R1's exact entry (13 Oct): "A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it."
+  { term: DEFENCE_HEADING, meaning: "a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.", note: DEFENCE_UNMEASURED_NOTE },
+];

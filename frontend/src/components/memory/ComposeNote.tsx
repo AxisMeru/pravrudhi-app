@@ -61,7 +61,7 @@ export function ComposeNote({ onRemembered }: { onRemembered: (note: MemoryNote)
         <button
           onClick={submit}
           disabled={!canSubmit}
-          className="rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Remembering…" : "Remember"}
         </button>

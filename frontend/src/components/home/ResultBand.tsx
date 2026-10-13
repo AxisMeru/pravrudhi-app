@@ -19,7 +19,7 @@ function Verdict({ result }: { result: BiggestResult }) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
-        up ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"
+        up ? "bg-[var(--color-ok-bg)] text-[var(--color-ok)]" : "bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
       }`}
     >
       {up ? <TrendingUp size={15} /> : <TrendingDown size={15} />}
@@ -61,7 +61,7 @@ export function ResultBand({ result }: { result: BiggestResult | null }) {
     <section
       className={`rounded-lg border p-5 ${
         result.significant && result.delta > 0
-          ? "border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent"
+          ? "border-[var(--color-ok-border)] bg-gradient-to-br from-[var(--color-ok-bg)] to-transparent"
           : "border-[var(--color-border)] bg-[var(--color-surface)]"
       }`}
     >
@@ -83,7 +83,7 @@ export function ResultBand({ result }: { result: BiggestResult | null }) {
         <ArrowRight size={22} className="text-[var(--color-muted)]" />
         <span
           className={`text-5xl font-bold tabular-nums ${
-            result.significant ? (result.delta > 0 ? "text-emerald-400" : "text-red-400") : "text-[var(--color-text)]"
+            result.significant ? (result.delta > 0 ? "text-[var(--color-ok)]" : "text-[var(--color-danger)]") : "text-[var(--color-text)]"
           }`}
         >
           {percent(result.current, 1)}

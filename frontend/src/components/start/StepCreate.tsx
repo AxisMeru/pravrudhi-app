@@ -76,7 +76,7 @@ export function StepCreate({ draft }: Props) {
           onClick={create}
           disabled={IS_DEMO || busy || !draft.id || !draft.intent || !draft.track || draft.benchmarks.length === 0}
           title={IS_DEMO ? "This is a recording. Run the engine on your own machine to create an objective." : undefined}
-          className="mt-4 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-bg)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Creating…" : "Create objective"}
         </button>

@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { FrontierToggle } from "@/components/screening/FrontierToggle";
@@ -15,16 +16,17 @@ import { IngredientChecklist } from "@/components/screening/IngredientChecklist"
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
 import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
+import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
-import { buildAuditTrail, buildScreeningMemo } from "@/lib/screening/memo";
+import { buildRunRecord, buildScreeningMemo } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -153,6 +155,7 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
+        <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
         <p className="text-sm" data-testid="guide-link">
           <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
         </p>
@@ -161,9 +164,9 @@ export default function ScreeningPage() {
             {EXAMPLE_LABEL}
           </p>
         )}
-        <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
+        <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>
+          <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <textarea
             id="screening-paste"
@@ -239,13 +242,13 @@ export default function ScreeningPage() {
             <legend className="text-sm font-medium text-[var(--color-text)]">What to screen for</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="contracts-error">{contractsError}</p>
                 <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
                   Try again
                 </button>
               </div>
             ) : picker === "empty" ? (
-              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+              <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
             ) : picker === "loading" ? (
               <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
@@ -278,7 +281,7 @@ export default function ScreeningPage() {
                             <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
                           )}
                           {ids.some((i) => validationLabel(validationMark(validated, i))) && (
-                            <span className="ml-2 text-xs text-amber-300">({validationLabel(validationMark(validated, ids[0]))})</span>
+                            <span className="ml-2 text-xs text-[var(--color-warn)]">({validationLabel(validationMark(validated, ids[0]))})</span>
                           )}
                         </span>
                       </label>
@@ -295,18 +298,18 @@ export default function ScreeningPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
             {loading ? "Screening…" : "Screen these facts"}
           </button>
           {closed && svc?.kind === "ok" && svc.status.service_window && (
-            <p className="text-sm text-amber-400" role="status" data-testid="screening-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-offline">
               The hosted demo is offline outside its service hours ({formatNextOpen(svc.status.service_window)}). Nothing is sent while it is closed.
             </p>
           )}
           {offline && (
-            <p className="text-sm text-amber-400" role="status" data-testid="screening-engine-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-engine-offline">
               The engine is not answering right now. Nothing is sent until it is back.
             </p>
           )}
@@ -323,12 +326,12 @@ export default function ScreeningPage() {
             </>
           )}
           {loading && elapsed >= SLOW_START_SECONDS && (
-            <p className="text-sm text-amber-400" role="status">
+            <p className="text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
-          {error && <p className="text-sm text-red-400" role="alert" data-testid="screening-error">{error}</p>}
+          {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
         </section>
 
         {result && request && (
@@ -336,13 +339,13 @@ export default function ScreeningPage() {
             <div className="text-xs text-[var(--color-text-dim)]">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
             <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
-                Download memo (.md)
+                {EXPORT_LABELS.memo}
               </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
-                Print / save as PDF
+                {EXPORT_LABELS.print}
               </button>
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`audit-trail-${result.run_id}.json`, buildAuditTrail(request, result, opts()), "application/json")}>
-                Download audit trail (.json)
+              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
+                {EXPORT_LABELS.runRecord}
               </button>
             </div>
             {result.contracts.map((c) => (

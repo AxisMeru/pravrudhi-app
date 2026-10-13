@@ -50,7 +50,7 @@ for (const fixture of FIXTURES) {
         const facts = fixture.wordings[wording];
         await signIn(page);
         await page.goto("/matters");
-        await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
+        await page.locator("main").getByRole("heading", { name: "Offence rules", exact: true }).waitFor();
         // Outside the service window the hosted demo says so and refuses to send: skipped, with the reason, not failed.
         const offline = page.getByTestId("matters-offline");
         test.skip(await offline.isVisible().catch(() => false), `outside the service window: ${await offline.innerText().catch(() => "")}`);

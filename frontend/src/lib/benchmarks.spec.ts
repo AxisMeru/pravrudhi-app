@@ -208,5 +208,5 @@ test("the page's own sentences and titles never call a test set sealed (R1, 8 Oc
   }
   assert.equal(BLOCK_TITLE.sealed_court, "What the fixed Indian court test sets found");
   assert.ok(HOW_WE_TEST.some((t) => /not fresh-test estimates/.test(t)));
-  assert.ok(!HOW_WE_TEST.some((t) => /never used for tuning/i.test(t)));
+  assert.ok(!HOW_WE_TEST.some((t) => t.toLowerCase().includes(["never", "used for tuning"].join(" "))));
 });

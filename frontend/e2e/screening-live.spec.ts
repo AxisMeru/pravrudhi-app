@@ -18,7 +18,7 @@ import { OFFENCES } from "../src/lib/screening/offences";
  * the DEPLOYED app and judge. The public demo example is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
  * that what the page shows is a plain-words reading of it: one checklist per contract, one row per ingredient with one of the three chips, the
  * cited fact shown in full, a what-to-check line, the summary banner per contract, the review items not styled as errors, no "proved" /
- * "established" / "verbatim" in the checklist, the memo and the audit trail.
+ * "established" / "verbatim" in the checklist, the memo and the run record.
  *
  * NOT RUN BY DEFAULT. A production run needs Lead-2's written go: set SCREENING_LIVE_GO=1 for the window it was granted for (the go names the
  * call count and the $ cap; one run is ONE analyse-facts call), the e2e member account in the environment (E2E_EMAIL / E2E_PASSWORD), and
@@ -184,7 +184,7 @@ for (let run = 1; run <= REPEATS; run++) {
     // the Citations panel is below the checklist
     await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
 
-    // the memo and the audit trail carry the same run
+    // the memo and the run record carry the same run
     const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
     const memo = readFileSync(await memoDl.path(), "utf8");
     expect(memo).toContain("# Screening memo");
@@ -200,7 +200,7 @@ for (let run = 1; run <= REPEATS; run++) {
         expect(lines[lines.indexOf(line) + 1]).toBe("This is a screening aid, not legal advice. A lawyer decides.");
       }
     }
-    const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download audit trail (.json)" }).click()]);
+    const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download run record (.json)" }).click()]);
     const audit = JSON.parse(readFileSync(await auditDl.path(), "utf8"));
     expect(audit.response.run_id).toBe(result.run_id);
     expect(audit.request.facts).toEqual(submitted);

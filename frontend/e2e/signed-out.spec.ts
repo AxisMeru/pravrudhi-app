@@ -35,7 +35,7 @@ test("signed out (/api/me 401): Screening sends nothing, says so, and offers sig
   const notice = page.getByTestId("not-signed-in");
   await expect(notice).toBeVisible({ timeout: 15_000 });
   await expect(notice).toContainText("You are not signed in, so nothing has been sent.");
-  await expect(notice).toContainText("what you submit is kept up to 7 days");
+  await expect(notice).toContainText("what you submit is kept for up to 7 days");
   await expect(page.getByTestId("not-signed-in-signin")).toHaveAttribute("href", "/signin");
   expect(s.posts, "no analyse-facts request while signed out").toEqual([]);
   expect(s.me(), "the session was looked at more than once, a bounded number of times").toBeGreaterThan(1);

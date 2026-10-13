@@ -1278,7 +1278,7 @@ export interface AnalyseFactsResult {
   provenance: string;
   // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
   standard?: AnalyseFactsStandardOut | null;
-  // The engine's own retention notice: shown verbatim wherever a result is shown.
+  // The engine's own retention notice. The app does not display it (CaveatStrip): the text can carry a promise the app does not enforce.
   retention_notice?: string;
 }
 

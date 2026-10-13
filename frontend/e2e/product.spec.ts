@@ -25,7 +25,7 @@ const test = base.extend<{ diagnostics: void }>({
 // The law-firm product shows Matters, Settings and sign-in; the improvement loop's pages are Studio's and are closed
 // to a member (Lead-2 decision on #525, 2026-10-06; e2e/surface-gate.spec.ts walks every route as member and admin).
 const PAGES: Array<[string, string]> = [
-  ["/matters", "Matters"], ["/settings", "Settings"], ["/signin", "Sign in"],
+  ["/matters", "Offence rules"], ["/settings", "Settings"], ["/signin", "Sign in"],
 ];
 
 for (const [path, heading] of PAGES) {

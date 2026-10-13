@@ -4,7 +4,7 @@ import type { ScreeningSummary } from "@/lib/screening/model";
 export function SummaryBanner({ summary }: { summary: ScreeningSummary }) {
   return (
     <div
-      className={`rounded-md border p-3 ${summary.allSupported ? "border-emerald-500/40 bg-emerald-500/10" : "border-[var(--color-border)] bg-[var(--color-bg)]"}`}
+      className={`rounded-md border p-3 ${summary.allSupported ? "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg)]"}`}
       data-testid="summary-banner"
       role="status"
     >
@@ -18,10 +18,10 @@ export function SummaryBanner({ summary }: { summary: ScreeningSummary }) {
 }
 
 export const CHIP_TONE: Readonly<Record<Chip, string>> = {
-  supported: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+  supported: "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]",
   // A suggestion is neither a finding nor an error: dashed and neutral, so it never reads as a supported ingredient.
-  suggested: "border-dashed border-sky-500/40 text-sky-300",
+  suggested: "border-dashed border-[var(--color-info-border)] text-[var(--color-info)]",
   not_supported: "border-[var(--color-border)] text-[var(--color-text-dim)]",
   // Amber, never red: a review item is an invitation to look, not a failure.
-  review: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+  review: "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]",
 };

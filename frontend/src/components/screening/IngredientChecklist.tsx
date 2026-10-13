@@ -1,4 +1,4 @@
-import { CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING } from "@/lib/screening/copy";
+import { CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING, DEFENCE_UNMEASURED_NOTE } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
@@ -63,10 +63,10 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
       </header>
       <SummaryBanner summary={summary} />
       {referral && (
-        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300" data-testid="contract-review">
+        <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>
           <p className="mt-1">{referral.message}</p>
-          <p className="mt-1 text-xs text-amber-300/70">{SEE_REASON}: {referral.code}</p>
+          <p className="mt-1 text-xs text-[var(--color-warn)]">{SEE_REASON}: {referral.code}</p>
         </div>
       )}
       <ul className="space-y-2" aria-label="Ingredients">
@@ -77,6 +77,7 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
       {rows.defences.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-[var(--color-text)]">{DEFENCE_HEADING}</h3>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="defence-unmeasured-note">{DEFENCE_UNMEASURED_NOTE}</p>
           <ul className="space-y-2">
             {rows.defences.map((r, i) => (
               <Row key={`${r.element}-${i}`} row={r} />

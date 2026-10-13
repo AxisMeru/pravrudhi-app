@@ -1,6 +1,9 @@
 // Every NEW user-visible string of the Screening view lives here, so R1 reviews one list before any push (O8, #830). Strings the view reuses
 // (signed REFER and element texts, the cited-fact notes) are NOT repeated here. Rules: never "proved" or "established" at row level, never
 // "verbatim", never "the offence is made out", never advice; "Needs your review" is never styled as an error.
+/** The three export buttons under the checklist; the guide names them with these same strings. */
+export const EXPORT_LABELS = { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" } as const;
+
 export type Chip = "supported" | "suggested" | "not_supported" | "review";
 
 export const CHIP_LABEL: Readonly<Record<Chip, string>> = {
@@ -16,9 +19,11 @@ export const SCREENING_TITLE = "Screening";
 export const SCREENING_SUBTITLE =
   "Which ingredients of the alleged offence do your facts support, which do they not, and what to check before you rely on it.";
 export const WHAT_TO_CHECK_LABEL = "What to check";
-/** One phrase for a denial, in both views (R1, #97): a DENIAL is a fact the judge found that may defeat the claim, never "not established". */
+/** One phrase for a denial, in both views and the memo (R1, #97; reaffirmed 13 Oct): a DENIAL is a fact the judge found that may defeat the claim, never "not established". */
 export const DEFENCE_PHRASE = "a fact that may defeat the claim";
 export const DEFENCE_HEADING = DEFENCE_PHRASE.charAt(0).toUpperCase() + DEFENCE_PHRASE.slice(1);
+/** R1's ruling (#283, 13 Oct, replacement text): shown wherever a defence is shown (checklist, memo, guide, Matters). Stays until a sealed #283 result exists; then only R1 changes it. One constant, no digits. */
+export const DEFENCE_UNMEASURED_NOTE = "No test set with a defence label has been scored, so how reliably the screening finds a fact that may defeat the claim has not been measured.";
 /** Beside an offence whose contracts are not on the validated list (#99): the engine refers on them. */
 export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the engine gives a referral, not a proof or denial.";
 export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";

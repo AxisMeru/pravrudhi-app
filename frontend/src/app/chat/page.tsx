@@ -46,7 +46,7 @@ function DemoChat() {
         </p>
         <a
           href="/install"
-          className="mt-4 inline-flex items-center gap-2 rounded-md bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black hover:bg-emerald-400"
+          className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] hover:bg-[var(--color-accent-hover)]"
         >
           Get it running
         </a>
@@ -395,7 +395,7 @@ function LiveChat() {
               <button
                 onClick={send}
                 disabled={sending || !tray.canSend(input)}
-                className="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[#06110c] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-accent)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <Send size={15} />
                 {sending ? "Sending…" : "Send"}

@@ -5,10 +5,10 @@ import leanOutcome from "../fixtures/leanOutcome.json";
 import whatToCheck from "../fixtures/whatToCheck.json";
 import contractElements from "../fixtures/contractElements.json";
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "../api";
-import { CHIP_LABEL, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
+import { CHIP_LABEL, DEFENCE_UNMEASURED_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
-import { LEAN_PASS_OUTCOME, contractReferral, rowsFor, summarize, whatToCheckFor } from "./model";
+import { LEAN_PASS_OUTCOME, contractReferral, defenceShown, rowsFor, summarize, whatToCheckFor } from "./model";
 
 const FACTS: AnalyseFactsResult["facts"] = [
   { id: "F1", text: "Invented: Ravi told Meena the toy lorry was his and sold it to her.", sha256: "a".repeat(64) },
@@ -187,4 +187,33 @@ test("a cited fact whose text could not be paired shows no fact block text (neve
   const c = { contract_id: "bns69", outcome: "ABSTAIN", reason: "missing_element", elements: [{ element: "e", is_denial: false, status: "established", claimed: true, fact_id: "F1", quote_source: "whole_fact", quote: null }], lean: null, lean_outcome: null, uncertain: [], assertions: null, statute_text_mismatch: null } as never;
   const row = rowsFor(c, [{ id: "F1", text: "", sha256: "a".repeat(64) }]).ingredients[0];
   assert.equal(row.factText, null);
+});
+
+test("R1 (#283, 13 Oct): the defence line is one exact constant with no digits, and the memo has it under the defence heading only when a defence is shown", () => {
+  assert.equal(
+    DEFENCE_UNMEASURED_NOTE,
+    "No test set with a defence label has been scored, so how reliably the screening finds a fact that may defeat the claim has not been measured.",
+  );
+  assert.doesNotMatch(DEFENCE_UNMEASURED_NOTE, /\d/);
+  const mk = (c: AnalyseFactsContract) => buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
+  const withDefence = mk(contract([el(0), el(1), el(2), el(0, { is_denial: true, element: "a defence", status: "established" })], { outcome: "DENIAL" })).split("\n");
+  const h = withDefence.findIndex((l) => l === "### A fact that may defeat the claim");
+  assert.ok(h > 0);
+  assert.equal(withDefence[h + 2], DEFENCE_UNMEASURED_NOTE);
+  assert.equal(withDefence.filter((l) => l === DEFENCE_UNMEASURED_NOTE).length, 1);
+  assert.ok(!mk(contract([el(0), el(1), el(2)])).includes(DEFENCE_UNMEASURED_NOTE), "no defence row, no line");
+});
+
+test("R2 (13 Oct): defenceShown follows the checklist exactly: a suggested or an uncertain defence counts, a plain not-established one does not", () => {
+  const d = (over: Partial<AnalyseFactsElement>) => el(0, { is_denial: true, element: "a defence", ...over });
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established" })], { outcome: "ABSTAIN" })), false, "plain not established");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established", screening_signal: { p: 0.9, supported: true } })], { outcome: "ABSTAIN" })), true, "suggested by the screening signal");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established" })], { outcome: "ABSTAIN", uncertain: ["a defence"] })), true, "uncertain");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_confirmed" })], { outcome: "REFER_TO_LAWYER" })), true, "not confirmed");
+  assert.equal(defenceShown(contract([el(0)], { outcome: "DENIAL" })), true, "a DENIAL outcome");
+  assert.equal(defenceShown(contract([el(0)], { outcome: "PROOF" })), false);
+  // the same answer the checklist rows give
+  for (const c of [contract([el(0), d({ status: "not_established" })]), contract([el(0), d({ status: "not_established", screening_signal: { p: 0.9, supported: true } })])]) {
+    assert.equal(defenceShown(c), rowsFor(c, FACTS).defences.length > 0);
+  }
 });

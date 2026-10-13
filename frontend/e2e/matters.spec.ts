@@ -15,7 +15,7 @@ import { expect, test } from "@playwright/test";
  */
 test("a real analyse-facts round trip, run anonymously, never hangs and never renders silently", async ({ page }) => {
   await page.goto("/matters");
-  await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
+  await page.locator("main").getByRole("heading", { name: "Offence rules", exact: true }).waitFor();
 
   // No sign-in step here on purpose -- this call must go out without one.
   const contracts = page.getByRole("group", { name: "Contracts to check against" });

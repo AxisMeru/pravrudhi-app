@@ -16,7 +16,7 @@ const facts = (page: import("@playwright/test").Page) => page.locator("#matters-
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/matters");
-  await page.locator("main").getByRole("heading", { name: "Matters", exact: true }).waitFor();
+  await page.locator("main").getByRole("heading", { name: "Offence rules", exact: true }).waitFor();
 });
 
 function toBuffer(ab: ArrayBuffer): Buffer {

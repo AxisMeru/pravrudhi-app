@@ -97,7 +97,7 @@ export default function PartnerKeysPage() {
           </button>
         </form>
 
-        {view?.kind === "error" && <p role="alert" className="text-sm text-red-500">Could not load keys. Try again.</p>}
+        {view?.kind === "error" && <p role="alert" className="text-sm text-[var(--color-danger)]">Could not load keys. Try again.</p>}
 
         {created && (
           <div role="status" className="rounded border border-[var(--color-border)] p-3 text-sm">
@@ -111,7 +111,7 @@ export default function PartnerKeysPage() {
               Copy secret
             </button>
             {copy === "failed" && (
-              <p role="alert" className="mt-2 text-xs text-red-500">
+              <p role="alert" className="mt-2 text-xs text-[var(--color-danger)]">
                 Could not copy to the clipboard. Select the secret above and copy it by hand before it disappears.
               </p>
             )}
@@ -166,7 +166,7 @@ export default function PartnerKeysPage() {
                             onClick={() => {
                               if (window.confirm(`Revoke key ${r.label || r.keyId}? Calls using it will stop working.`)) void revoke(r.keyId);
                             }}
-                            className="text-red-500"
+                            className="text-[var(--color-danger)]"
                           >
                             Revoke
                           </button>

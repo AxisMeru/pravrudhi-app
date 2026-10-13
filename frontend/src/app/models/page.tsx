@@ -1,6 +1,6 @@
 "use client";
 
-// ADR-0003: a BYOK product user has no self-improvement loop, no candidates and no nights, so this page used
+// ADR-0003: a BYOK product user has no promotion loop, no candidates and no nights, so this page used
 // to answer a question they never asked ("what has the loop promoted") and its empty state pointed at /start
 // to "produce one" -- a concept this edition does not have.
 //

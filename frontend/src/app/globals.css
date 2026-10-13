@@ -1,16 +1,94 @@
 @import "tailwindcss";
 
+/* Colour tokens (Pravrudhi-Nyaya, 13 Oct 2026). DARK is the base; LIGHT is set under :root[data-theme="light"] and, for "System", under the
+   prefers-color-scheme media query when no explicit choice has been made (:root:not([data-theme])). A tiny inline script in the document head
+   sets data-theme from localStorage before first paint (components/ThemeScript.tsx). Every pair used for text is checked to WCAG AA in BOTH themes by
+   src/lib/theme/contrast.spec.ts, which reads the values below: change a value here and that test re-computes the ratios. */
 @theme {
-  --color-bg: #0b0d10;
-  --color-surface: #121519;
-  --color-surface-raised: #181c22;
-  --color-border: #22262d;
-  --color-text: #e6e9ee;
-  --color-text-dim: #9aa3af;
+  --color-bg: #0f1114;
+  --color-surface: #15181d;
+  --color-surface-raised: #1b2027;
+  --color-border: #3a414b;
+  --color-control-border: #6b7480;
+  --color-text: #e8eaee;
+  --color-text-dim: #a2abb8;
   --color-accent: #6ee7b7;
+  --color-on-accent: #0f1114;
   --color-accent-dim: #2f6f56;
   --color-warn: #f2b84b;
   --color-danger: #f2707a;
+  --color-ok: #5fd39a;
+  --color-info: #7fb2ff;
+  --color-note: #b9a2ff;
+}
+
+/* Light theme. */
+:root[data-theme="light"] {
+  --color-bg: #f7f6f2;
+  --color-surface: #ffffff;
+  --color-surface-raised: #efede6;
+  --color-border: #bdb8aa;
+  --color-control-border: #7d786a;
+  --color-text: #1c1b18;
+  --color-text-dim: #55524a;
+  --color-accent: #0f5c4d;
+  --color-on-accent: #ffffff;
+  --color-accent-dim: #b7dccf;
+  --color-warn: #7a4f00;
+  --color-danger: #a4262c;
+  --color-ok: #17633a;
+  --color-info: #1f4e8c;
+  --color-note: #5b3f9a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --color-bg: #f7f6f2;
+    --color-surface: #ffffff;
+    --color-surface-raised: #efede6;
+    --color-border: #bdb8aa;
+    --color-control-border: #7d786a;
+    --color-text: #1c1b18;
+    --color-text-dim: #55524a;
+    --color-accent: #0f5c4d;
+    --color-on-accent: #ffffff;
+    --color-accent-dim: #b7dccf;
+    --color-warn: #7a4f00;
+    --color-danger: #a4262c;
+    --color-ok: #17633a;
+    --color-info: #1f4e8c;
+    --color-note: #5b3f9a;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme]) {
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+  }
+}
+
+/* Derived tones: a tint for the box, a line for its border, a hover wash. They follow whichever theme is active. */
+:root {
+  --color-ok-bg: color-mix(in srgb, var(--color-ok) 12%, var(--color-surface));
+  --color-ok-border: color-mix(in srgb, var(--color-ok) 45%, transparent);
+  --color-warn-bg: color-mix(in srgb, var(--color-warn) 12%, var(--color-surface));
+  --color-warn-border: color-mix(in srgb, var(--color-warn) 45%, transparent);
+  --color-warn-mark: color-mix(in srgb, var(--color-warn) 28%, var(--color-surface));
+  --color-danger-bg: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  --color-danger-border: color-mix(in srgb, var(--color-danger) 45%, transparent);
+  --color-info-bg: color-mix(in srgb, var(--color-info) 12%, var(--color-surface));
+  --color-info-border: color-mix(in srgb, var(--color-info) 45%, transparent);
+  --color-note-bg: color-mix(in srgb, var(--color-note) 12%, var(--color-surface));
+  --color-note-border: color-mix(in srgb, var(--color-note) 45%, transparent);
+  --color-hover: color-mix(in srgb, var(--color-text) 7%, transparent);
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 88%, var(--color-text));
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
 }
 
 html,
@@ -34,6 +112,23 @@ body {
   box-sizing: border-box;
 }
 
+/* Headings: a system serif stack (no webfont: no third-party request from a firm's browser, no layout shift). Tables and figures use tabular numerals. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+}
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* A visible keyboard focus ring in both themes. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 ::selection {
   background: var(--color-accent-dim);
   color: var(--color-text);
@@ -52,6 +147,23 @@ body {
 }
 
 @media print {
+  /* A printed memo is always the light theme, whatever the screen shows. */
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-border: #bdb8aa;
+    --color-text: #000000;
+    --color-text-dim: #333333;
+    --color-accent: #0f5c4d;
+    --color-warn: #7a4f00;
+    --color-danger: #a4262c;
+    --color-ok: #17633a;
+    --color-info: #1f4e8c;
+    --color-note: #5b3f9a;
+  }
   nav,
   aside {
     display: none !important;

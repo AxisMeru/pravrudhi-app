@@ -75,9 +75,14 @@ test("a statute is looked up by the section the contract names, and only the mat
   assert.equal(pickCorpusHit(undefined, "x"), null);
 });
 
-test("the before-you-submit retention notice is the engine's own text, word for word", async () => {
-  const { PRE_SUBMIT_RETENTION, FILE_NOTE, CITATION_NEXT_STEP } = await import("./surfaceCopy");
-  const engine = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineRetentionNotice.json"), "utf8")) as { text: string };
-  assert.equal(PRE_SUBMIT_RETENTION, engine.text);
+test("the before-you-submit retention notice is R1's exact text, with no training promise and none of the dropped sentences (13 Oct)", async () => {
+  const { PRE_SUBMIT_RETENTION, PRE_SUBMIT_LINK_TEXT, FILE_NOTE, CITATION_NEXT_STEP } = await import("./surfaceCopy");
+  assert.equal(
+    PRE_SUBMIT_RETENTION,
+    "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. More under Data handling.",
+  );
+  for (const w of ["audit", "train", "evaluat", "no fact text", "kept for 7 days", "partner", "hour"]) assert.ok(!PRE_SUBMIT_RETENTION.toLowerCase().includes(w), `the notice must not contain ${w}`);
+  assert.ok(PRE_SUBMIT_RETENTION.endsWith(`${PRE_SUBMIT_LINK_TEXT}.`));
   for (const t of [FILE_NOTE, CITATION_NEXT_STEP]) assert.ok(!/verified|guarantee|never stored/i.test(t), t);
 });
+

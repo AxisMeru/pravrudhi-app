@@ -81,7 +81,7 @@ test("empty inputs send no request", async ({ page }) => {
 test("the citation check is not in the nav until the build turns it on, and the page still opens by URL", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD === "1", "the nav-on build is covered in citations-product-status.spec.ts");
   await page.goto("/matters");
-  await expect(page.getByRole("link", { name: "Matters" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Offence rules" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Citation check" })).toHaveCount(0);
   await page.goto("/citations");
   await expect(page.getByTestId("citation-preview-label")).toBeVisible();

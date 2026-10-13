@@ -89,9 +89,11 @@ export const DO_NOT_CLAIM: readonly RegExp[] = [
   /\bNI\s*138\b|negotiable instruments|cheque|dishonou?r/i,
 ];
 
-// Before-you-submit notice (design-partner audit gap 1). The text is the engine's own RETENTION_NOTICE, word for word (drift test against
-// fixtures/engineRetentionNotice.json); the page used to show it only after a result came back.
-export const PRE_SUBMIT_RETENTION = "Don't submit real names or case details; anonymous submissions are kept up to 7 days for audit and are never used for training or evaluation.";
+// Before-you-submit notice, R1's text (13 Oct). It is written here, not copied from the engine: the engine's own retention_notice still carries a training promise
+// the app does not enforce, so the app never displays it (CaveatStrip). The closing "Data handling" is rendered as a link to /data-handling (RetentionBefore).
+export const PRE_SUBMIT_LINK_TEXT = "Data handling";
+export const PRE_SUBMIT_RETENTION =
+  "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. More under Data handling.";
 // Replaces "Files are read in your browser and never uploaded.", which read as if the text were not sent either.
 export const FILE_NOTE =
   "The file itself is not uploaded; the text read from it, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
@@ -108,7 +110,7 @@ export const NOT_SIGNED_IN_TEXT = "You are not signed in, so nothing has been se
 /** When the sign-in check gets no answer: nothing is sent and there is no anonymous fallback (R2). */
 export const SIGN_IN_UNVERIFIED_TEXT = "We could not check your sign-in, so nothing was sent. Try again in a moment.";
 export const ANONYMOUS_DEMO_BUTTON = "Use the anonymous demo";
-// The retention period is taken from the engine's own retention notice above (PRE_SUBMIT_RETENTION, drift-tested against fixtures/engineRetentionNotice.json), not typed here.
-const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept up to \d+ days/)?.[0] ?? "";
+// The retention period is taken from the notice above (PRE_SUBMIT_RETENTION), not typed here.
+const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept for up to \d+ days/)?.[0] ?? "";
 export const ANONYMOUS_DEMO_NOTE = `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${ANONYMOUS_RETENTION_PHRASE}.`;
 export const SIGN_IN_LINK_TEXT = "Sign in";

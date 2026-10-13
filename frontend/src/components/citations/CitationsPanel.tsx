@@ -78,7 +78,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
       <h2 id="citations-panel-title" className="text-sm font-medium text-[var(--color-text)]">
         Case citations
       </h2>
-      <p className="w-fit rounded-md border border-amber-500/40 px-2 py-0.5 text-xs text-amber-300">{PREVIEW_LABEL}</p>
+      <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]">{PREVIEW_LABEL}</p>
       <label className="block text-sm text-[var(--color-text)]">
         One citation per line. To check that words appear in the case, add them after a | on the same line; without them only the citation is looked up.
         <textarea
@@ -93,7 +93,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
         type="button"
         onClick={run}
         disabled={busy || !text.trim()}
-        className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
       >
         {busy ? <Loader2 size={14} className="animate-spin" /> : <SearchCheck size={14} />}
         {busy ? "Checking…" : "Check citations"}
