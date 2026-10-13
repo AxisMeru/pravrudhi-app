@@ -80,3 +80,15 @@ test("the explicit-word list reads as intended", () => {
   assert.match("sexual intercourse", EXPLICIT);
   assert.doesNotMatch("BNS 69 · ingredient 1", EXPLICIT);
 });
+
+// R2's survivor (13 Oct): the screening memo heading for BNS 69 is exactly "BNS 69", never "BNS 69 ()", and the Matters memo's " (defence)" suffix stays on other contracts only.
+test("the screening memo heading for BNS 69 is exactly 'BNS 69'; the Matters memo keeps ' (defence)' on other contracts only", () => {
+  const c = contract("bns69", [el(REF.elements[0])]);
+  const memo = buildScreeningMemo(result(c), { engineVersion: "0", generatedAt: "t" });
+  assert.ok(memo.split("\n").includes("## BNS 69"), "the heading line is exactly '## BNS 69'");
+  assert.doesNotMatch(memo, /BNS 69 \(\)/);
+  const ref = buildMemo(result(contract("bns69", [el(REF.elements[0]), el(REF.denials[0], { is_denial: true })])), { engineVersion: "0", generatedAt: "t" });
+  assert.doesNotMatch(ref, /\(defence\)/);
+  const other = buildMemo(result(contract("bns85", [el(contractElements.contracts.bns85.elements[0]), el(contractElements.contracts.bns85.denials[0] ?? "a defence", { is_denial: true })])), { engineVersion: "0", generatedAt: "t" });
+  assert.match(other, /\(defence\)/);
+});

@@ -225,9 +225,9 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
             or the cited facts. The element findings above come from the judge, which cites the supporting fact
             from the facts you supplied.
           </div>
-          {c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
-          {c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
-          {c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.unlicensed_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">unlicensed: {c.lean.unlicensed_claims.join(", ")}</div>}
+          {!referenceOf(c.contract_id) && c.lean.omitted_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">omitted: {c.lean.omitted_claims.join(", ")}</div>}
           {(() => {
             const att = leanAttestationView(c.lean_attestation);
             return att && (
