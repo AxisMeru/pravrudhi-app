@@ -3,28 +3,35 @@
   "fixtures": [
     {
       "id": "proof-path",
-      "label": "PROOF-capable: a promise to marry made with no intention of keeping it (validated contract bns69)",
+      "label": "PROOF-capable: a dishonest inducement to hand over money on a false claim of authority (cheating, validated contract ipc415_property)",
       "path": "proof",
-      "contract_ids": ["bns69"],
+      "contract_ids": [
+        "ipc415_property"
+      ],
       "wordings": {
         "plain": [
-          "Meera and Arjun were in a relationship for two years. In March, Arjun told Meera he would marry her once his father returned from abroad.",
-          "In February, Arjun had written to a friend that he had already decided not to marry Meera and only wanted her to stay with him.",
-          "Because Arjun promised to marry her, Meera agreed in April to a sexual relationship with him."
+          "Kavita runs a small shop. In June, Rohan told her he was an authorised wholesale dealer in cloth and offered her forty bales at a discount if she paid in advance.",
+          "Rohan knew he had no stock and no authority to sell cloth; in May he had written to a friend that he would take advance payments and not deliver anything.",
+          "Because of what Rohan said, Kavita paid him Rs 60,000 in cash and got a signed receipt; no cloth was ever delivered."
         ],
         "formal": [
-          "The complainant, Meera, and the accused, Arjun, had been in a relationship for two years. In March the accused made a promise of marriage to the complainant, to be performed on his father's return from abroad.",
-          "In a message sent to a third person in February, before the promise was made, the accused recorded that he had resolved not to marry the complainant and wished only to keep her with him.",
-          "On the faith of the promise of marriage, the complainant consented in April to sexual intercourse with the accused."
+          "The complainant, Kavita, carries on a retail business. In June the accused, Rohan, represented to the complainant that he was an authorised wholesale dealer in cloth and offered forty bales on payment of an advance.",
+          "The accused knew at the time that he held no stock and had no authority to sell; in a message to a third person in May he had recorded that he intended to take advances and not to deliver.",
+          "Induced by that representation, the complainant delivered Rs 60,000 to the accused as an advance, and no goods were delivered."
         ]
       },
-      "expect": { "recorded_runs": 0, "outcomes": null }
+      "expect": {
+        "recorded_runs": 0,
+        "outcomes": null
+      }
     },
     {
       "id": "abstain-path",
       "label": "ABSTAIN: facts that do not show the required conditions (validated contract bns85)",
       "path": "abstain",
-      "contract_ids": ["bns85"],
+      "contract_ids": [
+        "bns85"
+      ],
       "wordings": {
         "plain": [
           "Nisha and Karan married in 2019 and live in Pune with his parents.",
@@ -37,13 +44,18 @@
           "The families of the parties meet on festive occasions, and no complaint of any kind has been made by either against the other."
         ]
       },
-      "expect": { "recorded_runs": 0, "outcomes": null }
+      "expect": {
+        "recorded_runs": 0,
+        "outcomes": null
+      }
     },
     {
       "id": "refer-path",
       "label": "REFER: a contract that is not validated is always referred (bns316_misappropriation)",
       "path": "refer",
-      "contract_ids": ["bns316_misappropriation"],
+      "contract_ids": [
+        "bns316_misappropriation"
+      ],
       "wordings": {
         "plain": [
           "Ravi gave his neighbour Sunil a laptop to keep safe while he travelled for a month.",
@@ -56,7 +68,10 @@
           "On the complainant's return and demand for the laptop, the accused stated that it had been lost."
         ]
       },
-      "expect": { "recorded_runs": 0, "outcomes": null }
+      "expect": {
+        "recorded_runs": 0,
+        "outcomes": null
+      }
     }
   ]
 }
