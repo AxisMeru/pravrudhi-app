@@ -50,7 +50,7 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = [
   },
   {
     id: "frontier",
-    heading: "Frontier route",
+    heading: "Frontier model (optional)",
     // The existing toggle text, exactly (lib/frontierReader.ts): a label and, where the deployment has not switched it on, the reason it is unavailable.
     paragraphs: [`${FRONTIER_TOGGLE_LABEL}. ${FRONTIER_UNAVAILABLE_TEXT}`],
   },

@@ -12,8 +12,8 @@ export const WORKFLOWS: readonly WorkflowRow[] = [
   { name: "Screening orchestration", status: "Building", note: "It will run only after it matches the current screening on a fixed comparison test." },
   { name: "Intake", status: "Planned" },
   { name: "Memo preparation", status: "Planned" },
-  { name: "Matter watch", status: "Planned" },
-  { name: "Hearing prep", status: "Planned" },
+  { name: "Matter update review", status: "Planned" },
+  { name: "Hearing preparation", status: "Planned" },
 ];
 
 export const WORKFLOWS_CLOSING = "A workflow runs only when you start it, and only on the matter you give it.";

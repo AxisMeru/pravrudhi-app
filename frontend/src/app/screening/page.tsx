@@ -23,7 +23,7 @@ import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/fac
 import { buildRunRecord, buildScreeningMemo } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
@@ -338,13 +338,13 @@ export default function ScreeningPage() {
             <div className="text-xs text-[var(--color-text-dim)]">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
             <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
-                Download memo (.md)
+                {EXPORT_LABELS.memo}
               </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
-                Print / save as PDF
+                {EXPORT_LABELS.print}
               </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
-                Download run record (.json)
+                {EXPORT_LABELS.runRecord}
               </button>
             </div>
             {result.contracts.map((c) => (

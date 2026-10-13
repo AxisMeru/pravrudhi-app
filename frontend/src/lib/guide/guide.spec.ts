@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { BANNED, scanSource } from "../wordingAudit";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
-import { DEFENCE_HEADING } from "../screening/copy";
+import { DEFENCE_HEADING, EXPORT_LABELS } from "../screening/copy";
 import { OFFENCES } from "../screening/offences";
 import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
@@ -78,4 +78,17 @@ test("the guide for firm users: R1's two lines, the covered offences (the valida
   assert.doesNotMatch(all, /defeater/i);
   const g = GUIDE_GLOSSARY.find((x) => x.term === DEFENCE_HEADING)!;
   assert.equal(`${g.term}: ${g.meaning}`, "A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.");
+});
+
+test("the guide names the three export buttons with the exact text the screening page shows (R1, 13 Oct)", () => {
+  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" });
+  const page = readFileSync(join(root, "src", "app", "screening", "page.tsx"), "utf8");
+  for (const k of ["memo", "print", "runRecord"]) assert.ok(page.includes(`{EXPORT_LABELS.${k}}`), `the page renders EXPORT_LABELS.${k}`);
+  for (const label of Object.values(EXPORT_LABELS)) assert.ok(GUIDE_IMAGES.memo.alt.includes(label), `the guide names "${label}"`);
+});
+
+test("the guide's export step says what the run record holds (the facts you entered, the result, the versions)", () => {
+  const s = GUIDE_STEPS.find((x) => x.id === "export")!;
+  assert.match(s.text, /includes the facts you entered/);
+  assert.doesNotMatch(s.text, /records what was sent/);
 });

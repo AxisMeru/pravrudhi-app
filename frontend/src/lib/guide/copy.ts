@@ -5,7 +5,7 @@
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { OFFENCES } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, EXPORT_LABELS } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
@@ -50,7 +50,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   memo: {
     file: "06-memo-export.png",
-    alt: "The three export buttons under the checklist: Download memo, Print / save as PDF and Download run record.",
+    alt: `The three export buttons under the checklist: ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${EXPORT_LABELS.runRecord}.`,
   },
 };
 
@@ -116,7 +116,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Download the screening memo for your file, and the run record, which records what was sent and what came back. Both carry the run, the versions and the standing line that this is a screening aid.",
+    text: "Download the screening memo for your file, and the run record. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both files are built in your browser and leave it when you save them, so keep them as you would the matter file.",
     image: GUIDE_IMAGES.memo,
   },
 ];

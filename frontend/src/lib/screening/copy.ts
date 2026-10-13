@@ -1,6 +1,9 @@
 // Every NEW user-visible string of the Screening view lives here, so R1 reviews one list before any push (O8, #830). Strings the view reuses
 // (signed REFER and element texts, the cited-fact notes) are NOT repeated here. Rules: never "proved" or "established" at row level, never
 // "verbatim", never "the offence is made out", never advice; "Needs your review" is never styled as an error.
+/** The three export buttons under the checklist; the guide names them with these same strings. */
+export const EXPORT_LABELS = { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" } as const;
+
 export type Chip = "supported" | "suggested" | "not_supported" | "review";
 
 export const CHIP_LABEL: Readonly<Record<Chip, string>> = {
