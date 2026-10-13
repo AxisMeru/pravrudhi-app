@@ -20,7 +20,7 @@ test("no sentence on the safety page calls the set sealed or unseen, or calls th
     for (const m of s.matchAll(/production configuration/gi)) assert.match(s.slice(Math.max(0, m.index! - 8), m.index! + m[0].length), /not the production configuration/i, s);
   }
   assert.match(SAFETY_MATERIAL, /^A set of 372 real court items \(Obj-1b\) that we have seen\. A general-purpose AI model read it in an earlier study, so it is no longer unseen by every model\. 51 were set aside/);
-  assert.doesNotMatch(SAFETY_MATERIAL, /overlap|8-gram|training data|kept out/i, "R1 and R2 (12 Oct): the overlap sentence is deleted from the page");
+  for (const w of ["overlap", "8-gram", "training data", "kept out"]) assert.ok(!SAFETY_MATERIAL.toLowerCase().includes(w), "R1 and R2 (12 Oct): the overlap sentence is deleted from the page");
   assert.doesNotMatch(SAFETY_MATERIAL, /sealed|fixed set/i);
   assert.equal(
     SAFETY_STACK,

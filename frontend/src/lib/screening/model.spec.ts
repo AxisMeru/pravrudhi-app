@@ -8,7 +8,7 @@ import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } fr
 import { CHIP_LABEL, DEFENCE_UNMEASURED_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
-import { LEAN_PASS_OUTCOME, contractReferral, rowsFor, summarize, whatToCheckFor } from "./model";
+import { LEAN_PASS_OUTCOME, contractReferral, defenceShown, rowsFor, summarize, whatToCheckFor } from "./model";
 
 const FACTS: AnalyseFactsResult["facts"] = [
   { id: "F1", text: "Invented: Ravi told Meena the toy lorry was his and sold it to her.", sha256: "a".repeat(64) },
@@ -202,4 +202,18 @@ test("R1 (#283, 13 Oct): the defence line is one exact constant with no digits, 
   assert.equal(withDefence[h + 2], DEFENCE_UNMEASURED_NOTE);
   assert.equal(withDefence.filter((l) => l === DEFENCE_UNMEASURED_NOTE).length, 1);
   assert.ok(!mk(contract([el(0), el(1), el(2)])).includes(DEFENCE_UNMEASURED_NOTE), "no defence row, no line");
+});
+
+test("R2 (13 Oct): defenceShown follows the checklist exactly: a suggested or an uncertain defence counts, a plain not-established one does not", () => {
+  const d = (over: Partial<AnalyseFactsElement>) => el(0, { is_denial: true, element: "a defence", ...over });
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established" })], { outcome: "ABSTAIN" })), false, "plain not established");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established", screening_signal: { p: 0.9, supported: true } })], { outcome: "ABSTAIN" })), true, "suggested by the screening signal");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_established" })], { outcome: "ABSTAIN", uncertain: ["a defence"] })), true, "uncertain");
+  assert.equal(defenceShown(contract([el(0), d({ status: "not_confirmed" })], { outcome: "REFER_TO_LAWYER" })), true, "not confirmed");
+  assert.equal(defenceShown(contract([el(0)], { outcome: "DENIAL" })), true, "a DENIAL outcome");
+  assert.equal(defenceShown(contract([el(0)], { outcome: "PROOF" })), false);
+  // the same answer the checklist rows give
+  for (const c of [contract([el(0), d({ status: "not_established" })]), contract([el(0), d({ status: "not_established", screening_signal: { p: 0.9, supported: true } })])]) {
+    assert.equal(defenceShown(c), rowsFor(c, FACTS).defences.length > 0);
+  }
 });

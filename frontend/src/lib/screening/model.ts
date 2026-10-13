@@ -91,16 +91,16 @@ export function rowFor(contract: AnalyseFactsContract, el: ScreenedElement, fact
   };
 }
 
-/** True when a defence is shown for this contract: a defence element that is not a plain "not established" (the checklist drops those), or a DENIAL outcome. One rule for the checklist, the memos and Matters. */
-export function defenceShown(contract: AnalyseFactsContract): boolean {
-  return contract.outcome === "DENIAL" || contract.elements.some((e) => e.is_denial && e.status !== "not_established");
-}
-
 /** The rows of one contract: ingredients in the engine's order, then any defence that was found (never shown as an error, always a review item). */
 export function rowsFor(contract: AnalyseFactsContract, facts: AnalyseFactsResult["facts"]): { ingredients: ScreeningRow[]; defences: ScreeningRow[] } {
   const all = (contract.elements ?? []).map((e) => rowFor(contract, e as ScreenedElement, facts));
   const defences = all.filter((r) => r.isDefence && r.chip !== "not_supported").map((r) => ({ ...r, chip: "review" as Chip }));
   return { ingredients: all.filter((r) => !r.isDefence), defences };
+}
+
+/** True when a defence is shown for this contract: a DENIAL outcome, or any defence row the checklist keeps (rowsFor drops only the plain "not supported" ones; a suggested or uncertain one stays). One rule for the checklist, the memos and Matters. */
+export function defenceShown(contract: AnalyseFactsContract): boolean {
+  return contract.outcome === "DENIAL" || rowsFor(contract, []).defences.length > 0;
 }
 
 /**

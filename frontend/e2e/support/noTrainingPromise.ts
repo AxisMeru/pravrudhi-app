@@ -1,17 +1,24 @@
-// The rule for a promise about how submissions are used for training or evaluation. The app states only what the code enforces (R1/Lead-2, 13 Oct; widened by R2).
+// The rule for a promise about how submissions feed the models. The app states only what the code enforces (R1/Lead-2, 13 Oct; widened by R2).
 // The unit scan (src/lib/noTrainingPromise.spec.ts) and the browser tests import this one module. Sample phrases are encoded below, so this file holds none in readable form.
 //
 // Per sentence, three kinds of word have to meet: a negating or excluding word, a word for teaching or scoring a model, and a word for using or including the
 // user's material (or the teaching verb followed by on/with/from/using the user's data). A plain statement about how the models were built has no use word and passes.
 // JSON string boundaries and brackets also end a sentence.
-const NEG = String.raw`(?:\bnever\b|\bnot\b|\bno\b|\bcannot\b|\bwithout\b|\w+n't\b|\bexclud\w*|\bexclusion\b)`;
-const TOPIC = String.raw`(?:\btrain\w*|\bfine-?tun\w*|\bevaluat\w*|\bmodel (?:improvement|development)\b|\b(?:improv|develop)\w*\s+(?:\w+\s+){0,2}models?\b|\bteach\w*\s+(?:\w+\s+){0,2}models?\b)`;
+const NEG = String.raw`(?:\bnever\b|\bnot\b|\bno\b|\bnothing\b|\bnone\b|\bnobody\b|\bno one\b|\bneither\b|\bnor\b|\bcannot\b|\bwithout\b|\w+n't\b|\bexclud\w*|\bexclusion\b|\bout of\b|\bkept out\b|\bopt\w*[- ]out\b)`;
+const TOPIC = String.raw`(?:\btrain\w*|\bfine[- ]?tun\w*|\btuning\b|\bevaluat\w*|\bimprov\w*|\blearn\w*|\bmodel (?:improvement|development)\b|\bdevelop\w*\s+(?:\w+\s+){0,2}models?\b|\bteach\w*\s+(?:\w+\s+){0,2}models?\b)`;
+/** The wide filter for the fail-closed review: any sentence about teaching, tuning, scoring or improving a model. A shipped sentence that matches must be on the reviewed list. */
+export const WIDE_TOPIC = new RegExp(String.raw`train|fine[- ]?tun|\btuning\b|evaluat|\blearn|improv\w*[^.]{0,30}model|model[^.]{0,30}improv`, "i");
 const USE = String.raw`(?:\bus(?:e|ed|es|ing)\b|\butili[sz]\w*|\breus\w*|\bincluded?\b|\bincluding\b|\bpart of\b|\bexclud\w*|\bexclusion\b|\bretain\w*|\bkept\b)`;
 const YOURS = String.raw`(?:\byour\b|\bour\b|\buser\w*|\bcustomer\w*|\bsubmi\w*|\bfacts?\b|\bdata\b|\binputs?\b|\bmatters?\b|\bnarratives?\b)`;
 const has = (s: string, rx: string) => new RegExp(rx, "i").test(s);
 const sentences = (text: string): string[] => text.replace(/\s+/g, " ").split(/(?<=[.;!?])\s+|["{}\[\]]/);
+const TAIL = new RegExp(["\\bused for", "training or evaluation"].join(" "), "i");
 const flag = (s: string): boolean =>
-  has(s, NEG) && ((has(s, TOPIC) && has(s, USE)) || new RegExp(String.raw`\btrain\w*\s+(?:\w+\s+){0,2}(?:on|with|from|using)\b[^.;]{0,30}${YOURS}`, "i").test(s) || new RegExp(String.raw`\bfine-?tun\w*\s+(?:\w+\s+){0,2}(?:on|with|from|using)\b[^.;]{0,30}${YOURS}`, "i").test(s) || has(s, String.raw`\bmodel training\b`));
+  TAIL.test(s) ||
+  (has(s, NEG) &&
+    ((has(s, TOPIC) && has(s, USE)) ||
+      new RegExp(String.raw`\b(?:train|fine[- ]?tun|learn)\w*\s+(?:\w+\s+){0,2}(?:on|with|from|using)\b[^.;]{0,30}${YOURS}`, "i").test(s) ||
+      has(s, String.raw`\bmodel training\b`)));
 export const promiseHits = (text: string): string[] => sentences(text).filter(flag).map((s) => s.slice(0, 120));
 /** For toContainText / not.toContainText in the browser tests: a body text has no promise. Use `expect(promiseHits(await body.innerText())).toEqual([])`. */
 export const hasPromise = (text: string): boolean => promiseHits(text).length > 0;
@@ -41,6 +48,12 @@ export const PROMISE_SAMPLES: readonly string[] = [
   "Your text @s used for n# tra@n@ng purpose.",
   "Your text @s n#t ut@l@sed for model development.",
   "Your text @s n~ver reused to teach the model.",
+  // R2's second list
+  "Your subm@ss@#ns are n#t used by us to @mprove anyth@ng.",
+  "N#th@ng you subm@t @s used for tra@n@ng or evaluat@#n.",
+  "Your text stays #ut #f any model tra@n@ng run.",
+  "We d# n#t learn from your subm@ss@#ns.",
+  "We do not f@ne tun@ng on your facts, and your text @s n~ver used for f@ne tun@ng.",
 ].map(D);
 export const INNOCENT_SAMPLES: readonly string[] = [
   "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier.",
