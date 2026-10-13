@@ -86,3 +86,14 @@ test("the before-you-submit retention notice is R1's exact text, with no trainin
   for (const t of [FILE_NOTE, CITATION_NEXT_STEP]) assert.ok(!/verified|guarantee|never stored/i.test(t), t);
 });
 
+
+test("R1 (#114, 13 Oct): the unreadable-answer string is exactly R1's, one constant used by Screening and Matters through the classifier", async () => {
+  const { INVALID_ENGINE_ANSWER_TEXT } = await import("./surfaceCopy");
+  const { classifyAnalyseError } = await import("./serviceStatus");
+  const { InvalidEngineAnswerError } = await import("./api");
+  assert.equal(INVALID_ENGINE_ANSWER_TEXT, "The engine's answer could not be read, so no result is shown. This says nothing about your facts. Try again, or ask a lawyer to review the matter.");
+  assert.doesNotMatch(INVALID_ENGINE_ANSWER_TEXT, /\d|needs your review|nothing found|no issues/i);
+  const c = classifyAnalyseError(new InvalidEngineAnswerError("r9"));
+  assert.deepEqual({ kind: c.kind, message: c.message, runId: c.runId }, { kind: "invalid_answer", message: INVALID_ENGINE_ANSWER_TEXT, runId: "r9" });
+  assert.equal(classifyAnalyseError(new InvalidEngineAnswerError(null)).runId, null);
+});

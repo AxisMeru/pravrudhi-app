@@ -489,34 +489,73 @@ test("the anonymous-demo note takes its retention period from the before-you-sub
   assert.doesNotMatch(ANONYMOUS_DEMO_NOTE, /does not use the second judge/);
 });
 
-test("#113 display rule: only the decide result's own fields survive at every depth; free text an agent wrote around or inside it is dropped at the boundary", async () => {
-  const { withFactText, DECIDE_TOP_KEYS } = await import("./api");
-  const M = "AGENT-FREE-TEXT-MARKER";
+function nestedWire(M: string) {
   const extra = { display_text: M, message: M, reply: M, summary: M, text_note: M, agent_message: M, narrative: M, content: M };
-  const wire = {
+  return {
     run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", retention_notice: M, contract_set_version: M, validated_set_version: M, ...extra,
     standard: { applied: "x", in_judge_prompt: true, proceeding_posture: null, requested: "x", source: "s", ...extra },
     facts: [{ id: "F1", sha256: createHash("sha256").update("submitted fact").digest("hex"), ...extra }],
     contracts: [{
-      contract_id: "c1", outcome: "ABSTAIN", reason: "r", assertions: { a: true, b: M }, lean: { verdict: "grounded", denied_claims: ["x", { note: M }], unlicensed_claims: [], omitted_claims: [], ...extra },
-      lean_outcome: null, lean_attestation: { binary_sha256: "1", wire_sha256: "2", verdict: "ok", ...extra }, uncertain: ["e1", { note: M }], statute_text_mismatch: null,
+      contract_id: "c1", outcome: "ABSTAIN", reason: "r", assertions: { e1: true }, lean: { verdict: "grounded", denied_claims: ["x"], unlicensed_claims: [], omitted_claims: [], ...extra },
+      lean_outcome: null, lean_attestation: { binary_sha256: "1", wire_sha256: "2", verdict: "ok", ...extra }, uncertain: ["e1"], statute_text_mismatch: null,
       citations: [{ act: "a", corpus_id: "c", in_corpus: true, section: "s", title: "t", ...extra }], ...extra,
       elements: [{ element: "e1", status: "established", claimed: true, p_established: 0.9, is_denial: false, fact_id: "F1", quote: null, start: null, end: null, quote_check: null, screening_signal: { p: 0.9, supported: true, ...extra }, ...extra }],
     }],
   };
+}
+
+test("#113 display rule: only the decide result's own fields survive at every depth; free text an agent wrote around or inside it is dropped at the boundary", async () => {
+  const { withFactText, DECIDE_TOP_KEYS } = await import("./api");
+  const M = "AGENT-FREE-TEXT-MARKER";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a deep read of a loosely typed projection
-  const out = (await withFactText(wire as never, ["submitted fact"])) as unknown as Record<string, any>;
+  const out = (await withFactText(nestedWire(M) as never, ["submitted fact"])) as unknown as Record<string, any>;
   assert.ok(!JSON.stringify(out).includes(M), "no marker survives anywhere");
   assert.deepEqual(Object.keys(out).sort(), ["contracts", "facts", "judge", "provenance", "run_id", "score_sha256", "standard"]);
   assert.deepEqual(Object.keys(out.facts[0]).sort(), ["id", "sha256", "text"]);
   assert.equal(out.facts[0].text, "submitted fact");
-  assert.deepEqual(out.contracts[0].assertions, { a: true });
-  assert.deepEqual(out.contracts[0].uncertain, ["e1"]);
-  assert.deepEqual(out.contracts[0].lean.denied_claims, ["x"]);
+  assert.deepEqual(out.contracts[0].assertions, { e1: true });
   assert.deepEqual(Object.keys(out.contracts[0].elements[0].screening_signal).sort(), ["p", "supported"]);
-  assert.equal(out.contracts[0].elements[0].element, "e1");
   assert.deepEqual([...DECIDE_TOP_KEYS].sort(), ["contracts", "facts", "judge", "provenance", "run_id", "score_sha256", "standard"]);
-  // a field the engine adds later is dropped until it is listed on purpose
-  const later = (await withFactText({ ...wire, new_field: 1 } as never, ["submitted fact"])) as unknown as Record<string, unknown>;
+  const later = (await withFactText({ ...nestedWire(M), new_field: 1 } as never, ["submitted fact"])) as unknown as Record<string, unknown>;
   assert.ok(!("new_field" in later));
+});
+
+test("#113 fail closed: a listed field of the wrong type, or an unknown assertions key, makes the WHOLE answer unreadable (InvalidEngineAnswerError carrying the run id)", async () => {
+  const { withFactText, InvalidEngineAnswerError, invalidAnswerRecord } = await import("./api");
+  const M = "AGENT-FREE-TEXT-MARKER";
+  const wrong: Array<[string, (w: ReturnType<typeof nestedWire>) => void]> = [
+    ["facts is an object", (w) => { (w as Record<string, unknown>).facts = { a: M }; }],
+    ["a fact is a string", (w) => { (w as Record<string, unknown>).facts = [M]; }],
+    ["contracts is an object", (w) => { (w as Record<string, unknown>).contracts = { a: M }; }],
+    ["contracts is a string", (w) => { (w as Record<string, unknown>).contracts = M; }],
+    ["a contract is a string", (w) => { (w as Record<string, unknown>).contracts = [M]; }],
+    ["elements is an object", (w) => { (w.contracts[0] as Record<string, unknown>).elements = { a: M }; }],
+    ["an element is a string", (w) => { (w.contracts[0] as Record<string, unknown>).elements = [M]; }],
+    ["citations is a string", (w) => { (w.contracts[0] as Record<string, unknown>).citations = M; }],
+    ["uncertain is an object", (w) => { (w.contracts[0] as Record<string, unknown>).uncertain = { a: M }; }],
+    ["uncertain holds an object", (w) => { (w.contracts[0] as Record<string, unknown>).uncertain = [{ a: M }]; }],
+    ["assertions is a string", (w) => { (w.contracts[0] as Record<string, unknown>).assertions = M; }],
+    ["assertions has a free-text key", (w) => { (w.contracts[0] as Record<string, unknown>).assertions = { [M]: true }; }],
+    ["assertions has a non-boolean value", (w) => { (w.contracts[0] as Record<string, unknown>).assertions = { e1: M }; }],
+    ["lean is a string", (w) => { (w.contracts[0] as Record<string, unknown>).lean = M; }],
+    ["a lean claim list is an object", (w) => { (w.contracts[0].lean as Record<string, unknown>).denied_claims = { a: M }; }],
+    ["lean_attestation is an array", (w) => { (w.contracts[0] as Record<string, unknown>).lean_attestation = [M]; }],
+    ["standard is a string", (w) => { (w as Record<string, unknown>).standard = M; }],
+    ["a scalar field holds an object", (w) => { (w.contracts[0] as Record<string, unknown>).reason = { a: M }; }],
+    ["an element scalar holds a list", (w) => { (w.contracts[0].elements[0] as Record<string, unknown>).status = [M]; }],
+    ["screening_signal is a string", (w) => { (w.contracts[0].elements[0] as Record<string, unknown>).screening_signal = M; }],
+    ["run_id holds an object", (w) => { (w as Record<string, unknown>).run_id = { a: M }; }],
+  ];
+  for (const [name, mutate] of wrong) {
+    const w = nestedWire(M);
+    mutate(w);
+    await assert.rejects(() => withFactText(w as never, ["submitted fact"]), (e: unknown) => e instanceof InvalidEngineAnswerError && (e as InstanceType<typeof InvalidEngineAnswerError>).name === "InvalidEngineAnswerError", name);
+  }
+  // the run id travels with the error; the run-record body is only the marker and the id
+  const w = nestedWire(M);
+  (w.contracts[0] as Record<string, unknown>).elements = M;
+  const err = await withFactText(w as never, ["submitted fact"]).catch((e) => e);
+  assert.equal((err as { runId: string | null }).runId, "r1");
+  assert.deepEqual(JSON.parse(invalidAnswerRecord("r1")), { invalid_engine_answer: true, run_id: "r1" });
+  assert.deepEqual(JSON.parse(invalidAnswerRecord(null)), { invalid_engine_answer: true, run_id: null });
 });

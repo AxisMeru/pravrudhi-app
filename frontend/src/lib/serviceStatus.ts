@@ -1,6 +1,6 @@
 import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
-import { NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
+import { INVALID_ENGINE_ANSWER_TEXT, NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
 
 export interface ServiceWindowStatus {
   timezone: string;
@@ -87,6 +87,7 @@ export type AnalyseErrorKind =
   | "agent_unavailable"
   | "judges_offline"
   | "judges_warming"
+  | "invalid_answer"
   | "outside_window"
   | "server"
   | "network";
@@ -95,6 +96,8 @@ export interface ClassifiedError {
   kind: AnalyseErrorKind;
   message: string;
   retryAfter?: number;
+  /** Only for invalid_answer: the run id the unreadable answer carried, if it had one. */
+  runId?: string | null;
 }
 
 export function classifyAnalyseError(e: unknown): ClassifiedError {
@@ -104,6 +107,7 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
   if (name === "NotSignedInError") return { kind: "not_signed_in", message: NOT_SIGNED_IN_TEXT };
+  if (name === "InvalidEngineAnswerError") return { kind: "invalid_answer", message: INVALID_ENGINE_ANSWER_TEXT, runId: (e as { runId?: string | null }).runId ?? null };
   if (name === "SignInUnverifiedError") return { kind: "sign_in_unverified", message: SIGN_IN_UNVERIFIED_TEXT };
   if (e instanceof ApiError) {
     if (e.status === 429) {

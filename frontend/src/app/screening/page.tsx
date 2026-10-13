@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { FrontierToggle } from "@/components/screening/FrontierToggle";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
-import { ApiError, analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
+import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
 import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
 import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
@@ -55,6 +55,7 @@ export default function ScreeningPage() {
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [invalidRunId, setInvalidRunId] = useState<string | null | undefined>(undefined); // set (to the run id or null) only when the engine's answer was unreadable
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [svc, setSvc] = useState<StatusResult | null>(null);
@@ -124,6 +125,7 @@ export default function ScreeningPage() {
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
     setError(null);
+    setInvalidRunId(undefined);
     setNotSignedIn(null);
     setSigningIn(false);
     setResult(null);
@@ -139,6 +141,7 @@ export default function ScreeningPage() {
       const c = classifyAnalyseError(e);
       if (c.kind === "not_signed_in") setNotSignedIn(c.message);
       else setError(c.message);
+      if (c.kind === "invalid_answer") setInvalidRunId(c.runId ?? null);
       if (c.kind === "outside_window") fetchServiceStatus().then(setSvc);
     } finally {
       window.clearInterval(ticker);
@@ -332,6 +335,13 @@ export default function ScreeningPage() {
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
           {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
+          {invalidRunId !== undefined && (
+            <div className="print:hidden">
+              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="invalid-run-record" onClick={() => download(`run-record-${invalidRunId ?? "unknown"}.json`, invalidAnswerRecord(invalidRunId), "application/json")}>
+                {EXPORT_LABELS.runRecord}
+              </button>
+            </div>
+          )}
         </section>
 
         {result && request && (
