@@ -127,6 +127,46 @@
     "the thing abetted is itself an offence, or is an act which would be an offence if committed by a person capable by law of committing an offence with the same intention or knowledge as the abettor's own"
    ],
    "denials": []
+  },
+  "bns316_misappropriation": {
+   "sources": "Bharatiya Nyaya Sanhita §316",
+   "elements": [
+    "entrusted with property, or with dominion over property",
+    "dishonestly misappropriates or converts the property to his own use"
+   ],
+   "denials": [
+    "acted in good faith, believing the disobedience served the entrusting party's advantage, not dishonestly"
+   ]
+  },
+  "bns316_use_or_disposal": {
+   "sources": "Bharatiya Nyaya Sanhita §316",
+   "elements": [
+    "entrusted with property, or with dominion over property",
+    "dishonestly uses or disposes of the property",
+    "in violation of a legal direction or a contract (express or implied) governing how the trust is to be discharged"
+   ],
+   "denials": [
+    "acted in good faith, believing the disobedience served the entrusting party's advantage, not dishonestly"
+   ]
+  },
+  "bns316_wilfully_suffers": {
+   "sources": "Bharatiya Nyaya Sanhita §316",
+   "elements": [
+    "entrusted with property, or with dominion over property",
+    "wilfully suffers another person to do the misappropriation/conversion or the use/disposal described above"
+   ],
+   "denials": []
+  },
+  "ni138": {
+   "sources": "Negotiable Instruments Act §138",
+   "elements": [
+    "cheque drawn for discharge of legally enforceable debt or other liability",
+    "cheque returned by bank unpaid due to insufficient funds or excess of arranged amount",
+    "cheque presented to bank within six months of drawing or within validity period, whichever earlier",
+    "payee or holder gave written demand notice within thirty days of bank's information of dishonour",
+    "drawer failed to pay within fifteen days of receipt of notice"
+   ],
+   "denials": []
   }
  }
 }

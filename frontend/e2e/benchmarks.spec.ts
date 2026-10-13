@@ -73,7 +73,7 @@ test("a block with only one reviewer stays pending", async ({ page }) => {
 test("an inconclusive citation result says so in its title and shows its bound, categories and sentence", async ({ page }) => {
   await serve(page);
   await page.goto("/benchmarks");
-  await expect(page.getByRole("heading", { name: "How often does our citation checker mark a wrong citation as verified? (Inconclusive)" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "How often does our citation checker mark a planted wrong quote as verified? (Inconclusive)" })).toBeVisible();
   await expect(page.getByTestId("outcome-citation")).toHaveText("Inconclusive");
   await expect(page.getByTestId("bound-bar").getByRole("img")).toHaveAttribute("aria-label", /Toy upper bound: 8\.8%, n 80, one sided upper/);
   await expect(page.getByTestId("categories-citation")).toContainText("Toy category: 4");

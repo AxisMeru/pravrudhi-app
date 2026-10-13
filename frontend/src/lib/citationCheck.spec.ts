@@ -19,7 +19,7 @@ import {
 } from "./citationCheck";
 
 test("the preview label is exactly the decided wording", () => {
-  assert.equal(PREVIEW_LABEL, "preview: accuracy not yet measured");
+  assert.equal(PREVIEW_LABEL, "preview: not measured on real citations");
 });
 
 test("the six statuses the engine can answer are shown verbatim and known", () => {
@@ -150,4 +150,13 @@ test("fail closed (#75): result and status must be the engine's own pair, and `v
 test("the preview flag defaults to shown unless the engine says false explicitly", () => {
   assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: undefined, note: "n" }, true)?.preview, true);
   assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: false, note: "n" }, true)?.preview, false);
+});
+
+test("checkInputs: a null quote is an existence-only check and passes; an empty or blank quote is still refused; the citation limits still apply", () => {
+  assert.equal(checkInputs("(2020) 3 SCC 456", null).ok, true);
+  assert.equal(checkInputs("   ", null).ok, false);
+  assert.equal(checkInputs("(2020) 3 SCC 456", "").ok, false);
+  assert.equal(checkInputs("(2020) 3 SCC 456", "   ").ok, false);
+  assert.equal(checkInputs("C".repeat(501), null).ok, false);
+  assert.equal(checkInputs("C".repeat(500), null).ok, true);
 });

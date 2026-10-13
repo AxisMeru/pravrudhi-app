@@ -23,13 +23,8 @@ export function CitationsPanelView({ rows, skipped, coverage }: { rows: readonly
       {rows.map((r) => (
         <div key={r.item.line} className="rounded-md border border-[var(--color-border)] p-2 text-sm" data-testid="citations-panel-row">
           <div className="font-mono text-xs text-[var(--color-text)]">{r.item.citation}</div>
-          {r.state.phase === "needs_quote" && (
-            <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-needs-quote">
-              {r.state.message}
-            </p>
-          )}
           {r.state.phase === "idle" && <p className="mt-1 text-xs text-[var(--color-text-dim)]">Not checked.</p>}
-          {r.state.phase !== "needs_quote" && r.state.phase !== "idle" && <CitationCheckResult state={r.state} />}
+          {r.state.phase !== "idle" && <CitationCheckResult state={r.state} />}
         </div>
       ))}
       {skipped > 0 && (
@@ -85,7 +80,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
       </h2>
       <p className="w-fit rounded-md border border-amber-500/40 px-2 py-0.5 text-xs text-amber-300">{PREVIEW_LABEL}</p>
       <label className="block text-sm text-[var(--color-text)]">
-        One citation per line; add the quoted words after a | on the same line
+        One citation per line. To check that words appear in the case, add them after a | on the same line; without them only the citation is looked up.
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}

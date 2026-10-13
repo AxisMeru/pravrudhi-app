@@ -11,10 +11,10 @@ export type CitationCheckState =
   | { phase: "error"; kind: VerifyErrorKind; message: string }
   | { phase: "invalid"; message: string };
 
-type Verify = (citation: string, quote: string, signal?: AbortSignal) => Promise<Parameters<typeof verifyView>[0] & { coverage?: unknown }>;
+type Verify = (citation: string, quote: string | null, signal?: AbortSignal) => Promise<Parameters<typeof verifyView>[0] & { coverage?: unknown }>;
 
 /** The final state of one run. Invalid input never calls the engine; a thrown error never leaves a half result. */
-export async function runCitationCheck(verify: Verify, citation: string, quote: string, signal?: AbortSignal): Promise<CitationCheckState> {
+export async function runCitationCheck(verify: Verify, citation: string, quote: string | null, signal?: AbortSignal): Promise<CitationCheckState> {
   const check = checkInputs(citation, quote);
   if (!check.ok) return { phase: "invalid", message: check.message };
   try {

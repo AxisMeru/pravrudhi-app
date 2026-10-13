@@ -7,8 +7,8 @@ import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 export const MAX_CITATIONS = 10;
 
-/** Shown for a line with no quote until the engine can check existence alone (a quote is required today). Never a status. */
-export const NO_QUOTE_TEXT = "Not checked: add the quoted words after a | on the same line.";
+/** Shown instead of a result when the engine answers VERIFIED to a line sent WITHOUT a quote: that cannot be true (nothing was looked up in the text), so nothing is shown as verified. */
+export const VERIFIED_WITHOUT_QUOTE_TEXT = "The engine answered verified to a citation sent without a quote, which cannot be right, so no result is shown for it.";
 
 /** Shown when the engine's reply carries no recognised coverage. Never a typed-in claim about what the index holds. */
 export const COVERAGE_NOT_REPORTED = "Coverage not reported by the engine.";
@@ -46,7 +46,7 @@ export function parseCitationLines(text: string): ParsedCitations {
   return { items, skipped };
 }
 
-export type RowState = CitationCheckState | { phase: "needs_quote"; message: string };
+export type RowState = CitationCheckState;
 
 export interface PanelRow {
   item: CitationLine;
@@ -55,7 +55,15 @@ export interface PanelRow {
 
 type Verify = Parameters<typeof runCitationCheck>[0];
 
-/** Checks the items in order, one at a time; `onRow` fires after each so the screen fills as results arrive. A quote-less line is not sent. */
+/** A line sent without a quote can never be verified: a VERIFIED answer to one (the result or the product status) is turned into an error, not shown. */
+function failClosed(item: CitationLine, state: CitationCheckState): RowState {
+  if (item.quote !== null || state.phase !== "result") return state;
+  const v = state.view;
+  if (v.status === "VERIFIED" || v.product?.status === "verified") return { phase: "error", kind: "server", message: VERIFIED_WITHOUT_QUOTE_TEXT };
+  return state;
+}
+
+/** Checks the items in order, one at a time; `onRow` fires after each so the screen fills as results arrive. A quote-less line is SENT as an existence-only check. */
 export async function checkCitations(
   verify: Verify,
   items: readonly CitationLine[],
@@ -66,34 +74,48 @@ export async function checkCitations(
   for (let i = 0; i < rows.length; i += 1) {
     if (signal?.aborted) break;
     const { item } = rows[i];
-    if (item.quote === null) {
-      rows[i] = { item, state: { phase: "needs_quote", message: NO_QUOTE_TEXT } };
-    } else {
-      rows[i] = { item, state: { phase: "checking" } };
-      onRow?.([...rows]);
-      rows[i] = { item, state: await runCitationCheck(verify, item.citation, item.quote, signal) };
-    }
+    rows[i] = { item, state: { phase: "checking" } };
+    onRow?.([...rows]);
+    rows[i] = { item, state: failClosed(item, await runCitationCheck(verify, item.citation, item.quote, signal)) };
     onRow?.([...rows]);
   }
   return rows;
 }
 
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const isCount = (n: unknown): n is number => typeof n === "number" && Number.isInteger(n) && n >= 0;
+const fmt = (n: number) => n.toLocaleString("en-GB");
+
+/** Appended outside the hosted app (guides, screenshots, demos): the citation check is not served in the hosted deployment yet. */
+export const DEV_STACK_ONLY_TEXT = "Dev stack only; not served in the hosted deployment.";
+
 /**
- * The coverage line from the engine's own field. The shape is PROVISIONAL until the engine fixes it: a non-empty string is shown as sent;
- * an object with `courts` (strings) and `resolvable_cases` (the RESOLVABLE count, R1/E2) is worded from those two facts; the index total (`judgments_in_index`) is never read (and a year range if both ends are numbers);
- * anything else is the fallback. Nothing is ever filled in from this app.
+ * The coverage line, built ONLY from the engine's served fields (R1-signed sentence, 12 Oct): `resolvable_cases` (the judgments a citation can
+ * resolve to), `courts_resolvable` (court label -> resolvable count), `year_min`/`year_max` (over those cases) and `note` (it says SCC-family only).
+ * The index total (`judgments_held`) and the held courts and years are never read. The Supreme Court figure sums every label that starts
+ * with "Supreme Court" and says how many labels that is; the rest is "other courts". Data that does not add up (the per-court counts must sum to
+ * `resolvable_cases`) or fields that are missing give the plain fallback, never a partial claim. `devStack` appends the dev-stack-only sentence.
  */
-export function coverageLine(coverage: unknown): string {
-  if (typeof coverage === "string" && coverage.trim()) return coverage.trim();
-  if (coverage && typeof coverage === "object") {
-    const c = coverage as { courts?: unknown; resolvable_cases?: unknown; year_min?: unknown; year_max?: unknown };
-    const courts = Array.isArray(c.courts) && c.courts.length > 0 && c.courts.every((x) => typeof x === "string" && x.trim()) ? (c.courts as string[]) : null;
-    const n = typeof c.resolvable_cases === "number" && Number.isInteger(c.resolvable_cases) && c.resolvable_cases >= 0 ? c.resolvable_cases : null;
-    if (courts && n !== null) {
-      const years = typeof c.year_min === "number" && typeof c.year_max === "number" ? ` (${c.year_min} to ${c.year_max})` : "";
-      // `resolvable_cases` is the count a citation can resolve to; the index total is a different number and must never print (R1, at mounting).
-      return `Citations resolve for ${n.toLocaleString("en-GB")} ${courts.join(", ")} judgments${years}; other courts answer not in index, which is no evidence either way.`;
-    }
-  }
-  return COVERAGE_NOT_REPORTED;
+export function coverageLine(coverage: unknown, opts: { devStack?: boolean } = {}): string {
+  if (!coverage || typeof coverage !== "object") return COVERAGE_NOT_REPORTED;
+  const c = coverage as { resolvable_cases?: unknown; courts_resolvable?: unknown; year_min?: unknown; year_max?: unknown; note?: unknown };
+  const per = c.courts_resolvable;
+  if (!isCount(c.resolvable_cases) || !per || typeof per !== "object" || Array.isArray(per) || !isCount(c.year_min) || !isCount(c.year_max)) return COVERAGE_NOT_REPORTED;
+  const entries = Object.entries(per as Record<string, unknown>);
+  if (entries.length === 0 || !entries.every(([k, v]) => k.trim() && isCount(v))) return COVERAGE_NOT_REPORTED;
+  const counts = entries.map(([k, v]) => [k, v as number] as const);
+  const total = c.resolvable_cases;
+  if (counts.reduce((a, [, v]) => a + v, 0) !== total) return COVERAGE_NOT_REPORTED;
+  const sc = counts.filter(([k]) => k.startsWith("Supreme Court"));
+  const scN = sc.reduce((a, [, v]) => a + v, 0);
+  const labels = counts.length;
+  const split =
+    sc.length === 0
+      ? ""
+      : ` (Supreme Court ${fmt(scN)}${sc.length > 1 ? ` under ${COUNT_WORDS[sc.length] ?? sc.length} labels` : ""}; other courts ${fmt(total - scN)})`;
+  const scc = typeof c.note === "string" && /SCC-family/i.test(c.note) ? "; SCC-family citations only" : "";
+  const base =
+    `Citations resolve for ${fmt(total)} judgments from ${labels} court label${labels === 1 ? "" : "s"}${split}, with years ${c.year_min} to ${c.year_max} ` +
+    `(the index's year field)${scc}. A citation to any other court or reporter answers not in index, which is no evidence either way.`;
+  return opts.devStack ? `${base} ${DEV_STACK_ONLY_TEXT}` : base;
 }

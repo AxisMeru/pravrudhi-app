@@ -77,6 +77,7 @@ export const PALETTE_PAGES: PalettePage[] = [
   { id: "demo", label: "How it works", href: "/demo", icon: "Scale" },
   { id: "safety", label: "Safety record", href: "/safety", icon: "Gavel" },
   { id: "benchmarks", label: "Benchmarks", href: "/benchmarks", icon: "LineChart" },
+  { id: "guide", label: "User guide", href: "/guide", icon: "BookOpen" },
   { id: "settings", label: "Settings", href: "/settings", icon: "Settings" },
   { id: "install", label: "Install", href: "/install", icon: "Download" },
 ];

@@ -35,7 +35,7 @@ export const REVIEWED_TEXT = "Reviewed";
 /** Block titles (spec 2.1, items 2 to 5). */
 export const BLOCK_TITLE: Readonly<Record<BlockId, string>> = {
   bbl: "Our models on an Indian legal-knowledge test",
-  citation: "How often does our citation checker mark a wrong citation as verified?",
+  citation: "How often does our citation checker mark a planted wrong quote as verified?",
   legalbench: "Rule application on a public benchmark",
   sealed_court: "What the fixed Indian court test sets found",
 };
@@ -44,7 +44,7 @@ export const BLOCK_TITLE: Readonly<Record<BlockId, string>> = {
 export const FIXED_LABEL: Readonly<Partial<Record<BlockId, string>>> = {
   bbl: "Model legal knowledge (multiple choice). Not the proof harness. Our judge models are trained for a different task; a score on this test is not a measure of what our product does.",
   citation:
-    "Model-generated questions; Supreme Court judgments index only; a citation is checked for existence and metadata, not for whether the case supports a stated point. Questions were written by Anthropic Haiku and answered by Anthropic Sonnet.",
+    "Model-generated questions; Supreme Court judgments index only; a citation is checked for existence and metadata, not for whether the case supports a stated point. Questions were written by Anthropic Haiku and answered by Anthropic Sonnet. This measure is constructed, in-index, Supreme Court index only; dev; not served in the hosted deployment.",
   legalbench:
     "United States law (public benchmark). A test of whether an element-by-element harness changes accuracy on a public rule-application task. Not the Indian-law claim. Not a placement on any leaderboard.",
 };

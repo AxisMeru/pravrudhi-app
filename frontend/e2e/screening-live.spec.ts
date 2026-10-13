@@ -13,9 +13,9 @@ import { knownElements, rowsFor, summarize } from "../src/lib/screening/model";
 import { OFFENCES } from "../src/lib/screening/offences";
 
 /**
- * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted FRESH matter (Lead-2, 8 Oct): the allegation
- * paragraph of a public Madras High Court order (doc 9e77f94d), against
- * the DEPLOYED app and judge. The demo example (Crl.O.P. 13624 of 2024) is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
+ * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted real public matter (touched by the extraction pipeline) (Lead-2, 8 Oct): the allegation
+ * paragraph of a public Madras High Court order (doc live-matter-a), against
+ * the DEPLOYED app and judge. The public demo example is NOT used here: it is in the Obj-1b bank and Track A's dev rows. It asserts the real response (src/lib/demo/liveCheck.ts), and
  * that what the page shows is a plain-words reading of it: one checklist per contract, one row per ingredient with one of the three chips, the
  * cited fact shown in full, a what-to-check line, the summary banner per contract, the review items not styled as errors, no "proved" /
  * "established" / "verbatim" in the checklist, the memo and the audit trail.
@@ -59,9 +59,22 @@ test.skip(GO && !REHEARSAL && !MATTER_FILE, "SCREENING_MATTER_FILE is not set: t
 /** Where the observed-screening and raw-response JSON are written whatever the reporter; SCREENING_OUT_DIR overrides (default frontend/test-results/screening-live). */
 const OUT_DIR = resolve(process.env.SCREENING_OUT_DIR ?? join("test-results", "screening-live"));
 
+/** Writes one record file under OUT_DIR. The name's run id is made file-safe, and a write error is logged, never thrown: an unwritable directory must not fail a good run. */
+function writeRecord(name: string, body: string): void {
+  const safe = name.replace(/[^A-Za-z0-9._-]/g, "_");
+  try {
+    mkdirSync(OUT_DIR, { recursive: true });
+    const file = join(OUT_DIR, safe);
+    writeFileSync(file, body + "\n");
+    console.log(`${safe.split("-")[0]} written to ${file}`);
+  } catch (e) {
+    console.log(`could not write ${safe} to ${OUT_DIR}: ${(e as Error).message}`);
+  }
+}
+
 const FIXTURE: DemoFixture = {
   id: `matter-${MATTER_DOC_ID}`,
-  label: "the accepted fresh matter's allegations",
+  label: "the accepted real public matter's allegations (touched by the extraction pipeline)",
   path: "proof",
   contract_ids: CONTRACT_IDS,
   wordings: { plain: FACTS, formal: FACTS },
@@ -130,8 +143,7 @@ for (let run = 1; run <= REPEATS; run++) {
     const submitted = [...FACTS];
     // Attach what the engine answered and what the page sent BEFORE any assertion, so a failure can be diagnosed without a re-run (matter text omitted: it is private).
     await test.info().attach("raw-response", { body: JSON.stringify(wire, null, 2), contentType: "application/json" });
-    mkdirSync(OUT_DIR, { recursive: true });
-    writeFileSync(join(OUT_DIR, `raw-response-${MATTER_DOC_ID}-run${run}-${wire.run_id}.json`), JSON.stringify(wire, null, 2) + "\n");
+    writeRecord(`raw-response-${MATTER_DOC_ID}-run${run}-${wire.run_id}.json`, JSON.stringify(wire, null, 2));
     await test.info().attach("request-body", { body: JSON.stringify({ ...JSON.parse(response.request().postData() ?? "{}"), facts: submitted.map((f, i) => `<fact ${i + 1}: ${f.length} chars>`) }, null, 2), contentType: "application/json" });
     const result = await withFactText(wire, submitted);
     expect(checkDemoResult(wire, submitted, FIXTURE), "violations of the real response").toEqual([]);
@@ -202,9 +214,6 @@ for (let run = 1; run <= REPEATS; run++) {
     });
     await test.info().attach("observed-screening", { contentType: "application/json", body: observedJson });
     // Attachments are only saved by some reporters (not --reporter=list), so the same JSON is ALWAYS written to a file; the path is printed.
-    const file = join(OUT_DIR, `observed-screening-${MATTER_DOC_ID}-run${run}-${result.run_id}.json`);
-    mkdirSync(OUT_DIR, { recursive: true });
-    writeFileSync(file, observedJson + "\n");
-    console.log(`observed-screening written to ${file}`);
+    writeRecord(`observed-screening-${MATTER_DOC_ID}-run${run}-${result.run_id}.json`, observedJson);
   });
 }

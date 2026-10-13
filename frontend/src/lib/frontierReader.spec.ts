@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { FrontierQuote, FrontierCell } from "../components/screening/FrontierQuote";
 import { FrontierToggle } from "../components/screening/FrontierToggle";
 import {
-  FRONTIER_UNAVAILABLE_TEXT, consentLine, frontierCell, frontierToggleState, quoteCheckLabel,
+  FRONTIER_QUOTE_LIMIT_TEXT, FRONTIER_UNAVAILABLE_TEXT, consentLine, frontierCell, frontierToggleState, quoteCheckLabel,
 } from "./frontierReader";
 
 const html = (el: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(el);
@@ -71,5 +71,15 @@ test("a cell's check is marked passed only for ok; every other code and a missin
 test("a label is looked up as an OWN key: names inherited from Object.prototype are unknown codes, never a function or a sentence", () => {
   for (const code of ["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf"]) {
     assert.match(quoteCheckLabel(code), /does not recognise yet/, code);
+  }
+});
+
+test("the toggle states the quote check's limit in plain words, switched off or on, and claims no accuracy", () => {
+  assert.equal(FRONTIER_QUOTE_LIMIT_TEXT, "On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
+  assert.doesNotMatch(FRONTIER_QUOTE_LIMIT_TEXT, /\b(verified|accurate|accuracy|correct)\b/i);
+  // unavailable, available and off, and available and switched ON (the state that sends facts to a model)
+  for (const [available, value] of [[false, false], [true, false], [true, true]] as const) {
+    const out = html(createElement(FrontierToggle, { value, onChange: () => {}, available, provider: "ExampleAI" }));
+    assert.ok(out.includes(FRONTIER_QUOTE_LIMIT_TEXT), `available=${available} value=${value}`);
   }
 });

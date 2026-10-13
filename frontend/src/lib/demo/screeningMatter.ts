@@ -1,7 +1,7 @@
 // The accepted Screening E2E matter (Lead-2, 8 Oct): the allegation paragraph of a public Madras High Court order. The TEXT is NOT in this repository (the
 // repository is public and carries no real-person identifiers): the live spec reads it at run time from SCREENING_MATTER_FILE, and this module holds only
 // what is needed to check that the right text was supplied: its expected sha256, its length, the offences it invokes and the caveat to record.
-export const MATTER_DOC_ID = "9e77f94d";
+export const MATTER_DOC_ID = "live-matter-a";
 /** sha256 of the file exactly as handed over (final newline included). */
 export const MATTER_FILE_SHA256 = "f585f16b7dec4eeb35df9b2e8c25f03f1baf717f10bd021e4d3086b2a576e6bc";
 /** Length of the submitted fact: the file's text, trimmed. */

@@ -119,6 +119,7 @@ test("the Citations panel is below the checklist and the frontier toggle is off 
   await run(page);
   await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).not.toBeChecked();
   await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).toBeDisabled();
+  await expect(page.getByTestId("frontier-limit")).toHaveText("On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
   const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
   await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
   expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
@@ -132,9 +133,58 @@ test("a member who opens / lands on Screening", async ({ page }) => {
 
 test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
-  await page.goto("/screening?example=madras-crl-op-13624-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("Crl.O.P. No. 13624 of 2024");
-  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.325 of 2023/);
+  await page.goto("/screening?example=madras-public-order-2024");
+  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
+  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
   await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
   await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
+});
+
+// #99: the contracts the registry lists but has not validated are offered too, with the line that the engine refers on them, and their rows carry a What-to-check prompt.
+test("the not-validated offences are offered with the referral line, and a supported ni138 row carries its What-to-check prompt", async ({ page }) => {
+  const NI = "ni138";
+  const NI_EL = "cheque drawn for discharge of legally enforceable debt or other liability";
+  const NI_FACT = "Invented: Meena gave Ravi a cheque for 500 for the toy lorry; the bank returned it unpaid.";
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID, NI, "bns316_misappropriation"], entries: [{ id: CID, validated: true }, { id: NI, validated: false }, { id: "bns316_misappropriation", validated: false }] } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: {
+    run_id: "r-invented-ni", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice",
+    facts: [{ id: "F1", sha256: sha(NI_FACT) }],
+    contracts: [{
+      contract_id: NI, outcome: "REFER_TO_LAWYER", reason: "contract_not_validated", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
+      elements: [{ ...base, element: NI_EL, status: "established", p_established: 0.9, p_established_second: 0.8, fact_id: "F1", quote_source: "whole_fact" }],
+    }],
+  } }));
+  await page.goto("/screening");
+  const list = page.getByTestId("offence-list");
+  await expect(list).toContainText("Dishonour of a cheque");
+  await expect(list).toContainText("Criminal breach of trust (BNS s.316)");
+  await expect(page.getByTestId("not-validated-note")).toHaveCount(2);
+  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the engine gives a referral, not a proof or denial.");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(NI_FACT);
+  await page.getByTestId("split-facts").click();
+  await list.locator("label").filter({ hasText: "Dishonour of a cheque" }).click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const row = page.getByTestId("ingredient-row").first();
+  await expect(row.getByTestId("ingredient-chip")).toHaveText("Supported by a fact");
+  await expect(row.getByTestId("what-to-check")).toContainText("Check what debt or liability the cheque was given for");
+});
+
+test("while a first run warms up, the page says so without a timing figure, counts the time and offers Cancel", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  let release: () => void = () => {};
+  const held = new Promise<void>((res) => { release = res; });
+  await page.route("**/api/v1/analyse-facts**", async (r) => { await held; await r.fulfill({ json: ANSWER }); });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(`${F1}\n\n${F2}`);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const note = page.getByText(/^Warming up the judge and Lean checker/);
+  await expect(note).toContainText("a first run after idle can take a few minutes while the judges start.");
+  await expect(note).not.toContainText(/\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/);
+  await expect(note).toContainText("elapsed");
+  await expect(page.getByTestId("screening-cancel")).toBeVisible();
+  release();
+  await expect(page.getByTestId("checklist")).toBeVisible();
 });

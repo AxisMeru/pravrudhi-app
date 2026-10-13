@@ -4,7 +4,7 @@ import test from "node:test";
 import { OFFENCES, offenceOf } from "./offences";
 
 // R2 (8 Oct): the BNS/IPC pair strings are pinned exactly. R1 read all eight pairs as correct and R2 checked them against the corpus; a changed digit fails here.
-test("the eight offence titles, their BNS/IPC pair lines and contracts are exactly the ones R1 and R2 checked", () => {
+test("the ten offence titles (eight validated, two not), their BNS/IPC pair lines and contracts are exactly the ones R1 and R2 checked", () => {
   assert.deepEqual(
     OFFENCES.map((o) => [o.id, o.title, o.sections, [...o.contracts], o.ipcChecked]),
     [
@@ -16,6 +16,9 @@ test("the eight offence titles, their BNS/IPC pair lines and contracts are exact
       ["cruelty", "Cruelty by the husband or his relatives", "BNS 85, 86 · IPC 498A", ["bns85"], null],
       ["abetment", "Abetment", "BNS 45, 46 · IPC 107, 108", ["bns46_instigation", "bns46_conspiracy", "bns46_intentional_aid"], null],
       ["abetment-outside-india", "Abetment in India of an offence outside India", "BNS 47 · IPC 108A", ["bns47"], null],
+      // not on the validated list; offered so the engine's referral can be seen (#99)
+      ["dishonoured-cheque", "Dishonour of a cheque", "Negotiable Instruments Act s.138", ["ni138"], null],
+      ["breach-of-trust-bns", "Criminal breach of trust (BNS s.316)", "BNS 316", ["bns316_misappropriation", "bns316_use_or_disposal", "bns316_wilfully_suffers"], null],
     ],
   );
 });

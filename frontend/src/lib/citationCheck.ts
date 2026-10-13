@@ -5,7 +5,7 @@ import { ApiError } from "./api";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
-export const PREVIEW_LABEL = "preview: accuracy not yet measured";
+export const PREVIEW_LABEL = "preview: not measured on real citations";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
 export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;
@@ -130,10 +130,11 @@ export function classifyVerifyError(e: unknown): { kind: VerifyErrorKind; messag
 export const CITATION_MAX = 500;
 export const QUOTE_MAX = 4000;
 
-export function checkInputs(citation: string, quote: string): { ok: true } | { ok: false; message: string } {
+export function checkInputs(citation: string, quote: string | null): { ok: true } | { ok: false; message: string } {
   if (!citation.trim()) return { ok: false, message: "Enter one citation." };
-  if (!quote.trim()) return { ok: false, message: "Enter the quote to look for." };
+  // A null quote is an existence-only check (the panel sends it); an empty or blank one is still refused, never turned into null.
+  if (quote !== null && !quote.trim()) return { ok: false, message: "Enter the quote to look for." };
   if (citation.length > CITATION_MAX) return { ok: false, message: `The citation is longer than ${CITATION_MAX} characters.` };
-  if (quote.length > QUOTE_MAX) return { ok: false, message: `The quote is longer than ${QUOTE_MAX} characters.` };
+  if (quote !== null && quote.length > QUOTE_MAX) return { ok: false, message: `The quote is longer than ${QUOTE_MAX} characters.` };
   return { ok: true };
 }

@@ -45,7 +45,7 @@ test("the how-to-read stack sentence cites facts and never quotes them", () => {
 });
 
 const el = (o: Record<string, unknown>) => ({
-  element: "a promise", is_denial: false, status: "established", claimed: true, p_established: 0.9, fact_id: "F1", quote: "the whole fact | text",
+  element: "a promise", is_denial: false, status: "established", claimed: true, p_established: 0.5, fact_id: "F1", quote: "the whole fact | text",
   start: 0, end: 5, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "system", quote_source: "whole_fact", error: null, ...o,
 });
 const memo = (contracts: Partial<AnalyseFactsContract>[]) =>
@@ -63,9 +63,9 @@ test("memo table: header, legend once per table, cited fact with quotation marks
   assert.ok(md.includes("| Element | Status | Judge score | Cited fact |"));
   assert.equal(md.split(JUDGE_SCORE_LEGEND).length - 1, 1);
   assert.equal(JUDGE_SCORE_LEGEND, "Judge score: the judge's raw score for this element, not a probability that the element is met.");
-  assert.ok(md.includes("| a promise | supported by a fact | 0.90 | the whole fact \\| text (F1) |"), md); // whole fact: no marks
-  assert.ok(md.includes('| b | supported by a fact | 0.90 | "words a judge wrote" (F1) |'), md); // a model's words: marks
-  assert.ok(md.includes("| c | supported by a fact | 0.90 | no cited fact |"), md);
+  assert.ok(md.includes("| a promise | supported by a fact | 0.50 | the whole fact \\| text (F1) |"), md); // whole fact: no marks
+  assert.ok(md.includes('| b | supported by a fact | 0.50 | "words a judge wrote" (F1) |'), md); // a model's words: marks
+  assert.ok(md.includes("| c | supported by a fact | 0.50 | no cited fact |"), md);
 });
 
 test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown reason, exactly", () => {
@@ -76,6 +76,6 @@ test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown rea
 
 test("memo: a missing or undefined quote_source prints the cited text bare, never in quotation marks", () => {
   const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
-  assert.ok(md.includes("| d | supported by a fact | 0.90 | plain text (F1) |"), md);
-  assert.ok(md.includes("| e | supported by a fact | 0.90 | plain two (F1) |"), md);
+  assert.ok(md.includes("| d | supported by a fact | 0.50 | plain text (F1) |"), md);
+  assert.ok(md.includes("| e | supported by a fact | 0.50 | plain two (F1) |"), md);
 });
