@@ -12,11 +12,11 @@ One page. Invented facts only; no evaluation items, host paths or private data. 
 ## Pre-flight (two minutes)
 1. The status route answers and the judges are not reporting unavailable: `GET /api/v1/status` (`judge.state` is `ready` or `warming`, never `unavailable`).
 2. Inside the service window (London time). Outside it the spec skips itself and says why; a demo outside it is not possible.
-3. The registry lists the contracts the script uses (`ipc415_property`, `bns85`, `bns316_misappropriation`).
+3. The registry lists the contracts the script uses (`bns69`, `bns85`, `bns316_misappropriation`).
 
 ## The script (what the spec does, and what you do by hand)
 For each of three fixtures, in a plain and in a near-statutory wording, three runs in one window (`DEMO_LIVE_REPEATS`, default 3):
-1. `proof-path` (ipc415_property, validated): facts of a dishonest inducement to hand over money on a false claim of authority (cheating).
+1. `proof-path` (bns69, validated): facts of a promise to marry made with no intention of keeping it.
 2. `abstain-path` (bns85, validated): facts that show none of the required conditions.
 3. `refer-path` (bns316_misappropriation, not validated): a referral, not a proof or denial.
 Each run: sign in, open Matters, tick the contract, paste the facts, Analyse, wait for the result. The spec checks the real response: a card per contract, element rows, every established element's cited fact (a model quote must be word for word in the submitted facts; a whole-fact citation must name a submitted fact and carries no quote claim; any other citation makes no claim), citations, 64-hex hashes, the retention notice, the outcome against the recorded expectation (binding only after 3 recorded runs), what the page shows against the response, and the downloaded memo. By hand, for a partner: load the example from "How it works", read the safety record last.

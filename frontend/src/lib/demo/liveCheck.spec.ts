@@ -37,7 +37,7 @@ function resultFor(fixture: DemoFixture, facts: string[], overrides: Partial<Ana
         lean_outcome: null,
         uncertain: [],
         statute_text_mismatch: null,
-        citations: [{ act: "IPC", section: "415", corpus_id: "IPC/Section 415", in_corpus: true, title: "t" }],
+        citations: [{ act: "BNS", section: "69", corpus_id: "BNS/Section 69", in_corpus: true, title: "t" }],
         elements: proof
           ? [{ element: "e1", is_denial: false, status: "established", claimed: true, p_established: 0.9, fact_id: "F1", quote, start: 0, end: 30,
               quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "system", quote_source: "model", error: null } as never]
@@ -57,7 +57,7 @@ test("the fixtures: three paths, invented text in two wordings, all within the e
     }
     assert.equal(expectationBinds(f), false, `${f.id}: no outcome is asserted before 3 recorded runs`);
   }
-  assert.deepEqual(byId("proof-path").contract_ids, ["ipc415_property"]);
+  assert.deepEqual(byId("proof-path").contract_ids, ["bns69"]);
   assert.equal(byId("refer-path").contract_ids[0], "bns316_misappropriation");
 });
 
@@ -134,12 +134,12 @@ test("a REFER with an unknown reason, and an ABSTAIN with an unknown reason, are
 test("the recorded expectation binds only after 3 recorded runs, then a differing outcome fails", () => {
   const f = structuredClone(byId("proof-path"));
   const facts = f.wordings.plain;
-  f.expect = { recorded_runs: 2, outcomes: { ipc415_property: "REFER_TO_LAWYER" } };
+  f.expect = { recorded_runs: 2, outcomes: { bns69: "REFER_TO_LAWYER" } };
   assert.deepEqual(checkDemoResult(resultFor(f, facts), facts, f), [], "2 runs: not binding");
   f.expect.recorded_runs = 3;
   assert.equal(expectationBinds(f), true);
   assert.ok(checkDemoResult(resultFor(f, facts), facts, f).some((v) => /differs from the recorded REFER_TO_LAWYER/.test(v)));
-  f.expect.outcomes = { ipc415_property: "PROOF" };
+  f.expect.outcomes = { bns69: "PROOF" };
   assert.deepEqual(checkDemoResult(resultFor(f, facts), facts, f), []);
 });
 
