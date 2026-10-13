@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { FrontierToggle } from "@/components/screening/FrontierToggle";
@@ -25,7 +26,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -163,9 +164,9 @@ export default function ScreeningPage() {
             {EXAMPLE_LABEL}
           </p>
         )}
-        <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
+        <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>
+          <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <textarea
             id="screening-paste"

@@ -27,6 +27,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { RetentionBefore } from "@/components/RetentionBefore";
 import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
@@ -34,7 +35,7 @@ import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from
 import Link from "next/link";
 import { DEFENCE_PHRASE } from "@/lib/screening/copy";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
-import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
+import { CITATION_NEXT_STEP, FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
 // A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its
 // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/
@@ -405,9 +406,9 @@ export default function MattersPage() {
             {EXAMPLE_LABEL}
           </p>
         )}
-        <CaveatStrip retentionNotice={result?.retention_notice} warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
+        <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">{PRE_SUBMIT_RETENTION}</p>
+          <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-facts">
             Facts (one per line)
           </label>

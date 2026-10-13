@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import test from "node:test";
 
 import {
@@ -75,9 +75,29 @@ test("a statute is looked up by the section the contract names, and only the mat
   assert.equal(pickCorpusHit(undefined, "x"), null);
 });
 
-test("the before-you-submit retention notice is the engine's own text, word for word", async () => {
-  const { PRE_SUBMIT_RETENTION, FILE_NOTE, CITATION_NEXT_STEP } = await import("./surfaceCopy");
-  const engine = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineRetentionNotice.json"), "utf8")) as { text: string };
-  assert.equal(PRE_SUBMIT_RETENTION, engine.text);
+test("the before-you-submit retention notice is R1's exact text, with no training promise and none of the dropped sentences (13 Oct)", async () => {
+  const { PRE_SUBMIT_RETENTION, PRE_SUBMIT_LINK_TEXT, FILE_NOTE, CITATION_NEXT_STEP } = await import("./surfaceCopy");
+  assert.equal(
+    PRE_SUBMIT_RETENTION,
+    "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. More under Data handling.",
+  );
+  assert.doesNotMatch(PRE_SUBMIT_RETENTION, /audit|training|evaluation|no fact text|kept for 7 days|partner|hour/i);
+  assert.ok(PRE_SUBMIT_RETENTION.endsWith(`${PRE_SUBMIT_LINK_TEXT}.`));
   for (const t of [FILE_NOTE, CITATION_NEXT_STEP]) assert.ok(!/verified|guarantee|never stored/i.test(t), t);
+});
+
+test("no shipped source promises that submissions are never used for training; only negative assertions in specs name the phrase (R1/Lead-2, 13 Oct)", () => {
+  const SPECS_THAT_NAME_IT = ["lib/dataHandling.spec.ts", "lib/surfaceCopy.spec.ts"]; // negative assertions only
+  const root = join(__dirname, "..");
+  const hits: string[] = [];
+  const walk = (d: string) => {
+    for (const n of readdirSync(d)) {
+      const f = join(d, n);
+      if (statSync(f).isDirectory()) walk(f);
+      else if (/\.(ts|tsx|json)$/.test(n) && /(never|not) used for training|used for training or evaluation/i.test(readFileSync(f, "utf8"))) hits.push(relative(root, f));
+    }
+  };
+  walk(root);
+  // engineOpenapiV1.json is the pinned engine contract (its retention_notice default); the app never displays that field.
+  assert.deepEqual(hits.filter((h) => !SPECS_THAT_NAME_IT.includes(h) && h !== "lib/fixtures/engineOpenapiV1.json").sort(), []);
 });
