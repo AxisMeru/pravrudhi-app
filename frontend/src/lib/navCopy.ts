@@ -8,7 +8,7 @@ export const THEME_LABELS = {
 } as const;
 
 /** The sidebar's group headings. */
-export const NAV_GROUP_LABELS = { work: "Work", firm: "Firm", reference: "Reference", studio: "Studio" } as const;
+export const NAV_GROUP_LABELS = { work: "Work", reference: "Reference", account: "Account", studio: "Studio" } as const;
 
 /** Item labels of the firm surface; the paths do not change. R1 reads this list once (13 Oct 2026: "Offence rules" for /matters). */
 export const NAV_LABELS = {

@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
@@ -29,4 +31,21 @@ test("the product edition is named and described by these constants, whatever th
   const { PRODUCT } = await import("./edition");
   assert.equal(PRODUCT.edition, PRODUCT_NAME);
   assert.equal(PRODUCT.tagline, PRODUCT_LINE);
+});
+
+// R1 (13 Oct): the download is the "run record" everywhere (the button, the guide, the shots, the tests); "audit trail" is gone from the firm surface.
+test('"audit trail" appears nowhere in src or e2e', () => {
+  const root = join(__dirname, "..", "..");
+  const self = relative(root, __filename);
+  const hits: string[] = [];
+  const walk = (dir: string) => {
+    for (const n of readdirSync(dir)) {
+      const p = join(dir, n);
+      if (statSync(p).isDirectory()) { if (!["node_modules", "out", ".next", "test-results"].includes(n)) walk(p); continue; }
+      if (!/\.(ts|tsx|md|json)$/.test(n) || relative(root, p) === self) continue;
+      readFileSync(p, "utf8").split("\n").forEach((l, i) => { if (/audit[- ]trail/i.test(l)) hits.push(`${relative(root, p)}:${i + 1}`); });
+    }
+  };
+  for (const d of ["src", "e2e"]) walk(join(root, d));
+  assert.deepEqual(hits, []);
 });

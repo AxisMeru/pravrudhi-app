@@ -5,7 +5,7 @@ import { sha } from "./support/sha";
 
 /**
  * The Screening view against RECORDED engine answers (page.route) with invented facts: the checklist, the chips and their reasons, the cited fact
- * in full, the what-to-check line, the summary banner, the memo and audit-trail downloads, and the landing route. No judge is needed.
+ * in full, the what-to-check line, the summary banner, the memo and run-record downloads, and the landing route. No judge is needed.
  */
 const REGISTRY = "**/api/nyaya/registry/contracts";
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -97,7 +97,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
 
-test("the memo and the audit trail download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {
+test("the memo and the run record download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {
   await run(page);
   const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
   const memo = readFileSync((await memoDl.path()) as string, "utf8");

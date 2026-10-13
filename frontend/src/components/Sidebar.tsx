@@ -43,7 +43,7 @@ interface NavItem {
   icon: ComponentType<{ size?: number; className?: string }>;
 }
 
-type NavGroupId = "work" | "firm" | "reference" | "studio";
+type NavGroupId = "work" | "reference" | "account" | "studio";
 interface NavEntry extends NavItem {
   group: NavGroupId;
 }
@@ -54,13 +54,13 @@ const NAV: NavEntry[] = [
   { group: "work", href: "/screening", label: NAV_LABELS.screening, icon: ScanSearch },
   { group: "work", href: "/matters", label: NAV_LABELS.matters, icon: Gavel },
   { group: "work", href: "/citations", label: NAV_LABELS.citations, icon: Library },
-  { group: "firm", href: "/workflows", label: NAV_LABELS.workflows, icon: Workflow },
-  { group: "firm", href: "/data-handling", label: NAV_LABELS.dataHandling, icon: ShieldCheck },
-  { group: "firm", href: "/settings", label: NAV_LABELS.settings, icon: Settings },
+  { group: "reference", href: "/workflows", label: NAV_LABELS.workflows, icon: Workflow },
   { group: "reference", href: "/safety", label: NAV_LABELS.safety, icon: Gavel },
   { group: "reference", href: "/benchmarks", label: NAV_LABELS.benchmarks, icon: LineChart },
   { group: "reference", href: "/demo", label: NAV_LABELS.demo, icon: Scale },
   { group: "reference", href: "/guide", label: GUIDE_NAV_LABEL, icon: BookOpen },
+  { group: "account", href: "/data-handling", label: NAV_LABELS.dataHandling, icon: ShieldCheck },
+  { group: "account", href: "/settings", label: NAV_LABELS.settings, icon: Settings },
   { group: "studio", href: "/start", label: "Start", icon: Rocket },
   { group: "studio", href: "/", label: "Improve", icon: Sparkles },
   { group: "studio", href: "/objectives", label: "Objectives", icon: Target },
@@ -73,7 +73,7 @@ const NAV: NavEntry[] = [
   { group: "studio", href: "/models", label: "Models", icon: Package },
   { group: "studio", href: "/install", label: "Install", icon: Download },
 ];
-const NAV_GROUP_ORDER: NavGroupId[] = ["work", "firm", "reference", "studio"];
+const NAV_GROUP_ORDER: NavGroupId[] = ["work", "reference", "account", "studio"];
 
 export function Sidebar() {
   const pathname = usePathname();

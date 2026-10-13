@@ -1,4 +1,4 @@
-// The screening memo (markdown; print-to-PDF from the page) and the audit-trail download. The memo is a screening aid, not advice: it lists each
+// The screening memo (markdown; print-to-PDF from the page) and the run record download. The memo is a screening aid, not advice: it lists each
 // ingredient's chip, the cited fact in full, the review items, the engine and checker versions and the standing disclaimer. Pure functions.
 import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
@@ -48,8 +48,8 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
 }
 
-/** The audit trail download (v1, client side): what was sent, what came back, and the versions. No new endpoint. */
-export function buildAuditTrail(request: { facts: string[]; contractIds: string[] }, result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {
+/** The run record download (v1, client side): what was sent, what came back, and the versions. No new endpoint. */
+export function buildRunRecord(request: { facts: string[]; contractIds: string[] }, result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {
   return JSON.stringify(
     { generated_at: opts.generatedAt, engine_version: opts.engineVersion, checker_pin_sha256: contractElements._binary_sha256, request, response: result },
     null,

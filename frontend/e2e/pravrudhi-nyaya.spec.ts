@@ -12,10 +12,10 @@ test("the name and the line: the title, the sidebar name, and the line on the Sc
   await expect(page.getByTestId("product-line")).not.toContainText(/proof|proved|established|verbatim/i);
 });
 
-test("the grouped navigation: Work, Firm and Reference, labels changed and paths kept; none of Studio's pages", async ({ page }) => {
+test("the grouped navigation: Work, Reference and Account, labels changed and paths kept; none of Studio's pages", async ({ page }) => {
   await page.goto("/guide");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  for (const g of ["work", "firm", "reference"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
+  for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
   await expect(nav.getByTestId("nav-group-studio")).toHaveCount(0);
   const hrefs: Record<string, string> = { Screening: "/screening", "Offence rules": "/matters", Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
   for (const [name, href] of Object.entries(hrefs)) await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", new RegExp(`${href}/?$`));
