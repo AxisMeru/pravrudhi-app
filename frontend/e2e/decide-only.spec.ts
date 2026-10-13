@@ -11,15 +11,17 @@ const MARKER = "AGENT-FREE-TEXT-MARKER";
 const CID = "ipc415_property";
 const FACT = "Ravi lent the toy lorry to Meena on a Monday in the invented town of Quillpoort.";
 const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };
+// what an orchestrating agent might add around or inside the decide result: none of it may be shown, at any depth
+const extra = { display_text: MARKER, message: MARKER, reply: MARKER, summary: MARKER, text_note: MARKER, agent_message: MARKER, narrative: MARKER, content: MARKER };
 const answer = {
   run_id: "r-invented-decide", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice",
-  facts: [{ id: "F1", sha256: sha(FACT) }],
+  standard: { applied: "x", in_judge_prompt: false, proceeding_posture: null, requested: "x", source: "s", ...extra },
+  facts: [{ id: "F1", sha256: sha(FACT), ...extra }],
   contracts: [{
-    contract_id: CID, outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
-    elements: [{ ...base, element: "an invented ingredient", status: "established", p_established: 0.9, p_established_second: 0.8, fact_id: "F1", quote_source: "whole_fact" }],
+    contract_id: CID, outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null, ...extra,
+    elements: [{ ...base, element: "an invented ingredient", status: "established", p_established: 0.9, p_established_second: 0.8, fact_id: "F1", quote_source: "whole_fact", ...extra }],
   }],
-  // what an orchestrating agent might add around the decide result: none of it may be shown
-  display_text: MARKER, message: MARKER, reply: MARKER, summary: MARKER, text: MARKER, answer: MARKER, agent_message: MARKER, narrative: MARKER, content: MARKER,
+  ...extra,
 };
 const route = (page: import("@playwright/test").Page) => Promise.all([
   page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } })),
@@ -37,7 +39,15 @@ test("Screening renders the decide result and none of the agent's free text, in 
   await expect(page.locator("body")).not.toContainText(MARKER);
   for (const name of ["Download memo (.md)", "Download run record (.json)"]) {
     const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name }).click()]);
-    expect(readFileSync((await dl.path())!, "utf8"), name).not.toContain(MARKER);
+    const body = readFileSync((await dl.path())!, "utf8");
+    expect(body, name).not.toContain(MARKER);
+    if (name.endsWith("(.json)")) {
+      const rec = JSON.parse(body) as { response: Record<string, unknown> };
+      expect(Object.keys(rec.response).sort()).toEqual(["contracts", "facts", "judge", "provenance", "run_id", "score_sha256", "standard"]);
+      const c = (rec.response.contracts as Array<Record<string, unknown>>)[0];
+      expect(Object.keys(c)).not.toContain("display_text");
+      expect(Object.keys((c.elements as Array<Record<string, unknown>>)[0])).not.toContain("display_text");
+    }
   }
 });
 

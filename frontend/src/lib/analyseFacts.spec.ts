@@ -489,19 +489,34 @@ test("the anonymous-demo note takes its retention period from the before-you-sub
   assert.doesNotMatch(ANONYMOUS_DEMO_NOTE, /does not use the second judge/);
 });
 
-test("#113 display rule: only the decide result's own fields survive; any free text an agent wrote around it is dropped at the boundary", async () => {
-  const { withFactText, DECIDE_RESULT_KEYS } = await import("./api");
-  const marker = "AGENT-FREE-TEXT-MARKER";
+test("#113 display rule: only the decide result's own fields survive at every depth; free text an agent wrote around or inside it is dropped at the boundary", async () => {
+  const { withFactText, DECIDE_TOP_KEYS } = await import("./api");
+  const M = "AGENT-FREE-TEXT-MARKER";
+  const extra = { display_text: M, message: M, reply: M, summary: M, text_note: M, agent_message: M, narrative: M, content: M };
   const wire = {
-    run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", retention_notice: "n",
-    facts: [], contracts: [],
-    display_text: marker, message: marker, reply: marker, summary: marker, text: marker, answer: marker, agent_message: marker, narrative: marker, content: marker,
+    run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", retention_notice: M, contract_set_version: M, validated_set_version: M, ...extra,
+    standard: { applied: "x", in_judge_prompt: true, proceeding_posture: null, requested: "x", source: "s", ...extra },
+    facts: [{ id: "F1", sha256: createHash("sha256").update("submitted fact").digest("hex"), ...extra }],
+    contracts: [{
+      contract_id: "c1", outcome: "ABSTAIN", reason: "r", assertions: { a: true, b: M }, lean: { verdict: "grounded", denied_claims: ["x", { note: M }], unlicensed_claims: [], omitted_claims: [], ...extra },
+      lean_outcome: null, lean_attestation: { binary_sha256: "1", wire_sha256: "2", verdict: "ok", ...extra }, uncertain: ["e1", { note: M }], statute_text_mismatch: null,
+      citations: [{ act: "a", corpus_id: "c", in_corpus: true, section: "s", title: "t", ...extra }], ...extra,
+      elements: [{ element: "e1", status: "established", claimed: true, p_established: 0.9, is_denial: false, fact_id: "F1", quote: null, start: null, end: null, quote_check: null, screening_signal: { p: 0.9, supported: true, ...extra }, ...extra }],
+    }],
   };
-  const out = (await withFactText(wire as never, [])) as unknown as Record<string, unknown>;
-  assert.deepEqual(Object.keys(out).sort(), ["contracts", "facts", "judge", "provenance", "retention_notice", "run_id", "score_sha256"]);
-  assert.ok(!JSON.stringify(out).includes(marker));
-  assert.deepEqual([...DECIDE_RESULT_KEYS].sort(), ["contracts", "facts", "judge", "provenance", "retention_notice", "run_id", "score_sha256", "standard"]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a deep read of a loosely typed projection
+  const out = (await withFactText(wire as never, ["submitted fact"])) as unknown as Record<string, any>;
+  assert.ok(!JSON.stringify(out).includes(M), "no marker survives anywhere");
+  assert.deepEqual(Object.keys(out).sort(), ["contracts", "facts", "judge", "provenance", "run_id", "score_sha256", "standard"]);
+  assert.deepEqual(Object.keys(out.facts[0]).sort(), ["id", "sha256", "text"]);
+  assert.equal(out.facts[0].text, "submitted fact");
+  assert.deepEqual(out.contracts[0].assertions, { a: true });
+  assert.deepEqual(out.contracts[0].uncertain, ["e1"]);
+  assert.deepEqual(out.contracts[0].lean.denied_claims, ["x"]);
+  assert.deepEqual(Object.keys(out.contracts[0].elements[0].screening_signal).sort(), ["p", "supported"]);
+  assert.equal(out.contracts[0].elements[0].element, "e1");
+  assert.deepEqual([...DECIDE_TOP_KEYS].sort(), ["contracts", "facts", "judge", "provenance", "run_id", "score_sha256", "standard"]);
   // a field the engine adds later is dropped until it is listed on purpose
-  const later = (await withFactText({ ...wire, new_field: 1 } as never, [])) as unknown as Record<string, unknown>;
+  const later = (await withFactText({ ...wire, new_field: 1 } as never, ["submitted fact"])) as unknown as Record<string, unknown>;
   assert.ok(!("new_field" in later));
 });

@@ -1270,14 +1270,57 @@ export interface AnalyseFactsWire extends Omit<AnalyseFactsResult, "facts"> {
 
 /**
  * The display rule for the screening result (AxisMeru/pravrudhi-app#113, Lead-2, 13 Oct): the result is rendered ONLY from the decide tool result, never from free text an
- * agent wrote around it. This is the one boundary: the answer is copied field by field from the list below, so any other top-level field (a display text, a message, a
- * reply, a summary) is dropped here and cannot reach a page, the memo or the run record. A field the engine adds later is dropped until it is listed here on purpose.
+ * agent wrote around it. This is the one boundary, and it picks DEEP: the answer is rebuilt field by field from the lists below at every level (top level, each contract,
+ * each element, each fact, the standard, citations, Lean and attestation objects). Any other field, at any depth, is dropped here and cannot reach a page, the memo or the
+ * run record. The lists are the engine schema's own field names (src/lib/decideResult.spec.ts fails if the pinned schema gains one that is not decided on). The app states
+ * retention itself and reads neither the engine's retention notice nor its set-version fields, so those are not listed.
  */
-export const DECIDE_RESULT_KEYS = ["run_id", "judge", "score_sha256", "facts", "contracts", "provenance", "standard", "retention_notice"] as const;
-export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
-  const src = wire as unknown as Record<string, unknown>;
+export const DECIDE_TOP_KEYS = ["run_id", "judge", "score_sha256", "facts", "contracts", "provenance", "standard"] as const;
+export const DECIDE_CONTRACT_KEYS = ["assertions", "citations", "contract_id", "elements", "judge_rule_text", "lean", "lean_attestation", "lean_outcome", "outcome", "reason", "rule_text", "rule_text_source", "statute_text_mismatch", "uncertain"] as const;
+export const DECIDE_ELEMENT_KEYS = ["attempts", "binding_leg", "citation_note", "claimed", "defeater_second_disagreement", "element", "end", "error", "fact_id", "fact_id_disagreement", "is_denial", "occurrences", "offsets_source", "p_established", "p_established_second", "quote", "quote_check", "quote_source", "screening_signal", "second_fact_id", "second_logit_distance", "second_refer_band_fired", "second_skip_reason", "second_unavailable", "start", "status", "tau_second"] as const;
+export const DECIDE_FACT_KEYS = ["id", "text", "sha256"] as const;
+export const DECIDE_STANDARD_KEYS = ["applied", "in_judge_prompt", "proceeding_posture", "requested", "source"] as const;
+export const DECIDE_CITATION_KEYS = ["act", "corpus_id", "in_corpus", "section", "title"] as const;
+export const DECIDE_LEAN_KEYS = ["verdict", "denied_claims", "unlicensed_claims", "omitted_claims"] as const;
+export const DECIDE_ATTESTATION_KEYS = ["binary_sha256", "wire_sha256", "verdict"] as const;
+export const DECIDE_SIGNAL_KEYS = ["p", "supported"] as const;
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+function pickKeys(v: unknown, keys: readonly string[]): Record<string, unknown> | null {
+  if (!isObj(v)) return null;
   const out: Record<string, unknown> = {};
-  for (const k of DECIDE_RESULT_KEYS) if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+  for (const k of keys) if (Object.prototype.hasOwnProperty.call(v, k)) out[k] = v[k];
+  return out;
+}
+const pickList = (v: unknown, one: (x: unknown) => unknown): unknown => (Array.isArray(v) ? v.map(one).filter((x) => x !== null) : v);
+const strings = (v: unknown): unknown => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : v);
+
+function pickElement(e: unknown): unknown {
+  const out = pickKeys(e, DECIDE_ELEMENT_KEYS);
+  if (out && "screening_signal" in out) out.screening_signal = pickKeys(out.screening_signal, DECIDE_SIGNAL_KEYS);
+  return out;
+}
+function pickContract(c: unknown): unknown {
+  const out = pickKeys(c, DECIDE_CONTRACT_KEYS);
+  if (!out) return null;
+  if ("elements" in out) out.elements = pickList(out.elements, pickElement);
+  if ("citations" in out) out.citations = pickList(out.citations, (x) => pickKeys(x, DECIDE_CITATION_KEYS));
+  if ("lean" in out) {
+    const lean = pickKeys(out.lean, DECIDE_LEAN_KEYS);
+    if (lean) for (const k of ["denied_claims", "unlicensed_claims", "omitted_claims"]) if (k in lean) lean[k] = strings(lean[k]);
+    out.lean = lean;
+  }
+  if ("lean_attestation" in out) out.lean_attestation = pickKeys(out.lean_attestation, DECIDE_ATTESTATION_KEYS);
+  if ("uncertain" in out) out.uncertain = strings(out.uncertain);
+  if ("assertions" in out && isObj(out.assertions)) out.assertions = Object.fromEntries(Object.entries(out.assertions).filter(([, x]) => typeof x === "boolean"));
+  return out;
+}
+export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
+  const out = pickKeys(wire, DECIDE_TOP_KEYS);
+  if (!out) return {} as AnalyseFactsWire;
+  if ("facts" in out) out.facts = pickList(out.facts, (f) => pickKeys(f, DECIDE_FACT_KEYS));
+  if ("contracts" in out) out.contracts = pickList(out.contracts, pickContract);
+  if ("standard" in out) out.standard = pickKeys(out.standard, DECIDE_STANDARD_KEYS);
   return out as unknown as AnalyseFactsWire;
 }
 
@@ -1291,8 +1334,6 @@ export interface AnalyseFactsResult {
   provenance: string;
   // The standard of proof asked for and whether the judge was told it (engine #220); absent from an older engine.
   standard?: AnalyseFactsStandardOut | null;
-  // The engine's own retention notice. The app does not display it (CaveatStrip): the text can carry a promise the app does not enforce.
-  retention_notice?: string;
 }
 
 // 320s: a generous margin above RunPod LB's own ~300s execution ceiling and the ~2.5 minute worst-case cold

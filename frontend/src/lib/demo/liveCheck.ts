@@ -80,7 +80,6 @@ export function checkDemoResult(result: AnalyseFactsWire, submitted: string[], f
       if (text !== undefined && text !== submitted[i].trim()) out.push(`fact ${i + 1} echoed text differs from the submitted text`);
     });
   }
-  if (!result.retention_notice) out.push("no retention notice in the response");
   const factIds = new Set((result.facts ?? []).map((f) => f.id));
   const byId = new Map<string, AnalyseFactsContract[]>();
   for (const c of result.contracts ?? []) byId.set(c.contract_id, [...(byId.get(c.contract_id) ?? []), c]);
