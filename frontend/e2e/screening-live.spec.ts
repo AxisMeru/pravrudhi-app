@@ -196,7 +196,7 @@ for (let run = 1; run <= REPEATS; run++) {
     }
     const lines = memo.split("\n");
     for (const line of lines) {
-      if (/ingredients have a supporting fact|All ingredients supported/.test(line)) {
+      if (/ingredients supported by a fact|All ingredients supported/.test(line)) {
         expect(lines[lines.indexOf(line) + 1]).toBe("This is a screening aid, not legal advice. A lawyer decides.");
       }
     }

@@ -38,8 +38,17 @@ export function ipcDisclosure(ipcSection: string): string {
 export const STRUCTURE_NOTE = "A Lean check confirmed the right ingredients were addressed; it does not read your facts.";
 export const ALL_SUPPORTED_TEXT = "All ingredients supported (structure checked)";
 
-export function bannerText(supported: number, total: number, review: number): string {
-  return `${supported} of ${total} ingredients have a supporting fact; ${review} need your review.`;
+/**
+ * The summary line (R1, 13 Oct, for #115): it names every state in the row vocabulary, in this order, joined with " · ": supported of total always, then (only when the
+ * count is not 0) suggested, needs your review, not supported, and facts that may defeat the claim. No "established", "proved" or "made out".
+ */
+export function bannerText(supported: number, total: number, suggested: number, review: number, notSupported: number, defences: number): string {
+  const parts = [`${supported} of ${total} ingredients supported by a fact`];
+  if (suggested > 0) parts.push(`${suggested} suggested by the screening judge (check it)`);
+  if (review > 0) parts.push(`${review} ${review === 1 ? "needs" : "need"} your review`);
+  if (notSupported > 0) parts.push(`${notSupported} not supported by these facts`);
+  if (defences > 0) parts.push(`${defences} ${defences === 1 ? "fact" : "facts"} that may defeat the claim`);
+  return parts.join(" · ");
 }
 
 export const CONTRACT_REVIEW_HEADING = "Needs your review";

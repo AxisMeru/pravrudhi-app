@@ -33,7 +33,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The result for the invented plot-sale matter: the summary saying that none of the three ingredients has a supporting fact and two need your review, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
+    alt: "The result for the invented plot-sale matter: the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge (check it) and one is not supported by these facts, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
   },
   citedFact: {
     file: "03-cited-fact.png",
@@ -92,7 +92,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "checklist",
     heading: "3. Read the ingredient checklist",
-    text: "The checklist has one row for each ingredient of the offence. Each row carries a status chip, a plain reason where one applies, and a line saying what to check. The summary above it counts the ingredients that have a supporting fact and the ones that need your review.",
+    text: "The checklist has one row for each ingredient of the offence. Each row carries a status chip, a plain reason where one applies, and a line saying what to check. The summary above it counts the rows in each state that applies: supported by a fact, suggested by the screening judge, needing your review, not supported by these facts, and facts that may defeat the claim.",
     image: GUIDE_IMAGES.checklist,
   },
   {
@@ -151,7 +151,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   },
 ];
 export const GUIDE_BANNER_TEXT =
-  "The summary line can read, for example, that one of the three ingredients has a supporting fact and two need your review. It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
+  "The summary line can read, for example, that none of the three ingredients is supported by a fact, two are suggested by the screening judge (check it) and one is not supported by these facts. It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
 
 export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [

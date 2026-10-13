@@ -41,7 +41,12 @@ export interface ScreeningRow {
 export interface ScreeningSummary {
   total: number;
   supported: number;
+  suggested: number;
+  /** Rows that ask for the lawyer's review (chip "review"); a suggested row is counted apart. */
   review: number;
+  notSupported: number;
+  /** Defence rows shown (facts that may defeat the claim). */
+  defences: number;
   /** The headline sentence for the banner. */
   text: string;
   allSupported: boolean;
@@ -111,8 +116,11 @@ export function defenceShown(contract: AnalyseFactsContract): boolean {
 export function summarize(contract: AnalyseFactsContract, rows: { ingredients: ScreeningRow[]; defences: ScreeningRow[] }): ScreeningSummary {
   const total = rows.ingredients.length;
   const supported = rows.ingredients.filter((r) => r.chip === "supported").length;
-  // A suggestion from the screening signal names no cited fact: it is not in N, and it asks to be checked, so it is in K.
-  const review = rows.ingredients.filter((r) => r.chip === "review" || r.chip === "suggested").length + rows.defences.length;
+  // Every state is counted in its own right (R1, 13 Oct): supported + suggested + review + not supported = total, and the defence rows are counted apart.
+  const suggested = rows.ingredients.filter((r) => r.chip === "suggested").length;
+  const review = rows.ingredients.filter((r) => r.chip === "review").length;
+  const notSupported = rows.ingredients.filter((r) => r.chip === "not_supported").length;
+  const defences = rows.defences.length;
   const els = (contract.elements ?? []).filter((e) => !e.is_denial) as ScreenedElement[];
   const bothJudges = els.length > 0 && els.every((e) => e.status === "established" && typeof e.p_established_second === "number");
   const allSupported =
@@ -122,7 +130,7 @@ export function summarize(contract: AnalyseFactsContract, rows: { ingredients: S
     contract.outcome === "PROOF" &&
     contract.lean_outcome === LEAN_PASS_OUTCOME &&
     bothJudges;
-  return { total, supported, review, allSupported, text: allSupported ? ALL_SUPPORTED_TEXT : bannerText(supported, total, review) };
+  return { total, supported, suggested, review, notSupported, defences, allSupported, text: allSupported ? ALL_SUPPORTED_TEXT : bannerText(supported, total, suggested, review, notSupported, defences) };
 }
 
 /** When the engine referred the whole contract to a lawyer: the signed reason sentence, shown under the banner; null otherwise. */

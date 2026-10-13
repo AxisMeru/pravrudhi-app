@@ -8,6 +8,7 @@ import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } fr
 import { CHIP_LABEL, DEFENCE_PROMPT_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
+import { bannerText } from "./copy";
 import { LEAN_PASS_OUTCOME, contractReferral, defenceShown, rowsFor, summarize, whatToCheckFor } from "./model";
 
 const FACTS: AnalyseFactsResult["facts"] = [
@@ -17,6 +18,7 @@ const FACTS: AnalyseFactsResult["facts"] = [
 const CID = "ipc415_property";
 const ELS = contractElements.contracts[CID].elements;
 
+const ofN = (n: number, m: number) => `${n} of ${m} ingredients supported by a fact`;
 const el = (i: number, over: Partial<AnalyseFactsElement> = {}): AnalyseFactsElement =>
   ({
     element: ELS[i], is_denial: false, status: "established", claimed: true, p_established: 0.9, p_established_second: 0.8, fact_id: `F${(i % 2) + 1}`,
@@ -113,7 +115,7 @@ test("the banner: N of M and K, and the all-supported line only when every condi
   const s = summarize(good, rowsFor(good, FACTS));
   assert.equal(s.text, "All ingredients supported (structure checked)");
   const partial = contract([el(0), el(1, { status: "not_established" }), el(2, { status: "not_confirmed" })], { outcome: "ABSTAIN" });
-  assert.equal(summarize(partial, rowsFor(partial, FACTS)).text, "1 of 3 ingredients have a supporting fact; 1 need your review.");
+  assert.equal(summarize(partial, rowsFor(partial, FACTS)).text, `${ofN(1, 3)} · 1 needs your review · 1 not supported by these facts`);
   const planted: [string, AnalyseFactsContract][] = [
     ["Lean does not pass", contract([el(0), el(1), el(2)], { lean_outcome: "ABSTAIN" })],
     ["no Lean result", contract([el(0), el(1), el(2)], { lean_outcome: null })],
@@ -132,7 +134,8 @@ test("a found defence is a review item, an unfound one is not shown; a referral 
   const rows = rowsFor(d, FACTS);
   assert.equal(rows.ingredients.length, 1);
   assert.deepEqual(rows.defences.map((r) => [r.element, r.chip]), [["a defence", "review"]]);
-  assert.equal(summarize(d, rows).review, 1);
+  assert.equal(summarize(d, rows).defences, 1);
+  assert.equal(summarize(d, rows).review, 0, "a defence row is counted as a defence, not as a review row");
   const ref = contractReferral(contract([el(0)], { outcome: "REFER_TO_LAWYER", reason: "contract_not_validated" }));
   assert.match(ref?.message ?? "", /not on the validated list/);
   assert.equal(contractReferral(contract([el(0)])), null);
@@ -152,20 +155,20 @@ test("R1 (8 Oct): the memo never shows the banner sentence without the standing 
   const c = contract([el(0), el(1, { status: "not_established" }), el(2, { status: "not_confirmed" }), el(0, { is_denial: true, element: "a defence", status: "established" })], { outcome: "ABSTAIN" });
   const memo = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
   const lines = memo.split("\n");
-  const i = lines.findIndex((l) => /ingredients have a supporting fact/.test(l));
+  const i = lines.findIndex((l) => /ingredients supported by a fact/.test(l));
   assert.ok(i > 0);
   assert.equal(lines[i + 1], "This is a screening aid, not legal advice. A lawyer decides.");
   assert.match(memo, /### A fact that may defeat the claim/);
   assert.match(memo, /Checked against the IPC text \(s\.415\); the BNS counterpart is not validated\./);
-  // a defeater row is not an ingredient: M stays 3
-  assert.match(memo, /1 of 3 ingredients have a supporting fact; 2 need your review\./);
+  // a defeater row is not an ingredient: the total stays 3, and the defence row is counted apart
+  assert.ok(memo.includes(`${ofN(1, 3)} · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim`));
 });
 
 test("R1 (8 Oct): a suggestion is not a cited fact: its own chip text, not in N, in K; the structure note appears with the all-supported line only", () => {
   assert.equal(CHIP_LABEL.suggested, "Suggested by the screening judge; check it");
   const c = contract([el(0), el(1, { status: "not_established", screening_signal: { p: 0.9, supported: true } }), el(2, { status: "not_established" })], { outcome: "ABSTAIN" });
   const s = summarize(c, rowsFor(c, FACTS));
-  assert.equal(s.text, "1 of 3 ingredients have a supporting fact; 1 need your review.");
+  assert.equal(s.text, `${ofN(1, 3)} · 1 suggested by the screening judge (check it) · 1 not supported by these facts`);
   assert.equal(s.supported, 1);
   assert.equal(STRUCTURE_NOTE, "A Lean check confirmed the right ingredients were addressed; it does not read your facts.");
   const good = contract([el(0), el(1), el(2)]);
@@ -215,5 +218,24 @@ test("R2 (13 Oct): defenceShown follows the checklist exactly: a suggested or an
   // the same answer the checklist rows give
   for (const c of [contract([el(0), d({ status: "not_established" })]), contract([el(0), d({ status: "not_established", screening_signal: { p: 0.9, supported: true } })])]) {
     assert.equal(defenceShown(c), rowsFor(c, FACTS).defences.length > 0);
+  }
+});
+
+test("R1 (13 Oct, #115): the summary names every state in the row vocabulary, in order, only when the count is not 0; the states add up to the total", () => {
+  assert.equal(bannerText(0, 3, 2, 0, 1, 0), `${ofN(0, 3)} · 2 suggested by the screening judge (check it) · 1 not supported by these facts`);
+  assert.equal(bannerText(3, 3, 0, 0, 0, 0), `${ofN(3, 3)}`);
+  assert.equal(bannerText(1, 4, 1, 1, 1, 1), `${ofN(1, 4)} · 1 suggested by the screening judge (check it) · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim`);
+  assert.equal(bannerText(0, 4, 0, 2, 2, 3), `${ofN(0, 4)} · 2 need your review · 2 not supported by these facts · 3 facts that may defeat the claim`);
+  assert.doesNotMatch(bannerText(2, 3, 1, 0, 0, 0), /established|proved|made out/i);
+  const defence = (over: Partial<AnalyseFactsElement> = {}) => el(0, { is_denial: true, element: "a defence", status: "established", ...over });
+  const cases: AnalyseFactsContract[] = [
+    contract([el(0), el(1, { status: "not_established", screening_signal: { p: 0.9, supported: true } }), el(2, { status: "not_established" })], { outcome: "ABSTAIN" }),
+    contract([el(0), el(1, { status: "not_confirmed" }), el(2, { status: "not_established" }), defence()], { outcome: "ABSTAIN" }),
+    contract([el(0), el(1, { status: "not_established" }), el(2, { status: "something_new" as never })], { outcome: "ABSTAIN", uncertain: [ELS[1]] }),
+    contract([el(0), el(1), el(2)]),
+  ];
+  for (const c of cases) {
+    const s = summarize(c, rowsFor(c, FACTS));
+    assert.equal(s.supported + s.suggested + s.review + s.notSupported, s.total, s.text);
   }
 });
