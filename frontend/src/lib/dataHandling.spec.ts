@@ -39,7 +39,7 @@ test("the sentences new to this page carry no banned word (the citation check's 
 });
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
-  assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Planned"], ["Memo preparation", "Planned"], ["Matter watch", "Planned"], ["Hearing preparation", "Planned"]]);
+  assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Planned"], ["Memo preparation", "Planned"], ["Matter watch", "Planned"], ["Hearing prep", "Planned"]]);
   assert.equal(WORKFLOWS[0].note, "It will run only after it matches the current screening on a fixed comparison test.");
   assert.equal(WORKFLOWS_CLOSING, "A workflow runs only when you start it, and only on the matter you give it.");
   assert.doesNotMatch(JSON.stringify(WORKFLOWS) + WORKFLOWS_CLOSING, /\d|\bA[0-9]\b/);

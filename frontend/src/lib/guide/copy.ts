@@ -1,6 +1,6 @@
 // Every user-visible string of the user guide (/guide) lives here, so R1 reads one list. The status names are imported from the Screening copy so
 // the guide can never drift from the screen it describes. House-path rules: no "proof", "established" or "verbatim" about the house judges, "a fact
-// that may defeat the claim" for a denial, "Not supported by these facts" for a missing ingredient, "quote" only about the opt-in frontier route
+// that points against the ingredient" for a denial, "Not supported by these facts" for a missing ingredient, "quote" only about the opt-in frontier route
 // (whose sentence is imported from the frontier files, not written here).
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING } from "../screening/copy";

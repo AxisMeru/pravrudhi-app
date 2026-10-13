@@ -13,7 +13,7 @@ export const WORKFLOWS: readonly WorkflowRow[] = [
   { name: "Intake", status: "Planned" },
   { name: "Memo preparation", status: "Planned" },
   { name: "Matter watch", status: "Planned" },
-  { name: "Hearing preparation", status: "Planned" },
+  { name: "Hearing prep", status: "Planned" },
 ];
 
 export const WORKFLOWS_CLOSING = "A workflow runs only when you start it, and only on the matter you give it.";

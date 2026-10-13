@@ -40,7 +40,7 @@ for (const [name, t] of [["dark", DARK], ["light", LIGHT]] as const) {
       assert.ok(r >= 4.5, `${name}: ${fg} ${t[fg]} on ${bg} ${t[bg]} is ${r.toFixed(2)}:1`);
     }
   });
-  test(`${name}: a status text on its own tint (12% over the card) reaches 4.5:1`, () => {
+  test(`${name}: a status text on its own tint over the card reaches 4.5:1`, () => {
     for (const s of STATUS) {
       const tint = mix(t[s], 12, t.surface);
       const r = ratio(t[s], tint);
