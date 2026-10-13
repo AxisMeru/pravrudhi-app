@@ -5,7 +5,7 @@ import leanOutcome from "../fixtures/leanOutcome.json";
 import whatToCheck from "../fixtures/whatToCheck.json";
 import contractElements from "../fixtures/contractElements.json";
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "../api";
-import { CHIP_LABEL, DEFENCE_UNMEASURED_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
+import { CHIP_LABEL, DEFENCE_PROMPT_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "./copy";
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
 import { bannerText } from "./copy";
@@ -194,17 +194,17 @@ test("a cited fact whose text could not be paired shows no fact block text (neve
 
 test("R1 (#283, 13 Oct): the defence line is one exact constant with no digits, and the memo has it under the defence heading only when a defence is shown", () => {
   assert.equal(
-    DEFENCE_UNMEASURED_NOTE,
-    "No test set with a defence label has been scored, so how reliably the screening finds a fact that may defeat the claim has not been measured.",
+    DEFENCE_PROMPT_NOTE,
+    "Facts that may defeat the claim are shown as prompts for your review, not as findings.",
   );
-  assert.doesNotMatch(DEFENCE_UNMEASURED_NOTE, /\d/);
+  assert.doesNotMatch(DEFENCE_PROMPT_NOTE, /\d/);
   const mk = (c: AnalyseFactsContract) => buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
   const withDefence = mk(contract([el(0), el(1), el(2), el(0, { is_denial: true, element: "a defence", status: "established" })], { outcome: "DENIAL" })).split("\n");
   const h = withDefence.findIndex((l) => l === "### A fact that may defeat the claim");
   assert.ok(h > 0);
-  assert.equal(withDefence[h + 2], DEFENCE_UNMEASURED_NOTE);
-  assert.equal(withDefence.filter((l) => l === DEFENCE_UNMEASURED_NOTE).length, 1);
-  assert.ok(!mk(contract([el(0), el(1), el(2)])).includes(DEFENCE_UNMEASURED_NOTE), "no defence row, no line");
+  assert.equal(withDefence[h + 2], DEFENCE_PROMPT_NOTE);
+  assert.equal(withDefence.filter((l) => l === DEFENCE_PROMPT_NOTE).length, 1);
+  assert.ok(!mk(contract([el(0), el(1), el(2)])).includes(DEFENCE_PROMPT_NOTE), "no defence row, no line");
 });
 
 test("R2 (13 Oct): defenceShown follows the checklist exactly: a suggested or an uncertain defence counts, a plain not-established one does not", () => {

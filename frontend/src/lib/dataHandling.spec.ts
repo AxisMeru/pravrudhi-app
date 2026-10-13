@@ -43,7 +43,7 @@ test("the sentences new to this page carry no banned word (the citation check's 
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
   assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Planned"], ["Memo preparation", "Planned"], ["Matter update review", "Planned"], ["Hearing preparation", "Planned"]]);
-  assert.equal(WORKFLOWS[0].note, "It will run only after it matches the current screening on a fixed comparison test.");
+  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is in development. In development checks on invented matters it completed every screening and produced a decision result each time. The app shows you only the engine's decision result, never an assistant's own wording of it. Not yet offered in the product.");
   assert.equal(WORKFLOWS_CLOSING, "A workflow runs only when you start it, and only on the matter you give it.");
   assert.doesNotMatch(JSON.stringify(WORKFLOWS) + WORKFLOWS_CLOSING, /\d|\bA[0-9]\b/);
 });

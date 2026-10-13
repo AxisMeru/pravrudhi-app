@@ -13,7 +13,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("The first analysis after idle can take a few minutes while the judges start; a later one can be faster. We have not measured typical times.");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("The first analysis after idle can take a few minutes while the judges start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
   await expect(page.getByTestId("guide-caption")).toHaveText("Dev stack only: the citation check is not yet served in the hosted deployment.");
   const imgs = page.locator('[data-testid="guide"] img');
   await expect(imgs).toHaveCount(6);

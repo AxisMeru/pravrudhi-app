@@ -5,7 +5,7 @@
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { OFFENCES } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, EXPORT_LABELS } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
@@ -14,7 +14,7 @@ export const GUIDE_TITLE = "User guide";
 export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each status means, and what it does not do.";
 
 export const GUIDE_SCREENSHOT_NOTE =
-  "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read; they are not evidence about how well the assistant performs, and no accuracy claim is made.";
+  "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read, not how the assistant will do on your matter.";
 
 export interface GuideImage {
   file: string;
@@ -147,7 +147,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   {
     label: DEFENCE_HEADING,
     meaning: "A fact the judge found that may weaken the claim. It is shown for you to weigh and is not counted among the ingredients.",
-    note: DEFENCE_UNMEASURED_NOTE,
+    note: DEFENCE_PROMPT_NOTE,
   },
 ];
 export const GUIDE_BANNER_TEXT =
@@ -164,7 +164,7 @@ export const GUIDE_LIMITS: string[] = [
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
-  "The first analysis after idle can take a few minutes while the judges start; a later one can be faster. We have not measured typical times. The page counts the time and says so if it is slow; you can cancel at any point.";
+  "The first analysis after idle can take a few minutes while the judges start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.";
 
 export const GUIDE_GLOSSARY_HEADING = "Glossary";
 export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] = [
@@ -172,5 +172,5 @@ export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] 
   { term: "Referral", meaning: "the screening does not decide the point and hands it back to you." },
   { term: "Supported", meaning: "shown only where a cited fact appears to carry the ingredient; a suggestion for you to check, never a finding." },
   // R1's exact entry (13 Oct): "A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it."
-  { term: DEFENCE_HEADING, meaning: "a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.", note: DEFENCE_UNMEASURED_NOTE },
+  { term: DEFENCE_HEADING, meaning: "a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.", note: DEFENCE_PROMPT_NOTE },
 ];

@@ -71,7 +71,7 @@ test("the view: idle shows only the button and the preview label; checking disab
   const html = (state: CitationCheckState) => renderToStaticMarkup(createElement(CitationCheckView, { state, onCheck: () => {}, citation: C }));
   const idle = html({ phase: "idle" });
   assert.match(idle, /Check this citation/);
-  assert.match(idle, /preview: not measured on real citations/);
+  assert.match(idle, /preview: existence check only/);
   assert.doesNotMatch(idle, /citation-check-result|citation-check-error/);
   assert.match(html({ phase: "checking" }), /disabled/);
 });
