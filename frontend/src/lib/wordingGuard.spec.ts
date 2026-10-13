@@ -49,10 +49,10 @@ test("the matters page's outcome badges and subtitle carry no wording hit (Studi
   const file = join(__dirname, "..", "app", "matters", "page.tsx");
   assert.deepEqual(scanSource("src/app/matters/page.tsx", readFileSync(file, "utf8")), []);
   const page = readFileSync(file, "utf8");
-  // R1 (#97): a DENIAL is a fact that points against the ingredient (R1, 13 Oct), one phrase in both views; it is never "not established" or "not supported".
+  // R1 (#97): a DENIAL is a fact that may defeat the claim, one phrase in both views; it is never "not established" or "not supported".
   assert.match(page, /DENIAL: \{ label: DEFENCE_PHRASE,/);
   assert.doesNotMatch(page, /DENIAL: \{ label: "/);
   const { DEFENCE_PHRASE, DEFENCE_HEADING } = await import("./screening/copy");
-  assert.equal(DEFENCE_PHRASE, "a fact that points against the ingredient");
+  assert.equal(DEFENCE_PHRASE, "a fact that may defeat the claim");
   assert.equal(DEFENCE_HEADING.toLowerCase(), DEFENCE_PHRASE);
 });
