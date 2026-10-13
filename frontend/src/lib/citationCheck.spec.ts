@@ -19,7 +19,7 @@ import {
 } from "./citationCheck";
 
 test("the preview label is exactly the decided wording", () => {
-  assert.equal(PREVIEW_LABEL, "preview: not measured on real citations");
+  assert.equal(PREVIEW_LABEL, "preview: existence check only");
 });
 
 test("the six statuses the engine can answer are shown verbatim and known", () => {

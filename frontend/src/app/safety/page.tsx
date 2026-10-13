@@ -1,44 +1,21 @@
 import { PageHeader } from "@/components/PageHeader";
-import { ASSIST_LINE, SAFETY_FIGURES, SAFETY_LABEL, SAFETY_MATERIAL, SAFETY_RECORDS, SAFETY_STACK } from "@/lib/demo/safety";
+import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_STATEMENTS, SAFETY_SUBTITLE } from "@/lib/demo/safety";
 
-// What was measured, on what, and what it does not cover. Every figure comes from lib/demo/safety.ts, which names the
-// record each rests on. No figure is shown anywhere else in the interface, and none comes from the demo example.
+// What the screen does and does not do, in R1's words (lib/demo/safety.ts). No figure is shown anywhere in the interface.
 export default function SafetyPage() {
   return (
     <div>
-      <PageHeader title="Safety record" subtitle="What was measured, on what material, and what it does not cover." />
-      <div className="space-y-6 p-8">
-        <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="safety-label">
-          {SAFETY_LABEL}
-        </p>
-        <div className="grid gap-4 md:grid-cols-2" data-testid="safety-figures">
-          {SAFETY_FIGURES.map((f) => (
-            <section key={f.id} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-              <h2 className="text-sm font-medium text-[var(--color-text)]">{f.heading}</h2>
-              <p className="mt-1 text-sm text-[var(--color-text-dim)]">{f.text}</p>
-            </section>
+      <PageHeader title="Safety record" subtitle={SAFETY_SUBTITLE} />
+      <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
+        <ul className="space-y-3" data-testid="safety-statements">
+          {SAFETY_STATEMENTS.map((s) => (
+            <li key={s} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text)]">
+              {s}
+            </li>
           ))}
-        </div>
-        <section>
-          <h2 className="text-sm font-medium text-[var(--color-text)]">Material</h2>
-          <p className="mt-1 text-sm text-[var(--color-text-dim)]">{SAFETY_MATERIAL}</p>
-        </section>
-        <section>
-          <h2 className="text-sm font-medium text-[var(--color-text)]">Stack</h2>
-          <p className="mt-1 text-sm text-[var(--color-text-dim)]">{SAFETY_STACK}</p>
-        </section>
-        <section>
-          <h2 className="text-sm font-medium text-[var(--color-text)]">Where these figures come from</h2>
-          <p className="mt-1 text-xs text-[var(--color-text-dim)]">Internal records of a private repository: not public, available from the team on request.</p>
-          <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-[var(--color-text-dim)]">
-            {SAFETY_RECORDS.map((r) => (
-              <li key={r.figure}>
-                {r.figure}: {r.repo} @ {r.commit.slice(0, 12)}, {r.path}
-              </li>
-            ))}
-          </ul>
-        </section>
+        </ul>
         <p className="text-sm font-medium text-[var(--color-text)]">{ASSIST_LINE}</p>
+        <p className="text-sm text-[var(--color-text-dim)]">{EVIDENCE_LINE}</p>
       </div>
     </div>
   );

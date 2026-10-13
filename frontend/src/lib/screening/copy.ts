@@ -22,8 +22,8 @@ export const WHAT_TO_CHECK_LABEL = "What to check";
 /** One phrase for a denial, in both views and the memo (R1, #97; reaffirmed 13 Oct): a DENIAL is a fact the judge found that may defeat the claim, never "not established". */
 export const DEFENCE_PHRASE = "a fact that may defeat the claim";
 export const DEFENCE_HEADING = DEFENCE_PHRASE.charAt(0).toUpperCase() + DEFENCE_PHRASE.slice(1);
-/** R1's ruling (#283, 13 Oct, replacement text): shown wherever a defence is shown (checklist, memo, guide, Matters). Stays until a sealed #283 result exists; then only R1 changes it. One constant, no digits. */
-export const DEFENCE_UNMEASURED_NOTE = "No test set with a defence label has been scored, so how reliably the screening finds a fact that may defeat the claim has not been measured.";
+/** R1's value wording (Lead-2 decision 5, 13 Oct), shown wherever a defence is shown (checklist, memo, guide, Matters). One constant, no digits. */
+export const DEFENCE_PROMPT_NOTE = "Facts that may defeat the claim are shown as prompts for your review, not as findings.";
 /** Beside an offence whose contracts are not on the validated list (#99): the engine refers on them. */
 export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the engine gives a referral, not a proof or denial.";
 export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";

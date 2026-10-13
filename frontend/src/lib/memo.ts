@@ -1,5 +1,5 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
-import { DEFENCE_UNMEASURED_NOTE } from "./screening/copy";
+import { DEFENCE_PROMPT_NOTE } from "./screening/copy";
 import { defenceShown } from "./screening/model";
 import { elementStatusPresentation } from "./elementStatus";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
@@ -10,8 +10,7 @@ import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
 export const MEMO_DISCLAIMER = MEMO_DISCLAIMER_TEXT;
 
 export const MEMO_VALIDATION_TIER =
-  "Measurement basis: the judge behind this memo was measured on constructed, in-distribution sets (pipeline-measured). " +
-  "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
+  "How to read this memo: it lists what the screening suggests you check, with the facts it cites. It makes no claim about how well it will do on your matter, and an offence outside the validated set gets a referral to a lawyer, not a verdict.";
 
 export const PROVISION_HEADING = "Provision text (for reference)";
 export const PROVISION_HEADING_NO_SOURCE = "Provision text (source not stated)";
@@ -27,18 +26,14 @@ export interface MemoOptions {
   generatedAt: string;
 }
 
-/** Under every element table: what the score column is, so it is not read as a probability. */
-export const JUDGE_SCORE_LEGEND = "Judge score: the judge's raw score for this element, not a probability that the element is met.";
-
 const cell = (s: string): string => s.replace(/\r?\n/g, " ").replace(/\|/g, "\\|");
 
 function elementRow(e: AnalyseFactsElement): string {
   const st = elementStatusPresentation(e.status);
-  const p = e.p_established === null ? "n/a" : e.p_established.toFixed(2);
   // Quotation marks only for words a judge wrote (quote_source "model"); a whole fact cited in full is not a quotation.
   const shown = e.quote ? (e.quote_source === "model" ? `"${cell(e.quote)}"` : cell(e.quote)) : null;
   const quote = shown ? `${shown}${e.fact_id ? ` (${cell(e.fact_id)})` : ""}` : "no cited fact";
-  return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${p} | ${quote} |`;
+  return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${quote} |`;
 }
 
 const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `> ${l}`);
@@ -91,9 +86,9 @@ function contractSection(c: AnalyseFactsContract): string {
   } else {
     lines.push(`The engine sent an outcome ("${c.outcome}") that is not an outcome this app recognises. Treat it as no verdict.`, "");
   }
-  if (defenceShown(c)) lines.push(DEFENCE_UNMEASURED_NOTE, "");
+  if (defenceShown(c)) lines.push(DEFENCE_PROMPT_NOTE, "");
   if (c.elements.length > 0) {
-    lines.push("| Element | Status | Judge score | Cited fact |", "|---|---|---|---|", ...c.elements.map(elementRow), "", JUDGE_SCORE_LEGEND, "");
+    lines.push("| Element | Status | Cited fact |", "|---|---|---|", ...c.elements.map(elementRow), "");
   }
   if (c.lean) {
     lines.push(

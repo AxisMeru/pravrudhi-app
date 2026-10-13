@@ -32,6 +32,6 @@ export const STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Read the safety record",
-    body: "What was measured, on what material and with which models, set beside what it did not cover.",
+    body: "How the screen behaved on real court material we had already seen, and what that does not cover.",
   },
 ];

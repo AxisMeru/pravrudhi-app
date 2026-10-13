@@ -4,7 +4,7 @@ import test from "node:test";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "./api";
 import { STEPS } from "./demo/steps";
 import { elementStatusPresentation } from "./elementStatus";
-import { JUDGE_SCORE_LEGEND, buildMemo } from "./memo";
+import { buildMemo } from "./memo";
 import { bindingLegText, quoteCheckPresentation } from "./reasonText";
 import { CAVEATS } from "./surfaceCopy";
 
@@ -58,14 +58,13 @@ const memo = (contracts: Partial<AnalyseFactsContract>[]) =>
     { engineVersion: "0.6.0", generatedAt: "2026-10-08T10:00:00Z" },
   );
 
-test("memo table: header, legend once per table, cited fact with quotation marks only for a model quote", () => {
+test("memo table: header with no score column (Lead-2, 13 Oct), cited fact with quotation marks only for a model quote", () => {
   const md = memo([{ elements: [el({}) as never, el({ element: "b", quote: "words a judge wrote", quote_source: "model" }) as never, el({ element: "c", quote: null, fact_id: null, quote_source: null }) as never] }]);
-  assert.ok(md.includes("| Element | Status | Judge score | Cited fact |"));
-  assert.equal(md.split(JUDGE_SCORE_LEGEND).length - 1, 1);
-  assert.equal(JUDGE_SCORE_LEGEND, "Judge score: the judge's raw score for this element, not a probability that the element is met.");
-  assert.ok(md.includes("| a promise | supported by a fact | 0.50 | the whole fact \\| text (F1) |"), md); // whole fact: no marks
-  assert.ok(md.includes('| b | supported by a fact | 0.50 | "words a judge wrote" (F1) |'), md); // a model's words: marks
-  assert.ok(md.includes("| c | supported by a fact | 0.50 | no cited fact |"), md);
+  assert.ok(md.includes("| Element | Status | Cited fact |"));
+  assert.doesNotMatch(md, /Judge score|0\.50/);
+  assert.ok(md.includes("| a promise | supported by a fact | the whole fact \\| text (F1) |"), md); // whole fact: no marks
+  assert.ok(md.includes('| b | supported by a fact | "words a judge wrote" (F1) |'), md); // a model's words: marks
+  assert.ok(md.includes("| c | supported by a fact | no cited fact |"), md);
 });
 
 test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown reason, exactly", () => {
@@ -76,6 +75,6 @@ test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown rea
 
 test("memo: a missing or undefined quote_source prints the cited text bare, never in quotation marks", () => {
   const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
-  assert.ok(md.includes("| d | supported by a fact | 0.50 | plain text (F1) |"), md);
-  assert.ok(md.includes("| e | supported by a fact | 0.50 | plain two (F1) |"), md);
+  assert.ok(md.includes("| d | supported by a fact | plain text (F1) |"), md);
+  assert.ok(md.includes("| e | supported by a fact | plain two (F1) |"), md);
 });

@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { BANNED, scanSource } from "../wordingAudit";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
-import { DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, EXPORT_LABELS } from "../screening/copy";
+import { DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 import { OFFENCES } from "../screening/offences";
 import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
@@ -44,7 +44,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.match(text, /exact-text/);
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
-  assert.match(GUIDE_COLD_START, /^The first analysis after idle can take a few minutes while the judges start; a later one can be faster\. We have not measured typical times\. The page counts the time and says so if it is slow; you can cancel at any point\.$/);
+  assert.match(GUIDE_COLD_START, /^The first analysis after idle can take a few minutes while the judges start; a later one can be faster\. The time varies; the page counts it, says so if it is slow, and you can cancel at any point\.$/);
   assert.match(GUIDE_STEPS.find((s) => s.id === "run")!.text, /^Choose Screen these facts\. The first analysis after idle can take a few minutes while the judges start \(see If it seems slow\)\. The page counts the time and says so if it is slow; you can cancel at any point\.$/);
 });
 
@@ -94,8 +94,8 @@ test("the guide's export step says what the run record holds (the facts you ente
 });
 
 test("R1 (#283): the guide's defence glossary entry and the defence line under 'Reading the checklist' carry the unmeasured note; no other entry does", () => {
-  assert.equal(GUIDE_GLOSSARY.find((g) => g.term === DEFENCE_HEADING)!.note, DEFENCE_UNMEASURED_NOTE);
-  assert.equal(GUIDE_STATUSES.find((s) => s.label === DEFENCE_HEADING)!.note, DEFENCE_UNMEASURED_NOTE);
+  assert.equal(GUIDE_GLOSSARY.find((g) => g.term === DEFENCE_HEADING)!.note, DEFENCE_PROMPT_NOTE);
+  assert.equal(GUIDE_STATUSES.find((s) => s.label === DEFENCE_HEADING)!.note, DEFENCE_PROMPT_NOTE);
   assert.equal(GUIDE_GLOSSARY.filter((g) => g.note).length, 1);
   assert.equal(GUIDE_STATUSES.filter((s) => s.note).length, 1);
 });
