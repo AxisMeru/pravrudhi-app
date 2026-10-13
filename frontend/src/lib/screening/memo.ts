@@ -3,7 +3,7 @@
 import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
 import { MEMO_DISCLAIMER } from "../memo";
-import { CHIP_LABEL, DEFENCE_HEADING, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
+import { CHIP_LABEL, DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { offenceOf } from "./offences";
 
@@ -41,7 +41,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     const ref = contractReferral(c);
     if (ref) out.push(`Needs your review: ${line(ref.message)} (reason: ${ref.code})`, "");
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
-    if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", ...rows.defences.flatMap(rowLines), "");
+    if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_UNMEASURED_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;
     if (att?.binary_sha256) out.push(`Lean checker: binary sha256 ${att.binary_sha256}${att.wire_sha256 ? `, wire sha256 ${att.wire_sha256}` : ""}`, "");
   }

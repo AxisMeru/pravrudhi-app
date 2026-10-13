@@ -57,6 +57,7 @@ export default function GuidePage() {
               <div key={s.label}>
                 <dt className="text-sm font-medium text-[var(--color-text)]">{s.label}</dt>
                 <dd className="text-sm text-[var(--color-text-dim)]">{s.meaning}</dd>
+                {s.note && <dd className="text-sm text-[var(--color-text-dim)]" data-testid="guide-defence-note">{s.note}</dd>}
               </div>
             ))}
           </dl>
@@ -76,6 +77,7 @@ export default function GuidePage() {
             {GUIDE_GLOSSARY.map((g) => (
               <li key={g.term} className="text-sm text-[var(--color-text-dim)]">
                 <span className="font-medium text-[var(--color-text)]">{g.term}</span>: {g.meaning}
+                {g.note && <span className="mt-1 block" data-testid="guide-glossary-defence-note">{g.note}</span>}
               </li>
             ))}
           </ul>

@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { BANNED, scanSource } from "../wordingAudit";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
-import { DEFENCE_HEADING, EXPORT_LABELS } from "../screening/copy";
+import { DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, EXPORT_LABELS } from "../screening/copy";
 import { OFFENCES } from "../screening/offences";
 import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
@@ -91,4 +91,11 @@ test("the guide's export step says what the run record holds (the facts you ente
   const s = GUIDE_STEPS.find((x) => x.id === "export")!;
   assert.match(s.text, /includes the facts you entered/);
   assert.doesNotMatch(s.text, /records what was sent/);
+});
+
+test("R1 (#283): the guide's defence glossary entry and the defence line under 'Reading the checklist' carry the unmeasured note; no other entry does", () => {
+  assert.equal(GUIDE_GLOSSARY.find((g) => g.term === DEFENCE_HEADING)!.note, DEFENCE_UNMEASURED_NOTE);
+  assert.equal(GUIDE_STATUSES.find((s) => s.label === DEFENCE_HEADING)!.note, DEFENCE_UNMEASURED_NOTE);
+  assert.equal(GUIDE_GLOSSARY.filter((g) => g.note).length, 1);
+  assert.equal(GUIDE_STATUSES.filter((s) => s.note).length, 1);
 });

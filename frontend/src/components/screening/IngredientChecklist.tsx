@@ -1,4 +1,4 @@
-import { CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING } from "@/lib/screening/copy";
+import { CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, WHAT_TO_CHECK_LABEL, SEE_REASON, CONTRACT_REVIEW_HEADING, DEFENCE_UNMEASURED_NOTE } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
@@ -77,6 +77,7 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
       {rows.defences.length > 0 && (
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-[var(--color-text)]">{DEFENCE_HEADING}</h3>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="defence-unmeasured-note">{DEFENCE_UNMEASURED_NOTE}</p>
           <ul className="space-y-2">
             {rows.defences.map((r, i) => (
               <Row key={`${r.element}-${i}`} row={r} />
