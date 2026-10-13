@@ -27,6 +27,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { PageHeader } from "@/components/PageHeader";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
@@ -397,7 +398,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title="Matters" subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title={NAV_LABELS.matters} subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">

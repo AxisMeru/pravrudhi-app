@@ -34,6 +34,8 @@ import {
   Search,
   Command,
   BookOpen,
+  Workflow,
+  ShieldCheck,
 } from "lucide-react";
 import { IS_DEMO } from "@/lib/api";
 import { DEMO_PATH } from "@/lib/demoPath";
@@ -82,6 +84,8 @@ const PAGE_ICONS: Record<string, ComponentType<{ size?: number; className?: stri
   Gavel,
   ScanSearch,
   BookOpen,
+  Workflow,
+  ShieldCheck,
 };
 
 const PAGE_ICON_BY_HREF = new Map(PALETTE_PAGES.map((p) => [p.href, PAGE_ICONS[p.icon]]));

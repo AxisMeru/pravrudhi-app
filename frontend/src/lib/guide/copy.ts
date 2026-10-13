@@ -48,7 +48,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   memo: {
     file: "06-memo-export.png",
-    alt: "The three export buttons under the checklist: Download memo, Print / save as PDF and Download audit trail.",
+    alt: "The three export buttons under the checklist: Download memo, Print / save as PDF and Download run record.",
   },
 };
 
@@ -103,7 +103,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Download the screening memo for your file, and the audit trail, which records what was sent and what came back. Both carry the run, the versions and the standing line that this is a screening aid.",
+    text: "Download the screening memo for your file, and the run record, which records what was sent and what came back. Both carry the run, the versions and the standing line that this is a screening aid.",
     image: GUIDE_IMAGES.memo,
   },
 ];

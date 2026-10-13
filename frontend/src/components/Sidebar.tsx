@@ -21,6 +21,8 @@ import {
   Menu,
   X,
   BookOpen,
+  Workflow,
+  ShieldCheck,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -31,6 +33,7 @@ import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
 import { GUIDE_NAV_LABEL } from "@/lib/guide/copy";
+import { NAV_GROUP_LABELS, NAV_LABELS } from "@/lib/navCopy";
 import { IS_DEMO } from "@/lib/api";
 import { canSeeNotifications, canSeeRuns } from "@/lib/runsAccess";
 
@@ -40,27 +43,37 @@ interface NavItem {
   icon: ComponentType<{ size?: number; className?: string }>;
 }
 
-const NAV: NavItem[] = [
-  { href: "/start", label: "Start", icon: Rocket },
-  { href: "/", label: "Improve", icon: Sparkles },
-  { href: "/objectives", label: "Objectives", icon: Target },
-  { href: "/progress", label: "Progress", icon: LineChart },
-  { href: "/memory", label: "Memory", icon: Brain },
-  { href: "/catalogue", label: "Catalogue", icon: Library },
-  { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/nyaya", label: "Nyaya", icon: Scale },
-  { href: "/screening", label: "Screening", icon: ScanSearch },
-  { href: "/matters", label: "Matters", icon: Gavel },
-  { href: "/citations", label: "Citation check", icon: Library },
-  { href: "/demo", label: "How it works", icon: Scale },
-  { href: "/safety", label: "Safety record", icon: Gavel },
-  { href: "/benchmarks", label: "Benchmarks", icon: LineChart },
-  { href: "/runs", label: "Runs", icon: History },
-  { href: "/models", label: "Models", icon: Package },
-  { href: "/guide", label: GUIDE_NAV_LABEL, icon: BookOpen },
-  { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/install", label: "Install", icon: Download },
+type NavGroupId = "work" | "firm" | "reference" | "studio";
+interface NavEntry extends NavItem {
+  group: NavGroupId;
+}
+
+// Grouped navigation (Pravrudhi-Nyaya): labels changed, every path is as it was. The Studio group holds the improvement loop's own pages, which the rules
+// below show only to the Studio edition.
+const NAV: NavEntry[] = [
+  { group: "work", href: "/screening", label: NAV_LABELS.screening, icon: ScanSearch },
+  { group: "work", href: "/matters", label: NAV_LABELS.matters, icon: Gavel },
+  { group: "work", href: "/citations", label: NAV_LABELS.citations, icon: Library },
+  { group: "firm", href: "/workflows", label: NAV_LABELS.workflows, icon: Workflow },
+  { group: "firm", href: "/data-handling", label: NAV_LABELS.dataHandling, icon: ShieldCheck },
+  { group: "firm", href: "/settings", label: NAV_LABELS.settings, icon: Settings },
+  { group: "reference", href: "/safety", label: NAV_LABELS.safety, icon: Gavel },
+  { group: "reference", href: "/benchmarks", label: NAV_LABELS.benchmarks, icon: LineChart },
+  { group: "reference", href: "/demo", label: NAV_LABELS.demo, icon: Scale },
+  { group: "reference", href: "/guide", label: GUIDE_NAV_LABEL, icon: BookOpen },
+  { group: "studio", href: "/start", label: "Start", icon: Rocket },
+  { group: "studio", href: "/", label: "Improve", icon: Sparkles },
+  { group: "studio", href: "/objectives", label: "Objectives", icon: Target },
+  { group: "studio", href: "/progress", label: "Progress", icon: LineChart },
+  { group: "studio", href: "/memory", label: "Memory", icon: Brain },
+  { group: "studio", href: "/catalogue", label: "Catalogue", icon: Library },
+  { group: "studio", href: "/chat", label: "Chat", icon: MessageSquare },
+  { group: "studio", href: "/nyaya", label: "Nyaya", icon: Scale },
+  { group: "studio", href: "/runs", label: "Runs", icon: History },
+  { group: "studio", href: "/models", label: "Models", icon: Package },
+  { group: "studio", href: "/install", label: "Install", icon: Download },
 ];
+const NAV_GROUP_ORDER: NavGroupId[] = ["work", "firm", "reference", "studio"];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -119,35 +132,47 @@ export function Sidebar() {
           <div className="text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
           {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
         </div>
-        <p className="mt-1 text-xs leading-snug text-[var(--color-text-dim)]">
-          {whoami.tagline}
-        </p>
+        {/* The product's line is long (it is read on the Screening page and the guide); the sidebar keeps the name, and the Studio edition its short tagline. */}
+        {whoami.edition === STUDIO && (
+          <p className="mt-1 text-xs leading-snug text-[var(--color-text-dim)]">
+            {whoami.tagline}
+          </p>
+        )}
         <div className="mt-3">
           <AccountControl />
         </div>
       </div>
-      <nav className="flex flex-1 flex-col gap-1 p-3">
+      <nav aria-label="Primary" className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
-        {NAV.filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
-          .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
-          .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO))
-          .map(({ href, label, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {NAV_GROUP_ORDER.map((group) => {
+          const items = NAV.filter((n) => n.group === group)
+            .filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
+            .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO));
+          if (items.length === 0) return null;
           return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-                active
-                  ? "bg-[var(--color-surface-raised)] text-[var(--color-text)]"
-                  : "text-[var(--color-text-dim)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"
-              }`}
-            >
-              <Icon size={16} />
-              <span className="flex-1">{label}</span>
-            </Link>
+            <div key={group} className="mb-1" data-testid={`nav-group-${group}`}>
+              <div className="px-3 pb-1 pt-2 text-[11px] uppercase tracking-wide text-[var(--color-text-dim)]">{NAV_GROUP_LABELS[group]}</div>
+              {items.map(({ href, label, icon: Icon }) => {
+                const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                      active
+                        ? "bg-[var(--color-surface-raised)] text-[var(--color-text)]"
+                        : "text-[var(--color-text-dim)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span className="flex-1">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>

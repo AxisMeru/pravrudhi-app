@@ -200,7 +200,7 @@ for (let run = 1; run <= REPEATS; run++) {
         expect(lines[lines.indexOf(line) + 1]).toBe("This is a screening aid, not legal advice. A lawyer decides.");
       }
     }
-    const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download audit trail (.json)" }).click()]);
+    const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download run record (.json)" }).click()]);
     const audit = JSON.parse(readFileSync(await auditDl.path(), "utf8"));
     expect(audit.response.run_id).toBe(result.run_id);
     expect(audit.request.facts).toEqual(submitted);

@@ -6,3 +6,19 @@ export const THEME_LABELS = {
   dark: "Dark",
   system: "System",
 } as const;
+
+/** The sidebar's group headings. */
+export const NAV_GROUP_LABELS = { work: "Work", firm: "Firm", reference: "Reference", studio: "Studio" } as const;
+
+/** Item labels of the firm surface; the paths do not change. R1 reads this list once (13 Oct 2026: "Offence rules" for /matters). */
+export const NAV_LABELS = {
+  screening: "Screening",
+  matters: "Offence rules",
+  citations: "Citation check",
+  workflows: "Workflows",
+  dataHandling: "Data handling",
+  settings: "Settings",
+  safety: "Safety record",
+  benchmarks: "Benchmarks",
+  demo: "How it works",
+} as const;

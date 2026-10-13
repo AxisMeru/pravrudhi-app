@@ -108,7 +108,7 @@ test("the memo and the audit trail download, carrying the checklist, the cited f
   expect(memo).toContain("Contract checker pin (sha256)");
   expect(memo).toContain("not legal advice");
   expect(memo).not.toMatch(/verbatim span|highlighted passage/i);
-  const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download audit trail (.json)" }).click()]);
+  const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download run record (.json)" }).click()]);
   const audit = JSON.parse(readFileSync((await auditDl.path()) as string, "utf8"));
   expect(audit.request.contractIds).toEqual([CID]);
   expect(audit.response.run_id).toBe("r-invented-screen");

@@ -6,6 +6,7 @@
 // The recorded demo is the public site, which nobody is signed in to, so it shows the product.
 
 import { IS_DEMO, apiBase, engineFetch } from "@/lib/api";
+import { PRODUCT_LINE, PRODUCT_NAME } from "@/lib/productCopy";
 
 export interface Edition {
   edition: string;
@@ -18,9 +19,11 @@ export interface Edition {
 // rather than assumed, so a surface is shown because the engine said Studio, not because nobody said product.
 export const STUDIO = "Pravrudhi Studio";
 
+// The product's name and line are SET HERE (lib/productCopy.ts, R1's words), not taken from the engine: the engine's own edition string and tagline are for the
+// improvement loop's builder and read as a generic product. Only the Studio edition keeps what the engine reports.
 export const PRODUCT: Edition = {
-  edition: "Pravrudhi",
-  tagline: "Improve your own model, agent or app, on your own hardware, while you watch.",
+  edition: PRODUCT_NAME,
+  tagline: PRODUCT_LINE,
 };
 
 export async function edition(): Promise<Edition> {
@@ -34,11 +37,10 @@ export async function edition(): Promise<Edition> {
     const res = await engineFetch(`${apiBase()}/api/me`, { cache: "no-store", authOptional: true });
     if (!res.ok) return PRODUCT;
     const body = (await res.json()) as Partial<Edition>;
-    return {
-      edition: body.edition || PRODUCT.edition,
-      tagline: body.tagline || PRODUCT.tagline,
-      access: typeof body.access === "string" ? body.access : undefined,
-    };
+    const access = typeof body.access === "string" ? body.access : undefined;
+    // Studio keeps the engine's own words; every other edition is the product, named and described here.
+    if (body.edition === STUDIO) return { edition: STUDIO, tagline: body.tagline || "", access };
+    return { edition: PRODUCT.edition, tagline: PRODUCT.tagline, access };
   } catch {
     // An engine that cannot be reached is not a reason to show no name at all.
     return PRODUCT;

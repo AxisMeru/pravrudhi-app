@@ -15,6 +15,7 @@ import { IngredientChecklist } from "@/components/screening/IngredientChecklist"
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
 import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
+import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
@@ -153,6 +154,7 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
+        <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
         <p className="text-sm" data-testid="guide-link">
           <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
         </p>
@@ -342,7 +344,7 @@ export default function ScreeningPage() {
                 Print / save as PDF
               </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`audit-trail-${result.run_id}.json`, buildAuditTrail(request, result, opts()), "application/json")}>
-                Download audit trail (.json)
+                Download run record (.json)
               </button>
             </div>
             {result.contracts.map((c) => (

@@ -24,8 +24,8 @@ export const STEPS: { title: string; body: string }[] = [
       "\"not validated, verify\".",
   },
   {
-    title: "Download the memo and the audit trail",
-    body: "The memo lists the checklist, the cited facts, the review items and the versions; the audit trail is the request and the response.",
+    title: "Download the memo and the run record",
+    body: "The memo lists the checklist, the cited facts, the review items and the versions; the run record is the request and the response.",
   },
   {
     title: "Read the safety record",

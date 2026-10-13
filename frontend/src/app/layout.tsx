@@ -5,6 +5,7 @@ import { EditionGate } from "@/components/EditionGate";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
 import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
+import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/lib/productCopy";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme";
 import "./globals.css";
 
@@ -16,8 +17,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
   icons: { icon: `${basePath}/icon.svg` },
-  title: "Pravrudhi",
-  description: "Improve your model or your agent harness, on your hardware, while you watch.",
+  title: PRODUCT_NAME,
+  description: PRODUCT_DESCRIPTION,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,13 +29,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:rounded-md focus:bg-[var(--color-surface)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--color-text)]">Skip to main content</a>
         <div className="flex h-screen">
           <Sidebar />
           {/* Room for the drawer toggle, which is fixed at top-left below `md` and would otherwise sit on top
               of the first line of every page. */}
           <div className="flex min-w-0 flex-1 flex-col pt-14 md:pt-0">
             <ConnectionBanner />
-            <main className="flex-1 overflow-y-auto">
+            <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto">
               <EditionGate>{children}</EditionGate>
             </main>
           </div>
