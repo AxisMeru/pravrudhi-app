@@ -4,7 +4,10 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { BANNED, scanSource } from "../wordingAudit";
-import { GUIDE_COLD_START, GUIDE_IMAGES, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
+import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
+import { DEFENCE_HEADING } from "../screening/copy";
+import { OFFENCES } from "../screening/offences";
+import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
 const root = join(__dirname, "..", "..", "..");
 const copySource = readFileSync(join(__dirname, "copy.ts"), "utf8");
@@ -62,4 +65,17 @@ test("R1's conditions on the images: the citations shot carries the dev-stack ca
   assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
   assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients has a supporting fact and two need your review/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
+});
+
+test("the guide for firm users: R1's two lines, the covered offences (the validated ones only, with 'others are referred'), no bare 'defeater', the glossary entry exactly", () => {
+  assert.equal(GUIDE_INTRO, PRODUCT_LINE);
+  assert.equal(GUIDE_ABOUT, ABOUT_LINE);
+  assert.deepEqual(GUIDE_COVERED, OFFENCES.filter((o) => !o.notValidated).map((o) => `${o.title} (${o.sections})`));
+  assert.equal(GUIDE_COVERED.length, 8);
+  assert.ok(!GUIDE_COVERED.some((c) => /cheque|s\.316/i.test(c)), "the two not-validated offences are not listed as covered");
+  assert.equal(GUIDE_COVERED_NOTE, "Offences not on this list are referred back to you.");
+  const all = JSON.stringify([GUIDE_STEPS, GUIDE_STATUSES, GUIDE_GLOSSARY, GUIDE_LIMITS, GUIDE_COVERED]);
+  assert.doesNotMatch(all, /defeater/i);
+  const g = GUIDE_GLOSSARY.find((x) => x.term === DEFENCE_HEADING)!;
+  assert.equal(`${g.term}: ${g.meaning}`, "A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.");
 });

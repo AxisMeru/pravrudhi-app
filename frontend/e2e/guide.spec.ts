@@ -7,6 +7,10 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page).toHaveURL(/\/guide\/?$/);
   await expect(page.getByRole("heading", { name: "User guide", exact: true })).toBeVisible();
   await expect(page.getByTestId("guide-step")).toHaveCount(7);
+  await expect(page.getByTestId("guide-covered").locator("li")).toHaveCount(8);
+  await expect(page.getByTestId("guide-covered")).toContainText("Offences not on this list are referred back to you.");
+  await expect(page.getByTestId("guide-glossary")).toContainText("A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim");
+  await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
   await expect(page.getByTestId("guide-cold-start")).toContainText("The first analysis after idle can take a few minutes while the judges start; a later one can be faster. We have not measured typical times.");

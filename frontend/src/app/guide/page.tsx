@@ -1,5 +1,7 @@
 import { PageHeader } from "@/components/PageHeader";
+import Link from "next/link";
 import {
+  GUIDE_ABOUT, GUIDE_ABOUT_HEADING, GUIDE_BEFORE, GUIDE_BEFORE_HEADING, GUIDE_BEFORE_LINK, GUIDE_COVERED, GUIDE_COVERED_HEADING, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_GLOSSARY_HEADING,
   GUIDE_BANNER_TEXT, GUIDE_COLD_START, GUIDE_COLD_START_HEADING, GUIDE_INTRO, GUIDE_INTRO_HEADING, GUIDE_LIMITS, GUIDE_LIMITS_HEADING, GUIDE_SCREENSHOT_NOTE,
   GUIDE_STATUS_HEADING, GUIDE_STATUSES, GUIDE_STEPS, GUIDE_STEPS_HEADING, GUIDE_SUBTITLE, GUIDE_TITLE,
 } from "@/lib/guide/copy";
@@ -15,6 +17,24 @@ export default function GuidePage() {
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_INTRO_HEADING}</h2>
           <p className="mt-1 text-sm text-[var(--color-text-dim)]">{GUIDE_INTRO}</p>
           <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="guide-screenshot-note">{GUIDE_SCREENSHOT_NOTE}</p>
+        </section>
+        <section data-testid="guide-about">
+          <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_ABOUT_HEADING}</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-dim)]">{GUIDE_ABOUT}</p>
+        </section>
+        <section data-testid="guide-covered">
+          <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_COVERED_HEADING}</h2>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--color-text-dim)]">
+            {GUIDE_COVERED.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-sm text-[var(--color-text-dim)]">{GUIDE_COVERED_NOTE}</p>
+        </section>
+        <section data-testid="guide-before">
+          <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_BEFORE_HEADING}</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-dim)]">{GUIDE_BEFORE}</p>
+          <p className="mt-1 text-sm"><Link href="/data-handling" className="text-[var(--color-accent)] underline">{GUIDE_BEFORE_LINK}</Link></p>
         </section>
         <section className="space-y-6">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_STEPS_HEADING}</h2>
@@ -47,6 +67,16 @@ export default function GuidePage() {
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[var(--color-text-dim)]" data-testid="guide-limits">
             {GUIDE_LIMITS.map((l) => (
               <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </section>
+        <section data-testid="guide-glossary">
+          <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_GLOSSARY_HEADING}</h2>
+          <ul className="mt-2 space-y-2" data-testid="guide-glossary-list">
+            {GUIDE_GLOSSARY.map((g) => (
+              <li key={g.term} className="text-sm text-[var(--color-text-dim)]">
+                <span className="font-medium text-[var(--color-text)]">{g.term}</span>: {g.meaning}
+              </li>
             ))}
           </ul>
         </section>
