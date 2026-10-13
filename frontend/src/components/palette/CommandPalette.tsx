@@ -355,7 +355,7 @@ export function CommandPalette() {
             <div className="flex items-center justify-between border-t border-[var(--color-border)] px-4 py-2 text-xs text-[var(--color-text-dim)]">
               <span>↑↓ navigate · ↵ select · esc close · ? shortcuts</span>
               {status && (
-                <span className={status.ok ? "text-[var(--color-accent)]" : "text-red-400"}>{status.message}</span>
+                <span className={status.ok ? "text-[var(--color-accent)]" : "text-[var(--color-danger)]"}>{status.message}</span>
               )}
             </div>
           </div>

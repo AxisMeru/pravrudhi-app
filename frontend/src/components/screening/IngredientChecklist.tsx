@@ -63,10 +63,10 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
       </header>
       <SummaryBanner summary={summary} />
       {referral && (
-        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300" data-testid="contract-review">
+        <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>
           <p className="mt-1">{referral.message}</p>
-          <p className="mt-1 text-xs text-amber-300/70">{SEE_REASON}: {referral.code}</p>
+          <p className="mt-1 text-xs text-[var(--color-warn)]">{SEE_REASON}: {referral.code}</p>
         </div>
       )}
       <ul className="space-y-2" aria-label="Ingredients">

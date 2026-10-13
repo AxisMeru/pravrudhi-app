@@ -41,7 +41,7 @@ export function NotesList({ notes, query, onSave, onDelete }: {
       {selected !== note.id ? <MarkdownPreview text={text} /> : <>
         <MarkdownEditor text={text} onChange={(value) => setDrafts((prev) => ({ ...prev, [note.id]: value }))} disabled={IS_DEMO || busy === note.id} />
         <div className="mt-3 flex gap-4">
-          <button type="button" disabled={IS_DEMO || !!busy || !dirty || !text.trim() || !onSave} onClick={() => act(note, false)} className="rounded bg-[var(--color-accent)] px-3 py-2 text-[var(--color-bg)] disabled:opacity-50">{busy === note.id ? "Working…" : "Save changes"}</button>
+          <button type="button" disabled={IS_DEMO || !!busy || !dirty || !text.trim() || !onSave} onClick={() => act(note, false)} className="rounded bg-[var(--color-accent)] px-3 py-2 text-[var(--color-on-accent)] disabled:opacity-50">{busy === note.id ? "Working…" : "Save changes"}</button>
           <button type="button" disabled={IS_DEMO || !!busy || !onDelete} onClick={() => setConfirmDelete(note.id)} className="text-[var(--color-danger)] disabled:opacity-50">Delete note</button>
         </div>
         {confirmDelete === note.id && <div className="mt-3" role="alert"><p>Delete this note permanently{dirty ? " and discard its unsaved changes" : ""}?</p><button disabled={!!busy} onClick={() => act(note, true)} className="mr-4 text-[var(--color-danger)]">Confirm delete</button><button disabled={!!busy} onClick={() => setConfirmDelete(null)}>Cancel</button></div>}

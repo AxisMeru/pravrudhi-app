@@ -42,7 +42,7 @@ export function ComposerInput({
       <button
         onClick={onSubmit}
         disabled={disabled || sending || !canSend}
-        className="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[#06110c] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-accent)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Send size={15} />
         {sending ? "Sending…" : "Send"}

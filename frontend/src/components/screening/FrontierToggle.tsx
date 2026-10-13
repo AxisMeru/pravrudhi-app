@@ -32,7 +32,7 @@ export function FrontierToggle({
         </p>
       )}
       {s.consent && (
-        <p className="text-xs text-amber-300" data-testid="frontier-consent">
+        <p className="text-xs text-[var(--color-warn)]" data-testid="frontier-consent">
           {s.consent}
         </p>
       )}

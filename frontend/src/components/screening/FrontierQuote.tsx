@@ -6,7 +6,7 @@ export function FrontierQuote({ quote, check }: { quote: string; check: string |
   return (
     <div className="text-xs" data-testid="frontier-quote">
       <span className="italic">&ldquo;{quote}&rdquo;</span>
-      <span className={`ml-1.5 ${passed ? "text-[var(--color-text-dim)]" : "text-amber-300"}`} data-testid="frontier-quote-check" data-passed={passed}>
+      <span className={`ml-1.5 ${passed ? "text-[var(--color-text-dim)]" : "text-[var(--color-warn)]"}`} data-testid="frontier-quote-check" data-passed={passed}>
         {quoteCheckLabel(check)}
       </span>
     </div>

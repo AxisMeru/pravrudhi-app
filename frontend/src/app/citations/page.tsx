@@ -54,7 +54,7 @@ export default function CitationsPage() {
     <div>
       <PageHeader title={CITATION_CHECK_TITLE} subtitle="Look up one citation and check that a quote appears in its text." />
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
-        <p className="w-fit rounded-md border border-amber-500/40 px-2 py-0.5 text-xs text-amber-300" data-testid="citation-preview-label">
+        <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]" data-testid="citation-preview-label">
           {PREVIEW_LABEL}
         </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
@@ -87,13 +87,13 @@ export default function CitationsPage() {
           type="button"
           onClick={submit}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <SearchCheck size={14} />}
           {loading ? "Checking…" : "Check"}
         </button>
         {error && (
-          <p className="text-sm text-red-400" role="alert" data-testid="citation-error">
+          <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="citation-error">
             {error}
           </p>
         )}
@@ -109,7 +109,7 @@ export default function CitationsPage() {
                   {view.product.label}
                 </p>
                 {view.product.preview && (
-                  <span className="inline-block rounded-md border border-amber-500/40 px-2 py-0.5 text-xs text-amber-300" data-testid="citation-product-preview">
+                  <span className="inline-block rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]" data-testid="citation-product-preview">
                     preview
                   </span>
                 )}

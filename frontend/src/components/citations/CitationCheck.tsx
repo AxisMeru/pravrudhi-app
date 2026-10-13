@@ -12,7 +12,7 @@ export function CitationCheckResult({ state }: { state: CitationCheckState }) {
   return (
     <>
     {(state.phase === "error" || state.phase === "invalid") && (
-      <p className="text-red-400" role="alert" data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
+      <p className="text-[var(--color-danger)]" role="alert" data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
         {state.message}
       </p>
     )}
@@ -57,7 +57,7 @@ export function CitationCheckView({ state, onCheck, citation }: { state: Citatio
         {checking ? <Loader2 size={12} className="animate-spin" /> : <SearchCheck size={12} />}
         {checking ? "Checking…" : "Check this citation"}
       </button>
-      <span className="ml-2 text-[11px] text-amber-300" data-testid="citation-check-preview">
+      <span className="ml-2 text-[11px] text-[var(--color-warn)]" data-testid="citation-check-preview">
         {PREVIEW_LABEL}
       </span>
       <CitationCheckResult state={state} />

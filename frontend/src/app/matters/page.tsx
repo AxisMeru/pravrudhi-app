@@ -43,10 +43,10 @@ import { CITATION_NEXT_STEP, FILE_NOTE, PRE_SUBMIT_RETENTION, SIGNING_IN_TEXT, W
 const UNCOVERED_REASON_TOKEN = "no_training_statute_text";
 
 const OUTCOME: Record<string, { label: string; tone: string; Icon: typeof CheckCircle2 }> = {
-  PROOF: { label: "every condition supported by a fact", tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10", Icon: CheckCircle2 },
-  DENIAL: { label: DEFENCE_PHRASE, tone: "text-red-400 border-red-500/40 bg-red-500/10", Icon: XCircle },
-  ABSTAIN: { label: "abstained", tone: "text-sky-400 border-sky-500/40 bg-sky-500/10", Icon: HelpCircle },
-  REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-amber-400 border-amber-500/40 bg-amber-500/10", Icon: AlertTriangle },
+  PROOF: { label: "every condition supported by a fact", tone: "text-[var(--color-ok)] border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]", Icon: CheckCircle2 },
+  DENIAL: { label: DEFENCE_PHRASE, tone: "text-[var(--color-danger)] border-[var(--color-danger-border)] bg-[var(--color-danger-bg)]", Icon: XCircle },
+  ABSTAIN: { label: "abstained", tone: "text-[var(--color-info)] border-[var(--color-info-border)] bg-[var(--color-info-bg)]", Icon: HelpCircle },
+  REFER_TO_LAWYER: { label: "refer to a lawyer", tone: "text-[var(--color-warn)] border-[var(--color-warn-border)] bg-[var(--color-warn-bg)]", Icon: AlertTriangle },
 };
 
 // A normal cold start is about three minutes (the line above); past it the page says the models may be off, instead of counting on.
@@ -100,7 +100,7 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
                 <span className="text-[11px]">Passage within the cited fact {view.factId}: </span>
                 {view.cutBefore && "…"}
                 {view.before}
-                <mark className="rounded-sm bg-amber-500/25 px-0.5 text-[var(--color-text)]">{view.quote}</mark>
+                <mark className="rounded-sm bg-[var(--color-warn-mark)] px-0.5 text-[var(--color-text)]">{view.quote}</mark>
                 {view.after}
                 {view.cutAfter && "…"}
               </div>
@@ -119,7 +119,7 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
             {citationNote(el) && <span className="ml-1.5 text-[11px]" data-testid="cited-fact-note">— {citationNote(el)}</span>}
           </>
         ) : el.error ? (
-          <span className="text-red-400">{el.error}</span>
+          <span className="text-[var(--color-danger)]">{el.error}</span>
         ) : (
           <span>no cited fact</span>
         )}
@@ -161,7 +161,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
         <div className="text-sm font-medium text-[var(--color-text)]">
           {c.contract_id}
           {mark && validationLabel(mark) && (
-            <span className="ml-2 rounded border border-amber-500/40 px-1.5 py-0.5 text-[11px] font-normal text-amber-300" data-testid="not-validated-badge">
+            <span className="ml-2 rounded border border-[var(--color-warn-border)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-warn)]" data-testid="not-validated-badge">
               {validationLabel(mark)}
             </span>
           )}
@@ -177,11 +177,11 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
         // said even if this build's wording is wrong or stale.
         const referred = referReasonPresentation(c.reason);
         return (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-300">
+          <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]">
             <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
             <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
-            {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-amber-300/70" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
-            <p className="mt-1 text-xs text-amber-300/70">reason: {c.reason}</p>
+            {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-[var(--color-warn)]" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
+            <p className="mt-1 text-xs text-[var(--color-warn)]">reason: {c.reason}</p>
           </div>
         );
       })()}
@@ -464,13 +464,13 @@ export default function MattersPage() {
             <legend className="text-sm font-medium text-[var(--color-text)]">Contracts to check against</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="contracts-error">{contractsError}</p>
                 <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
                   Try again
                 </button>
               </div>
             ) : picker === "empty" ? (
-              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+              <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
             ) : picker === "loading" ? (
               <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
@@ -485,7 +485,7 @@ export default function MattersPage() {
                     <input type="checkbox" className="sr-only" checked={selected.has(id)} onChange={() => toggleContract(id)} />
                     {id}
                     {validationLabel(validationMark(validated, id)) && (
-                      <span className="text-amber-300">({validationLabel(validationMark(validated, id))})</span>
+                      <span className="text-[var(--color-warn)]">({validationLabel(validationMark(validated, id))})</span>
                     )}
                   </label>
                 ))}
@@ -497,19 +497,19 @@ export default function MattersPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="mt-2 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="mt-2 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Scale size={14} />}
             {loading ? "Analysing…" : "Analyse"}
           </button>
           {closed && svc?.kind === "ok" && svc.status.service_window && (
-            <p className="text-sm text-amber-400" role="status" data-testid="matters-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="matters-offline">
               The hosted demo is offline outside its service hours ({formatNextOpen(svc.status.service_window)}). Nothing is sent
               while it is closed.
             </p>
           )}
           {offline && (
-            <p className="text-sm text-amber-400" role="status" data-testid="matters-engine-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="matters-engine-offline">
               The engine is not answering right now. Nothing is sent until it is back.
             </p>
           )}
@@ -531,14 +531,14 @@ export default function MattersPage() {
             </p>
           )}
           {loading && elapsedSeconds >= SLOW_START_SECONDS && (
-            <p className="text-sm text-amber-400" role="status" data-testid="matters-slow-start">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="matters-slow-start">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel
               and try again later; no result is returned until they answer.
             </p>
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
           {error && (
-            <p className="text-sm text-red-400" role="alert" data-testid="matters-error">
+            <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="matters-error">
               {error}
             </p>
           )}

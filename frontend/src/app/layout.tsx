@@ -5,6 +5,7 @@ import { EditionGate } from "@/components/EditionGate";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
 import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
+import { THEME_INIT_SCRIPT } from "@/lib/theme/theme";
 import "./globals.css";
 
 // GitHub Pages serves this app under /pravrudhi/app, and Next does not prefix an absolute icon URL with the
@@ -21,7 +22,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Sets data-theme from the stored choice before first paint (no flash of the wrong theme). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <div className="flex h-screen">
           <Sidebar />

@@ -174,7 +174,7 @@ function DemoRunView({ id }: { id: string }) {
             <button
               onClick={() => setPlaying((p) => !p)}
               disabled={done}
-              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs hover:bg-white/5 disabled:opacity-40"
+              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs hover:bg-[var(--color-hover)] disabled:opacity-40"
             >
               {playing ? <Pause size={13} /> : <Play size={13} />}
               {playing ? "Pause" : "Play"}
@@ -184,7 +184,7 @@ function DemoRunView({ id }: { id: string }) {
                 setShown(0);
                 setPlaying(true);
               }}
-              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs hover:bg-white/5"
+              className="flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-xs hover:bg-[var(--color-hover)]"
             >
               <RotateCcw size={13} />
               Replay

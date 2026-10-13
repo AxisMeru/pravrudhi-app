@@ -40,25 +40,25 @@ import { decodeLeanWireForDisplay } from "@/lib/leanWire";
 const VERDICT: Record<NyayaAnswer["verdict"], { label: string; tone: string; Icon: typeof ShieldCheck; meaning: string }> = {
   licensed: {
     label: "licensed",
-    tone: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10",
+    tone: "text-[var(--color-ok)] border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]",
     Icon: ShieldCheck,
     meaning: "every section it cites exists in the corpus and was among the sources it was shown",
   },
   unlicensed: {
     label: "unlicensed",
-    tone: "text-amber-400 border-amber-500/40 bg-amber-500/10",
+    tone: "text-[var(--color-warn)] border-[var(--color-warn-border)] bg-[var(--color-warn-bg)]",
     Icon: ShieldQuestion,
     meaning: "it relies on nothing it was shown: no citation, or only sections outside its sources",
   },
   invented_citation: {
     label: "invented citation",
-    tone: "text-red-400 border-red-500/40 bg-red-500/10",
+    tone: "text-[var(--color-danger)] border-[var(--color-danger-border)] bg-[var(--color-danger-bg)]",
     Icon: ShieldAlert,
     meaning: "it cites a section that does not exist in the corpus at all",
   },
   abstained: {
     label: "abstained",
-    tone: "text-sky-400 border-sky-500/40 bg-sky-500/10",
+    tone: "text-[var(--color-info)] border-[var(--color-info-border)] bg-[var(--color-info-bg)]",
     Icon: Ban,
     meaning: "it said the sources do not cover the question rather than inventing an answer",
   },
@@ -81,7 +81,7 @@ function VerdictBadge({ verdict }: { verdict: NyayaAnswer["verdict"] }) {
 
 function CitationChip({ id, status }: { id: string; status: string }) {
   const tone =
-    status === "licensed" ? "border-emerald-500/40 text-emerald-300" : status === "unshown" ? "border-amber-500/40 text-amber-300" : "border-red-500/40 text-red-300";
+    status === "licensed" ? "border-[var(--color-ok-border)] text-[var(--color-ok)]" : status === "unshown" ? "border-[var(--color-warn-border)] text-[var(--color-warn)]" : "border-[var(--color-danger-border)] text-[var(--color-danger)]";
   return (
     <span className={`rounded border px-1.5 py-0.5 font-mono text-[11px] ${tone}`} title={status}>
       {id} · {status}
@@ -273,7 +273,7 @@ function AskTab() {
             <button
               onClick={submit}
               disabled={busy || !question.trim() || chosen.length === 0}
-              className="ml-auto flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[#06110c] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              className="ml-auto flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Scale size={15} />}
               {busy ? "Asking…" : "Ask"}
@@ -412,7 +412,7 @@ function AuditTab() {
           <button
             onClick={submit}
             disabled={busy || !answer.trim() || !checker}
-            className="ml-auto flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[#06110c] hover:opacity-90 disabled:opacity-40"
+            className="ml-auto flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] hover:opacity-90 disabled:opacity-40"
           >
             {busy ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />}
             {busy ? "Auditing…" : "Audit"}
@@ -567,7 +567,7 @@ function RegistryAuditTab() {
         <button
           onClick={submit}
           disabled={busy || !contractId || elements.length === 0 || !anyMarked}
-          className="mt-3 flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[#06110c] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-3 flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />}
           {busy ? "Checking…" : "Check against the Lean binary"}
@@ -585,7 +585,7 @@ function RegistryAuditTab() {
             </div>
           )}
           {result.unlicensed_claims.length > 0 && (
-            <div className="mt-1 text-xs text-amber-400">
+            <div className="mt-1 text-xs text-[var(--color-warn)]">
               Not a required element of this contract: {result.unlicensed_claims.map(decodeLeanWireForDisplay).join("; ")}
             </div>
           )}
@@ -657,7 +657,7 @@ function DemoNyaya() {
           This is a recording of the public site, with no engine behind it and no vendor to answer. Installed, this
           page asks the models you can reach and checks every citation they make against the statute corpus.
         </p>
-        <a href="/install" className="mt-4 inline-flex items-center gap-2 rounded-md bg-emerald-500/90 px-4 py-2 text-sm font-medium text-black hover:bg-emerald-400">
+        <a href="/install" className="mt-4 inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] hover:bg-[var(--color-accent-hover)]">
           Get it running
         </a>
       </section>

@@ -120,7 +120,7 @@ export default function StartPage() {
               <button
                 onClick={() => setStep((s) => Math.min(STEPS.length, s + 1))}
                 disabled={!canAdvance}
-                className="rounded-md bg-[var(--color-accent)] px-4 py-1.5 text-xs font-medium text-[var(--color-bg)] disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md bg-[var(--color-accent)] px-4 py-1.5 text-xs font-medium text-[var(--color-on-accent)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Next
               </button>

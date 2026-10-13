@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { AccountControl } from "@/components/AccountControl";
 import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
@@ -150,6 +151,9 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <div className="border-t border-[var(--color-border)] p-3">
+        <ThemeSwitch />
+      </div>
       </aside>
     </>
   );

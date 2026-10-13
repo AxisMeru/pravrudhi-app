@@ -239,13 +239,13 @@ export default function ScreeningPage() {
             <legend className="text-sm font-medium text-[var(--color-text)]">What to screen for</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm text-red-400" role="alert" data-testid="contracts-error">{contractsError}</p>
+                <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="contracts-error">{contractsError}</p>
                 <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
                   Try again
                 </button>
               </div>
             ) : picker === "empty" ? (
-              <p className="text-sm text-amber-400" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
+              <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="contracts-empty">{NO_CONTRACTS_MESSAGE}</p>
             ) : picker === "loading" ? (
               <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
@@ -278,7 +278,7 @@ export default function ScreeningPage() {
                             <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
                           )}
                           {ids.some((i) => validationLabel(validationMark(validated, i))) && (
-                            <span className="ml-2 text-xs text-amber-300">({validationLabel(validationMark(validated, ids[0]))})</span>
+                            <span className="ml-2 text-xs text-[var(--color-warn)]">({validationLabel(validationMark(validated, ids[0]))})</span>
                           )}
                         </span>
                       </label>
@@ -295,18 +295,18 @@ export default function ScreeningPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
             {loading ? "Screening…" : "Screen these facts"}
           </button>
           {closed && svc?.kind === "ok" && svc.status.service_window && (
-            <p className="text-sm text-amber-400" role="status" data-testid="screening-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-offline">
               The hosted demo is offline outside its service hours ({formatNextOpen(svc.status.service_window)}). Nothing is sent while it is closed.
             </p>
           )}
           {offline && (
-            <p className="text-sm text-amber-400" role="status" data-testid="screening-engine-offline">
+            <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-engine-offline">
               The engine is not answering right now. Nothing is sent until it is back.
             </p>
           )}
@@ -323,12 +323,12 @@ export default function ScreeningPage() {
             </>
           )}
           {loading && elapsed >= SLOW_START_SECONDS && (
-            <p className="text-sm text-amber-400" role="status">
+            <p className="text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
-          {error && <p className="text-sm text-red-400" role="alert" data-testid="screening-error">{error}</p>}
+          {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
         </section>
 
         {result && request && (

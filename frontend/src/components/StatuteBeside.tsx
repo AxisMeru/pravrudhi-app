@@ -44,7 +44,7 @@ export function StatuteBeside({ citations }: { citations: AnalyseFactsCitation[]
         </button>
       )}
       {state === "loading" && <p className="mt-1 text-[var(--color-text-dim)]">Loading…</p>}
-      {state === "error" && <p className="mt-1 text-amber-400">The statute text could not be loaded.</p>}
+      {state === "error" && <p className="mt-1 text-[var(--color-warn)]">The statute text could not be loaded.</p>}
       {state === "ready" && (
         <div className="mt-2 space-y-3">
           {shown.length === 0 && <p className="text-[var(--color-text-dim)]">The text of these provisions is not in the corpus.</p>}

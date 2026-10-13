@@ -31,7 +31,7 @@ export default function DemoPage() {
         <div className="flex flex-wrap items-center gap-4">
           <Link
             href={`/screening?example=${EXAMPLE_ID}`}
-            className="inline-flex w-fit items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white"
+            className="inline-flex w-fit items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)]"
             data-testid="load-example"
           >
             Open Screening with the example loaded
