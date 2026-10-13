@@ -58,10 +58,10 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = [
     id: "browser",
     heading: "Stored in your browser",
     // Verified 13 Oct from the code. Only localStorage is used on the firm surface, with three keys: pravrudhi-auth-session (lib/auth.ts:21), pravrudhi.command-palette.recents
-    // (lib/palette.ts:278) and pravrudhi-theme (lib/theme/theme.ts). The notification flags (components/notifications/NotificationBell.tsx:15-16) are operator-only and the run-page notes
+    // (lib/palette.ts:278) and pravrudhi-theme (lib/theme/theme.ts). The two notification flags (components/notifications/NotificationBell.tsx:15-16) are written only where canSeeNotifications(access, IS_DEMO) is true: the public demo, never a signed-in member; the run-page notes
     // (lib/annotations.ts) are Studio's. lib/dataHandling.spec.ts fails if any other storage key appears in src.
     paragraphs: [
-      "On these screens your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser.",
+      "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps two notification-preference flags.",
     ],
   },
   {

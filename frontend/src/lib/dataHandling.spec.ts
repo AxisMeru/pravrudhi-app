@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
 import { DATA_HANDLING_SECTIONS, DATA_HANDLING_SUBTITLE, FIRM_STORAGE_KEYS } from "./dataHandling";
+import { canSeeNotifications } from "./runsAccess";
 import { WORKFLOWS, WORKFLOWS_CLOSING } from "./workflowsCopy";
 
 const text = (id: string) => DATA_HANDLING_SECTIONS.find((s) => s.id === id)!.paragraphs.join(" ");
@@ -20,7 +21,7 @@ test("the data-handling text is R1's exact words, and it answers all three quest
     text("where"),
     "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). The larger of the two screening models runs in EU data centres; the region of the other is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; its location is not stated here. The hosting providers may keep their own logs.",
   );
-  assert.equal(text("browser"), "On these screens your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser.");
+  assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps two notification-preference flags.");
   assert.equal(text("frontier"), "Use a frontier model as an additional reader. Not available: this deployment has not switched the frontier reader on.");
   assert.equal(text("citations"), "The citation check does not save the citation or the quote you enter.");
 });
@@ -46,9 +47,10 @@ test("/workflows: one status word each, R1's closing line, no figure or id", () 
 });
 
 // "Stored in your browser" claims only three keys. Any other browser-storage key in src must be on this list of non-firm ones or this test fails and the page's sentence needs a new read.
-const NON_FIRM_KEYS: readonly string[] = [
-  "pravrudhi.notifications.asked", "pravrudhi.notifications.optin", // operator-only (components/notifications/NotificationBell.tsx, shown by Sidebar.tsx canSeeNotifications)
+const DEMO_ONLY_KEYS: readonly string[] = [
+  "pravrudhi.notifications.asked", "pravrudhi.notifications.optin", // written by NotificationBell, which renders only where canSeeNotifications(access, IS_DEMO) is true: the public demo, never a signed-in member
 ];
+const NON_FIRM_KEYS: readonly string[] = [...DEMO_ONLY_KEYS];
 const root = join(__dirname, "..");
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -78,9 +80,51 @@ test("the firm surface stores in the browser only the three keys the data-handli
   for (const k of FIRM_STORAGE_KEYS) assert.ok(used.has(k), `the page names "${k}" but no source uses it`);
 });
 
-test("the memo, the run record and the file-reading path make no network call (the page says they are built in the browser)", () => {
-  for (const f of ["lib/screening/memo.ts", "lib/memo.ts", "lib/factsInput.ts", "lib/screening/facts.ts"]) {
-    const src = readFileSync(join(root, f), "utf8").replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
-    assert.doesNotMatch(src, /\bfetch\(|XMLHttpRequest|sendBeacon|FormData|engineFetch/, f);
+/** Every local file reachable from `entries` by a value import (`import type` is erased at build time, so it is not followed). */
+function importClosure(entries: string[]): string[] {
+  const src = root;
+  const seen = new Set<string>();
+  const resolve = (from: string, spec: string): string | null => {
+    const base = spec.startsWith("@/") ? join(src, spec.slice(2)) : spec.startsWith(".") ? join(from, "..", spec) : null;
+    if (!base) return null;
+    for (const c of [base, `${base}.ts`, `${base}.tsx`, join(base, "index.ts")]) if (existsSync(c) && statSync(c).isFile()) return c;
+    return null;
+  };
+  const visit = (file: string) => {
+    if (seen.has(file)) return;
+    seen.add(file);
+    const code = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    for (const m of code.matchAll(/(?:^|\n)\s*(?:import|export)(\s+type)?[^;'"]*?from\s+["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)|(?:^|\n)\s*import\s+["']([^"']+)["']/g)) {
+      if (m[1]) continue;
+      const next = resolve(file, m[2] ?? m[3] ?? m[4]);
+      if (next) visit(next);
+    }
+  };
+  for (const e of entries) visit(join(src, e));
+  return [...seen].map((f) => relative(src, f)).sort();
+}
+
+test("the memo, the run record and the file-reading path make no network call in any file they import (the page says they are built in the browser)", () => {
+  const files = importClosure(["lib/screening/memo.ts", "lib/memo.ts", "lib/factsInput.ts", "lib/screening/facts.ts", "lib/docParsers.ts", "lib/docxArchive.ts", "lib/docx.worker.ts"]);
+  for (const must of ["lib/screening/memo.ts", "lib/memo.ts", "lib/factsInput.ts", "lib/screening/facts.ts", "lib/docParsers.ts", "lib/docxArchive.ts", "lib/docx.worker.ts"]) assert.ok(files.includes(must), `${must} is in the closure`);
+  assert.ok(!files.includes("lib/api.ts") && !files.some((f) => /(^|\/)(api|engineFetch|supabase)[^/]*\.tsx?$/.test(f)), `no network module is imported by value: ${files.join(", ")}`);
+  for (const f of files) {
+    const code = readFileSync(join(root, f), "utf8").replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.doesNotMatch(code, /\bfetch\(|XMLHttpRequest|sendBeacon|FormData|engineFetch|WebSocket|EventSource/, f);
+    assert.doesNotMatch(code, /cMapUrl|standardFontDataUrl/, `${f}: pdf.js loads no remote font or cMap data`);
   }
+  // the pdf.js worker is an asset served from this origin, built from the package by the bundler
+  assert.match(readFileSync(join(root, "lib/docParsers.ts"), "utf8"), /workerSrc = new URL\("pdfjs-dist\/build\/pdf\.worker\.min\.mjs", import\.meta\.url\)/);
+});
+
+test("the two notification flags are demo-only: the page says so, and no member path writes them (R1, 13 Oct)", () => {
+  assert.deepEqual([...DEMO_ONLY_KEYS], ["pravrudhi.notifications.asked", "pravrudhi.notifications.optin"]);
+  assert.ok(text("browser").endsWith("The public demo also keeps two notification-preference flags."));
+  for (const k of DEMO_ONLY_KEYS) assert.ok(!FIRM_STORAGE_KEYS.includes(k), `${k} is not one of the member keys`);
+  const bell = readFileSync(join(root, "components", "notifications", "NotificationBell.tsx"), "utf8");
+  for (const k of DEMO_ONLY_KEYS) assert.ok(bell.includes(`"${k}"`), `NotificationBell writes ${k}`);
+  assert.equal(canSeeNotifications("member", false), false);
+  assert.equal(canSeeNotifications(undefined, false), false);
+  assert.equal(canSeeNotifications(undefined, true), true);
+  assert.ok(readFileSync(join(root, "components", "Sidebar.tsx"), "utf8").includes("canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />"));
 });
