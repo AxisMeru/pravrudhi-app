@@ -71,3 +71,15 @@ test("the guide carries it twice (glossary and Reading the checklist); the pages
     await expect(page.locator("body")).not.toContainText(NOTE);
   }
 });
+
+test("Matters: a defence element on a REFER outcome carries the line once; a not-established defence does not", async ({ page }) => {
+  await matters(page, result("REFER_TO_LAWYER", true));
+  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(1);
+  await page.unroute("**/api/v1/analyse-facts**");
+  const plain = result("REFER_TO_LAWYER", true);
+  plain.contracts[0].elements[1] = { ...plain.contracts[0].elements[1], status: "not_established" };
+  await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: plain }));
+  await page.getByRole("button", { name: "Analyse" }).click();
+  await expect(page.getByTestId("memo-actions")).toBeVisible();
+  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(0);
+});

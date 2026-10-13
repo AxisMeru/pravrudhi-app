@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
-import { NO_PROMISE_ANY, PROMISE_SAMPLES } from "./support/noTrainingPromise";
+import { promiseHits, PROMISE_SAMPLES } from "./support/noTrainingPromise";
 
 /** The data-handling notice before facts are entered, the corrected file note and the next-step link (design-partner audit gaps 1 and 4). */
 const RETENTION = "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. More under Data handling.";
@@ -11,7 +11,7 @@ test("the retention notice is on the page before anything is typed: R1's text, c
   await page.goto("/matters");
   await expect(page.getByTestId("retention-before")).toHaveText(RETENTION);
   await expect(page.getByTestId("retention-before").getByRole("link", { name: "Data handling" })).toHaveAttribute("href", "/data-handling");
-  await expect(page.locator("body")).not.toContainText(NO_PROMISE_ANY);
+  expect(promiseHits(await page.locator("body").innerText())).toEqual([]);
   await expect(page.locator("body")).not.toContainText(/kept up to 7 days for audit/i);
 });
 
@@ -32,7 +32,7 @@ test("the engine's own retention_notice is not shown under a result", async ({ p
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   await expect(page.locator("body")).not.toContainText("ENGINE-NOTICE-MARKER");
-  await expect(page.locator("body")).not.toContainText(NO_PROMISE_ANY);
+  expect(promiseHits(await page.locator("body").innerText())).toEqual([]);
 });
 
 test("the file note says the file itself is not uploaded and that the text read from it is sent on Analyse", async ({ page }) => {

@@ -1,7 +1,7 @@
 // The data-handling page (/data-handling): what leaves the firm, where it is processed, how long it is kept. Every sentence is R1's exact text (13 Oct 2026) or an
 // existing signed constant quoted unchanged. Kept in ONE file so a late fact change is one edit. NOT said here, on purpose: any region for the smaller screening model,
-// any location for the sign-in provider, "no fact text is kept" (a run record can carry the text of a supported fact), and any promise about training or evaluation use
-// (the code does not enforce one).
+// any location for the sign-in provider, "no fact text is kept" (a run record can carry the text of a supported fact), and any promise about how the models handle submissions
+// (the code enforces none).
 import { FRONTIER_TOGGLE_LABEL, FRONTIER_UNAVAILABLE_TEXT } from "./frontierReader";
 import { BANNER_STANDING_LINE } from "./screening/copy";
 import { CITATION_RETENTION } from "./surfaceCopy";

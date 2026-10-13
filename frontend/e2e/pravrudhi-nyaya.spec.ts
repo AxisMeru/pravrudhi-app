@@ -1,5 +1,5 @@
 import { expect, test } from "./support/engineTest";
-import { NO_PROMISE_ANY } from "./support/noTrainingPromise";
+import { promiseHits } from "./support/noTrainingPromise";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
 const LINE_START = "Element-by-element screening of Indian criminal matters. For each offence it covers under the BNS and the IPC";
@@ -31,7 +31,7 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   await expect(body.getByTestId("dh-kept")).toContainText("Run records are kept for up to 7 days.");
   await expect(body.getByTestId("dh-where")).toContainText("the region of the other is not fixed");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");
-  await expect(body).not.toContainText(NO_PROMISE_ANY);
+  expect(promiseHits(await body.innerText())).toEqual([]);
   await expect(body).not.toContainText(/no fact text is kept/i);
 });
 

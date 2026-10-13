@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { INNOCENT_SAMPLES, promiseHits, PROMISE_SAMPLES } from "../../e2e/support/noTrainingPromise";
 
-// The app makes no promise about training or evaluation use that the code does not enforce (R1/Lead-2, 13 Oct). The scan covers every text file that ships or runs.
+// The app states nothing about how the models handle submissions beyond what the code enforces (R1/Lead-2, 13 Oct). The scan covers every text file that ships or runs.
 const frontend = join(__dirname, "..", "..");
 const SKIP_DIRS = new Set(["node_modules", ".next", "out", "test-results", "playwright-report", ".git", "coverage"]);
 const TEXT = /\.(ts|tsx|js|jsx|mjs|cjs|json|md|mdx|html|css|txt|svg|yml|yaml|toml)$/i;
@@ -15,8 +15,10 @@ const EXEMPT_FILES = new Map<string, string>([
   ["src/lib/fixtures/engineOpenapiV1.source.json", "the same pinned engine contract, source form"],
   ["package-lock.json", "dependency names, not copy"],
 ]);
-// One exact sentence, not a pattern: benchmark-set wording about test sets, not about user submissions.
-const EXEMPT_SENTENCES = ["Model weights are not trained on these test sets by design"];
+// One exact sentence, not a pattern: benchmark-set wording about the published test sets, not about user submissions.
+const EXEMPT_SENTENCES = [
+  "Model weights are not trained on these test sets by design; the sets were reused to compare candidates, and a small number of test cases share passages with training documents (removed from the headline figures), so results are not fresh-test estimates.",
+];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -33,7 +35,7 @@ test("the scan's patterns catch each way of promising it and let the plain reten
   for (const s of INNOCENT_SAMPLES) assert.deepEqual(promiseHits(s), [], `false hit: ${s}`);
 });
 
-test("no file that ships or runs makes a promise about training or evaluation use of submissions", () => {
+test("every file that ships or runs is free of promises about how models handle submissions", () => {
   const hits: string[] = [];
   for (const f of walk(frontend)) {
     const rel = relative(frontend, f);

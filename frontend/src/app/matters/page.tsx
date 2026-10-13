@@ -34,6 +34,7 @@ import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
 import { DEFENCE_PHRASE, DEFENCE_UNMEASURED_NOTE } from "@/lib/screening/copy";
+import { defenceShown } from "@/lib/screening/model";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
 import { CITATION_NEXT_STEP, FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
 
@@ -582,7 +583,7 @@ export default function MattersPage() {
                 Print / save as PDF
               </button>
             </div>
-            {result.contracts.some((c) => c.outcome === "DENIAL") && (
+            {result.contracts.some(defenceShown) && (
               <p className="text-xs text-[var(--color-text-dim)]" data-testid="defence-unmeasured-note">{DEFENCE_UNMEASURED_NOTE}</p>
             )}
             {referFirst(result.contracts).map((c) => (

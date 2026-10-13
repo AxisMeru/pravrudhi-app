@@ -1,4 +1,6 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
+import { DEFENCE_UNMEASURED_NOTE } from "./screening/copy";
+import { defenceShown } from "./screening/model";
 import { elementStatusPresentation } from "./elementStatus";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
@@ -89,6 +91,7 @@ function contractSection(c: AnalyseFactsContract): string {
   } else {
     lines.push(`The engine sent an outcome ("${c.outcome}") that is not an outcome this app recognises. Treat it as no verdict.`, "");
   }
+  if (defenceShown(c)) lines.push(DEFENCE_UNMEASURED_NOTE, "");
   if (c.elements.length > 0) {
     lines.push("| Element | Status | Judge score | Cited fact |", "|---|---|---|---|", ...c.elements.map(elementRow), "", JUDGE_SCORE_LEGEND, "");
   }

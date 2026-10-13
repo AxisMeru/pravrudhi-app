@@ -81,7 +81,7 @@ test("the before-you-submit retention notice is R1's exact text, with no trainin
     PRE_SUBMIT_RETENTION,
     "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. More under Data handling.",
   );
-  assert.doesNotMatch(PRE_SUBMIT_RETENTION, /audit|training|evaluation|no fact text|kept for 7 days|partner|hour/i);
+  for (const w of ["audit", "train", "evaluat", "no fact text", "kept for 7 days", "partner", "hour"]) assert.ok(!PRE_SUBMIT_RETENTION.toLowerCase().includes(w), `the notice must not contain ${w}`);
   assert.ok(PRE_SUBMIT_RETENTION.endsWith(`${PRE_SUBMIT_LINK_TEXT}.`));
   for (const t of [FILE_NOTE, CITATION_NEXT_STEP]) assert.ok(!/verified|guarantee|never stored/i.test(t), t);
 });

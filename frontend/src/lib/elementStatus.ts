@@ -39,7 +39,7 @@ export const ELEMENT_STATUSES = [
 export type ElementStatus = (typeof ELEMENT_STATUSES)[number];
 
 // Which finding a presentation asserts. `null` means "no finding either way" — used for not_confirmed (the
-// judges leaned established but the bar was not met), for both not-evaluated cases, and for an
+// judges leaned established but the bar was not met), for the two cases where no verdict was produced, and for an
 // unrecognised status. Only `established` and `not_established` are verdicts.
 export type ElementVerdict = "established" | "not_established";
 
@@ -51,7 +51,7 @@ export interface ElementStatusPresentation {
   status: ElementStatus | null;
   label: string;
   // Tailwind utility classes for the badge, in the same shape as the page's own OUTCOME tones. Distinct per
-  // status: not_confirmed, not_established and the two not-evaluated cases must never look alike.
+  // status: not_confirmed, not_established and the two no-verdict cases must never look alike.
   tone: string;
   verdict: ElementVerdict | null;
   /** The signed sentence for what this status means; null for an unrecognised status (no signed wording for it). */
