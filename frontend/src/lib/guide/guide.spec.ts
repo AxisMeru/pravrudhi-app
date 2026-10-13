@@ -63,7 +63,7 @@ test("R1's conditions on the images: the citations shot carries the dev-stack ca
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
   assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
-  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients has a supporting fact and two need your review/);
+  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge \(check it\) and one is not supported by these facts/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
 });
 

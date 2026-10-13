@@ -19,7 +19,7 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "Read the summary and the referral",
     body:
-      "The banner says how many ingredients have a supporting fact and how many need your review. Anything uncertain is " +
+      "The banner counts the rows in each state: supported, suggested, needing your review, not supported, and facts that may defeat the claim. Anything uncertain is " +
       "referred to a lawyer instead of guessed. A contract the registry does not list as validated carries the mark " +
       "\"not validated, verify\".",
   },
