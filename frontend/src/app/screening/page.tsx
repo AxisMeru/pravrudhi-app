@@ -276,7 +276,7 @@ export default function ScreeningPage() {
                         />
                         <span>
                           <span className="text-[var(--color-text)]">{o.title}</span>
-                          <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>
+                          {o.sections && <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>}
                           {o.notValidated && (
                             <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
                           )}

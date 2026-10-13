@@ -12,7 +12,7 @@ test("the ten offence titles (eight validated, two not), their BNS/IPC pair line
       ["cheating", "Cheating", "BNS 318 · IPC 415", ["ipc415_property", "ipc415_damaging_act"], "415"],
       ["cheating-personation", "Cheating by personation", "BNS 319 · IPC 416", ["ipc416"], "416"],
       ["false-information", "False information to a public servant", "BNS 217 · IPC 182", ["ipc182_misdirected_act", "ipc182_abuse_of_power"], "182"],
-      ["promise-to-marry", "Sexual intercourse by deceitful means or a false promise to marry", "BNS 69 · no IPC counterpart", ["bns69"], null],
+      ["bns-69", "BNS 69", "", ["bns69"], null],
       ["cruelty", "Cruelty by the husband or his relatives", "BNS 85, 86 · IPC 498A", ["bns85"], null],
       ["abetment", "Abetment", "BNS 45, 46 · IPC 107, 108", ["bns46_instigation", "bns46_conspiracy", "bns46_intentional_aid"], null],
       ["abetment-outside-india", "Abetment in India of an offence outside India", "BNS 47 · IPC 108A", ["bns47"], null],

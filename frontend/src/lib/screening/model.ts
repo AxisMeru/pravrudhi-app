@@ -10,6 +10,7 @@ import { elementStatusPresentation } from "../elementStatus";
 import { QUOTE_CHECK_TEXT } from "../reasonText";
 import { referReasonPresentation } from "../referReason";
 import { ALL_SUPPORTED_TEXT, bannerText, type Chip } from "./copy";
+import { REFERENCE_WHAT_TO_CHECK, displayElementName, referenceOf } from "./reference";
 
 /** The optional per-element screening signal (4B p; supported if >= its threshold). Absent on an engine that does not send it. */
 export interface ScreeningSignal {
@@ -82,7 +83,7 @@ export function rowFor(contract: AnalyseFactsContract, el: ScreenedElement, fact
   const cites = kind === "whole_fact" || kind === "unstated";
   return {
     contractId: contract.contract_id,
-    element: el.element,
+    element: displayElementName(contract, el) ?? el.element, // a reference-only contract shows its label, never the engine's wording (reference.ts)
     isDefence: el.is_denial,
     chip,
     suggested,
@@ -92,7 +93,7 @@ export function rowFor(contract: AnalyseFactsContract, el: ScreenedElement, fact
     factText: cites && fact && fact.text ? fact.text : null,
     note: citationNote(el),
     quote: kind === "model" && el.quote ? { text: el.quote, check: el.quote_check && Object.prototype.hasOwnProperty.call(QUOTE_CHECK_TEXT, el.quote_check) ? QUOTE_CHECK_TEXT[el.quote_check] : null } : null,
-    whatToCheck: whatToCheckFor(contract.contract_id, el.element),
+    whatToCheck: referenceOf(contract.contract_id) ? REFERENCE_WHAT_TO_CHECK : whatToCheckFor(contract.contract_id, el.element),
   };
 }
 

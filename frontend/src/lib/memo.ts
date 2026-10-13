@@ -1,6 +1,7 @@
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "./api";
 import { DEFENCE_PROMPT_NOTE } from "./screening/copy";
 import { defenceShown } from "./screening/model";
+import { displayElementName, referenceOf } from "./screening/reference";
 import { elementStatusPresentation } from "./elementStatus";
 import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
@@ -28,12 +29,13 @@ export interface MemoOptions {
 
 const cell = (s: string): string => s.replace(/\r?\n/g, " ").replace(/\|/g, "\\|");
 
-function elementRow(e: AnalyseFactsElement): string {
+function elementRow(e: AnalyseFactsElement, c: AnalyseFactsContract): string {
   const st = elementStatusPresentation(e.status);
   // Quotation marks only for words a judge wrote (quote_source "model"); a whole fact cited in full is not a quotation.
   const shown = e.quote ? (e.quote_source === "model" ? `"${cell(e.quote)}"` : cell(e.quote)) : null;
   const quote = shown ? `${shown}${e.fact_id ? ` (${cell(e.fact_id)})` : ""}` : "no cited fact";
-  return `| ${cell(e.element)}${e.is_denial ? " (defence)" : ""} | ${cell(st.label)} | ${quote} |`;
+  const name = displayElementName(c, e) ?? e.element;
+  return `| ${cell(name)}${e.is_denial && !displayElementName(c, e) ? " (defence)" : ""} | ${cell(st.label)} | ${quote} |`;
 }
 
 const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `> ${l}`);
@@ -43,6 +45,7 @@ const quoteBlock = (text: string): string[] => text.split(/\r?\n/).map((l) => `>
 // licence condition on showing statute text). The judge's own version appears only when the engine sent one (it differs from or is shorter than the
 // provision text above), with the line that says its findings were made against that version.
 function provisionBlock(c: AnalyseFactsContract): string[] {
+  if (referenceOf(c.contract_id)) return []; // no rule or provision text for a reference-only contract (reference.ts)
   const text = (c.rule_text ?? "").trim();
   if (!text) return [];
   const source = (c.rule_text_source ?? "").trim();
@@ -88,7 +91,7 @@ function contractSection(c: AnalyseFactsContract): string {
   }
   if (defenceShown(c)) lines.push(DEFENCE_PROMPT_NOTE, "");
   if (c.elements.length > 0) {
-    lines.push("| Element | Status | Cited fact |", "|---|---|---|", ...c.elements.map(elementRow), "");
+    lines.push("| Element | Status | Cited fact |", "|---|---|---|", ...c.elements.map((e) => elementRow(e, c)), "");
   }
   if (c.lean) {
     lines.push(

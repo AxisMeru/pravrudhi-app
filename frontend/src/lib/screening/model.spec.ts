@@ -9,6 +9,7 @@ import { CHIP_LABEL, DEFENCE_PROMPT_NOTE, STRUCTURE_NOTE, ipcDisclosure } from "
 import { buildScreeningMemo } from "./memo";
 import { OFFENCES, offenceOf } from "./offences";
 import { bannerText } from "./copy";
+import { referenceOf } from "./reference";
 import { LEAN_PASS_OUTCOME, contractReferral, defenceShown, rowsFor, summarize, whatToCheckFor } from "./model";
 
 const FACTS: AnalyseFactsResult["facts"] = [
@@ -31,13 +32,14 @@ test("data: every element and defence of the 18 contracts has exactly one what-t
   const keys = new Set(Object.keys(whatToCheck.checks));
   let n = 0;
   for (const [id, c] of Object.entries(contractElements.contracts)) {
+    if (referenceOf(id)) continue; // a reference-only contract shows no engine wording and has no what-to-check lines of its own (reference.ts)
     for (const e of [...c.elements, ...c.denials]) {
       assert.ok(keys.delete(`${id}|${e}`), `${id}: no line for "${e}"`);
       n += 1;
     }
   }
   assert.equal(keys.size, 0, `orphans: ${[...keys].join(" | ")}`);
-  assert.equal(n, 52);
+  assert.equal(n, 49);
   for (const t of Object.values(whatToCheck.checks)) assert.match(t, /^Check /);
 });
 
@@ -49,7 +51,8 @@ test("data: the offence table covers the 14 validated contracts and the 4 not-va
   assert.match(contractElements.contracts.ni138.sources, /Negotiable Instruments Act §138/);
   assert.match(contractElements.contracts.bns316_misappropriation.sources, /Bharatiya Nyaya Sanhita §316/);
   assert.equal(offenceOf("bns85")?.sections, "BNS 85, 86 · IPC 498A");
-  assert.equal(offenceOf("bns69")?.sections, "BNS 69 · no IPC counterpart");
+  assert.equal(offenceOf("bns69")?.title, "BNS 69");
+  assert.equal(offenceOf("bns69")?.sections, "");
   // the sources the pinned checker lists agree with the pair on each line
   assert.match(contractElements.contracts.ipc405_misappropriation.sources, /Indian Penal Code §405/);
   assert.match(contractElements.contracts.bns85.sources, /Bharatiya Nyaya Sanhita §85/);
@@ -145,7 +148,7 @@ test("R1 (8 Oct): the IPC-text disclosure is on exactly the four IPC-family offe
   const disclosed = Object.fromEntries(OFFENCES.map((o) => [o.id, o.ipcChecked]));
   assert.deepEqual(disclosed, {
     "breach-of-trust": "405", cheating: "415", "cheating-personation": "416", "false-information": "182",
-    "promise-to-marry": null, cruelty: null, abetment: null, "abetment-outside-india": null,
+    "bns-69": null, cruelty: null, abetment: null, "abetment-outside-india": null,
     "dishonoured-cheque": null, "breach-of-trust-bns": null,
   });
   assert.equal(ipcDisclosure("405"), "Checked against the IPC text (s.405); the BNS counterpart is not validated.");
