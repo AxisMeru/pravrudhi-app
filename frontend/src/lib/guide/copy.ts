@@ -92,7 +92,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "checklist",
     heading: "3. Read the ingredient checklist",
-    text: "The checklist has one row for each ingredient of the offence. Each row carries a status chip, a plain reason where one applies, and a line saying what to check. The summary above it counts the rows in each state: supported by a fact, suggested by the screening judge, needing your review, not supported, and facts that may defeat the claim.",
+    text: "The checklist has one row for each ingredient of the offence. Each row carries a status chip, a plain reason where one applies, and a line saying what to check. The summary above it counts the rows in each state that applies: supported by a fact, suggested by the screening judge, needing your review, not supported by these facts, and facts that may defeat the claim.",
     image: GUIDE_IMAGES.checklist,
   },
   {

@@ -18,10 +18,13 @@ export const STEPS: { title: string; body: string }[] = [
   },
   {
     title: "Read the summary and the referral",
-    body:
-      "The banner counts the rows in each state: supported, suggested, needing your review, not supported, and facts that may defeat the claim. Anything uncertain is " +
-      "referred to a lawyer instead of guessed. A contract the registry does not list as validated carries the mark " +
+    // R1 (13 Oct, #115): the first sentence is his. The pieces after it are the earlier wording, kept as separate literals.
+    body: [
+      "The banner counts the rows in each state that applies, in the same words as the rows. ",
+      "Anything uncertain is ",
+      "referred to a lawyer instead of guessed. A contract the registry does not list as validated carries the mark ",
       "\"not validated, verify\".",
+    ].join(""),
   },
   {
     title: "Download the memo and the run record",
