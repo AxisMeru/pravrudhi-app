@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/PageHeader";
-import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_STATEMENTS } from "@/lib/demo/safety";
+import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_STATEMENTS, SAFETY_SUBTITLE } from "@/lib/demo/safety";
 
 // What the screen does and does not do, in R1's words (lib/demo/safety.ts). No figure is shown anywhere in the interface.
 export default function SafetyPage() {
   return (
     <div>
-      <PageHeader title="Safety record" />
+      <PageHeader title="Safety record" subtitle={SAFETY_SUBTITLE} />
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
         <ul className="space-y-3" data-testid="safety-statements">
           {SAFETY_STATEMENTS.map((s) => (

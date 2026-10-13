@@ -44,7 +44,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.match(text, /exact-text/);
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
-  assert.match(GUIDE_COLD_START, /^The first analysis after idle can take a few minutes while the judges start; a later one can be faster\. We have not measured typical times\. The page counts the time and says so if it is slow; you can cancel at any point\.$/);
+  assert.match(GUIDE_COLD_START, /^The first analysis after idle can take a few minutes while the judges start; a later one can be faster\. The time varies; the page counts it, says so if it is slow, and you can cancel at any point\.$/);
   assert.match(GUIDE_STEPS.find((s) => s.id === "run")!.text, /^Choose Screen these facts\. The first analysis after idle can take a few minutes while the judges start \(see If it seems slow\)\. The page counts the time and says so if it is slow; you can cancel at any point\.$/);
 });
 

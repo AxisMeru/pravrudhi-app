@@ -5,7 +5,7 @@ import { ApiError } from "./api";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
-export const PREVIEW_LABEL = "preview: not measured on real citations";
+export const PREVIEW_LABEL = "preview: existence check only";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
 export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;

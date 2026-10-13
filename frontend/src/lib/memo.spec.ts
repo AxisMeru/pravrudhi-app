@@ -152,9 +152,11 @@ test("buildMemo: states the validation tier of the judge, so a verdict is never 
   const { buildMemo, MEMO_VALIDATION_TIER } = await import("./memo");
   const memo = buildMemo(FIXTURE, { engineVersion: "0.5.42", generatedAt: "2026-10-02T10:00:00Z" });
   assert.ok(memo.includes(MEMO_VALIDATION_TIER));
-  assert.match(MEMO_VALIDATION_TIER, /^Measurement basis: the judge behind this memo was measured on constructed, in-distribution sets \(pipeline-measured\)\. /);
-  assert.doesNotMatch(MEMO_VALIDATION_TIER, /Validation tier|was validated/);
-  assert.match(MEMO_VALIDATION_TIER, /not a measure of its accuracy on real matters/);
+  assert.equal(
+    MEMO_VALIDATION_TIER,
+    "How to read this memo: it lists what the screening suggests you check, with the facts it cites. It makes no claim about how well it will do on your matter, and an offence outside the validated set gets a referral to a lawyer, not a verdict.",
+  );
+  assert.doesNotMatch(MEMO_VALIDATION_TIER, /Validation tier|was validated|measured|pipeline|accuracy/i);
 });
 
 test("buildMemo: an abstention carries the plain sentence for its reason beside the engine's code, and an unknown reason is not reworded", async () => {

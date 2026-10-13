@@ -10,8 +10,7 @@ import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
 export const MEMO_DISCLAIMER = MEMO_DISCLAIMER_TEXT;
 
 export const MEMO_VALIDATION_TIER =
-  "Measurement basis: the judge behind this memo was measured on constructed, in-distribution sets (pipeline-measured). " +
-  "That is not a measure of its accuracy on real matters, and a contract outside the validated set gets REFER_TO_LAWYER, not a verdict.";
+  "How to read this memo: it lists what the screening suggests you check, with the facts it cites. It makes no claim about how well it will do on your matter, and an offence outside the validated set gets a referral to a lawyer, not a verdict.";
 
 export const PROVISION_HEADING = "Provision text (for reference)";
 export const PROVISION_HEADING_NO_SOURCE = "Provision text (source not stated)";

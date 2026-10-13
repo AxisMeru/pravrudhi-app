@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_COPY, SAFETY_STATEMENTS } from "./safety";
+import { ASSIST_LINE, EVIDENCE_LINE, SAFETY_COPY, SAFETY_STATEMENTS, SAFETY_SUBTITLE } from "./safety";
 import { DO_NOT_CLAIM } from "../surfaceCopy";
 
 test("the safety page says exactly R1's four value statements (14 Oct), then the assist line and the evidence line", () => {
@@ -11,6 +11,7 @@ test("the safety page says exactly R1's four value statements (14 Oct), then the
     "It is cautious by design: on the real court-established items in the same checks it did not return a proof either, so use it as a screen that points you to what to check, not as a source of proofs.",
     "These checks used real court material we had already seen, with two judges that both have to agree, on a mixed development and production setup. They describe that material only: not your matters, not production traffic, and not trial or appellate conviction judgments.",
   ]);
+  assert.equal(SAFETY_SUBTITLE, "How the screen behaves on real court material, and what that does not cover.");
   assert.equal(ASSIST_LINE, "This assists a lawyer; it is not a verdict.");
   assert.equal(EVIDENCE_LINE, "Evidence, not legal advice.");
 });
