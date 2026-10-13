@@ -1268,6 +1268,19 @@ export interface AnalyseFactsWire extends Omit<AnalyseFactsResult, "facts"> {
   facts: { id: string; sha256: string }[];
 }
 
+/**
+ * The display rule for the screening result (AxisMeru/pravrudhi-app#113, Lead-2, 13 Oct): the result is rendered ONLY from the decide tool result, never from free text an
+ * agent wrote around it. This is the one boundary: the answer is copied field by field from the list below, so any other top-level field (a display text, a message, a
+ * reply, a summary) is dropped here and cannot reach a page, the memo or the run record. A field the engine adds later is dropped until it is listed here on purpose.
+ */
+export const DECIDE_RESULT_KEYS = ["run_id", "judge", "score_sha256", "facts", "contracts", "provenance", "standard", "retention_notice"] as const;
+export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
+  const src = wire as unknown as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const k of DECIDE_RESULT_KEYS) if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = src[k];
+  return out as unknown as AnalyseFactsWire;
+}
+
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
   run_id: string;
@@ -1326,7 +1339,8 @@ async function sha256Hex(text: string): Promise<string> {
  * submitted, paired to the echoed fact BY sha256 (never by position). An echoed fact that matches no submitted fact, and every fact when the counts
  * differ, gets an empty text: the callers then show no cited-fact text at all rather than a wrong one.
  */
-export async function withFactText(wire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
+export async function withFactText(rawWire: AnalyseFactsWire, submitted: string[]): Promise<AnalyseFactsResult> {
+  const wire = decideResultOnly(rawWire);
   const echoed = Array.isArray(wire.facts) ? wire.facts : [];
   if (echoed.length !== submitted.length) return { ...wire, facts: echoed.map((f) => ({ ...f, text: "" })) };
   // crypto.subtle exists only in a secure context (https or localhost). Without it the engine's own contract is used: it keeps the caller's order as F1..Fn

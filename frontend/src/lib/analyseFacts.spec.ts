@@ -488,3 +488,20 @@ test("the anonymous-demo note takes its retention period from the before-you-sub
   assert.equal(ANONYMOUS_DEMO_NOTE, `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${phrase}.`);
   assert.doesNotMatch(ANONYMOUS_DEMO_NOTE, /does not use the second judge/);
 });
+
+test("#113 display rule: only the decide result's own fields survive; any free text an agent wrote around it is dropped at the boundary", async () => {
+  const { withFactText, DECIDE_RESULT_KEYS } = await import("./api");
+  const marker = "AGENT-FREE-TEXT-MARKER";
+  const wire = {
+    run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", retention_notice: "n",
+    facts: [], contracts: [],
+    display_text: marker, message: marker, reply: marker, summary: marker, text: marker, answer: marker, agent_message: marker, narrative: marker, content: marker,
+  };
+  const out = (await withFactText(wire as never, [])) as unknown as Record<string, unknown>;
+  assert.deepEqual(Object.keys(out).sort(), ["contracts", "facts", "judge", "provenance", "retention_notice", "run_id", "score_sha256"]);
+  assert.ok(!JSON.stringify(out).includes(marker));
+  assert.deepEqual([...DECIDE_RESULT_KEYS].sort(), ["contracts", "facts", "judge", "provenance", "retention_notice", "run_id", "score_sha256", "standard"]);
+  // a field the engine adds later is dropped until it is listed on purpose
+  const later = (await withFactText({ ...wire, new_field: 1 } as never, [])) as unknown as Record<string, unknown>;
+  assert.ok(!("new_field" in later));
+});
