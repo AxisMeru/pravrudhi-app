@@ -5,6 +5,7 @@ import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
 import { DATA_HANDLING_SECTIONS, DATA_HANDLING_SUBTITLE, FIRM_STORAGE_KEYS } from "./dataHandling";
+import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import { canSeeNotifications } from "./runsAccess";
 import { WORKFLOWS, WORKFLOWS_CLOSING } from "./workflowsCopy";
 
@@ -28,7 +29,8 @@ test("the data-handling text is R1's exact words, and it answers all three quest
 
 test("what must NOT be said is not said: no region for the smaller model, no 'no fact text', no training promise", () => {
   const all = DATA_HANDLING_SECTIONS.map((s) => s.paragraphs.join(" ")).join(" ");
-  assert.doesNotMatch(all, /no fact text is kept|never used for training|not used for training|smaller[^.]*\bEU\b|\bkept for 7 days\b/i);
+  assert.doesNotMatch(all, /no fact text is kept|smaller[^.]*\bEU\b|\bkept for 7 days\b/i);
+  assert.deepEqual(promiseHits(all), [], "the data-handling text makes no training or evaluation promise");
   assert.match(all, /up to 7 days/);
 });
 
