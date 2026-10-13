@@ -151,7 +151,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   },
 ];
 export const GUIDE_BANNER_TEXT =
-  "The summary line can read, for example, \"0 of 3 ingredients supported by a fact · 2 suggested by the screening judge (check it) · 1 not supported by these facts\". It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
+  "The summary line can read, for example, that none of the three ingredients is supported by a fact, two are suggested by the screening judge (check it) and one is not supported by these facts. It says all ingredients are supported only when every ingredient is supported, both judges agree and the structure check passes. It never says the offence is made out.";
 
 export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [

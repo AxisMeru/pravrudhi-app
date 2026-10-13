@@ -18,6 +18,7 @@ const FACTS: AnalyseFactsResult["facts"] = [
 const CID = "ipc415_property";
 const ELS = contractElements.contracts[CID].elements;
 
+const ofN = (n: number, m: number) => `${n} of ${m} ingredients supported by a fact`;
 const el = (i: number, over: Partial<AnalyseFactsElement> = {}): AnalyseFactsElement =>
   ({
     element: ELS[i], is_denial: false, status: "established", claimed: true, p_established: 0.9, p_established_second: 0.8, fact_id: `F${(i % 2) + 1}`,
@@ -114,7 +115,7 @@ test("the banner: N of M and K, and the all-supported line only when every condi
   const s = summarize(good, rowsFor(good, FACTS));
   assert.equal(s.text, "All ingredients supported (structure checked)");
   const partial = contract([el(0), el(1, { status: "not_established" }), el(2, { status: "not_confirmed" })], { outcome: "ABSTAIN" });
-  assert.equal(summarize(partial, rowsFor(partial, FACTS)).text, "1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
+  assert.equal(summarize(partial, rowsFor(partial, FACTS)).text, `${ofN(1, 3)} · 1 needs your review · 1 not supported by these facts`);
   const planted: [string, AnalyseFactsContract][] = [
     ["Lean does not pass", contract([el(0), el(1), el(2)], { lean_outcome: "ABSTAIN" })],
     ["no Lean result", contract([el(0), el(1), el(2)], { lean_outcome: null })],
@@ -160,14 +161,14 @@ test("R1 (8 Oct): the memo never shows the banner sentence without the standing 
   assert.match(memo, /### A fact that may defeat the claim/);
   assert.match(memo, /Checked against the IPC text \(s\.415\); the BNS counterpart is not validated\./);
   // a defeater row is not an ingredient: the total stays 3, and the defence row is counted apart
-  assert.match(memo, /1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim/);
+  assert.ok(memo.includes(`${ofN(1, 3)} · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim`));
 });
 
 test("R1 (8 Oct): a suggestion is not a cited fact: its own chip text, not in N, in K; the structure note appears with the all-supported line only", () => {
   assert.equal(CHIP_LABEL.suggested, "Suggested by the screening judge; check it");
   const c = contract([el(0), el(1, { status: "not_established", screening_signal: { p: 0.9, supported: true } }), el(2, { status: "not_established" })], { outcome: "ABSTAIN" });
   const s = summarize(c, rowsFor(c, FACTS));
-  assert.equal(s.text, "1 of 3 ingredients supported by a fact · 1 suggested by the screening judge (check it) · 1 not supported by these facts");
+  assert.equal(s.text, `${ofN(1, 3)} · 1 suggested by the screening judge (check it) · 1 not supported by these facts`);
   assert.equal(s.supported, 1);
   assert.equal(STRUCTURE_NOTE, "A Lean check confirmed the right ingredients were addressed; it does not read your facts.");
   const good = contract([el(0), el(1), el(2)]);
@@ -221,10 +222,10 @@ test("R2 (13 Oct): defenceShown follows the checklist exactly: a suggested or an
 });
 
 test("R1 (13 Oct, #115): the summary names every state in the row vocabulary, in order, only when the count is not 0; the states add up to the total", () => {
-  assert.equal(bannerText(0, 3, 2, 0, 1, 0), "0 of 3 ingredients supported by a fact · 2 suggested by the screening judge (check it) · 1 not supported by these facts");
-  assert.equal(bannerText(3, 3, 0, 0, 0, 0), "3 of 3 ingredients supported by a fact");
-  assert.equal(bannerText(1, 4, 1, 1, 1, 1), "1 of 4 ingredients supported by a fact · 1 suggested by the screening judge (check it) · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim");
-  assert.equal(bannerText(0, 4, 0, 2, 2, 3), "0 of 4 ingredients supported by a fact · 2 need your review · 2 not supported by these facts · 3 facts that may defeat the claim");
+  assert.equal(bannerText(0, 3, 2, 0, 1, 0), `${ofN(0, 3)} · 2 suggested by the screening judge (check it) · 1 not supported by these facts`);
+  assert.equal(bannerText(3, 3, 0, 0, 0, 0), `${ofN(3, 3)}`);
+  assert.equal(bannerText(1, 4, 1, 1, 1, 1), `${ofN(1, 4)} · 1 suggested by the screening judge (check it) · 1 needs your review · 1 not supported by these facts · 1 fact that may defeat the claim`);
+  assert.equal(bannerText(0, 4, 0, 2, 2, 3), `${ofN(0, 4)} · 2 need your review · 2 not supported by these facts · 3 facts that may defeat the claim`);
   assert.doesNotMatch(bannerText(2, 3, 1, 0, 0, 0), /established|proved|made out/i);
   const defence = (over: Partial<AnalyseFactsElement> = {}) => el(0, { is_denial: true, element: "a defence", status: "established", ...over });
   const cases: AnalyseFactsContract[] = [
