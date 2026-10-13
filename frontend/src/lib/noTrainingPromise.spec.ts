@@ -17,10 +17,7 @@ const EXEMPT_FILES = new Map<string, string>([
   ["package-lock.json", "dependency names, not copy"],
   ["e2e/support/reviewedSentences.ts", "the reviewed list quotes the benchmark sentence that is exempt above, split as the scan splits it"],
 ]);
-// One exact sentence, not a pattern: benchmark-set wording about the published test sets, not about user submissions.
-const EXEMPT_SENTENCES = [
-  "Model weights are not trained on these test sets by design; the sets were reused to compare candidates, and a small number of test cases share passages with training documents (removed from the headline figures), so results are not fresh-test estimates.",
-];
+const EXEMPT_SENTENCES: readonly string[] = []; // none now: the benchmark-set sentence that was exempt here left with the figures (14 Oct)
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -52,8 +49,6 @@ test("every file that ships or runs is free of promises about how models handle 
 
 test("each exemption still exists and still needs to (a stale exemption hides a future promise)", () => {
   for (const [rel] of EXEMPT_FILES) { try { statSync(join(frontend, rel)); } catch { assert.fail(`${rel} is exempt but missing`); } }
-  const bench = readFileSync(join(frontend, "src/lib/benchmarks.ts"), "utf8");
-  for (const s of EXEMPT_SENTENCES) assert.ok(bench.includes(s), `the exempt sentence is no longer in benchmarks.ts: ${s}`);
 });
 
 // FAIL-CLOSED (R2, 13 Oct): the pattern rule above is the first filter and can miss a new wording. So every sentence in a SHIPPED file (src/ non-spec, public/) that

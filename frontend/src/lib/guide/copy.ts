@@ -5,7 +5,7 @@
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { OFFENCES } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_UNMEASURED_NOTE, EXPORT_LABELS } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
@@ -147,7 +147,7 @@ export const GUIDE_STATUSES: GuideStatus[] = [
   {
     label: DEFENCE_HEADING,
     meaning: "A fact the judge found that may weaken the claim. It is shown for you to weigh and is not counted among the ingredients.",
-    note: DEFENCE_UNMEASURED_NOTE,
+    note: DEFENCE_PROMPT_NOTE,
   },
 ];
 export const GUIDE_BANNER_TEXT =
@@ -172,5 +172,5 @@ export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] 
   { term: "Referral", meaning: "the screening does not decide the point and hands it back to you." },
   { term: "Supported", meaning: "shown only where a cited fact appears to carry the ingredient; a suggestion for you to check, never a finding." },
   // R1's exact entry (13 Oct): "A fact that may defeat the claim: a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it."
-  { term: DEFENCE_HEADING, meaning: "a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.", note: DEFENCE_UNMEASURED_NOTE },
+  { term: DEFENCE_HEADING, meaning: "a fact in your papers that, if it holds, answers the claim (for example a defence); the screening shows it for your review and does not decide it.", note: DEFENCE_PROMPT_NOTE },
 ];

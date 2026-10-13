@@ -95,14 +95,6 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "Left as `string` because the engine is a separate release train and // may send a value this build predates -- lib/elementStatus.ts turns it into a presentation and fails closed // on anything it does not recognise, rather than reading an unknown status as a negative finding.",
     ],
   },
-  "src/lib/benchmarks.ts": {
-    reason: "benchmark wording about the published test sets and how the judge models were built; not about submissions",
-    sentences: [
-      "Our judge models are trained for a different task;",
-      "Model weights are not trained on these test sets by design;",
-      "the sets were reused to compare candidates, and a small number of test cases share passages with training documents (removed from the headline figures), so results are not fresh-test estimates.",
-    ],
-  },
   "src/lib/demo/liveCheck.ts": {
     reason: "engine reason-code name",
     sentences: [

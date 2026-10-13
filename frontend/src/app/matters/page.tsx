@@ -33,7 +33,7 @@ import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
-import { DEFENCE_PHRASE, DEFENCE_UNMEASURED_NOTE } from "@/lib/screening/copy";
+import { DEFENCE_PHRASE, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
 import { defenceShown } from "@/lib/screening/model";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
 import { CITATION_NEXT_STEP, FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark, type ValidationMark } from "@/lib/surfaceCopy";
@@ -86,9 +86,6 @@ function ElementRow({ el, facts }: { el: AnalyseFactsContract["elements"][number
         >
           {status.label}
         </span>
-        {el.p_established !== null && (
-          <span className="ml-1.5 text-[11px] text-[var(--color-text-dim)]">p={el.p_established.toFixed(2)}</span>
-        )}
         {status.explanation && status.verdict === null && (
           <div className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="status-explanation">
             {status.explanation}
@@ -584,7 +581,7 @@ export default function MattersPage() {
               </button>
             </div>
             {result.contracts.some(defenceShown) && (
-              <p className="text-xs text-[var(--color-text-dim)]" data-testid="defence-unmeasured-note">{DEFENCE_UNMEASURED_NOTE}</p>
+              <p className="text-xs text-[var(--color-text-dim)]" data-testid="defence-prompt-note">{DEFENCE_PROMPT_NOTE}</p>
             )}
             {referFirst(result.contracts).map((c) => (
               <ContractResult key={c.contract_id} c={c} mark={validationMark(validated, c.contract_id)} facts={result.facts} />

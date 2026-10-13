@@ -284,10 +284,10 @@ test("provisionSourceLink: a link never carries a character that can break out o
 
 test("R1/R2 (#283): the Matters memo carries the unmeasured-defence line once per contract that shows a defence, and not otherwise", async () => {
   const { buildMemo } = await import("./memo");
-  const { DEFENCE_UNMEASURED_NOTE } = await import("./screening/copy");
+  const { DEFENCE_PROMPT_NOTE } = await import("./screening/copy");
   const mk = (outcome: string, elements: Array<Record<string, unknown>>) => structuredClone({ ...FIXTURE, contracts: [{ ...FIXTURE.contracts[0], outcome, elements }] }) as unknown as AnalyseFactsResult;
   const el = (over: Record<string, unknown>) => ({ ...FIXTURE.contracts[0].elements[0], ...over });
-  const count = (m: string) => m.split("\n").filter((l) => l === DEFENCE_UNMEASURED_NOTE).length;
+  const count = (m: string) => m.split("\n").filter((l) => l === DEFENCE_PROMPT_NOTE).length;
   assert.equal(count(buildMemo(mk("DENIAL", [el({ is_denial: true, element: "a defence" })]), OPTS)), 1);
   assert.equal(count(buildMemo(mk("REFER_TO_LAWYER", [el({}), el({ is_denial: true, element: "a defence", status: "established" })]), OPTS)), 1);
   assert.equal(count(buildMemo(mk("REFER_TO_LAWYER", [el({ is_denial: true, element: "a defence", status: "not_established" })]), OPTS)), 0);

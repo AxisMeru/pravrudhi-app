@@ -2,7 +2,7 @@ import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
 
 // R1 (#283, 13 Oct): the unmeasured-defence line appears wherever a defence is shown, once per page, and nowhere else.
-const NOTE = "No test set with a defence label has been scored, so how reliably the screening finds a fact that may defeat the claim has not been measured.";
+const NOTE = "Facts that may defeat the claim are shown as prompts for your review, not as findings.";
 const CID = "ipc415_property";
 const FACT = "Ravi lent the toy lorry to Meena on a Monday in the invented town of Quillpoort.";
 const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };
@@ -42,24 +42,24 @@ async function matters(page: import("@playwright/test").Page, answer: unknown) {
 
 test("Screening: a defence row carries the line, once, under the defence heading", async ({ page }) => {
   await screen(page, result("DENIAL", true));
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(1);
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveText(NOTE);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(1);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveText(NOTE);
 });
 
 test("Screening: no defence row, no line", async ({ page }) => {
   await screen(page, result("ABSTAIN", false));
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(0);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(0);
 });
 
 test("Matters: a DENIAL outcome carries the line once on the page; any other outcome does not", async ({ page }) => {
   await matters(page, result("DENIAL", true));
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(1);
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveText(NOTE);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(1);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveText(NOTE);
 });
 
 test("Matters: an ABSTAIN outcome has no line", async ({ page }) => {
   await matters(page, result("ABSTAIN", false));
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(0);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(0);
 });
 
 test("the guide carries it twice (glossary and Reading the checklist); the pages that never show a defence do not", async ({ page }) => {
@@ -74,12 +74,12 @@ test("the guide carries it twice (glossary and Reading the checklist); the pages
 
 test("Matters: a defence element on a REFER outcome carries the line once; a not-established defence does not", async ({ page }) => {
   await matters(page, result("REFER_TO_LAWYER", true));
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(1);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(1);
   await page.unroute("**/api/v1/analyse-facts**");
   const plain = result("REFER_TO_LAWYER", true);
   plain.contracts[0].elements[1] = { ...plain.contracts[0].elements[1], status: "not_established" };
   await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: plain }));
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
-  await expect(page.getByTestId("defence-unmeasured-note")).toHaveCount(0);
+  await expect(page.getByTestId("defence-prompt-note")).toHaveCount(0);
 });
