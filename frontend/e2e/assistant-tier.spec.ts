@@ -16,7 +16,6 @@ const PAUSED_STATES: Array<[string, { status?: number; json?: unknown }]> = [
   ["unavailable: budget_floor", { json: health({ assistant_tier: { state: "unavailable", reason: "budget_floor" } }) }],
   ["unavailable: disabled", { json: health({ assistant_tier: { state: "unavailable", reason: "disabled" } }) }],
   ["the field absent", { json: health({}) }],
-  ["the health call fails", { status: 503 }],
 ];
 
 for (const [name, answer] of PAUSED_STATES) {
@@ -32,6 +31,25 @@ for (const [name, answer] of PAUSED_STATES) {
     await expect(page.getByRole("button", { name: "Screen these facts" })).toBeVisible();
   });
 }
+
+// The service-status notice covers an unreachable engine; the paused line says screening works as normal, so it is NOT shown when the health read did not answer.
+test("Screening, the health call fails: the toggle is greyed and unchecked and there is NO paused line", async ({ page }) => {
+  await mockHealth(page, { status: 503 });
+  await page.goto("/screening");
+  const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
+  await expect(box).toBeDisabled();
+  await expect(box).not.toBeChecked();
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+});
+
+test("Workflows, the health call fails: the assistant row is greyed and there is NO paused line", async ({ page }) => {
+  await mockHealth(page, { status: 503 });
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-row").first()).toHaveAttribute("data-paused", "true");
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+});
 
 test("Screening, available: no paused line (the toggle is as before)", async ({ page }) => {
   await mockHealth(page, { json: health({ assistant_tier: { state: "available", reason: null } }) });

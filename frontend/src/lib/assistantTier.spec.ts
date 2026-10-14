@@ -25,11 +25,12 @@ test("the tier is available only when the engine says so in so many words; every
   for (const bad of [null, undefined, "available", 1, []]) assert.equal(assistantTierOf(bad), "unavailable");
 });
 
-test("a health read that fails or times out is unavailable; a good read passes through", async () => {
-  assert.equal(await readAssistantTier(async () => ({ assistant_tier: { state: "available" } })), "available");
-  assert.equal(await readAssistantTier(async () => ({ assistant_tier: { state: "unavailable", reason: "quota" } })), "unavailable");
-  assert.equal(await readAssistantTier(async () => { throw new Error("network"); }), "unavailable");
-  assert.equal(await readAssistantTier(() => new Promise(() => undefined), 20), "unavailable", "a read that never answers");
+test("a health read that fails or times out is unavailable and NOT answered (no paused line); a good read is answered", async () => {
+  assert.deepEqual(await readAssistantTier(async () => ({ assistant_tier: { state: "available" } })), { tier: "available", answered: true });
+  assert.deepEqual(await readAssistantTier(async () => ({ assistant_tier: { state: "unavailable", reason: "quota" } })), { tier: "unavailable", answered: true });
+  assert.deepEqual(await readAssistantTier(async () => ({ ok: true })), { tier: "unavailable", answered: true }, "an answer without the field: the engine answered, so the line shows");
+  assert.deepEqual(await readAssistantTier(async () => { throw new Error("network"); }), { tier: "unavailable", answered: false });
+  assert.deepEqual(await readAssistantTier(() => new Promise(() => undefined), 20), { tier: "unavailable", answered: false }, "a read that never answers");
 });
 
 test("a paused tier greys the frontier toggle and never leaves it checked", () => {
