@@ -5,13 +5,16 @@ import { useRef, useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
+import { CITATION_ERROR_TEXT } from "@/lib/signedStrings";
 import { verifyCitation } from "@/lib/api";
+import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
 import {
   CITATION_MAX,
   CITATION_CHECK_TITLE,
   PREVIEW_LABEL,
   QUOTE_MAX,
   checkInputs,
+  statusLabel,
   classifyVerifyError,
   verifyView,
   type VerifyView,
@@ -21,6 +24,8 @@ import {
 // is labelled as a preview until the accuracy study reports, and says what a status is not (it checks existence and the quote, not
 // whether the case supports a point).
 export default function CitationsPage() {
+  // #128 D2: while the check is not served in the hosted deployment (NEXT_PUBLIC_CITATION_NAV off) the page has NO form, only the signed "index not available" sentence: it says the check is not served, so it must not invite one.
+  const served = CITATION_NAV_ENABLED;
   const [citation, setCitation] = useState("");
   const [quote, setQuote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,10 +64,13 @@ export default function CitationsPage() {
         </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
           The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and
-          spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does
-          not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
+          spacing. It does not say whether the case supports a point. If the case is not found in our index, that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
         </p>
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
+        {!served ? (
+          <p className="text-sm text-[var(--color-text)]" data-testid="citation-not-served">{CITATION_ERROR_TEXT.citation_index_unavailable}</p>
+        ) : (
+          <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
           <input
@@ -101,7 +109,7 @@ export default function CitationsPage() {
           <section className="space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="citation-result">
             <div className="text-sm text-[var(--color-text-dim)]">Result</div>
             <div className="font-mono text-base text-[var(--color-text)]" data-testid="citation-status">
-              {view.status || "(no status)"}
+              {statusLabel(view.status) || "(no status)"}
             </div>
             {view.product && (
               <div className="space-y-1" data-testid="citation-product-status">
@@ -126,6 +134,8 @@ export default function CitationsPage() {
               </p>
             )}
           </section>
+        )}
+          </>
         )}
       </div>
     </div>

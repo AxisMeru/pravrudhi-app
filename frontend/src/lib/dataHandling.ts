@@ -4,7 +4,6 @@
 // (the code enforces none).
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
-import { FRONTIER_TOGGLE_LABEL, FRONTIER_UNAVAILABLE_TEXT } from "./frontierReader";
 import { BANNER_STANDING_LINE } from "./screening/copy";
 import { CITATION_RETENTION } from "./surfaceCopy";
 
@@ -87,15 +86,9 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     id: "where",
     heading: "Where it is processed",
     paragraphs: [
-      "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). The larger of the two screening models runs in EU data centres; the region of the other is not fixed. " +
-        "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; its location is not stated here. The hosting providers may keep their own logs.",
+      "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. " +
+        "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs.",
     ],
-  },
-  {
-    id: "frontier",
-    heading: "Frontier model (optional)",
-    // The existing toggle text, exactly (lib/frontierReader.ts): a label and, where the deployment has not switched it on, the reason it is unavailable.
-    paragraphs: [`${FRONTIER_TOGGLE_LABEL}. ${FRONTIER_UNAVAILABLE_TEXT}`],
   },
   {
     id: "browser",
@@ -104,7 +97,7 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     // (lib/palette.ts:278) and pravrudhi-theme (lib/theme/theme.ts). The two notification flags (components/notifications/NotificationBell.tsx:15-16) are written only where canSeeNotifications(access, IS_DEMO) is true: the public demo, never a signed-in member; the run-page notes
     // (lib/annotations.ts) are Studio's. lib/dataHandling.spec.ts fails if any other storage key appears in src.
     paragraphs: [
-      "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps two notification-preference flags.",
+      "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps your notification preferences.",
     ],
   },
   {

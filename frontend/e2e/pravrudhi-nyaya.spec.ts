@@ -29,10 +29,11 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   const body = page.getByTestId("data-handling");
   await expect(page.getByRole("heading", { name: "Data handling", exact: true, level: 1 })).toBeVisible();
   await expect(body.getByTestId("dh-kept")).toContainText("Run records are kept for up to 7 days.");
-  await expect(body.getByTestId("dh-where")).toContainText("the region of the other is not fixed");
+  await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");
   expect(promiseHits(await body.innerText())).toEqual([]);
   await expect(body).not.toContainText(/no fact text is kept/i);
+  await expect(body).not.toContainText(/frontier/i); // #128 D6: the section is not shown while the reader is unavailable
 });
 
 test("/workflows: five rows with a status word each, no start button, and the closing line", async ({ page }) => {

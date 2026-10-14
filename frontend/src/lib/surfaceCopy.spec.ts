@@ -14,8 +14,8 @@ test("the caveat strip says what a reviewer needs: a model reads the facts, the 
   assert.deepEqual(ids, ["model", "stack", "validated", "statute"]);
   const text = CAVEATS.map((c) => c.text).join(" ");
   assert.match(text, /not a court's finding and not legal advice/);
-  assert.match(text, /judge model/);
-  assert.match(text, /Lean/);
+  assert.match(text, /models read your facts/);
+  assert.match(text, /structure check/);
   assert.ok(CAVEATS.some((c) => c.text === STATUTE_NOTICE));
 });
 
@@ -54,13 +54,14 @@ test("a registry that was not read, or listed nothing, reads as UNAVAILABLE: a m
   assert.equal(validationMark(null, "bns69"), "unavailable");
 });
 
-test("the strip defines validated in words and names the failure state; the stack line says two judge models and a Lean check", () => {
+test("the strip defines validated in words and names the failure state; the stack line says models read the facts and a separate structure check confirms the ingredients", () => {
   const text = CAVEATS.map((c) => c.text).join(" ");
-  assert.match(text, /"Validated" means the contract is on the engine registry's list of validated contracts/);
+  // R1 14 Oct (#128 D5): plain words; no registry, contract or judge-model vocabulary
+  assert.match(text, /Offences marked \u201cvalidated\u201d are on our validated list\./);
   assert.match(text, /validation status unavailable, verify/);
-  assert.match(text, /may refer to a lawyer or abstain, so verify/);
-  assert.doesNotMatch(text, /always returns a referral/);
-  assert.match(text, /two judge models and a Lean check/);
+  assert.match(text, /the screening may refer it to a lawyer or decline to give a result, so check it yourself/);
+  assert.doesNotMatch(text, /always returns a referral|engine registry|judge model|contract/i);
+  assert.match(text, /screened ingredient by ingredient/);
 });
 
 test("a statute is looked up by the section the contract names, and only the matching hit is used", () => {

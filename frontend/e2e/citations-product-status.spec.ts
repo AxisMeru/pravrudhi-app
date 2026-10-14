@@ -20,7 +20,7 @@ for (const [result, a] of Object.entries(ANSWERS)) {
     await page.getByLabel("Citation (one)").fill("(2020) 3 SCC 456");
     await page.getByLabel("Quote to look for").fill("a quoted passage");
     await page.getByRole("button", { name: "Check" }).click();
-    await expect(page.getByTestId("citation-status")).toHaveText(result);
+    await expect(page.getByTestId("citation-status")).toHaveText(result === "NOT_IN_INDEX" ? "Not found in our index" : result); // #128 D4
     await expect(page.getByTestId("citation-product-label")).toHaveText(a.label);
     await expect(page.getByTestId("citation-product-preview")).toHaveText("preview");
     // no result, IN_INDEX included, carries an icon, a tick or a verified colour (R1): one neutral style for every status

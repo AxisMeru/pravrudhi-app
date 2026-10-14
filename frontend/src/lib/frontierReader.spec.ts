@@ -4,7 +4,6 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { FrontierQuote, FrontierCell } from "../components/screening/FrontierQuote";
-import { FrontierToggle } from "../components/screening/FrontierToggle";
 import {
   FRONTIER_QUOTE_LIMIT_TEXT, FRONTIER_UNAVAILABLE_TEXT, consentLine, frontierCell, frontierToggleState, quoteCheckLabel,
 } from "./frontierReader";
@@ -26,16 +25,7 @@ test("available and off by default: usable, unchecked, no consent line until it 
   assert.equal(consentLine(), "Your facts will be sent to the provider your organisation has configured under your organisation's key.");
 });
 
-test("the rendered toggle: label, disabled with the reason, no consent; and when on, the consent line", () => {
-  const off = html(createElement(FrontierToggle, { value: true, onChange: () => {}, available: false }));
-  assert.match(off, /Use a frontier model as an additional reader/);
-  assert.match(off, /disabled/);
-  assert.match(off, /Not available: this deployment has not switched the frontier reader on\./);
-  assert.doesNotMatch(off, /Your facts will be sent/);
-  const on = html(createElement(FrontierToggle, { value: true, onChange: () => {}, available: true, provider: "ExampleAI" }));
-  assert.match(on, /Your facts will be sent to ExampleAI under your organisation&#x27;s key\./);
-  assert.doesNotMatch(on, /disabled/);
-});
+// #128 D6: the toggle component is not rendered while the reader is unavailable (it was removed); its state logic and strings stay here, unused by any page, for the release that switches the reader on.
 
 test("the quote-check labels: passed, not found, the signed sentence for another known code, an unknown code as sent", () => {
   assert.equal(quoteCheckLabel("ok"), "passed the quote check");
@@ -74,12 +64,7 @@ test("a label is looked up as an OWN key: names inherited from Object.prototype 
   }
 });
 
-test("the toggle states the quote check's limit in plain words, switched off or on, and claims no accuracy", () => {
+test("the quote check's limit is stated in plain words and claims no accuracy (the string is kept for the release that ships the reader)", () => {
   assert.equal(FRONTIER_QUOTE_LIMIT_TEXT, "On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
   assert.doesNotMatch(FRONTIER_QUOTE_LIMIT_TEXT, /\b(verified|accurate|accuracy|correct)\b/i);
-  // unavailable, available and off, and available and switched ON (the state that sends facts to a model)
-  for (const [available, value] of [[false, false], [true, false], [true, true]] as const) {
-    const out = html(createElement(FrontierToggle, { value, onChange: () => {}, available, provider: "ExampleAI" }));
-    assert.ok(out.includes(FRONTIER_QUOTE_LIMIT_TEXT), `available=${available} value=${value}`);
-  }
 });
