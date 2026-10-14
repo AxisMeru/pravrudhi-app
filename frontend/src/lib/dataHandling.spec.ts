@@ -43,15 +43,16 @@ test("the sentences new to this page carry no banned word (the citation check's 
 });
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
-  assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Building"], ["Memo preparation", "Built"], ["Hearing preparation", "Building"]]);
-  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
+  const OFF = workflowRows({ assistantOn: false, intakeOn: false }); // the default (flags-off) rows; a flagged build is pinned by the next test
+  assert.deepEqual(OFF.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Building"], ["Memo preparation", "Built"], ["Hearing preparation", "Building"]]);
+  assert.equal(OFF[0].note, "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
   // R1's exact notes (14 Oct): paste-only intake, memo built by fixed rules, hearing checklist; no row says Planned and the removed row is gone
-  assert.equal(WORKFLOWS[1].note, "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only.");
-  assert.equal(WORKFLOWS[2].note, "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx).");
-  assert.equal(WORKFLOWS[3].note, "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law.");
-  assert.ok(!WORKFLOWS.some((w) => /Planned|Matter update/.test(w.name + w.status + (w.note ?? ""))));
+  assert.equal(OFF[1].note, "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only.");
+  assert.equal(OFF[2].note, "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx).");
+  assert.equal(OFF[3].note, "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law.");
+  assert.ok(!OFF.some((w) => /Planned|Matter update/.test(w.name + w.status + (w.note ?? ""))));
   assert.equal(WORKFLOWS_CLOSING, "A workflow runs only when you start it, and only on the matter you give it.");
-  assert.doesNotMatch(JSON.stringify(WORKFLOWS) + WORKFLOWS_CLOSING, /\d|\bA[0-9]\b/);
+  assert.doesNotMatch(JSON.stringify(OFF) + WORKFLOWS_CLOSING, /\d|\bA[0-9]\b/);
 });
 
 // "Stored in your browser" claims only three keys. Any other browser-storage key in src must be on this list of non-firm ones or this test fails and the page's sentence needs a new read.
@@ -221,4 +222,8 @@ test("workflowRows: Screening orchestration and Intake read Built only when thei
   // the signed Intake note is the same on and off; the names and the order never change
   assert.equal(workflowRows({ assistantOn: false, intakeOn: true })[1].note, workflowRows({ assistantOn: false, intakeOn: false })[1].note);
   assert.deepEqual(workflowRows({ assistantOn: true, intakeOn: true }).map((w) => w.name), ["Screening orchestration", "Intake", "Memo preparation", "Hearing preparation"]);
+});
+
+test("WORKFLOWS (what the page draws) is workflowRows of this build's own flags", () => {
+  assert.deepEqual(WORKFLOWS, workflowRows({ assistantOn: process.env.NEXT_PUBLIC_ASSISTANT_ENTRY === "1", intakeOn: process.env.NEXT_PUBLIC_INTAKE === "1" }));
 });
