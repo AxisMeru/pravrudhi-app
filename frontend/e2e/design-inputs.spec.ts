@@ -88,7 +88,7 @@ test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain
 // Studio (14 Oct): on a phone the floating "Shortcuts ?" pill covered page text; it is a keyboard help, so it shows from the md breakpoint up only (the ? key still opens the help).
 test("the Shortcuts pill is hidden on a phone and shown on a desktop", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
-  const pill = page.getByRole("button", { name: "Show keyboard shortcuts" }); // its aria-label is the accessible name (the visible text "Shortcuts ?" is not)
+  const pill = page.getByRole("button", { name: "Show keyboard shortcuts", includeHidden: true }); // includeHidden: a display:none element is not in the accessibility tree, and count 1 must still find it on a phone // its aria-label is the accessible name (the visible text "Shortcuts ?" is not)
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/screening");
   await expect(pill).toHaveCount(1); // it exists in the page, so a wrong locator cannot pass by matching nothing
