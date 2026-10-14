@@ -134,6 +134,15 @@ export function summarize(contract: AnalyseFactsContract, rows: { ingredients: S
   return { total, supported, suggested, review, notSupported, defences, allSupported, text: allSupported ? ALL_SUPPORTED_TEXT : bannerText(supported, total, suggested, review, notSupported, defences) };
 }
 
+/** The one contract of a result that carries the review-agenda banner (R1, 14 Oct): the first whose ingredients include none supported by a fact; null when every block has one. Once per result, never in a second block. */
+export function agendaContractId(contracts: readonly AnalyseFactsContract[], facts: AnalyseFactsResult["facts"]): string | null {
+  for (const c of contracts) {
+    const r = rowsFor(c, facts);
+    if (r.ingredients.length > 0 && !r.ingredients.some((x) => x.chip === "supported")) return c.contract_id;
+  }
+  return null;
+}
+
 /** When the engine referred the whole contract to a lawyer: the signed reason sentence, shown under the banner; null otherwise. */
 export function contractReferral(contract: AnalyseFactsContract): { message: string; code: string; twoJudgesOnly: boolean } | null {
   if (contract.outcome !== "REFER_TO_LAWYER") return null;

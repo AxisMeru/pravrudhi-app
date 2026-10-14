@@ -10,7 +10,8 @@ export const CHIP_LABEL: Readonly<Record<Chip, string>> = {
   supported: "Supported by a fact",
   // The screening signal is not a cited fact: its own chip, counted apart from the supported ingredients.
   suggested: "Suggested by the screening judge; check it",
-  not_supported: "Not supported by these facts",
+  // R1, 14 Oct: the screening cites no fact for these rows, which is exactly what the chip says; it is not a verdict.
+  not_supported: "No fact cited",
   review: "Needs your review",
 };
 
@@ -30,11 +31,12 @@ export const NO_CHECK_NOTE = "This ingredient is not screened yet; a lawyer shou
 
 /** The standing line beside every summary banner. */
 export const BANNER_STANDING_LINE = "This is a screening aid, not legal advice. A lawyer decides.";
-/** R1, 14 Oct: on an example screen the banner is an agenda, with no counts. */
-export const SAMPLE_BANNER_TEXT = "Review agenda: what each ingredient needs, and which facts to look for.";
-/** R1, 14 Oct: on a user's own run, shown with the banner when no ingredient is supported by a cited fact. */
-export const NONE_SUPPORTED_LINE =
-  "None of these ingredients is supported by a cited fact in what you gave. Below is what each one needs, and the kind of fact to look for.";
+/** R1, 14 Oct: shown once on EVERY result where no ingredient is supported (own runs and examples), above the first block. */
+export const AGENDA_BANNER_TEXT = "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.";
+/** R1, 14 Oct (#134): the group of ingredients for which no fact is cited. */
+export const NO_FACT_GROUP_HEADING = "To look for in your papers";
+/** R1, 14 Oct (#134): shown under the second block of an offence that has two ways of being made out. */
+export const ALTERNATE_LIMB_NOTE = "This is a second way the same offence can be made out. Each way is screened separately.";
 /** For the four offences the engine judges through their IPC-family contracts: the BNS counterpart is not on the validated list (R1, 8 Oct; #825). */
 export function ipcDisclosure(ipcSection: string): string {
   return `Checked against the IPC text (s.${ipcSection}); the BNS counterpart is not validated.`;
@@ -44,14 +46,15 @@ export const STRUCTURE_NOTE = "A Lean check confirmed the right ingredients were
 export const ALL_SUPPORTED_TEXT = "All ingredients supported (structure checked)";
 
 /**
- * The summary line (R1, 13 Oct, for #115): it names every state in the row vocabulary, in this order, joined with " · ": supported of total always, then (only when the
- * count is not 0) suggested, needs your review, not supported, and facts that may defeat the claim. No "established", "proved" or "made out".
+ * The summary line (R1, 14 Oct, strings A; replaces the 13 Oct "N of M ... K not supported by these facts" line). No supported ingredient: "No ingredient has a cited fact yet · M to look for".
+ * Otherwise "N of M ingredients supported by a fact", then (only when the count is not 0) " · K to look for", " · S to check" for suggestions and " · R for your review",
+ * then the defence count. No "established", "proved" or "made out".
  */
 export function bannerText(supported: number, total: number, suggested: number, review: number, notSupported: number, defences: number): string {
-  const parts = [`${supported} of ${total} ingredients supported by a fact`];
-  if (suggested > 0) parts.push(`${suggested} suggested by the screening judge (check it)`);
-  if (review > 0) parts.push(`${review} ${review === 1 ? "needs" : "need"} your review`);
-  if (notSupported > 0) parts.push(`${notSupported} not supported by these facts`);
+  const parts = supported === 0 ? [`No ingredient has a cited fact yet · ${total} to look for`] : [`${supported} of ${total} ingredients supported by a fact`];
+  if (supported > 0 && notSupported > 0) parts.push(`${notSupported} to look for`);
+  if (supported > 0 && suggested > 0) parts.push(`${suggested} to check`);
+  if (supported > 0 && review > 0) parts.push(`${review} for your review`);
   if (defences > 0) parts.push(`${defences} ${defences === 1 ? "fact" : "facts"} that may defeat the claim`);
   return parts.join(" · ");
 }

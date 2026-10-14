@@ -59,15 +59,15 @@ test("the checklist: a chip and plain reason per ingredient, the cited fact in f
   await expect(rows).toHaveCount(3);
   await expect(rows.nth(0).getByTestId("ingredient-chip")).toHaveText("Supported by a fact");
   await expect(rows.nth(1).getByTestId("ingredient-chip")).toHaveText("Needs your review");
-  await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("Not supported by these facts");
+  await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("No fact cited");
   await expect(rows.nth(1).getByTestId("ingredient-reason")).toContainText("did not reach the level we require");
   await expect(rows.nth(0).getByTestId("cited-fact-note")).toHaveText("cites your fact F1 in full (the judge names the fact; it does not quote words)");
   await expect(rows.nth(0).getByTestId("cited-fact-text")).toContainText(F1);
   await expect(rows.nth(0).getByTestId("what-to-check")).toContainText("Check what the facts say was said or concealed");
-  await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
+  await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients supported by a fact · 1 to look for · 1 for your review");
   await expect(page.getByTestId("checklist").getByTestId("ipc-disclosure")).toHaveText("Checked against the IPC text (s.415); the BNS counterpart is not validated.");
   // the banner sentence sits directly above the standing line
-  await expect(page.getByTestId("summary-banner")).toHaveText(/1 not supported by these facts\s*This is a screening aid, not legal advice\. A lawyer decides\./);
+  await expect(page.getByTestId("summary-banner")).toHaveText(/1 for your review\s*This is a screening aid, not legal advice\. A lawyer decides\./);
   const text = await page.getByTestId("checklist").innerText();
   expect(text).not.toMatch(/\bproved\b|\bestablished\b|verbatim|offence is made out/i);
   // "Needs your review" is amber, never the error red
@@ -102,7 +102,7 @@ test("the memo and the run record download, carrying the checklist, the cited fa
   const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
   const memo = readFileSync((await memoDl.path()) as string, "utf8");
   expect(memo).toContain("# Screening memo");
-  expect(memo).toContain("1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
+  expect(memo).toContain("1 of 3 ingredients supported by a fact · 1 to look for · 1 for your review");
   expect(memo).toContain("**Supported by a fact**");
   expect(memo).toContain(`F1: ${F1}`);
   expect(memo).toContain("Contract checker pin (sha256)");

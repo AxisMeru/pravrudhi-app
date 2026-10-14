@@ -4,7 +4,7 @@
   "ref": "ac1971ee",
   "engine_sha": "ac1971ee23838ab468bc746b2f564e5d2948e67e",
   "file_sha256": "55154367fc96298ca3202ce69ac129e37a492713675fe9820823430eff89d9f8",
-  "note": "Copied verbatim from pravrudhi main after #407 merged (adds second_judge_not_confirmed; the file is byte-identical to #407's signed head 36d59776); the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
+  "note": "Copied verbatim from pravrudhi main after #407 merged (adds second_judge_not_confirmed; the file is byte-identical at #407's heads 36d59776 and 0dc75161); the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
  },
  "reasons": {
   "all_elements_established": {

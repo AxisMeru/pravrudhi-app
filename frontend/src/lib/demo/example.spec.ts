@@ -42,7 +42,7 @@ test("the demo steps walk the Screening flow and do not say every ingredient has
   const text = STEPS.map((x) => `${x.title}. ${x.body}`).join(" ");
   assert.doesNotMatch(text, /for every element/i);
   assert.match(text, /A supported ingredient shows the fact of yours it cites, as you wrote it/);
-  assert.match(text, /Not supported by these facts, or Needs your review, with the reason/);
+  assert.match(text, /No fact cited, or Needs your review, with the reason/);
   assert.equal(STEPS.length, 6);
 });
 

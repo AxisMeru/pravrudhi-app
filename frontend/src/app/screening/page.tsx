@@ -15,6 +15,7 @@ import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
 import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
 import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
+import { agendaContractId } from "@/lib/screening/model";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
@@ -61,6 +62,7 @@ export default function ScreeningPage() {
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [limitNotice, setLimitNotice] = useState<string | null>(null);
   const [invalidRunId, setInvalidRunId] = useState<string | null | undefined>(undefined); // set (to the run id or null) only when the engine's answer was unreadable
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -126,7 +128,11 @@ export default function ScreeningPage() {
   async function submit(anonymous: boolean = false, assisted: boolean = false) {
     const cleaned = facts.map((f) => f.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
     const check = checkFacts(cleaned.join("\n"));
-    if (!check.ok) return setError(check.message);
+    setLimitNotice(null);
+    if (!check.ok) {
+      if (check.neutral) { setError(null); return setLimitNotice(check.message); }
+      return setError(check.message);
+    }
     const ids = Array.from(picked);
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
@@ -355,6 +361,7 @@ export default function ScreeningPage() {
             </p>
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
+          {limitNotice && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="facts-limit-notice">{limitNotice}</p>}
           {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
           {invalidRunId !== undefined && (
             <div className="print:hidden">
@@ -381,7 +388,7 @@ export default function ScreeningPage() {
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {result.contracts.map((c) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} sample={exampleActive} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}
             <CitationsPanel />
             <StatuteNotice />

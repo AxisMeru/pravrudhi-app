@@ -13,7 +13,7 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "See which ingredients your facts support",
     body:
-      "Each ingredient is marked Supported by a fact, Not supported by these facts, or Needs your review, with the reason. " +
+      "Each ingredient is marked Supported by a fact, No fact cited, or Needs your review, with the reason. " +
       "A supported ingredient shows the fact of yours it cites, as you wrote it; nothing is filled in to look complete.",
   },
   {

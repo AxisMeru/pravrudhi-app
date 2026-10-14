@@ -107,9 +107,8 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
 };
 
 // `reason` is typed `string` because that is what AnalyseFactsContract carries off the wire -- the engine is
-// a separate release train and may send a reason this build predates. Never hidden or reinterpreted: an
-// unrecognised reason gets R1's generic sentence (14 Oct: no raw code inside it); no result screen shows the raw code any more
-// (the memo keeps its labelled engine-code line).
+// a separate release train and may send a reason this build predates. An unrecognised reason is shown as R1's generic
+// sentence (14 Oct), with no raw code inside it; no result screen shows the raw code (the memo keeps its labelled engine-code line).
 export function referReasonPresentation(reason: string | null | undefined): ReferReasonPresentation {
   const raw = (reason ?? "").trim();
   if (!isReferReason(raw)) {
