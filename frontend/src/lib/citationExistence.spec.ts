@@ -11,7 +11,7 @@ import { CITATION_ERROR_TEXT } from "./signedStrings";
 
 test("R1's existence-only strings are exact (14 Oct)", () => {
   assert.equal(EXISTENCE_SUBTITLE, "Look up one citation and see whether the case is in our index.");
-  assert.equal(EXISTENCE_LIMITS, "The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.");
+  assert.equal(EXISTENCE_LIMITS, "The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   assert.equal(EXISTENCE_PANEL_LINE, "The citation is looked up in our index; quotes are not checked.");
   assert.equal(QUOTE_NOT_CHECKED_TEXT, "Only the citation was looked up; the quote was not checked.");
   assert.equal(NOT_IN_INDEX_NOTE, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
@@ -20,6 +20,7 @@ test("R1's existence-only strings are exact (14 Oct)", () => {
   assert.equal(DETAIL_422_TEXT, "Enter one citation, and leave the quote empty.");
   assert.doesNotMatch([EXISTENCE_LIMITS, QUOTE_NOT_SERVED_TEXT, NOT_IN_INDEX_NOTE].join(" "), /\b(fake|false|invalid|verified|yet)\b(?! served)/i);
   assert.doesNotMatch(EXISTENCE_LIMITS, /word for word/);
+  assert.doesNotMatch(EXISTENCE_LIMITS, /not yet served|hosted deployment/, "R1 #181: with the arm ON the check is served, so the sentence is gone");
 });
 
 test("the not-in-index result: the engine's note is replaced by R1's only while existence-only; the label is the same either way (both arms)", () => {
@@ -34,7 +35,7 @@ test("the not-in-index result: the engine's note is replaced by R1's only while 
 test("a conflict reads as R1's sentence only while existence-only (both arms); other tokens are untouched", () => {
   assert.equal(statusLabel("CONFLICT", true), CONFLICT_TEXT);
   assert.equal(statusLabel("CONFLICT", false), "CONFLICT");
-  for (const s of ["IN_INDEX", "MALFORMED", "VERIFIED"]) assert.equal(statusLabel(s, true), s);
+  for (const s of ["MALFORMED", "VERIFIED"]) assert.equal(statusLabel(s, true), s);
 });
 
 test("a 422 reads in plain words while existence-only, never the code; flag off keeps the generic text; 429 and 503 keep the signed texts (both arms)", () => {
@@ -60,4 +61,26 @@ test("the panel: existence-only sends NO quote even after a | and flags the type
   const off = parseCitationLines(text, false).items;
   assert.deepEqual(off.map((i) => [i.citation, i.quote]), [["(2020) 3 SCC 456", "the words"], ["(2019) 1 SCC 2", null], ["B", null]]);
   assert.ok(off.every((i) => i.quoteIgnored === undefined));
+});
+
+// R1, 14 Oct (#181): the citations arm copy, pinned in BOTH flag states.
+test("IN_INDEX heading: 'Found in our index' while existence-only, the raw token when the flag is off; the engine's note stays under it", async () => {
+  const { IN_INDEX_LABEL } = await import("./citationExistence");
+  assert.equal(IN_INDEX_LABEL, "Found in our index");
+  assert.equal(statusLabel("IN_INDEX", true), "Found in our index");
+  assert.equal(statusLabel("IN_INDEX", false), "IN_INDEX");
+  const note = "Found in the index (existence only): no quote was checked, so this is not a verification.";
+  assert.equal(verifyView({ result: "IN_INDEX", note }, false, true).note, note);
+  assert.equal(verifyView({ result: "IN_INDEX", note }, false, false).note, note);
+});
+
+test("CONFLICT: only the signed sentence while existence-only (the engine's note is suppressed, not 'withheld'); flag off shows the engine's note as before", () => {
+  const reply = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand." };
+  const on = verifyView(reply, false, true);
+  assert.equal(on.note, null);
+  assert.equal(on.noteWithheld, false);
+  assert.equal(statusLabel("CONFLICT", true), CONFLICT_TEXT);
+  const off = verifyView(reply, false, false);
+  assert.equal(off.note, reply.note);
+  assert.equal(statusLabel("CONFLICT", false), "CONFLICT");
 });

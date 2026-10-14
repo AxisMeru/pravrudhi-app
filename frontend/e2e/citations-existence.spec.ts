@@ -27,7 +27,7 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
   });
   await page.goto("/citations");
   await expect(page.getByText("Look up one citation and see whether the case is in our index.")).toBeVisible();
-  await expect(page.getByTestId("citation-limits")).toHaveText("The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.");
+  await expect(page.getByTestId("citation-limits")).toHaveText("The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/word for word/i);
   await expect(page.getByTestId("citation-preview-label")).toBeVisible();
@@ -98,4 +98,26 @@ test("/citations anonymous (the Worker answers 401): the signed sign-in sentence
   await expect(page.getByTestId("citation-error")).toHaveText("You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.");
   await expect(page.locator("body")).not.toContainText(/\b401\b|unauthorized/i);
   expect(new URL(page.url()).pathname).toMatch(/^\/citations\/?$/);
+});
+
+// R1, 14 Oct (#181): the arm ON: the limits text no longer says the check is not served; CONFLICT shows only the signed sentence (the engine's note is suppressed); IN_INDEX reads "Found in our index"
+// with the engine's existence-only note under it.
+test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT shows only the signed sentence; IN_INDEX reads 'Found in our index' with its note", async ({ page }) => {
+  const CONFLICT = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand.", status: "conflict", label: "conflict: the citation matches more than one indexed case", verified: false, preview: true };
+  const IN_REAL = { ...IN, note: "Found in the index (existence only): no quote was checked, so this is not a verification." };
+  await page.goto("/citations");
+  await expect(page.getByTestId("citation-limits")).not.toContainText(/not yet served|hosted deployment/);
+  await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
+  await page.getByLabel("Citation (one)").fill(CITATION);
+  await page.getByRole("button", { name: "Check" }).click();
+  await expect(page.getByTestId("citation-status")).toHaveText("The citation matches more than one case in our index, so we cannot tell which you mean.");
+  await expect(page.getByTestId("citation-note")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/conflicting indexed cases|verify by hand|CONFLICT/);
+  await page.unroute("**/api/v1/verify-citations");
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN_REAL }));
+  await page.getByRole("button", { name: "Check" }).click();
+  await expect(page.getByTestId("citation-status")).toHaveText("Found in our index");
+  await expect(page.getByTestId("citation-note")).toHaveText("Found in the index (existence only): no quote was checked, so this is not a verification.");
+  await expect(page.locator("body")).not.toContainText(/\bIN_INDEX\b/);
 });
