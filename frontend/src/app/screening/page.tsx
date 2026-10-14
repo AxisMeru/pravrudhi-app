@@ -36,7 +36,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { CHECKING_SIGN_IN_LABEL, FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -67,6 +67,8 @@ export default function ScreeningPage() {
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false); // the sign-in re-check before anything is sent (R1, P2): not yet a request in flight
+  const inflight = loading && !checking;
   const [elapsed, setElapsed] = useState(0);
   const [assistedTimeout, setAssistedTimeout] = useState<number | null>(null); // seconds the assisted run waited, set only when it ended on the app's own timeout (Run again)
   const [error, setError] = useState<string | null>(null);
@@ -171,6 +173,7 @@ export default function ScreeningPage() {
     const ids = Array.from(picked);
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
+    setChecking(true);
     setError(null);
     setInvalidRunId(undefined);
     setNotSignedIn(null);
@@ -184,7 +187,7 @@ export default function ScreeningPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onTimeoutRetry: () => setRetrying(true) });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
     } catch (e) {
@@ -200,6 +203,7 @@ export default function ScreeningPage() {
       abortRef.current = null;
       setSigningIn(false);
       setRetrying(false);
+      setChecking(false);
       setLoading(false);
     }
   }
@@ -392,7 +396,7 @@ export default function ScreeningPage() {
             className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
-            {loading ? "Screening…" : "Screen these facts"}
+            {checking ? CHECKING_SIGN_IN_LABEL : loading ? "Screening…" : "Screen these facts"}
           </button>
           {closed && svc?.kind === "ok" && svc.status.service_window && (
             <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-offline">
@@ -404,7 +408,8 @@ export default function ScreeningPage() {
               The engine is not answering right now. Nothing is sent until it is back.
             </p>
           )}
-          {loading && (
+          {checking && signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
+          {inflight && (
             <>
               <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="w-fit text-sm text-[var(--color-text-dim)] underline">
                 Cancel
@@ -417,7 +422,7 @@ export default function ScreeningPage() {
               </p>}
             </>
           )}
-          {loading && elapsed >= SLOW_START_SECONDS && (
+          {inflight && elapsed >= SLOW_START_SECONDS && (
             <p className="text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>

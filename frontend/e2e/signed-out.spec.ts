@@ -82,3 +82,49 @@ test("/api/me answering 503: nothing is sent, the page says it could not check, 
   await expect(page.getByTestId("not-signed-in-anonymous")).toHaveCount(0);
   expect(s.posts).toEqual([]);
 });
+
+// R1, 14 Oct (P2): while the page re-checks sign-in the button reads exactly "Checking whether you are signed in…", disabled, with NO Cancel (nothing is in flight);
+// "Screening…" and Cancel appear only once a request really is.
+const CHECKING = "Checking whether you are signed in…";
+
+test("signed out: during the re-check the button says it is checking, is disabled, has no Cancel and never says Screening", async ({ page }) => {
+  const s = await setup(page, 401);
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const checking = page.getByRole("button", { name: CHECKING, exact: true });
+  await expect(checking).toBeVisible();
+  await expect(checking).toBeDisabled();
+  await expect(page.getByTestId("screening-cancel")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Screening…" })).toHaveCount(0);
+  await expect(page.getByTestId("not-signed-in")).toBeVisible({ timeout: 15_000 });
+  expect(s.posts, "nothing is sent").toEqual([]);
+  await expect(page.getByRole("button", { name: "Screen these facts" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: CHECKING })).toHaveCount(0);
+});
+
+test("signed in: once the request is really in flight the button reads Screening… and Cancel appears", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  await page.route("**/api/me", (r) => r.fulfill({ json: { edition: "Pravrudhi", tagline: "t", access: "member", authenticated: true } }));
+  let release: () => void = () => {};
+  const held = new Promise<void>((res) => { release = res; });
+  await page.route("**/api/v1/analyse-facts**", async (r) => { await held; await r.fulfill({ json: ANSWER }); });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByRole("button", { name: "Screening…" })).toBeVisible();
+  await expect(page.getByTestId("screening-cancel")).toBeVisible();
+  await expect(page.getByRole("button", { name: CHECKING })).toHaveCount(0);
+  release();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+});
+
+test("the anonymous demo skips the check: its request is in flight at once (Screening…, no checking label)", async ({ page }) => {
+  const s = await setup(page, 401);
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("not-signed-in")).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("not-signed-in-anonymous").click();
+  await expect(page.getByRole("button", { name: CHECKING })).toHaveCount(0);
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  expect(s.posts).toHaveLength(1);
+});
