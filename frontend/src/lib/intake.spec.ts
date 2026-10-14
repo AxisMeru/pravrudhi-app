@@ -53,3 +53,13 @@ test("the hand-off is taken once and then gone", () => {
   assert.deepEqual(takeHandoff(), ["a", "b"]);
   assert.equal(takeHandoff(), null);
 });
+
+import * as C from "./intakeCopy";
+test("the Intake page's own words are R1's (signed at b6435e5 with his two edits)", () => {
+  assert.equal(C.INTAKE_PAGE_TITLE, "Intake");
+  assert.equal(C.INTAKE_PAGE_SUBTITLE, "Intake turns text you paste into numbered facts, each tied to the words it came from, and lists the citations it finds.");
+  assert.equal(C.INTAKE_PASTE_LABEL, "Paste the text");
+  assert.equal(C.INTAKE_RUN_BUTTON, "Run intake");
+  assert.equal(C.INTAKE_UNREADABLE, "Intake could not run just now. Try again.");
+  assert.equal(C.INTAKE_CITATIONS_HEADING, "Citations in your text");
+});
