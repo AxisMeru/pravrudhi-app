@@ -37,7 +37,7 @@ test("the intro folds behind 'About this screening' with the standing line outsi
 test("the result is brought into view and the run identifiers are the last line of it", async ({ page }) => {
   const F = "A person was promised gold coins for money paid, and the company then closed without returning it, and nothing was delivered to the buyer at all afterwards.";
   const answer = {
-    run_id: "run-1", score_sha256: "0".repeat(64), facts: [{ id: "F1", sha256: "1".repeat(64) }],
+    run_id: "run-1", judge: "invented", score_sha256: "0".repeat(64), provenance: "invented", retention_notice: "invented retention notice", facts: [{ id: "F1", sha256: "1".repeat(64) }],
     contracts: [{ contract_id: "ipc415_property", outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null, elements: [] }],
   };
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
