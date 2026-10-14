@@ -24,7 +24,7 @@ export function WorkflowRows() {
                 <div className="text-sm font-medium text-[var(--color-text)]">{w.name}</div>
                 {w.note && <div className="mt-0.5 text-xs text-[var(--color-text-dim)]">{w.note}</div>}
               </div>
-              <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${w.status === "Building" ? "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]" : "border-[var(--color-control-border)] text-[var(--color-text-dim)]"}`} data-testid="workflow-status">
+              <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${w.status === "Building" ? "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]" : "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]"}`} data-testid="workflow-status">
                 {w.status}
               </span>
             </li>

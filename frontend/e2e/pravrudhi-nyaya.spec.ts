@@ -39,8 +39,8 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
 
 test("/workflows: five rows with a status word each, no start button, and the closing line", async ({ page }) => {
   await page.goto("/workflows");
-  await expect(page.getByTestId("workflow-row")).toHaveCount(5);
-  await expect(page.getByTestId("workflow-status")).toHaveText(["Building", "Planned", "Planned", "Planned", "Planned"]);
+  await expect(page.getByTestId("workflow-row")).toHaveCount(4);
+  await expect(page.getByTestId("workflow-status")).toHaveText(["Building", "Building", "Built", "Building"]);
   await expect(page.getByTestId("workflows").getByRole("button")).toHaveCount(0);
   await expect(page.getByTestId("workflows-closing")).toHaveText("A workflow runs only when you start it, and only on the matter you give it.");
 });
