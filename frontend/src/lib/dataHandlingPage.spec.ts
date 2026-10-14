@@ -80,7 +80,7 @@ test("R1: the 'where' glance block shows the first signed paragraph AND the fall
     assert.equal(where.texts.length, 2);
     assert.equal(where.texts[0], dataHandlingSections(false, false).find((s) => s.id === "where")!.paragraphs[0]);
     assert.equal(where.texts[1], DH_WHERE_FALLBACK);
-    assert.match(where.texts[1], /North American data centre, and your facts are sent there/);
+    assert.match(where.texts[1], /North American data centre for that request, and your facts are sent there/);
     assert.deepEqual(p.glance.blocks.filter((b) => b.id !== "where").map((b) => b.texts.length), [1, 1]);
   }
 });
