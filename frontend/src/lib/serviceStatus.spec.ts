@@ -46,7 +46,7 @@ test("fetchServiceStatus: an old engine without /status (404) is 'unknown', neve
   try { assert.equal((await fetchServiceStatus()).kind, "unknown"); } finally { restore(); }
 });
 
-test("isClosed: only an explicit open_now === false closes the form", async () => {
+test("isClosed: only an ENFORCED window that is outside its hours closes the form (enforced === true && open_now === false)", async () => {
   const { isClosed } = await import("./serviceStatus");
   assert.equal(isClosed(CLOSED), true);
   assert.equal(isClosed({ ...CLOSED, service_window: null }), false);
@@ -150,4 +150,18 @@ test("classifyAnalyseError: the engine's judges_offline 503 is its own kind and 
   assert.equal(o.retryAfter, undefined);
   // the existing mappings stay as the fallback when the engine cannot read the limit
   assert.equal(classifyAnalyseError(new ApiError(503, "/x", { code: "judge_unavailable" })).kind, "judge_unavailable");
+});
+
+// Lead-2 / L2A, 14 Oct: production's engine reports the 09:00-21:00 London window with enforced:false and answers 24/7, so after 21:00 (open_now false) the app must NOT close the form.
+test("isClosed: all four arms of enforced x open_now, and the shapes the engine could send instead", async () => {
+  const { isClosed } = await import("./serviceStatus");
+  const w = (enforced: unknown, open_now: unknown) => ({ ...CLOSED, service_window: { ...CLOSED.service_window, enforced, open_now } }) as never;
+  assert.equal(isClosed(w(true, false)), true, "enforced and outside the window: closed");
+  assert.equal(isClosed(w(true, true)), false, "enforced and inside the window: open");
+  assert.equal(isClosed(w(false, false)), false, "NOT enforced and outside the window (production after 21:00): open");
+  assert.equal(isClosed(w(false, true)), false, "not enforced and inside the window: open");
+  for (const odd of [undefined, null, "true", 1, "yes"]) assert.equal(isClosed(w(odd, false)), false, `enforced ${String(odd)} never closes`);
+  assert.equal(isClosed(w(true, undefined)), false);
+  assert.equal(isClosed(w(true, null)), false);
+  assert.equal(isClosed({ ...CLOSED, service_window: null }), false);
 });
