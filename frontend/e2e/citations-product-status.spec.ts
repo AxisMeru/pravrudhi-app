@@ -3,6 +3,9 @@ import { join } from "node:path";
 
 import { expect, test } from "./support/engineTest";
 
+// The existence-only build (NEXT_PUBLIC_CITATION_EXISTENCE_ONLY=1) has its own spec: citations-existence.spec.ts.
+test.skip(process.env.CITATION_EXISTENCE_BUILD === "1", "the existence-only build is covered in citations-existence.spec.ts");
+
 /**
  * The product status wording (#533), switched ON. It runs only against a build made with NEXT_PUBLIC_CITATION_PRODUCT_STATUS=1 and
  * CITATION_PRODUCT_STATUS_BUILD=1 in the test environment; the normal CI build leaves it off and this file is skipped there. Recorded
