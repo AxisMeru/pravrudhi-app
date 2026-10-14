@@ -8,7 +8,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "pretrained=/models/hub/models--Qwen--Qwen3-0.6B/snapshots/c1899de289a04d12100db370d81485cdf75e47ca/,dtype=bfloat16,trust_remote_code=False",
       "pretrained=/models/hub/models--Qwen--Qwen3-0.6B/snapshots/c1899de289a04d12100db370d81485cdf75e47ca/,dtype=bfloat16,trust_remote_code=False,peft=/adapter",
       "pretrained=/models/hub/models--Qwen--Qwen3-1.7B/snapshots/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/,dtype=bfloat16,trust_remote_code=False",
-      "~/projects/pravrudhi/.pravrudhi/kernel/jobs/n4-train-c-0045-95769407/out/adapter",
+      ".pravrudhi/kernel/jobs/n4-train-c-0045-95769407/out/adapter",
       "evaluation",
       "Scored by lm-evaluation-harness outside the kernel, on the held-out test split, and admitted to the ledger by file hash.",
       "rl-post-training",

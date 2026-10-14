@@ -6,7 +6,7 @@
   "external": [
     {
       "condition": "base",
-      "file": "~/projects/pravrudhi/research/ext/qwen3-0.6b-base/results.json",
+      "file": "research/ext/qwen3-0.6b-base/results.json",
       "kind": "external_eval",
       "metrics": {
         "gsm8k": {
@@ -37,7 +37,7 @@
     },
     {
       "condition": "adapter:c-0045",
-      "file": "~/projects/pravrudhi/research/ext/qwen3-0.6b-c0045/results.json",
+      "file": "research/ext/qwen3-0.6b-c0045/results.json",
       "kind": "external_eval",
       "metrics": {
         "gsm8k": {
@@ -69,7 +69,7 @@
     {
       "condition": "base",
       "dataset": "humaneval",
-      "file": "~/projects/pravrudhi/research/ext/humaneval-before/out/evalplus_samples_eval_results.json",
+      "file": "research/ext/humaneval-before/out/evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -99,7 +99,7 @@
     {
       "condition": "harness:c-0060",
       "dataset": "humaneval",
-      "file": "~/projects/pravrudhi/research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
+      "file": "research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -129,7 +129,7 @@
     {
       "condition": "base-replicate",
       "dataset": "humaneval",
-      "file": "~/projects/pravrudhi/research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
+      "file": "research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -1974,7 +1974,7 @@
   },
   "models": [
     {
-      "artefact": "~/projects/pravrudhi/.pravrudhi/kernel/jobs/n4-train-c-0045-95769407/out/adapter",
+      "artefact": ".pravrudhi/kernel/jobs/n4-train-c-0045-95769407/out/adapter",
       "external_after": {
         "gsm8k": {
           "exact_match,flexible-extract": 0.49128127369219105,
