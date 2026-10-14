@@ -5,7 +5,7 @@
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { OFFENCES, offenceLabel } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
@@ -50,7 +50,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   memo: {
     file: "06-memo-export.png",
-    alt: `The three export buttons under the checklist: ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${EXPORT_LABELS.runRecord}.`,
+    alt: `The memo export group under the checklist, labelled "${EXPORT_GROUP_LABEL}", with ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${MEMO_DOCX_LABEL}, and the ${EXPORT_LABELS.runRecord} button beside it.`,
   },
 };
 

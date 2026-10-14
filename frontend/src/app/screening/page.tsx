@@ -32,7 +32,7 @@ import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
@@ -411,16 +411,19 @@ export default function ScreeningPage() {
 
         {result && request && (
           <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
-            <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
-                {EXPORT_LABELS.memo}
-              </button>
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
-                {MEMO_DOCX_LABEL}
-              </button>
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
-                {EXPORT_LABELS.print}
-              </button>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions">
+              <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
+                <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
+                  {EXPORT_LABELS.memo}
+                </button>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
+                  {EXPORT_LABELS.print}
+                </button>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
+                  {MEMO_DOCX_LABEL}
+                </button>
+              </div>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
                 {EXPORT_LABELS.runRecord}
               </button>

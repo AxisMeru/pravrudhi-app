@@ -137,7 +137,7 @@ for (const fixture of FIXTURES) {
         }
 
         // The memo the user downloads carries the same run, contract by contract.
-        const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
+        const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
         const memo = readFileSync(await download.path(), "utf8");
         expect(memo, "the memo does not carry the run id").toContain(result.run_id);
         expect(memo, "the memo does not carry the score sha256").toContain(result.score_sha256);

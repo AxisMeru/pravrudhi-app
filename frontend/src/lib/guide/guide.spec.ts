@@ -81,7 +81,7 @@ test("the guide for firm users: R1's two lines, the covered offences (the valida
 });
 
 test("the guide names the three export buttons with the exact text the screening page shows (R1, 13 Oct)", () => {
-  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" });
+  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Markdown (.md)", print: "PDF", runRecord: "Download run record (.json)" });
   const page = readFileSync(join(root, "src", "app", "screening", "page.tsx"), "utf8");
   for (const k of ["memo", "print", "runRecord"]) assert.ok(page.includes(`{EXPORT_LABELS.${k}}`), `the page renders EXPORT_LABELS.${k}`);
   for (const label of Object.values(EXPORT_LABELS)) assert.ok(GUIDE_IMAGES.memo.alt.includes(label), `the guide names "${label}"`);
