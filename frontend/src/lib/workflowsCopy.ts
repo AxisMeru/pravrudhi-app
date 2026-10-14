@@ -12,7 +12,7 @@ export interface WorkflowRow {
 export const WORKFLOWS: readonly WorkflowRow[] = [
   { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is being built. It will run the same screening steps and show you the steps it took. You see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
   { name: "Intake", status: "Building", note: "Intake turns text you paste into numbered facts, each tied to the words it came from, and lists the citations it finds. A fact that cannot be traced to your words is marked as a paraphrase and is not used as a fact to cite. It works on pasted text only." },
-  { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or PDF. A Word (DOCX) download is planned." },
+  { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx)." },
   { name: "Hearing preparation", status: "Building", note: "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law." },
 ];
 
