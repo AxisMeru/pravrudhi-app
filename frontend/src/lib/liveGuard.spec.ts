@@ -68,7 +68,8 @@ function playwright(args: string[], env: Record<string, string>): { code: number
 }
 
 test("the real config has no live project unless the go flag is set, even with the account in the environment", () => {
-  for (const env of [{}, { E2E_EMAIL: "someone-secret", E2E_PASSWORD: "pw-secret" }, { E2E_EMAIL: "someone-secret", E2E_PASSWORD: "pw-secret", LIVE_E2E_GO: "0" }]) {
+  const envs: Record<string, string>[] = [{}, { E2E_EMAIL: "someone-secret", E2E_PASSWORD: "pw-secret" }, { E2E_EMAIL: "someone-secret", E2E_PASSWORD: "pw-secret", LIVE_E2E_GO: "0" }];
+  for (const env of envs) {
     const listed = playwright(["--list"], env);
     assert.equal(listed.code, 0, listed.out);
     assert.doesNotMatch(listed.out, /live-chromium|live-api/);
