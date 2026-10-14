@@ -9,7 +9,7 @@ export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
   missing_element: "The screening did not find a cited fact for at least one required ingredient.",
   no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
-  judge_error: "A judge call failed on at least one condition, so we give no answer.",
+  judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
   assembly_lean_mismatch: "Two internal checks disagreed, so we give no answer.",
 };
 
@@ -20,16 +20,16 @@ export function nonReferReasonText(reason: string | null | undefined): string | 
 }
 
 export const QUOTE_CHECK_TEXT: Readonly<Record<string, string>> = {
-  ok: "The cited text appears exactly once in the fact named (the judge's quoted words, or, when the judge only names the fact, the fact itself).",
-  not_established: "The judge did not find this condition shown in your facts.",
-  no_quote: "The judge said this condition holds but gave no words to show it.",
-  unknown_fact: "The judge pointed to a fact that is not among yours.",
-  empty_quote: "The judge's quote was empty.",
-  non_evidential_quote: "The judge's quote was too short or only punctuation to count as evidence.",
+  ok: "The cited text appears exactly once in the fact named (the quoted words, or, when only the fact is named, the fact itself).",
+  not_established: "The screening did not find this condition shown in your facts.",
+  no_quote: "The screening said this condition holds but gave no words to show it.",
+  unknown_fact: "The screening pointed to a fact that is not among yours.",
+  empty_quote: "The screening's quote was empty.",
+  non_evidential_quote: "The screening's quote was too short or only punctuation to count as evidence.",
   quote_not_found:
-    "The judge's quote does not appear word for word (same capital letters and spacing) in the fact it named.",
+    "The screening's quote does not appear word for word (same capital letters and spacing) in the fact it named.",
   ambiguous_quote:
-    "The judge's quote appears more than once in that fact, so we cannot tell which passage it meant. The condition is not counted as shown.",
+    "The screening's quote appears more than once in that fact, so we cannot tell which passage it meant. The condition is not counted as shown.",
 };
 
 export interface QuoteCheckPresentation {
@@ -49,7 +49,7 @@ export function quoteCheckPresentation(code: string | null | undefined): QuoteCh
 
 /** Which judge's confidence threshold a non-established element failed (`binding_leg`), in plain words; null for anything else. */
 export function bindingLegText(leg: string | null | undefined): string | null {
-  if (leg === "primary") return "Not supported at the first judge's confidence threshold.";
-  if (leg === "second") return "Not supported at the second judge's confidence threshold.";
+  if (leg === "primary") return "Not supported at the first check's confidence threshold.";
+  if (leg === "second") return "Not supported at the second check's confidence threshold.";
   return null;
 }

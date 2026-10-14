@@ -73,7 +73,15 @@ const APP_FORM: Readonly<Record<string, string>> = {
   denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
   missing_element: "The screening did not find a cited fact for at least one required ingredient.",
   no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
+  judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
 };
+
+// Same ruling (R1, 14 Oct): the quote-check sentences and the status explanations say "the screening", never "the judge". Only the "judge" word is replaced; the rest is the signed sentence.
+const unjudge = (t: string): string =>
+  t.replace("(the judge's quoted words, or, when the judge only names the fact, the fact itself)", "(the quoted words, or, when only the fact is named, the fact itself)")
+    .replace("The second judge did not answer", "The second check did not answer")
+    .replace(/The judge's /g, "The screening's ")
+    .replace(/The judge /g, "The screening ");
 
 test("every REFER reason's message is the signed sentence verbatim, or R1's app form where APP_FORM names it", () => {
   for (const r of REFER_REASONS) {
@@ -98,7 +106,7 @@ test("every other reason's text and every quote check's text is the signed sente
     assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(expected), code);
     if (drop) assert.doesNotMatch(NON_REFER_REASON_TEXT[code] ?? "", /citation_note|`/, `${code}: an API field name reached a member-facing sentence`);
   }
-  for (const [code, text] of Object.entries(TABLE.quote_check)) assert.equal(norm(QUOTE_CHECK_TEXT[code] ?? ""), norm(text), code);
+  for (const [code, text] of Object.entries(TABLE.quote_check)) assert.equal(norm(QUOTE_CHECK_TEXT[code] ?? ""), norm(unjudge(text)), code);
 });
 
 test("the table has exactly the reasons the app knows: 9 referrals + 6 others, and no extras either way", () => {
@@ -107,7 +115,7 @@ test("the table has exactly the reasons the app knows: 9 referrals + 6 others, a
 });
 
 test("the gap strings (statuses and service errors) are the signed wording, verbatim", () => {
-  for (const [status, text] of Object.entries(ELEMENT_STATUS_EXPLANATION)) assert.equal(norm(text), norm(GAP.strings[status]), status);
+  for (const [status, text] of Object.entries(ELEMENT_STATUS_EXPLANATION)) assert.equal(norm(text), norm(unjudge(GAP.strings[status])), status);
   for (const code of ["judges_offline", "judges_warming", "judge_unavailable", "outside_service_window", "service_config_missing"] as const) {
     assert.equal(norm(SERVICE_ERROR_TEXT[code]), norm(GAP.strings[code]), code);
   }

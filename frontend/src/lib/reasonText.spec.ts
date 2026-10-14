@@ -39,8 +39,8 @@ test("the quote-check wording says what the engine does: word for word, an ambig
 });
 
 test("the judge that bound an element is named in plain words; anything else shows nothing", () => {
-  assert.match(bindingLegText("primary") ?? "", /first judge/);
-  assert.match(bindingLegText("second") ?? "", /second judge/);
+  assert.match(bindingLegText("primary") ?? "", /first check/);
+  assert.match(bindingLegText("second") ?? "", /second check/);
   for (const x of [null, undefined, "", "tertiary"]) assert.equal(bindingLegText(x), null);
 });
 

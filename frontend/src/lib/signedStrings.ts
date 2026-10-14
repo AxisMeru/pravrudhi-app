@@ -6,10 +6,10 @@
 
 /** Element statuses: what each one means, shown under the status badge for the three that are not a verdict. */
 export const ELEMENT_STATUS_EXPLANATION = {
-  established: "The judge said this condition is shown and cites the supporting fact from your facts.",
-  not_established: "The judge did not find this condition shown in your facts.",
-  not_confirmed: "The judge leaned towards 'shown', but its confidence did not reach the level we require, so this condition is not counted as shown.",
-  not_evaluated_second_unavailable: "The second judge did not answer, so this condition was not confirmed.",
+  established: "The screening said this condition is shown and cites the supporting fact from your facts.",
+  not_established: "The screening did not find this condition shown in your facts.",
+  not_confirmed: "The screening leaned towards 'shown', but its confidence did not reach the level we require, so this condition is not counted as shown.",
+  not_evaluated_second_unavailable: "The second check did not answer, so this condition was not confirmed.",
   not_evaluated_gate1_unavailable: "This condition was not evaluated because the entailment check (a separate check of the cited fact against the claim) was unavailable.",
 } as const;
 

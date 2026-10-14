@@ -53,5 +53,5 @@ test("a status that is not a verdict carries its signed explanation", async ({ p
   const notes = page.getByTestId("status-explanation");
   await expect(notes).toHaveCount(2);
   await expect(notes.first()).toContainText("did not reach the level we require");
-  await expect(notes.nth(1)).toHaveText("The second judge did not answer, so this condition was not confirmed.");
+  await expect(notes.nth(1)).toHaveText("The second check did not answer, so this condition was not confirmed.");
 });
