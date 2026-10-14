@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantViolations, entryState, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
+import { STEP_TRACE_HEADING, ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantViolations, entryState, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
 import { ASSISTANT_PAUSED_TEXT } from "./assistantTier";
 import { DH_ASSIST_SIGNIN } from "./dataHandling";
 
@@ -102,4 +102,8 @@ test("the outcome and reason must fit: budget carries per_session_budget ONLY (n
   for (const [outcome, reason] of [["budget", "daily_ceiling"], ["budget", null], ["budget", "timeout"], ["timed_out", "per_session_budget"], ["timed_out", null], ["finished", "daily_ceiling"], ["refused", "timeout"], ["refused", "per_session_budget"], ["refused", null]] as const)
     assert.notDeepEqual(assistantViolations({ ...base, outcome, reason }), [], `${outcome}+${reason}`);
   for (const [outcome, reason] of [["budget", "per_session_budget"], ["timed_out", "timeout"], ["finished", null]] as const) assert.deepEqual(assistantViolations({ ...base, outcome, reason }), [], `${outcome}+${reason}`);
+});
+
+test("the trace heading is R1's words: it states only that these steps ran and attributes the decision to no one", () => {
+  assert.equal(STEP_TRACE_HEADING, "Steps of this screening");
 });
