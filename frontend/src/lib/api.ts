@@ -3,6 +3,7 @@
 // Every function here can fail — there may be no engine running, or an endpoint may not exist yet on an
 // older engine build. Callers are expected to handle rejection; nothing here retries or hides a failure.
 
+import { parseAssistantBlock, type AssistantBlock } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
 
 function detectBase(): string {
@@ -1383,6 +1384,8 @@ export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
 
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
+  /** Present only on an assisted run (#125): the app's kept part of the engine's assistant block. */
+  assistant?: AssistantBlock;
   run_id: string;
   judge: string;
   score_sha256: string;
@@ -1510,7 +1513,14 @@ export async function requireSession(opts: { onSigningIn?: () => void; signal?: 
   throw last === "signed_out" ? new NotSignedInError() : new SignInUnverifiedError();
 }
 
+/** True only when GET /api/me says 200 (a signed-in user). 401, 404/405 (an engine with no identity endpoint), any error or a dropped connection is false: the assistant entry is offered only to a signed-in user (Lead-2, #125). */
+export async function isSignedIn(signal?: AbortSignal): Promise<boolean> {
+  return (await sessionState(signal)) === "signed_in";
+}
+
 export interface AnalyseFactsOptions {
+  /** Run with the screening assistant (#125): the assist route, with consent sent as true. The caller sets this only after the user ticked the consent box for THIS run. */
+  assisted?: boolean;
   /** The user chose the anonymous demo explicitly: skip the sign-in check. Never set by the app on its own. */
   allowAnonymous?: boolean;
   /** Called once when the session is being retried ("Signing you in…"). */
@@ -1524,10 +1534,10 @@ export async function analyseFacts(
   signal?: AbortSignal,
   opts: AnalyseFactsOptions = {},
 ): Promise<AnalyseFactsResult> {
-  const path = "/api/v1/analyse-facts";
+  const path = opts.assisted ? "/api/v1/analyse-facts/assist" : "/api/v1/analyse-facts";
   if (IS_DEMO) throw new ApiError(501, path);
   if (!opts.allowAnonymous) await requireSession({ onSigningIn: opts.onSigningIn, signal });
-  const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "" });
+  const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", ...(opts.assisted ? { consent: true } : {}) });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
   let res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
@@ -1537,9 +1547,29 @@ export async function analyseFacts(
       res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
       if (!res.ok) err = await apiErrorFrom(res, path);
     }
+    // A rate-limited (or otherwise refused) assisted run still gives the user the screening result: the plain request is sent instead and the block says refused, with no reason shown (R1, #125).
+    if (!res.ok && opts.assisted && (res.status === 429 || res.status === 403)) {
+      const plain = await analyseFacts(facts, contractIds, narrative, signal, { ...opts, assisted: false });
+      return { ...plain, assistant: { used: false, outcome: "refused", reason: "error", steps: [] } };
+    }
     if (!res.ok) throw err;
   }
-  return await withFactText((await res.json()) as AnalyseFactsWire, facts);
+  const wire = (await res.json()) as AnalyseFactsWire;
+  const result = await withFactText(wire, facts);
+  if (!opts.assisted) return result;
+  const raw = wire as unknown as Record<string, unknown>;
+  const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
+  return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
+}
+
+/** What GET /api/assistant says (engine contract assistant_v1_1 `info`): read only for the provider name in the consent line. Any failure is null and the line names no vendor. */
+export async function assistantProvider(): Promise<string | null> {
+  try {
+    const j = await getJSON<{ provider?: unknown }>("/api/assistant");
+    return typeof j.provider === "string" && j.provider.trim() ? j.provider.trim() : null;
+  } catch {
+    return null;
+  }
 }
 
 // Partner key administration (pravrudhi #147). Authorised by the engine, not here: it admits only the signed-in
