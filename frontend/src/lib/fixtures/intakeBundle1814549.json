@@ -1,11 +1,11 @@
 {
- "_source": "INVENTED text run through the engine's intake.build_bundle at pravrudhi 1814549ed7d7379d2bda372dc7335b052a554272 (#437 final head); the bundle keys the app reads, unchanged. Regenerate with that module if the engine's left-out rules change.",
+ "_source": "INVENTED text run through the engine's intake.build_bundle at pravrudhi 1814549ed7d7379d2bda372dc7335b052a554272 (#437 final head); the bundle keys the app reads, unchanged. with_digits = caption + three repeated page lines; no_digits = caption only, no digits; caption_digits_only = a caption that carries dates and no other left-out line. Regenerate with that module if the engine's left-out rules change.",
  "with_digits": {
   "run_id": "nyaya-intake-fixture",
   "client_data": true,
   "bundle": {
    "clean_status": "cleaned",
-   "cleaned": "IN THE HIGH COURT OF SAMPLELAND AT SAMPLETOWN DATED THIS THE 1ST DAY OF JANUARY 2000 BEFORE THE HON'BLE MR. JUSTICE SAMPLE BETWEEN: SAMPLE PETITIONER ... PETITIONER AND: STATE OF SAMPLELAND ... RESPONDENT\n\nORDER\n\nSAMPLE HIGH COURT - 2\n\n1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.\n\nSAMPLE HIGH COURT - 3\n\n2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.\n\nSAMPLE HIGH COURT - 4\n\n3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.\n\nSAMPLE HIGH COURT - 5\n\n4. The learned counsel for the petitioner submits that the dispute is civil in nature, and the learned counsel for the respondent submits that the facts disclose a cognisable offence on their face.",
+   "cleaned": "IN THE HIGH COURT OF SAMPLELAND AT SAMPLETOWN DATED THIS THE 1ST DAY OF JANUARY 2000 BEFORE THE HON'BLE MR. JUSTICE SAMPLE BETWEEN: SAMPLE PETITIONER ... PETITIONER AND: STATE OF SAMPLELAND ... RESPONDENT\n\nORDER\n\nSAMPLE HIGH COURT - 2\n\n1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.\n\nSAMPLE HIGH COURT - 3\n\n2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.\n\nSAMPLE HIGH COURT - 4\n\n3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.\n\nSAMPLE HIGH COURT - 5\n\n4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
    "facts": [
     {
      "id": "F1",
@@ -39,12 +39,12 @@
     },
     {
      "id": "F4",
-     "text": "4. The learned counsel for the petitioner submits that the dispute is civil in nature, and the learned counsel for the respondent submits that the facts disclose a cognisable offence on their face.",
+     "text": "4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
      "status": "span",
      "cleaned_start": 917,
-     "cleaned_end": 1114,
+     "cleaned_end": 1088,
      "raw_start": 917,
-     "raw_end": 1114,
+     "raw_end": 1088,
      "deletions_inside": 0
     }
    ],
@@ -82,7 +82,7 @@
   "client_data": true,
   "bundle": {
    "clean_status": "cleaned",
-   "cleaned": "IN THE HIGH COURT OF SAMPLELAND AT SAMPLETOWN BEFORE THE HON'BLE MR. JUSTICE SAMPLE CRIMINAL PETITION BETWEEN: SAMPLE PETITIONER ... PETITIONER AND: STATE OF SAMPLELAND ... RESPONDENT\n\nORDER\n\n1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.\n\n2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.\n\n3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.\n\n4. The learned counsel for the petitioner submits that the dispute is civil in nature, and the learned counsel for the respondent submits that the facts disclose a cognisable offence on their face.",
+   "cleaned": "IN THE HIGH COURT OF SAMPLELAND AT SAMPLETOWN BEFORE THE HON'BLE MR. JUSTICE SAMPLE CRIMINAL PETITION BETWEEN: SAMPLE PETITIONER ... PETITIONER AND: STATE OF SAMPLELAND ... RESPONDENT\n\nORDER\n\n1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.\n\n2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.\n\n3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.\n\n4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
    "facts": [
     {
      "id": "F1",
@@ -116,12 +116,12 @@
     },
     {
      "id": "F4",
-     "text": "4. The learned counsel for the petitioner submits that the dispute is civil in nature, and the learned counsel for the respondent submits that the facts disclose a cognisable offence on their face.",
+     "text": "4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
      "status": "span",
      "cleaned_start": 804,
-     "cleaned_end": 1001,
+     "cleaned_end": 975,
      "raw_start": 804,
-     "raw_end": 1001,
+     "raw_end": 975,
      "deletions_inside": 0
     }
    ],
@@ -129,6 +129,65 @@
     {
      "cleaned_start": 0,
      "cleaned_end": 190,
+     "status": "caption",
+     "reason": "the header of the order, before its body"
+    }
+   ],
+   "citations": []
+  }
+ },
+ "caption_digits_only": {
+  "run_id": "nyaya-intake-fixture",
+  "client_data": true,
+  "bundle": {
+   "clean_status": "cleaned",
+   "cleaned": "IN THE HIGH COURT OF SAMPLELAND AT SAMPLETOWN DATED THIS THE 1ST DAY OF JANUARY 2000 BEFORE THE HON'BLE MR. JUSTICE SAMPLE BETWEEN: SAMPLE PETITIONER ... PETITIONER AND: STATE OF SAMPLELAND ... RESPONDENT\n\nORDER\n\n1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.\n\n2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.\n\n3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.\n\n4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
+   "facts": [
+    {
+     "id": "F1",
+     "text": "1. The complainant states that the accused promised to deliver goods after taking a deposit of a sum, and the goods were never delivered to the complainant at all, despite repeated requests over many months.",
+     "status": "span",
+     "cleaned_start": 213,
+     "cleaned_end": 420,
+     "raw_start": 213,
+     "raw_end": 420,
+     "deletions_inside": 0
+    },
+    {
+     "id": "F2",
+     "text": "2. The complainant further states that the accused stopped answering calls after the deposit was paid and refused to return the money when asked on several occasions, and then denied any dealings.",
+     "status": "span",
+     "cleaned_start": 422,
+     "cleaned_end": 618,
+     "raw_start": 422,
+     "raw_end": 618,
+     "deletions_inside": 0
+    },
+    {
+     "id": "F3",
+     "text": "3. The accused denies the allegation and says the deposit was a loan that was repaid in full before the date of the complaint, which the complainant disputes strongly and says no repayment was ever made.",
+     "status": "span",
+     "cleaned_start": 620,
+     "cleaned_end": 823,
+     "raw_start": 620,
+     "raw_end": 823,
+     "deletions_inside": 0
+    },
+    {
+     "id": "F4",
+     "text": "4. Counsel for the petitioner argues that the dispute is civil in nature, and counsel for the respondent argues that the facts disclose a cognisable offence on their face.",
+     "status": "span",
+     "cleaned_start": 825,
+     "cleaned_end": 996,
+     "raw_start": 825,
+     "raw_end": 996,
+     "deletions_inside": 0
+    }
+   ],
+   "not_citable": [
+    {
+     "cleaned_start": 0,
+     "cleaned_end": 211,
      "status": "caption",
      "reason": "the header of the order, before its body"
     }

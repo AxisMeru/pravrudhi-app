@@ -40,9 +40,15 @@ export function parseIntake(raw: unknown): IntakeView | null {
   let leftOutHasDigit = false;
   if (Array.isArray(b.not_citable)) {
     for (const n of b.not_citable) {
-      if (!isObj(n) || !(n.status === "caption" || n.status === "repeated_line" || n.status === "no_words")) continue;
+      if (!isObj(n)) continue;
+      const known = n.status === "caption" || n.status === "repeated_line" || n.status === "no_words";
+      const spanned = typeof n.cleaned_start === "number" && typeof n.cleaned_end === "number";
+      const statusMissing = typeof n.status !== "string" && spanned; // an excluded span the engine did not name: counted, and it fires the digit line (R1: fail towards telling)
+      if (!known && !statusMissing) continue;
       leftOut++;
-      if (typeof n.cleaned_start === "number" && typeof n.cleaned_end === "number" && /\d/.test(cleaned.slice(n.cleaned_start, n.cleaned_end))) leftOutHasDigit = true;
+      // R1 (14 Oct): the digit line fires for a repeated line or a line with no words that holds a digit, never for the caption (a header always carries dates and case numbers), and for a span with no status
+      if (n.status === "caption") continue;
+      if (statusMissing || (spanned && /\d/.test(cleaned.slice(n.cleaned_start as number, n.cleaned_end as number)))) leftOutHasDigit = true;
     }
   }
   return { runId: raw.run_id, cleanStatus: b.clean_status === "served_raw" ? "served_raw" : "cleaned", facts, duplicates: dups, citations, leftOut, leftOutHasDigit };

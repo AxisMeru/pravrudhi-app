@@ -58,7 +58,9 @@ test("an empty choice is not screened and says so", async ({ page }) => {
 for (const [name, notCitable, cleaned, expectNote, expectDigits] of [
   ["n = 0: no notice", [], "Invented text.", false, false],
   ["n > 0 without a digit", [{ status: "caption", cleaned_start: 0, cleaned_end: 14 }], "HEADING OF THE INVENTED ORDER and text.", true, false],
-  ["n > 0 with a digit", [{ status: "repeated_line", cleaned_start: 0, cleaned_end: 6 }], "Page 7 and invented text.", true, true],
+  ["a caption with a date only: the count, no digit line", [{ status: "caption", cleaned_start: 0, cleaned_end: 22 }], "HEADING DATED 2000 and invented text.", true, false],
+  ["n > 0 with a digit in a repeated line", [{ status: "repeated_line", cleaned_start: 0, cleaned_end: 6 }], "Page 7 and invented text.", true, true],
+  ["a span with no status fires the digit line", [{ cleaned_start: 0, cleaned_end: 6 }], "Heading and invented text.", true, true],
 ] as const) {
   test(`left-out notice: ${name}`, async ({ page }) => {
     await page.route("**/api/v1/intake", (r) => r.fulfill({ json: { ...ANSWER, bundle: { ...ANSWER.bundle, facts: FACTS.slice(0, 2), cleaned, not_citable: notCitable } } }));
@@ -69,6 +71,6 @@ for (const [name, notCitable, cleaned, expectNote, expectDigits] of [
     await expect(page.getByTestId("selector-renumber")).toHaveText("Screening numbers the facts you choose again, from F1.");
     await expect(page.getByTestId("intake-left-out")).toHaveCount(expectNote ? 1 : 0);
     await expect(page.getByTestId("intake-left-out-digits")).toHaveCount(expectDigits ? 1 : 0);
-    if (expectNote) await expect(page.getByTestId("intake-left-out")).toContainText("1 line was left out: the heading, repeated lines or lines with no words.");
+    if (expectNote) await expect(page.getByTestId("intake-left-out")).toContainText("1 passage was left out: the heading, repeated lines or lines with no words.");
   });
 }

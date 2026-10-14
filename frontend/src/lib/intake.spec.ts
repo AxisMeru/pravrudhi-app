@@ -79,24 +79,35 @@ test("a bundle whose cleaning failed its checks (clean_status served_raw) is rea
 });
 
 import * as FC from "./factSelectionCopy";
-test("what intake left out: counted from the excluded spans, with the digit test computed from the cleaned text; both arms", () => {
-  const cleaned = "HEADING OF THE ORDER\nThe buyer paid a sum.\nPage 7";
+test("what intake left out: counted from the excluded spans; the digit line fires for a repeated line or a line with no words that holds a digit, or a span with no status, NEVER for the caption alone", () => {
+  const cleaned = "HEADING OF THE ORDER 2000\nThe buyer paid a sum.\nPage 7\n--";
   const mk = (nc: object[]) => ({ ...BUNDLE, bundle: { ...BUNDLE.bundle, cleaned, not_citable: nc } });
   const none = parseIntake(mk([]))!;
   assert.equal(none.leftOut, 0);
   assert.equal(none.leftOutHasDigit, false);
-  const noDigit = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 20 }]))!;
-  assert.equal(noDigit.leftOut, 1);
-  assert.equal(noDigit.leftOutHasDigit, false);
-  const withDigit = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 20 }, { status: "repeated_line", cleaned_start: 44, cleaned_end: 50 }, { status: "no_words", cleaned_start: 44, cleaned_end: 45 }, { status: "duplicate" }, { status: "paraphrase" }]))!;
-  assert.equal(withDigit.leftOut, 3);
-  assert.equal(withDigit.leftOutHasDigit, true);
+  // the caption carries a date: counted, but NO digit line
+  const captionDigits = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 25 }]))!;
+  assert.equal(captionDigits.leftOut, 1);
+  assert.equal(captionDigits.leftOutHasDigit, false);
+  // a repeated line with a digit fires it
+  const repeated = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 25 }, { status: "repeated_line", cleaned_start: 48, cleaned_end: 54 }]))!;
+  assert.equal(repeated.leftOut, 2);
+  assert.equal(repeated.leftOutHasDigit, true);
+  // a line with no words and a digit fires it; one without a digit does not
+  assert.equal(parseIntake(mk([{ status: "no_words", cleaned_start: 48, cleaned_end: 54 }]))!.leftOutHasDigit, true);
+  assert.equal(parseIntake(mk([{ status: "no_words", cleaned_start: 55, cleaned_end: 57 }]))!.leftOutHasDigit, false);
+  // a span with no status: counted and fires the line (fail towards telling)
+  const noStatus = parseIntake(mk([{ cleaned_start: 55, cleaned_end: 57 }]))!;
+  assert.equal(noStatus.leftOut, 1);
+  assert.equal(noStatus.leftOutHasDigit, true);
+  // duplicates and paraphrases are not left-out passages
+  assert.equal(parseIntake(mk([{ status: "duplicate" }, { status: "paraphrase" }]))!.leftOut, 0);
 });
 
 test("R1's left-out and renumbering sentences, exactly", () => {
-  assert.equal(C.intakeLeftOut(3), "3 lines were left out: the heading, repeated lines or lines with no words.");
-  assert.equal(C.intakeLeftOut(1), "1 line was left out: the heading, repeated lines or lines with no words.");
-  assert.equal(C.INTAKE_LEFT_OUT_DIGITS, "Some of the lines left out contain numbers. They are still in your text; check that nothing you need was dropped.");
+  assert.equal(C.intakeLeftOut(3), "3 passages were left out: the heading, repeated lines or lines with no words.");
+  assert.equal(C.intakeLeftOut(1), "1 passage was left out: the heading, repeated lines or lines with no words.");
+  assert.equal(C.INTAKE_LEFT_OUT_DIGITS, "Some of the passages left out contain numbers. They are still in your text; check that nothing you need was dropped.");
   assert.equal(FC.SELECTOR_RENUMBER, "Screening numbers the facts you choose again, from F1.");
 });
 
@@ -112,4 +123,7 @@ test("the response shape of #437's FINAL head (1814549e) is read as the app expe
   assert.equal(noDigits.facts.length, 4);
   assert.equal(noDigits.leftOut, 1); // the header only
   assert.equal(noDigits.leftOutHasDigit, false);
+  const captionOnly = parseIntake(fx.caption_digits_only)!; // a header that carries dates and nothing else left out
+  assert.equal(captionOnly.leftOut, 1);
+  assert.equal(captionOnly.leftOutHasDigit, false);
 });
