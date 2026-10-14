@@ -1,25 +1,46 @@
 import { expect, test } from "./support/engineTest";
 
-// #122 (L2A, 14 Oct): the assistant tier from /api/health. Available = the assistant features behave as before; anything else (unavailable with any reason, the field absent, a failed health call) greys
-// them with one paused line, and screening works as normal. The reason code is never shown.
+// #122/#123 (Lead-2 and L2A, 14 Oct): the assistant tier from /api/health. PAUSED (a configured tier that is refused or over budget: upstream_error, quota, budget_floor) greys the assistant features with ONE line.
+// NOT CONFIGURED (the field absent, malformed, no_key, disabled, any unknown reason) shows nothing new. A FAILED READ greys the features with no line (fail closed). AVAILABLE changes nothing. The reason code is never shown.
 const PAUSED = "The assistant features are paused; screening works as normal";
+const TODAY_REASON = "Not available: this deployment has not switched the frontier reader on.";
 const health = (extra: Record<string, unknown>) => ({ ok: true, version: "0.6.1", kernel: "0.6.1", ledger: true, ...extra });
+type Answer = { status?: number; json?: unknown };
 
-async function mockHealth(page: import("@playwright/test").Page, answer: { status?: number; json?: unknown }) {
+async function mockHealth(page: import("@playwright/test").Page, answer: Answer) {
   await page.route("**/api/health", (r) => (answer.status && answer.status >= 500 ? r.fulfill({ status: answer.status, json: { error: "x" } }) : r.fulfill({ json: answer.json })));
 }
 
-const PAUSED_STATES: Array<[string, { status?: number; json?: unknown }]> = [
+const PAUSED_STATES: Array<[string, Answer]> = ["upstream_error", "quota", "budget_floor"].map((reason) => [`paused: ${reason}`, { json: health({ assistant_tier: { state: "unavailable", reason } }) }]);
+const NOT_CONFIGURED: Array<[string, Answer]> = [
+  ["field absent (an older engine; production today)", { json: health({}) }],
   ["unavailable: no_key", { json: health({ assistant_tier: { state: "unavailable", reason: "no_key" } }) }],
-  ["unavailable: upstream_error", { json: health({ assistant_tier: { state: "unavailable", reason: "upstream_error" } }) }],
-  ["unavailable: quota", { json: health({ assistant_tier: { state: "unavailable", reason: "quota" } }) }],
-  ["unavailable: budget_floor", { json: health({ assistant_tier: { state: "unavailable", reason: "budget_floor" } }) }],
   ["unavailable: disabled", { json: health({ assistant_tier: { state: "unavailable", reason: "disabled" } }) }],
-  ["the field absent", { json: health({}) }],
+  ["unavailable: an unknown reason", { json: health({ assistant_tier: { state: "unavailable", reason: "something_new" } }) }],
+  ["unavailable: no reason", { json: health({ assistant_tier: { state: "unavailable", reason: null } }) }],
+  ["a malformed field", { json: health({ assistant_tier: "unavailable" }) }],
 ];
 
+test("Screening, health call fails (unreachable): the toggle is disabled and unchecked, no paused line", async ({ page }) => {
+  await mockHealth(page, { status: 503 });
+  await page.goto("/screening");
+  const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
+  await expect(box).toBeDisabled();
+  await expect(box).not.toBeChecked();
+  await page.waitForTimeout(1200);
+  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/paused/i);
+});
+
+test("Workflows, health call fails (unreachable): the assistant row is greyed, no paused line", async ({ page }) => {
+  await mockHealth(page, { status: 503 });
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-row").first()).toHaveAttribute("data-paused", "true");
+  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+});
+
 for (const [name, answer] of PAUSED_STATES) {
-  test(`Screening, ${name}: the frontier toggle is greyed and unchecked, the paused line shows once, no reason code, screening still works`, async ({ page }) => {
+  test(`Screening, ${name}: the frontier toggle is greyed and unchecked and the paused line shows once, with no reason code`, async ({ page }) => {
     await mockHealth(page, answer);
     await page.goto("/screening");
     await expect(page.getByTestId("assistant-paused")).toHaveCount(1);
@@ -27,39 +48,36 @@ for (const [name, answer] of PAUSED_STATES) {
     const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
     await expect(box).toBeDisabled();
     await expect(box).not.toBeChecked();
-    await expect(page.locator("body")).not.toContainText(/no_key|upstream_error|budget_floor|quota/);
+    await expect(page.getByTestId("frontier-unavailable")).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText(/upstream_error|budget_floor|quota/);
     await expect(page.getByRole("button", { name: "Screen these facts" })).toBeVisible();
   });
 }
 
-// The service-status notice covers an unreachable engine; the paused line says screening works as normal, so it is NOT shown when the health read did not answer.
-test("Screening, the health call fails: the toggle is greyed and unchecked and there is NO paused line", async ({ page }) => {
-  await mockHealth(page, { status: 503 });
-  await page.goto("/screening");
-  const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
-  await expect(box).toBeDisabled();
-  await expect(box).not.toBeChecked();
-  await page.waitForTimeout(1500);
-  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
-});
-
-test("Workflows, the health call fails: the assistant row is greyed and there is NO paused line", async ({ page }) => {
-  await mockHealth(page, { status: 503 });
-  await page.goto("/workflows");
-  await expect(page.getByTestId("workflow-row").first()).toHaveAttribute("data-paused", "true");
-  await page.waitForTimeout(1500);
-  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
-});
+for (const [name, answer] of NOT_CONFIGURED) {
+  test(`Screening, not configured (${name}): nothing new is shown; the toggle is as it was`, async ({ page }) => {
+    await mockHealth(page, answer);
+    await page.goto("/screening");
+    await expect(page.getByTestId("frontier-unavailable")).toHaveText(TODAY_REASON);
+    const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
+    await expect(box).toBeDisabled();
+    await expect(box).not.toBeChecked();
+    await page.waitForTimeout(1200);
+    await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText(/paused/i);
+  });
+}
 
 test("Screening, available: no paused line (the toggle is as before)", async ({ page }) => {
   await mockHealth(page, { json: health({ assistant_tier: { state: "available", reason: null } }) });
   await page.goto("/screening");
   await expect(page.getByTestId("frontier-toggle")).toBeVisible();
+  await page.waitForTimeout(1200);
   await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
 });
 
 test("Workflows, paused: the assistant row is greyed, the paused line shows once, the other rows are unchanged", async ({ page }) => {
-  await mockHealth(page, { json: health({ assistant_tier: { state: "unavailable", reason: "disabled" } }) });
+  await mockHealth(page, { json: health({ assistant_tier: { state: "unavailable", reason: "quota" } }) });
   await page.goto("/workflows");
   await expect(page.getByTestId("assistant-paused")).toHaveCount(1);
   const rows = page.getByTestId("workflow-row");
@@ -68,10 +86,13 @@ test("Workflows, paused: the assistant row is greyed, the paused line shows once
   await expect(rows.first()).toContainText("Screening orchestration");
 });
 
-test("Workflows, available: nothing is greyed and no paused line", async ({ page }) => {
-  await mockHealth(page, { json: health({ assistant_tier: { state: "available", reason: null } }) });
-  await page.goto("/workflows");
-  await expect(page.getByTestId("workflow-row").first()).toBeVisible();
-  await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
-  await expect(page.locator('[data-paused="true"]')).toHaveCount(0);
-});
+for (const [name, answer] of [...NOT_CONFIGURED, ["available", { json: health({ assistant_tier: { state: "available", reason: null } }) }] as [string, Answer]]) {
+  test(`Workflows, ${name}: nothing is greyed and there is no paused line`, async ({ page }) => {
+    await mockHealth(page, answer);
+    await page.goto("/workflows");
+    await expect(page.getByTestId("workflow-row").first()).toBeVisible();
+    await page.waitForTimeout(1200);
+    await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
+    await expect(page.locator('[data-paused="true"]')).toHaveCount(0);
+  });
+}

@@ -12,7 +12,7 @@ import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { FrontierToggle } from "@/components/screening/FrontierToggle";
-import { useAssistantTier } from "@/components/useAssistantTier";
+import { useAssistantState } from "@/components/useAssistantTier";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
@@ -50,7 +50,7 @@ export default function ScreeningPage() {
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [frontier, setFrontier] = useState(false);
-  const assistant = useAssistantTier();
+  const assistant = useAssistantState();
   const [exampleActive, setExampleActive] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
@@ -297,7 +297,7 @@ export default function ScreeningPage() {
             )}
           </fieldset>
 
-          <FrontierToggle value={frontier} onChange={setFrontier} available={null} paused={assistant.tier !== "available"} pausedLineShown={assistant.loaded} />
+          <FrontierToggle value={frontier} onChange={setFrontier} available={null} paused={assistant === "paused"} />
 
           <button
             type="button"

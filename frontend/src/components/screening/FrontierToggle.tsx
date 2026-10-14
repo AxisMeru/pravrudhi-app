@@ -11,17 +11,14 @@ export function FrontierToggle({
   reason,
   provider,
   paused,
-  pausedLineShown,
 }: {
   value: boolean;
   onChange: (next: boolean) => void;
   available?: boolean | null;
   reason?: string | null;
   provider?: string | null;
-  /** The assistant tier is unavailable: greyed, never checked. */
+  /** The assistant tier is paused (a configured tier that is refused or over budget): greyed, never checked, with the one paused line. */
   paused?: boolean;
-  /** Show the one paused line (once the tier has been read). */
-  pausedLineShown?: boolean;
 }) {
   const s = frontierToggleState({ available, value, reason, provider, paused });
   return (
@@ -33,7 +30,7 @@ export function FrontierToggle({
       <p className="text-xs text-[var(--color-text-dim)]" data-testid="frontier-limit">
         {FRONTIER_QUOTE_LIMIT_TEXT}
       </p>
-      {paused && pausedLineShown && (
+      {paused && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="assistant-paused">
           {ASSISTANT_PAUSED_TEXT}
         </p>

@@ -1,42 +1,53 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { ASSISTANT_PAUSED_TEXT, assistantTierOf, readAssistantTier } from "./assistantTier";
+import { ASSISTANT_PAUSED_TEXT, PAUSED_REASONS, assistantStateOf, isGreyed, readAssistantState } from "./assistantTier";
 import { frontierToggleState } from "./frontierReader";
 
-test("the paused line is exactly the agreed words, once, with no reason code in it", () => {
+const tier = (state: unknown, reason?: unknown) => ({ ok: true, assistant_tier: { state, reason } });
+
+test("the paused line is exactly the agreed words, with no reason code in it", () => {
   assert.equal(ASSISTANT_PAUSED_TEXT, "The assistant features are paused; screening works as normal");
   assert.doesNotMatch(ASSISTANT_PAUSED_TEXT, /no_key|upstream_error|quota|budget_floor|disabled|\d/);
 });
 
-test("the tier is available only when the engine says so in so many words; every other answer reads as unavailable (fail closed)", () => {
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: { state: "available", reason: null } }), "available");
-  for (const reason of ["no_key", "upstream_error", "quota", "budget_floor", "disabled", null]) {
-    assert.equal(assistantTierOf({ ok: true, assistant_tier: { state: "unavailable", reason } }), "unavailable", String(reason));
-  }
-  // absent (an older engine), malformed, or not the exact word
-  assert.equal(assistantTierOf({ ok: true }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: null }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: "available" }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: {} }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: { state: "AVAILABLE" } }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, assistant_tier: { state: true } }), "unavailable");
-  assert.equal(assistantTierOf({ ok: true, frontier_reader_available: true }), "unavailable", "frontier_reader_available alone does not open the tier");
-  for (const bad of [null, undefined, "available", 1, []]) assert.equal(assistantTierOf(bad), "unavailable");
+test("PAUSED only for a configured tier that is refused or over budget: upstream_error, quota, budget_floor", () => {
+  assert.deepEqual([...PAUSED_REASONS], ["upstream_error", "quota", "budget_floor"]);
+  for (const reason of PAUSED_REASONS) assert.equal(assistantStateOf(tier("unavailable", reason)), "paused", reason);
 });
 
-test("a health read that fails or times out is unavailable and NOT answered (no paused line); a good read is answered", async () => {
-  assert.deepEqual(await readAssistantTier(async () => ({ assistant_tier: { state: "available" } })), { tier: "available", answered: true });
-  assert.deepEqual(await readAssistantTier(async () => ({ assistant_tier: { state: "unavailable", reason: "quota" } })), { tier: "unavailable", answered: true });
-  assert.deepEqual(await readAssistantTier(async () => ({ ok: true })), { tier: "unavailable", answered: true }, "an answer without the field: the engine answered, so the line shows");
-  assert.deepEqual(await readAssistantTier(async () => { throw new Error("network"); }), { tier: "unavailable", answered: false });
-  assert.deepEqual(await readAssistantTier(() => new Promise(() => undefined), 20), { tier: "unavailable", answered: false }, "a read that never answers");
+test("NOT CONFIGURED (nothing shown): no_key, disabled, null, any unknown reason, a field that is absent or malformed", () => {
+  for (const reason of ["no_key", "disabled", null, undefined, "", "something_new", "QUOTA", 5, {}]) assert.equal(assistantStateOf(tier("unavailable", reason)), "not_configured", String(reason));
+  assert.equal(assistantStateOf({ ok: true }), "not_configured", "the field absent (an older engine, production today)");
+  assert.equal(assistantStateOf({ ok: true, assistant_tier: null }), "not_configured");
+  assert.equal(assistantStateOf({ ok: true, assistant_tier: "available" }), "not_configured");
+  assert.equal(assistantStateOf({ ok: true, assistant_tier: {} }), "not_configured");
+  assert.equal(assistantStateOf(tier("paused", "quota")), "not_configured", "an unknown state is not paused");
+  assert.equal(assistantStateOf(tier(true, "quota")), "not_configured");
+  assert.equal(assistantStateOf({ ok: true, frontier_reader_available: false }), "not_configured");
+  for (const bad of [null, undefined, "available", 1, []]) assert.equal(assistantStateOf(bad), "not_configured");
 });
 
-test("a paused tier greys the frontier toggle and never leaves it checked", () => {
-  const s = frontierToggleState({ available: true, value: true, provider: "a provider", paused: true });
-  assert.deepEqual(s, { disabled: true, checked: false, reason: null, consent: null });
-  // not paused: the toggle behaves as before
+test("AVAILABLE only when the engine says exactly 'available'", () => {
+  assert.equal(assistantStateOf(tier("available", null)), "available");
+  assert.equal(assistantStateOf(tier("available", "quota")), "available");
+  assert.equal(assistantStateOf(tier("AVAILABLE")), "not_configured");
+});
+
+test("a health read that fails or times out is unreachable (greyed, no line); a good read passes through", async () => {
+  assert.equal(await readAssistantState(async () => tier("available")), "available");
+  assert.equal(await readAssistantState(async () => tier("unavailable", "budget_floor")), "paused");
+  assert.equal(await readAssistantState(async () => tier("unavailable", "no_key")), "not_configured");
+  assert.equal(await readAssistantState(async () => { throw new Error("network"); }), "unreachable");
+  assert.equal(await readAssistantState(() => new Promise(() => undefined), 20), "unreachable", "a read that never answers");
+});
+
+test("greyed = paused or unreachable only; the paused line is for paused alone", () => {
+  assert.deepEqual((["available", "paused", "not_configured", "unreachable"] as const).map(isGreyed), [false, true, false, true]);
+});
+
+test("a paused tier greys the frontier toggle and never leaves it checked; any other state leaves the toggle as before", () => {
+  assert.deepEqual(frontierToggleState({ available: true, value: true, provider: "a provider", paused: true }), { disabled: true, checked: false, reason: null, consent: null });
   assert.equal(frontierToggleState({ available: true, value: true, provider: "p" }).checked, true);
   assert.equal(frontierToggleState({ available: null, value: true }).disabled, true);
 });
