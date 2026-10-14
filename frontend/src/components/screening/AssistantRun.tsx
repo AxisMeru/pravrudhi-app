@@ -1,5 +1,6 @@
 "use client";
 
+import { RUN_AGAIN_LABEL, RUN_AGAIN_NOTE, type RunAgainState } from "@/lib/runAgain";
 import Link from "next/link";
 
 import { DH_ASSIST_SIGNIN } from "@/lib/dataHandling";
@@ -18,6 +19,7 @@ export function AssistantRun({
   provider,
   busy,
   onRun,
+  runAgain = "hidden",
 }: {
   state: AssistantState;
   /** null until /api/me has answered. */
@@ -28,6 +30,8 @@ export function AssistantRun({
   /** A screening is in flight, or the service is closed or offline. */
   busy: boolean;
   onRun: () => void;
+  /** "offered" after an assisted run's own timeout (lib/runAgain.ts): the same button reads Run again, with R1's note; it stays gated by the tick. */
+  runAgain?: RunAgainState;
 }) {
   const entry = entryState(state, true, signedIn);
   if (entry === "hidden") return null;
@@ -50,8 +54,9 @@ export function AssistantRun({
         data-testid="assistant-run-button"
         className="w-fit rounded-md border border-[var(--color-control-border)] px-3 py-1.5 text-sm font-medium text-[var(--color-text)] disabled:opacity-50"
       >
-        {ASSISTANT_RUN_LABEL}
+        {runAgain === "offered" ? RUN_AGAIN_LABEL : ASSISTANT_RUN_LABEL}
       </button>
+      {runAgain === "offered" && <p className="text-xs text-[var(--color-text-dim)]" data-testid="run-again-note">{RUN_AGAIN_NOTE}</p>}
     </div>
   );
 }

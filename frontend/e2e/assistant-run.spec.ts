@@ -35,7 +35,8 @@ const CONSENT = "Running with the assistant sends your facts to Anthropic throug
 const PAUSED = "The assistant features are paused; screening works as normal";
 const health = (tier?: unknown) => ({ ok: true, version: "0.6.2", kernel: "0.6.2", ledger: true, ...(tier ? { assistant_tier: tier } : {}) });
 
-async function open(page: import("@playwright/test").Page, opts: { tier?: unknown; info?: unknown; answer?: unknown; healthStatus?: number; me?: number; assistStatus?: number } = {}) {
+async function open(page: import("@playwright/test").Page, opts: { tier?: unknown; info?: unknown; answer?: unknown; healthStatus?: number; me?: number; assistStatus?: number; hangFirstAssist?: boolean } = {}) {
+  if (opts.hangFirstAssist) await page.clock.install();
   const posts: { assist: string[]; plain: number } = { assist: [], plain: 0 };
   await page.route("**/api/me", (r) => (opts.me === 401 || opts.me === 503 ? r.fulfill({ status: opts.me, json: { error: "x" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
@@ -43,6 +44,7 @@ async function open(page: import("@playwright/test").Page, opts: { tier?: unknow
   await page.route("**/api/assistant", (r) => r.fulfill({ json: opts.info ?? { provider: "Anthropic", call_timeout_s: 60, session_budget_usd: 0.25, consent_required: true, assistant_tier: { state: "available", reason: null }, oldest_pending_delete_age_s: 4321, sweep_last_ok_age_s: 987 } }));
   await page.route("**/api/v1/analyse-facts/assist", (r) => {
     posts.assist.push(r.request().postData() ?? "");
+    if (opts.hangFirstAssist && posts.assist.length === 1) return; // never answered: the app's own 320 s timeout ends it (fake clock)
     if (opts.assistStatus) return r.fulfill({ status: opts.assistStatus, json: { error: "rate_limited" } });
     return r.fulfill({ json: opts.answer ?? FINISHED });
   });
@@ -243,4 +245,43 @@ test("GET /api/assistant: the signed-in-only ages and the limits are on the wire
   await page.waitForTimeout(800);
   const body = await page.locator("body").innerText();
   expect(body).not.toMatch(/4321|987|0\.25|session_budget|pending|sweep/i);
+});
+
+// Run again (Lead-2 14 Oct; strings R1's): only after the app's own 320 s timeout of an assisted run, never carrying the first run's consent.
+test("run again: after the assisted run's own timeout the button reads Run again, needs a fresh tick, and sends one more assist request with consent", async ({ page }) => {
+  const posts = await open(page, { tier: AVAILABLE, hangFirstAssist: true });
+  await page.getByTestId("assistant-consent").check();
+  await page.getByTestId("assistant-run-button").click();
+  await expect.poll(() => posts.assist.length).toBe(1);
+  await page.clock.fastForward(321_000);
+  const btn = page.getByTestId("assistant-run-button");
+  await expect(btn).toHaveText("Run again");
+  await expect(page.getByTestId("run-again-note")).toHaveText("A second run counts toward your daily limit.");
+  await expect(page.getByTestId("assistant-consent")).not.toBeChecked();
+  await expect(btn).toBeDisabled();
+  expect(posts.assist.length).toBe(1);
+  await page.getByTestId("assistant-consent").check();
+  await expect(btn).toBeEnabled();
+  await btn.click();
+  await expect.poll(() => posts.assist.length).toBe(2);
+  expect(JSON.parse(posts.assist[1]).consent).toBe(true);
+  await expect(page.getByTestId("run-again-note")).toHaveCount(0);
+});
+
+test("run again: a finished assisted run, a fallback result and a plain run never show it", async ({ page }) => {
+  await open(page, { tier: AVAILABLE });
+  await page.getByTestId("assistant-consent").check();
+  await page.getByTestId("assistant-run-button").click();
+  await expect(page.getByTestId("assistant-result")).toBeVisible();
+  await expect(page.getByTestId("run-again-note")).toHaveCount(0);
+  await expect(page.getByTestId("assistant-run-button")).toHaveText("Run with the screening assistant");
+});
+
+test("run again: a fallback (assist refused, plain result) does not show it", async ({ page }) => {
+  await open(page, { tier: AVAILABLE, assistStatus: 429 });
+  await page.getByTestId("assistant-consent").check();
+  await page.getByTestId("assistant-run-button").click();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  await expect(page.getByTestId("run-again-note")).toHaveCount(0);
+  await expect(page.getByTestId("assistant-run-button")).toHaveText("Run with the screening assistant");
 });
