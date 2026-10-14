@@ -8,7 +8,7 @@ Pravrudhi is the progenitor in a three-altitude architecture described in [ADR-0
 |---|---|---|
 | **Studio** (the architect) | Improves the engine itself | `AxisMeru/pravrudhi` |
 | **Product** (this repository) | A clean-slate platform: takes one objective, produces one artifact | `AxisMeru/pravrudhi-app` |
-| **Artifact** (e.g., prabhasa-nyaya) | The outcome of one ask: code, corpus, gates, evidence | User's GitHub account or `AxisMeru` |
+| **Artifact** (e.g., a trained model family) | The outcome of one ask: code, corpus, gates, evidence | User's GitHub account or `AxisMeru` |
 
 ## What this is
 
@@ -22,7 +22,7 @@ A desktop application that:
 
 - **Not the Pravrudhi Studio.** Studio is where the engine itself improves; the product is where users deploy engines to solve their own problems. Studio stays in `AxisMeru/pravrudhi` and is not installable by users outside the operator's team.
 - **Not a holder of multiple artifacts.** Each user objective gets its own repository. The product is ephemeral—you install it, use it, and can uninstall it once the artifact is created and pushed to GitHub.
-- **Not a standalone artifact such as prabhasa-nyaya.** Pravrudhi's first artifact—the reference implementation—is shipped as the engine's built-in Nyaya surface, but it is not the product itself.
+- **Not a standalone artifact.** Prabhāsa-Nyāya is our family of trained Indian-legal models (4B and 32B judges); Pravrudhi-Nyaya is the product that uses them.
 
 ## Installation
 
