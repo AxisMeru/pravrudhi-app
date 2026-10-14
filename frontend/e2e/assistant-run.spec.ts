@@ -114,6 +114,7 @@ test("a step trace never changes the checklist: the summary line and chips are t
 
 const LINES: Array<[string, unknown, string | null]> = [
   ["timed out", blockOf("timed_out", "timeout"), "The assistant did not finish in time; this is the screening result without it."],
+  ["timed out, with the engine's progress block (0.6.7+; Track A's local lane): the timeout line and the core result, not an unreadable answer", { ...blockOf("timed_out", "timeout"), assistant: { ...blockOf("timed_out", "timeout").assistant, cost: { used_cents: 2, budget_cents: 2 }, progress: { tool_calls: 2, refused_calls: 0, events: 14, max_events: 1000, elapsed_s: 6.1, wall_limit_s: 6, last_tool: "select_contracts" } } }, "The assistant did not finish in time; this is the screening result without it."],
   ["session budget", blockOf("budget", "per_session_budget"), "The assistant's budget for this session is used; screening works as normal."],
   ["refused: error", blockOf("refused", "error"), "The assistant could not be used for this run; this is the screening result without it."],
   ["refused: safety", blockOf("refused", "safety"), "The assistant could not be used for this run; this is the screening result without it."],
