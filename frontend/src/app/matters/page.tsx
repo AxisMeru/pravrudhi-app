@@ -16,7 +16,7 @@ import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from
 import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
-import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "@/lib/referReason";
+import { REFERRED_HEADING, referReasonPresentation } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
@@ -181,7 +181,6 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]">
             <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
             <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
-            {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-[var(--color-warn)]" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
             <p className="mt-1 text-xs text-[var(--color-warn)]">reason: {c.reason}</p>
           </div>
         );

@@ -44,7 +44,7 @@ function Row({ row }: { row: ScreeningRow }) {
   );
 }
 
-export function IngredientChecklist({ contract, facts }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"] }) {
+export function IngredientChecklist({ contract, facts, sample = false }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"]; sample?: boolean }) {
   const rows = rowsFor(contract, facts);
   const summary = summarize(contract, rows);
   const referral = contractReferral(contract);
@@ -61,7 +61,7 @@ export function IngredientChecklist({ contract, facts }: { contract: AnalyseFact
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(offence.ipcChecked)}</p>
         )}
       </header>
-      <SummaryBanner summary={summary} />
+      <SummaryBanner summary={summary} sample={sample} />
       {referral && (
         <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>

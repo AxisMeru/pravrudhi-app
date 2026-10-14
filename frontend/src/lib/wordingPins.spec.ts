@@ -28,8 +28,8 @@ test("the element chips read 'supported by a fact' and 'not supported by these f
 });
 
 test("the binding-leg lines and the unknown quote-check fallback, exactly", () => {
-  assert.equal(bindingLegText("primary"), "Not supported at the first judge's confidence threshold.");
-  assert.equal(bindingLegText("second"), "Not supported at the second judge's confidence threshold.");
+  assert.equal(bindingLegText("primary"), "The first check was not confident enough that your facts support this ingredient.");
+  assert.equal(bindingLegText("second"), "The second check was not confident enough that your facts support this ingredient.");
   assert.equal(bindingLegText(null), null);
   const u = quoteCheckPresentation("brand_new");
   assert.equal(u?.text, 'The check of the cited text gave a result this app does not recognise yet ("brand_new").');
@@ -77,4 +77,13 @@ test("memo: a missing or undefined quote_source prints the cited text bare, neve
   const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
   assert.ok(md.includes("| d | supported by a fact | plain text (F1) |"), md);
   assert.ok(md.includes("| e | supported by a fact | plain two (F1) |"), md);
+});
+
+test("R1's agenda wording (14 Oct): the sample banner, the none-supported line, the unscreened note and the validated-list note, exactly", async () => {
+  const c = await import("./screening/copy");
+  assert.equal(c.SAMPLE_BANNER_TEXT, "Review agenda: what each ingredient needs, and which facts to look for.");
+  assert.equal(c.NONE_SUPPORTED_LINE, "None of these ingredients is supported by a cited fact in what you gave. Below is what each one needs, and the kind of fact to look for.");
+  assert.equal(c.NO_CHECK_NOTE, "This ingredient is not screened yet; a lawyer should read the facts for it.");
+  assert.equal(c.NOT_VALIDATED_OFFENCE_NOTE, "Not on the validated list: for this offence the screening does not give a result; a lawyer decides.");
+  assert.doesNotMatch(c.SAMPLE_BANNER_TEXT + c.NONE_SUPPORTED_LINE, /\d|failed|no result|nothing found/i);
 });

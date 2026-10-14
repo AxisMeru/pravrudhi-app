@@ -25,11 +25,16 @@ export const DEFENCE_HEADING = DEFENCE_PHRASE.charAt(0).toUpperCase() + DEFENCE_
 /** R1's value wording (Lead-2 decision 5, 13 Oct), shown wherever a defence is shown (checklist, memo, guide, Matters). One constant, no digits. */
 export const DEFENCE_PROMPT_NOTE = "Facts that may defeat the claim are shown as prompts for your review, not as findings.";
 /** Beside an offence whose contracts are not on the validated list (#99): the engine refers on them. */
-export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the screening refers the matter to a lawyer instead of giving a result.";
-export const NO_CHECK_NOTE = "No prompt is written for this ingredient yet.";
+export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the screening does not give a result; a lawyer decides.";
+export const NO_CHECK_NOTE = "This ingredient is not screened yet; a lawyer should read the facts for it.";
 
 /** The standing line beside every summary banner. */
 export const BANNER_STANDING_LINE = "This is a screening aid, not legal advice. A lawyer decides.";
+/** R1, 14 Oct: on an example screen the banner is an agenda, with no counts. */
+export const SAMPLE_BANNER_TEXT = "Review agenda: what each ingredient needs, and which facts to look for.";
+/** R1, 14 Oct: on a user's own run, shown with the banner when no ingredient is supported by a cited fact. */
+export const NONE_SUPPORTED_LINE =
+  "None of these ingredients is supported by a cited fact in what you gave. Below is what each one needs, and the kind of fact to look for.";
 /** For the four offences the engine judges through their IPC-family contracts: the BNS counterpart is not on the validated list (R1, 8 Oct; #825). */
 export function ipcDisclosure(ipcSection: string): string {
   return `Checked against the IPC text (s.${ipcSection}); the BNS counterpart is not validated.`;

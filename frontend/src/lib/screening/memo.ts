@@ -15,7 +15,7 @@ function rowLines(r: ScreeningRow): string[] {
   if (r.note) out.push(`  - ${line(r.note)}`);
   if (r.factText) out.push(`  - ${r.factId}: ${line(r.factText)}`);
   if (r.quote) out.push(`  - "${line(r.quote.text)}"${r.quote.check ? ` (${line(r.quote.check)})` : ""}`);
-  out.push(`  - ${WHAT_TO_CHECK_LABEL}: ${r.whatToCheck ?? "no prompt written yet"}`);
+  out.push(`  - ${WHAT_TO_CHECK_LABEL}: ${r.whatToCheck ?? "not screened yet"}`);
   return out;
 }
 

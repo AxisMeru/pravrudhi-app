@@ -381,7 +381,7 @@ export default function ScreeningPage() {
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {result.contracts.map((c) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} sample={exampleActive} />
             ))}
             <CitationsPanel />
             <StatuteNotice />

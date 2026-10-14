@@ -34,7 +34,7 @@ async function runWith(page: import("@playwright/test").Page, reason: string): P
 
 test("a referral shows the heading, then the signed sentence on its own", async ({ page }) => {
   await runWith(page, "gate1_unavailable");
-  await expect(page.getByTestId("referred-heading")).toHaveText("Referred to a lawyer");
+  await expect(page.getByTestId("referred-heading")).toHaveText("For a lawyer to review");
   await expect(page.getByTestId("referred-sentence")).toHaveText(
     "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
   );

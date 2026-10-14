@@ -9,8 +9,8 @@ export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   denial_established: "The judge found a fact in your case that defeats this claim, and cited it.",
   missing_element: "The judge did not find at least one required condition shown in your facts.",
   no_training_statute_text: "We have no statute text for this provision, so we did not judge it.",
-  judge_error: "A judge call failed on at least one condition, so we give no answer.",
-  assembly_lean_mismatch: "Two internal checks disagreed, so we give no answer.",
+  judge_error: "A check failed to run for this ingredient, so we hand it back to you.",
+  assembly_lean_mismatch: "Two internal checks disagreed, so we hand this ingredient back to you.",
 };
 
 /** The plain sentence for a PROOF / DENIAL / ABSTAIN reason code, or null when this build does not know it. */
@@ -49,7 +49,7 @@ export function quoteCheckPresentation(code: string | null | undefined): QuoteCh
 
 /** Which judge's confidence threshold a non-established element failed (`binding_leg`), in plain words; null for anything else. */
 export function bindingLegText(leg: string | null | undefined): string | null {
-  if (leg === "primary") return "Not supported at the first judge's confidence threshold.";
-  if (leg === "second") return "Not supported at the second judge's confidence threshold.";
+  if (leg === "primary") return "The first check was not confident enough that your facts support this ingredient.";
+  if (leg === "second") return "The second check was not confident enough that your facts support this ingredient.";
   return null;
 }

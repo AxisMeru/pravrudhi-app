@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { ELEMENT_STATUSES, elementStatusPresentation } from "./elementStatus";
 import { NON_REFER_REASON_TEXT, QUOTE_CHECK_TEXT } from "./reasonText";
-import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING, TWO_JUDGES_ONLY_LABEL } from "./referReason";
+import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING } from "./referReason";
 import { classifyVerifyError } from "./citationCheck";
 import { classifyAnalyseError } from "./serviceStatus";
 import { streamErrorText } from "./streamError";
@@ -63,11 +63,11 @@ test("the signed table is the one expected: counts, and a header that names its 
   assert.match(GAP.source, /[0-9a-f]{64}/);
 });
 
-test("every REFER reason's message is the signed sentence, verbatim", () => {
+test("every REFER reason's message is the signed sentence verbatim, or R1's app form where APP_FORM names it", () => {
   for (const r of REFER_REASONS) {
     const signed = TABLE.reasons[r];
     assert.ok(signed, `${r} is not in the signed table`);
-    assert.equal(norm(referReasonPresentation(r).message), norm(signed.text), r);
+    assert.equal(norm(referReasonPresentation(r).message), norm(APP_FORM[r] ?? signed.text), r);
     assert.equal(REFER_REASON_TEXT[r].twoJudgesOnly, signed.twoJudgesOnly, `${r}: the two-judges label`);
   }
 });
@@ -81,7 +81,7 @@ test("every other reason's text and every quote check's text is the signed sente
   for (const [code, signed] of Object.entries(TABLE.reasons)) {
     if ((REFER_REASONS as readonly string[]).includes(code)) continue;
     const drop = WITHOUT_API_FIELD[code];
-    const expected = drop ? signed.text.replace(drop, "") : signed.text;
+    const expected = APP_FORM[code] ?? (drop ? signed.text.replace(drop, "") : signed.text);
     if (drop) assert.ok(signed.text.includes(drop), `${code}: the engine row no longer carries the pointer; remove this exception`);
     assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(expected), code);
     if (drop) assert.doesNotMatch(NON_REFER_REASON_TEXT[code] ?? "", /citation_note|`/, `${code}: an API field name reached a member-facing sentence`);
@@ -112,28 +112,35 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
   assert.equal(shown(new ApiError(429, "/x")), norm(GAP.strings.http_429));
 });
 
-// The one signed sentence (pravrudhi#407, R1 at 36d597767def) that says "second check" on purpose; the ban below holds everywhere else.
-const NOT_CONFIRMED_SENTENCE = "A check found support in your facts for an ingredient, but a second check did not confirm it, so no answer is given. Please have a lawyer look.";
+// R1, 14 Oct: the member-facing app form of these reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge",
+// no "referral, not an answer"; unavailable or failed checks are "handed back to you". Exactly these codes, nothing else.
+const APP_FORM: Readonly<Record<string, string>> = {
+  second_judge_unavailable: "A second check was unavailable, so we hand this ingredient back to you.",
+  second_judge_not_confirmed: "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.",
+  gate1_unavailable: "The check of the cited fact against the claim was unavailable, so we hand this ingredient back to you.",
+  contract_not_validated: "This provision is not on the validated list, so we hand it back to you.",
+  judge_error: "A check failed to run for this ingredient, so we hand it back to you.",
+  assembly_lean_mismatch: "Two internal checks disagreed, so we hand this ingredient back to you.",
+  input_too_long: "The facts and question together are too long for the checker to read in one go, so we hand this back to you. Please shorten them or have a lawyer look.",
+};
 
-test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in, 'second check' or 'temporarily'", () => {
-  assert.equal(REFERRED_HEADING, "Referred to a lawyer");
-  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two judges only)");
+test("the referral heading is 'For a lawyer to review' (R1, 14 Oct); no REFER string has a lead-in, 'temporarily', or 'no answer'", () => {
+  assert.equal(REFERRED_HEADING, "For a lawyer to review");
   for (const r of REFER_REASONS) {
     const { message } = referReasonPresentation(r);
     assert.doesNotMatch(message, /A lawyer must decide this matter:/i, r);
-    assert.doesNotMatch(message.replace(NOT_CONFIRMED_SENTENCE, ""), /second check|temporarily/i, r);
-    assert.doesNotMatch(message, /deployments that use two judges/i, `${r}: the label is outside the sentence`);
+    assert.doesNotMatch(message, /temporarily|no answer|not an answer|\bjudges?\b.*referral/i, r);
   }
 });
 
-test("no app string source says 'second check' or 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
+test("no app string source says 'temporarily' or 'no answer' to a member, and none uses the 'must decide this matter' lead-in", () => {
   const files = ["referReason.ts", "reasonText.ts", "signedStrings.ts", "serviceStatus.ts", "elementStatus.ts", "memo.ts", join("..", "app", "matters", "page.tsx")];
   for (const f of files) {
     const code = readFileSync(join(__dirname, f), "utf8")
       .split("\n")
       .filter((l) => !l.trim().startsWith("//"))
       .join("\n");
-    assert.doesNotMatch(code.replace(NOT_CONFIRMED_SENTENCE, ""), /second check|temporarily/i, f);
+    assert.doesNotMatch(code, /temporarily/i, f);
     assert.doesNotMatch(code, /must decide this matter/i, f);
   }
 });

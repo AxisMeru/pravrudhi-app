@@ -41,12 +41,13 @@ test("referReason: uncertain_second_judge and second_judge_unavailable read as d
   assert.doesNotMatch(uncertainSecond.message, /temporarily unavailable/);
 });
 
-test("referReason: an unknown reason fails closed but still names the reason code, never hidden", () => {
+test("referReason: an unknown reason gets R1's generic sentence with no raw code (the Matters page still shows the code beside it)", () => {
   for (const junk of ["reason_from_the_future", "REFER_ELSEWHERE", "0"]) {
     const p = referReasonPresentation(junk);
     assert.equal(p.reason, null);
     assert.equal(p.unknown, true);
-    assert.ok(p.message.includes(junk), `unknown-reason message must name the reason code, got: ${p.message}`);
+    assert.equal(p.message, "This ingredient needs a lawyer's look. The screening has no further detail for it.");
+    assert.ok(!p.message.includes(junk));
   }
 });
 
@@ -112,5 +113,5 @@ test("referReason: second_judge_not_confirmed has R1's signed sentence (pravrudh
   const p = referReasonPresentation("second_judge_not_confirmed");
   assert.equal(p.unknown, false);
   assert.equal(p.twoJudgesOnly, true);
-  assert.equal(p.message, "A check found support in your facts for an ingredient, but a second check did not confirm it, so no answer is given. Please have a lawyer look.");
+  assert.equal(p.message, "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.");
 });
