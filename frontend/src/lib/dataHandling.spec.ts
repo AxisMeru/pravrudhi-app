@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
-import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, DH_NOASSIST, DH_WHERE_ASSIST, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
+import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_RETENTION_LINK_HREF, DH_ASSIST_RETENTION_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, DH_NOASSIST, DH_WHERE_ASSIST, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { canSeeNotifications } from "./runsAccess";
@@ -147,8 +147,8 @@ test("assistant flag ON: R1's section in order with the exact words; the delete 
   const on = dataHandlingSections(true, false);
   assert.deepEqual(ids(on).slice(0, 2), ["sent", "assistant"]);
   assert.equal(on.find((s) => s.id === "assistant")!.heading, "Screening with the assistant (optional)");
-  assert.deepEqual(para(on, "assistant"), [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN]);
-  assert.deepEqual(para(dataHandlingSections(true, true), "assistant"), [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_DELETE, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN]);
+  assert.deepEqual(para(on, "assistant"), [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN]);
+  assert.deepEqual(para(dataHandlingSections(true, true), "assistant"), [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_DELETE, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN]);
   assert.equal(para(on, "where").at(-1), DH_WHERE_ASSIST);
   assert.equal(DH_ASSIST_INTRO, "With the assistant, and only when you tick the consent box for that run, your facts are also sent to Anthropic through our account, under Anthropic's commercial terms.");
   assert.ok(DH_ASSIST_INTRO.includes(DH_ASSIST_LINK_TEXT));
@@ -173,4 +173,19 @@ test("the '2 hours' on the page is the one pinned constant, and the constant is 
   assert.ok(DH_ASSIST_DELETE.includes(`within ${contract.retention_max_hours} hours at the latest`));
   assert.ok(!DH_ASSIST_DELETE.includes("not stored") && !/\bprivate\b|\bsecure\b/.test(DH_ASSIST_DELETE));
   assert.equal(typeof ASSISTANT_DELETE_CONFIRMED, "boolean"); // the delete sentence ships only with this flag, after R2 has read the sweeper
+});
+
+test("R1's Anthropic-retention sentence: the exact words, one link on 'data retention policy' to Anthropic's page, no period, and each paragraph carries at most one link", () => {
+  assert.equal(DH_ASSIST_RETENTION_ANTHROPIC, "Anthropic's own data retention policy applies to any copy of your facts that it keeps.");
+  assert.equal(DH_ASSIST_RETENTION_LINK_TEXT, "data retention policy");
+  assert.equal(DH_ASSIST_RETENTION_LINK_HREF, "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention");
+  assert.doesNotMatch(DH_ASSIST_RETENTION_ANTHROPIC, /\d|days|years|not stored/i);
+  const sec = dataHandlingSections(true, true).find((s) => s.id === "assistant")!;
+  assert.deepEqual(sec.links?.map((l) => l.text), [DH_ASSIST_LINK_TEXT, DH_ASSIST_RETENTION_LINK_TEXT]);
+  // each link's first paragraph is a different paragraph (one link each)
+  const first = sec.links!.map((l) => sec.paragraphs.findIndex((p) => p.includes(l.text)));
+  assert.equal(new Set(first).size, first.length);
+  assert.ok(sec.paragraphs.indexOf(DH_ASSIST_RETENTION_ANTHROPIC) > sec.paragraphs.indexOf(DH_ASSIST_DELETE), "after the delete sentence");
+  assert.ok(sec.paragraphs.indexOf(DH_ASSIST_RETENTION_ANTHROPIC) < sec.paragraphs.indexOf(DH_ASSIST_LAW), "before the legal-holds sentence");
+  assert.ok(dataHandlingSections(true, false).find((s) => s.id === "assistant")!.paragraphs.includes(DH_ASSIST_RETENTION_ANTHROPIC), "it ships whether or not the delete sentence does");
 });

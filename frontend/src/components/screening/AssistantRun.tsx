@@ -3,8 +3,7 @@
 import Link from "next/link";
 
 import { DH_ASSIST_SIGNIN } from "@/lib/dataHandling";
-import { ASSISTANT_RUN_LABEL, entryState, STEP_LABELS, STEP_TRACE_HEADING, assistantConsentLine, assistantOutcomeLine, stepCheckText, type AssistantBlock } from "@/lib/assistantRun";
-import { PRE_SUBMIT_LINK_TEXT as DATA_HANDLING_LINK_TEXT } from "@/lib/surfaceCopy";
+import { ASSISTANT_DATA_LINK_TEXT, ASSISTANT_RUN_LABEL, entryState, STEP_LABELS, STEP_TRACE_HEADING, assistantConsentLine, assistantOutcomeLine, stepCheckText, type AssistantBlock } from "@/lib/assistantRun";
 import { isGreyed, type AssistantState } from "@/lib/assistantTier";
 
 /**
@@ -42,7 +41,7 @@ export function AssistantRun({
         <span data-testid="assistant-consent-line">{assistantConsentLine(provider)}</span>
       </label>
       <Link href="/data-handling#dh-assistant" className="w-fit text-xs text-[var(--color-accent)] underline" data-testid="assistant-data-link">
-        {DATA_HANDLING_LINK_TEXT}
+        {ASSISTANT_DATA_LINK_TEXT}
       </Link>
       <button
         type="button"

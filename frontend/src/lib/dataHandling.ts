@@ -15,8 +15,8 @@ export interface DataHandlingSection {
   id: string;
   heading: string;
   paragraphs: string[];
-  /** A phrase inside one paragraph that is rendered as a link (the page splits the paragraph on it). */
-  link?: { text: string; href: string };
+  /** Phrases rendered as links; each is linked in the FIRST paragraph that contains it, so every paragraph carries at most one link. */
+  links?: { text: string; href: string }[];
 }
 
 // The assistant route (#125; R1's exact words, 14 Oct; PROVISIONAL until Track C confirms on the API that the delete call really deletes the session and R2 has read it).
@@ -31,6 +31,10 @@ export const DH_ASSIST_INTRO = `With the assistant, and only when you tick the c
 export const DH_ASSIST_TERMS = "Anthropic's commercial terms say it may not train models on customer content from its services.";
 // Lead-2's final (Variant B, 14 Oct), R1's words. It says what WE do; it ships only with ASSISTANT_DELETE_CONFIRMED, i.e. once R2 has read the sweeper.
 export const DH_ASSIST_DELETE = `When your screening finishes, we delete the assistant's session record from Anthropic's service. If that fails, we retry, and it is deleted within ${ASSISTANT_RETENTION_MAX_HOURS} hours at the latest.`;
+export const DH_ASSIST_RETENTION_LINK_TEXT = "data retention policy";
+export const DH_ASSIST_RETENTION_LINK_HREF = "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention";
+// R1 14 Oct: about Anthropic's own policy, no period stated (none is true for this route). Checked by opening the URL once (14 Oct): it resolves and says Managed Agents session transcripts persist until the customer deletes them.
+export const DH_ASSIST_RETENTION_ANTHROPIC = `Anthropic's own ${DH_ASSIST_RETENTION_LINK_TEXT} applies to any copy of your facts that it keeps.`;
 export const DH_ASSIST_LAW = "Anthropic may keep content longer where the law requires it or to enforce its usage policy.";
 export const DH_ASSIST_CONSENT = "The consent box is off for every run until you tick it.";
 /** Also shown, as a short line, beside the assistant entry for an anonymous visitor in place of the consent box. Says "signed-in", nothing about how. */
@@ -61,8 +65,8 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
   {
     id: "assistant",
     heading: DH_ASSISTANT_HEADING,
-    paragraphs: [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_DELETE, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN],
-    link: { text: DH_ASSIST_LINK_TEXT, href: DH_ASSIST_LINK_HREF },
+    paragraphs: [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_DELETE, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN],
+    links: [{ text: DH_ASSIST_LINK_TEXT, href: DH_ASSIST_LINK_HREF }, { text: DH_ASSIST_RETENTION_LINK_TEXT, href: DH_ASSIST_RETENTION_LINK_HREF }],
   },
   {
     id: "citations",

@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { STEP_TRACE_HEADING, ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantInfoViolations, assistantViolations, entryState, parseAssistantInfo, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
+import { STEP_TRACE_HEADING, ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, ASSISTANT_DATA_LINK_TEXT, assistantInfoViolations, assistantViolations, entryState, parseAssistantInfo, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
 import { ASSISTANT_PAUSED_TEXT } from "./assistantTier";
 import { DH_ASSIST_SIGNIN } from "./dataHandling";
 
@@ -120,4 +120,8 @@ test("GET /api/assistant: the contract's answer has no violations; the app keeps
 test("GET /api/assistant: an answer off the contract names no vendor; planted violations are caught", () => {
   for (const bad of [null, "x", [], {}, { provider: 3 }, { provider: "  " }]) assert.equal(parseAssistantInfo(bad), null, JSON.stringify(bad));
   for (const bad of [{ ...INFO, extra: 1 }, { ...INFO, provider: 3 }, { ...INFO, oldest_pending_delete_age_s: 1.5 }, { ...INFO, call_timeout_s: "60" }, { ...INFO, assistant_tier: { state: "maybe" } }, { provider: "A" }]) assert.notDeepEqual(assistantInfoViolations(bad), [], JSON.stringify(bad));
+});
+
+test("the link beside the consent line names what it leads to", () => {
+  assert.equal(ASSISTANT_DATA_LINK_TEXT, "How the assistant handles your facts");
 });

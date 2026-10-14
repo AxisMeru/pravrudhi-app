@@ -6,6 +6,8 @@ import { DH_ASSIST_SIGNIN } from "./dataHandling";
 import { ASSISTANT_PAUSED_TEXT, type AssistantState } from "./assistantTier";
 
 export const ASSISTANT_RUN_LABEL = "Run with the screening assistant";
+/** The link beside the consent line (R1 14 Oct): names what it leads to; used only for this entry. -> /data-handling#dh-assistant */
+export const ASSISTANT_DATA_LINK_TEXT = "How the assistant handles your facts";
 export const STEP_TRACE_HEADING = "Steps of this screening"; // states only that these steps ran; attributes the decision to no one (R1 14 Oct)
 
 /** Shown beside the consent tick EVERY time, per request; the tick is unticked on each load and after each run. `provider` comes from the engine; with none it names no vendor of its own. */

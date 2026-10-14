@@ -192,10 +192,14 @@ test("the consent line names no vendor of its own when the engine gives no provi
 test("the consent line links to the Data handling section, which describes both routes in R1's words, and the page has the 'where' sentence", async ({ page }) => {
   await open(page, { tier: AVAILABLE });
   await expect(page.getByTestId("assistant-data-link")).toHaveAttribute("href", "/data-handling#dh-assistant");
+  await expect(page.getByTestId("assistant-data-link")).toHaveText("How the assistant handles your facts");
   await page.goto("/data-handling");
   const sec = page.getByTestId("dh-assistant");
   await expect(sec.getByRole("heading", { name: "Screening with the assistant (optional)" })).toBeVisible();
   await expect(sec).toContainText("Without the assistant, your facts are processed as described above and are not sent to Anthropic.");
+  await expect(sec.getByRole("link")).toHaveCount(2); // one link in each of two paragraphs
+  await expect(sec.getByRole("link", { name: "data retention policy" })).toHaveAttribute("href", "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention");
+  await expect(sec).toContainText("Anthropic's own data retention policy applies to any copy of your facts that it keeps.");
   await expect(sec.getByRole("link", { name: "Anthropic's commercial terms" })).toHaveCount(1);
   await expect(sec.getByRole("link", { name: "Anthropic's commercial terms" })).toHaveAttribute("href", "https://www.anthropic.com/legal/commercial-terms");
   await expect(sec).toContainText("The consent box is off for every run until you tick it.");
