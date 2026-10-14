@@ -1,4 +1,4 @@
-// The accepted Screening E2E matter (Lead-2, 8 Oct): the allegation paragraph of a public Madras High Court order. The TEXT is NOT in this repository (the
+// The accepted Screening E2E matter (Lead-2, 8 Oct): the allegation paragraph of a public court order. The TEXT is NOT in this repository (the
 // repository is public and carries no real-person identifiers): the live spec reads it at run time from SCREENING_MATTER_FILE, and this module holds only
 // what is needed to check that the right text was supplied: its expected sha256, its length, the offences it invokes and the caveat to record.
 export const MATTER_DOC_ID = "live-matter-a";

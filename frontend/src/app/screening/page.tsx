@@ -22,6 +22,7 @@ import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
 import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
+import { ExampleNotFound } from "@/components/ExampleNotFound";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { buildRunRecord, buildScreeningMemo } from "@/lib/screening/memo";
@@ -57,6 +58,7 @@ export default function ScreeningPage() {
   const assistantProvider = useAssistantProvider(assistant);
   const [assistantConsent, setAssistantConsent] = useState(false); // per run: unticked on load and after every run, never kept
   const [exampleActive, setExampleActive] = useState(false);
+  const [exampleMissing, setExampleMissing] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -90,10 +92,12 @@ export default function ScreeningPage() {
     };
   }, []);
 
-  // /screening?example=<id> loads the demo example: the allegations of one public judgment as numbered facts (read in the browser, as the
-  // page is a static export).
+  // /screening?example=<id> loads the demo example (an invented sample) as numbered facts (read in the browser, as the page is a static export).
+  // An id this app does not have (a retired example) shows the "not available" notice with a link to the sample.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    const asked = new URLSearchParams(window.location.search).get("example");
+    if (asked !== null && asked !== EXAMPLE_ID) void Promise.resolve().then(() => setExampleMissing(true));
+    if (asked !== EXAMPLE_ID) return;
     void Promise.resolve().then(() => {
       setFacts([...EXAMPLE_FACTS]);
       setExampleActive(true);
@@ -170,6 +174,7 @@ export default function ScreeningPage() {
         <p className="text-sm" data-testid="guide-link">
           <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
         </p>
+        {exampleMissing && <ExampleNotFound page="/screening" />}
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
             {EXAMPLE_LABEL}

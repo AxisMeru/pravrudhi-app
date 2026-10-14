@@ -32,6 +32,7 @@ import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { displayElementName, referenceOf } from "@/lib/screening/reference";
+import { ExampleNotFound } from "@/components/ExampleNotFound";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import Link from "next/link";
 import { DEFENCE_PHRASE, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
@@ -281,6 +282,7 @@ export default function MattersPage() {
   const [contractsTry, setContractsTry] = useState(0);
   // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
   const [exampleActive, setExampleActive] = useState(false);
+  const [exampleMissing, setExampleMissing] = useState(false);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -303,10 +305,12 @@ export default function MattersPage() {
     };
   }, []);
 
-  // /matters?example=<id> loads the demo example (the allegations of one public judgment). Applied from a microtask, not
+  // /matters?example=<id> loads the demo example (an invented sample); an id this app does not have shows the "not available" notice. Applied from a microtask, not
   // synchronously in the effect (the page is statically exported, so the query string is only known in the browser).
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    const asked = new URLSearchParams(window.location.search).get("example");
+    if (asked !== null && asked !== EXAMPLE_ID) void Promise.resolve().then(() => setExampleMissing(true));
+    if (asked !== EXAMPLE_ID) return;
     void Promise.resolve().then(() => {
       setFactsText(EXAMPLE_FACTS_TEXT);
       setExampleActive(true);
@@ -400,6 +404,7 @@ export default function MattersPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={NAV_LABELS.matters} subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
+        {exampleMissing && <ExampleNotFound page="/matters" />}
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
             {EXAMPLE_LABEL}

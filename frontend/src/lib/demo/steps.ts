@@ -3,7 +3,7 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "Paste the facts and name the offence",
     body:
-      "The example loads the allegations recited in a public High Court order as numbered facts, with the offences it invokes " +
+      "The sample loads a few invented facts as numbered facts, with the offence it invokes " +
       "selected. You can edit, add or remove facts before you screen them.",
   },
   {
