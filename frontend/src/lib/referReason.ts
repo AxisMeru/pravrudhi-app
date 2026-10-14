@@ -82,7 +82,7 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: true,
   },
   gate1_unavailable: {
-    text: "The check of the cited fact against the claim was unavailable, so we hand this ingredient back to you.",
+    text: "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
     twoJudgesOnly: false,
   },
   gate1_not_entailed: {
@@ -94,11 +94,11 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: false,
   },
   contract_not_validated: {
-    text: "This provision is not on the validated list, so we hand it back to you.",
+    text: "This offence is not on our validated list, so the screening hands it back to you instead of giving a result.",
     twoJudgesOnly: false,
   },
   input_too_long: {
-    text: "The facts and question together are too long for the checker to read in one go, so we hand this back to you. Please shorten them or have a lawyer look.",
+    text: "The facts are too long for the screening to read in one go, so it hands this back to you. Please shorten them or ask a lawyer to review.",
     twoJudgesOnly: false,
   },
 };

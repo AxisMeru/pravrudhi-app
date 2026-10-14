@@ -10,7 +10,7 @@ export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   missing_element: "The judge did not find at least one required condition shown in your facts.",
   no_training_statute_text: "We have no statute text for this provision, so we did not judge it.",
   judge_error: "A check failed to run for this ingredient, so we hand it back to you.",
-  assembly_lean_mismatch: "Two internal checks disagreed, so we hand this ingredient back to you.",
+  assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
 };
 
 /** The plain sentence for a PROOF / DENIAL / ABSTAIN reason code, or null when this build does not know it. */

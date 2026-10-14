@@ -30,10 +30,10 @@ test("no member-visible product string makes an overclaim (O8)", () => {
   }
 });
 
-test("the matters page says the judge cites the supporting fact, and that an untrained contract refers instead of answering", () => {
+test("the matters page says the judge cites the supporting fact, and that where the screening gives no result it hands the matter back (R1, 14 Oct)", () => {
   const text = code("app/matters/page.tsx");
   assert.match(text, /cites the supporting fact/);
-  assert.match(text, /gives no answer here and refers\s+instead/);
+  assert.match(text, /Where the screening gives no result, it hands the matter\s+back for your review or a lawyer&apos;s/);
   assert.doesNotMatch(text, /gap in coverage/);
 });
 

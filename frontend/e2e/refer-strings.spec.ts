@@ -36,7 +36,7 @@ test("a referral shows the heading, then the sentence on its own", async ({ page
   await runWith(page, "gate1_unavailable");
   await expect(page.getByTestId("referred-heading")).toHaveText("For a lawyer to review");
   await expect(page.getByTestId("referred-sentence")).toHaveText(
-    "The check of the cited fact against the claim was unavailable, so we hand this ingredient back to you.",
+    "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
   );
   await expect(page.getByTestId("referred-two-judges")).toHaveCount(0);
   await expect(page.getByText(/must decide this matter|should be reviewed by a lawyer/)).toHaveCount(0);

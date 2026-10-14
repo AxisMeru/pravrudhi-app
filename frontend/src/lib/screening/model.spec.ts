@@ -140,7 +140,7 @@ test("a found defence is a review item, an unfound one is not shown; a referral 
   assert.equal(summarize(d, rows).defences, 1);
   assert.equal(summarize(d, rows).review, 0, "a defence row is counted as a defence, not as a review row");
   const ref = contractReferral(contract([el(0)], { outcome: "REFER_TO_LAWYER", reason: "contract_not_validated" }));
-  assert.match(ref?.message ?? "", /not on the validated list/);
+  assert.match(ref?.message ?? "", /not on our validated list/);
   assert.equal(contractReferral(contract([el(0)])), null);
 });
 

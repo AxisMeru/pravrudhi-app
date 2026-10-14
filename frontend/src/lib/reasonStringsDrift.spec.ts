@@ -117,11 +117,11 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
 const APP_FORM: Readonly<Record<string, string>> = {
   second_judge_unavailable: "A second check was unavailable, so we hand this ingredient back to you.",
   second_judge_not_confirmed: "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.",
-  gate1_unavailable: "The check of the cited fact against the claim was unavailable, so we hand this ingredient back to you.",
-  contract_not_validated: "This provision is not on the validated list, so we hand it back to you.",
+  gate1_unavailable: "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
+  contract_not_validated: "This offence is not on our validated list, so the screening hands it back to you instead of giving a result.",
   judge_error: "A check failed to run for this ingredient, so we hand it back to you.",
-  assembly_lean_mismatch: "Two internal checks disagreed, so we hand this ingredient back to you.",
-  input_too_long: "The facts and question together are too long for the checker to read in one go, so we hand this back to you. Please shorten them or have a lawyer look.",
+  assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
+  input_too_long: "The facts are too long for the screening to read in one go, so it hands this back to you. Please shorten them or ask a lawyer to review.",
 };
 
 test("the referral heading is 'For a lawyer to review' (R1, 14 Oct); no REFER string has a lead-in, 'temporarily', or 'no answer'", () => {
