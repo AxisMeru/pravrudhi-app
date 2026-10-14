@@ -45,6 +45,50 @@ export interface AssistantStep {
   check?: StepCheck;
 }
 
+/**
+ * The engine's memo appendix (appendix_version 1, pravrudhi #416/#421), a TOP-LEVEL key of a finished assisted answer: { appendix_version, steps: [{ name, calls, check? }], per_contract, refused_calls }.
+ * The app keeps the version and the steps (name, check and calls); the memo prints only the signed step labels and signed check wording (R1, #169), never counts. Anything that does not match is no appendix.
+ */
+export interface ScreeningAppendix {
+  appendix_version: 1;
+  steps: { name: StepName; check?: StepCheck; calls?: number }[];
+}
+
+/** The mock harness's check of an appendix a mock gives (the engine's pinned OpenAPI predates it): the shape recorded from the production engine 0.6.8, nothing the engine does not send. */
+export function appendixViolations(v: unknown): string[] {
+  if (v === undefined) return [];
+  const out: string[] = [];
+  if (!isObj(v)) return ["appendix: expected an object"];
+  const allowed = new Set(["appendix_version", "steps", "per_contract", "refused_calls"]);
+  for (const k of Object.keys(v)) if (!allowed.has(k)) out.push(`appendix.${k}: not in the recorded shape`);
+  if (v.appendix_version !== 1) out.push("appendix.appendix_version: expected 1");
+  if (!Array.isArray(v.steps)) out.push("appendix.steps: expected a list");
+  else v.steps.forEach((s, i) => {
+    if (!isObj(s)) return void out.push(`appendix.steps[${i}]: not an object`);
+    for (const k of Object.keys(s)) if (!["name", "calls", "check"].includes(k)) out.push(`appendix.steps[${i}].${k}: not in the recorded shape`);
+    if (!has(STEP_NAMES, s.name)) out.push(`appendix.steps[${i}].name: not a step name`);
+    if (!Number.isInteger(s.calls)) out.push(`appendix.steps[${i}].calls: expected a whole number`);
+    if (s.check !== undefined && !has(CHECKS, s.check)) out.push(`appendix.steps[${i}].check: not a check`);
+  });
+  if (v.per_contract !== undefined && !Array.isArray(v.per_contract)) out.push("appendix.per_contract: expected a list");
+  if (v.refused_calls !== undefined && !Number.isInteger(v.refused_calls)) out.push("appendix.refused_calls: expected a whole number");
+  return out;
+}
+
+/** Tolerant: an absent or malformed appendix is `undefined` (never an error); a step with a name or check this build does not know is left out. */
+export function parseAppendix(v: unknown): ScreeningAppendix | undefined {
+  if (!isObj(v) || v.appendix_version !== 1 || !Array.isArray(v.steps)) return undefined;
+  const steps: ScreeningAppendix["steps"] = [];
+  for (const s of v.steps) {
+    if (!isObj(s) || !has(STEP_NAMES, s.name)) continue;
+    const step: ScreeningAppendix["steps"][number] = { name: s.name as StepName };
+    if (has(CHECKS, s.check)) step.check = s.check as StepCheck;
+    if (Number.isInteger(s.calls) && (s.calls as number) >= 0) step.calls = s.calls as number;
+    steps.push(step);
+  }
+  return steps.length > 0 ? { appendix_version: 1, steps } : undefined;
+}
+
 /** What the app keeps of the engine's `assistant` block. `summary` and `cost` are deliberately dropped. */
 export interface AssistantBlock {
   used: boolean;

@@ -3,7 +3,7 @@
 // Every function here can fail — there may be no engine running, or an endpoint may not exist yet on an
 // older engine build. Callers are expected to handle rejection; nothing here retries or hides a failure.
 
-import { parseAssistantBlock, parseAssistantInfo, type AssistantBlock } from "./assistantRun";
+import { parseAppendix, parseAssistantBlock, parseAssistantInfo, type AssistantBlock, type ScreeningAppendix } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
 
 function detectBase(): string {
@@ -1386,6 +1386,8 @@ export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
 export interface AnalyseFactsResult {
   /** Present only on an assisted run (#125): the app's kept part of the engine's assistant block. */
   assistant?: AssistantBlock;
+  /** Present only on a finished assisted run whose answer carried a readable appendix (#169): the memo prints its steps. */
+  appendix?: ScreeningAppendix;
   run_id: string;
   judge: string;
   score_sha256: string;
@@ -1579,7 +1581,8 @@ export async function analyseFacts(
   if (!opts.assisted) return result;
   const raw = wire as unknown as Record<string, unknown>;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
-  return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
+  const appendix = parseAppendix(raw.appendix);
+  return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable), ...(appendix ? { appendix } : {}) };
 }
 
 /** POST /api/v1/intake (pravrudhi#414): pasted text only, signed-in users only; the plain deterministic route (no model). Returns the engine's answer unparsed: lib/intake.ts reads it. */
