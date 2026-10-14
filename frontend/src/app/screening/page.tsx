@@ -36,6 +36,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
 import { CHECKING_SIGN_IN_LABEL, FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
@@ -69,6 +70,7 @@ export default function ScreeningPage() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false); // the sign-in re-check before anything is sent (R1, P2): not yet a request in flight
   const inflight = loading && !checking;
+  const [runAssisted, setRunAssisted] = useState(false); // the run in flight is an assistant run (P7: one more line)
   const [elapsed, setElapsed] = useState(0);
   const [assistedTimeout, setAssistedTimeout] = useState<number | null>(null); // seconds the assisted run waited, set only when it ended on the app's own timeout (Run again)
   const [error, setError] = useState<string | null>(null);
@@ -174,6 +176,7 @@ export default function ScreeningPage() {
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
     setChecking(true);
+    setRunAssisted(assisted);
     setError(null);
     setInvalidRunId(undefined);
     setNotSignedIn(null);
@@ -416,10 +419,11 @@ export default function ScreeningPage() {
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
               {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
-              {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
-                {WARM_UP_NOTE}{" "}
-                <span className="font-mono">{String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span> elapsed.
-              </p>}
+              <p className="text-sm text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
+              <p className="font-mono text-sm text-[var(--color-text-dim)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
+              {runAssisted && <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-assisted">{ASSISTED_RUNNING_NOTE}</p>}
+              {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">{WARM_UP_NOTE}</p>}
+              <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-leave">{LEAVE_AND_RETURN_TEXT}</p>
             </>
           )}
           {inflight && elapsed >= SLOW_START_SECONDS && (
