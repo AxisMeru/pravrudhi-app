@@ -8,8 +8,8 @@ function Row({ row }: { row: ScreeningRow }) {
   return (
     <li className="space-y-2 rounded-md border border-[var(--color-border)] p-3" data-testid="ingredient-row" data-chip={row.chip}>
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-sm text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
-        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-xs font-medium ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
+        <p className="text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
+        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[11px] font-normal ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
           {CHIP_LABEL[row.chip]}
         </span>
       </div>
@@ -35,8 +35,8 @@ function Row({ row }: { row: ScreeningRow }) {
           {row.quote.check && <span className="ml-1.5 text-[11px] not-italic text-[var(--color-text-dim)]">{row.quote.check}</span>}
         </p>
       )}
-      <p className="text-xs text-[var(--color-text-dim)]" data-testid="what-to-check">
-        <span className="font-medium text-[var(--color-text)]">{WHAT_TO_CHECK_LABEL}: </span>
+      <p className="border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-text-dim)]" data-testid="what-to-check">
+        <span className="font-medium text-[var(--color-text-dim)]">{WHAT_TO_CHECK_LABEL}: </span>
         {row.whatToCheck ?? NO_CHECK_NOTE}
       </p>
     </li>
