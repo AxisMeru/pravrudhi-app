@@ -3,8 +3,8 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "Paste the facts and name the offence",
     body:
-      "The sample loads a few invented facts, numbered, with the offence it concerns already selected. " +
-      "You can edit, add or remove facts before you screen them.",
+      "The sample loads a few invented facts as numbered facts, with the offence it invokes " +
+      "selected. You can edit, add or remove facts before you screen them.",
   },
   {
     title: "Read the ingredients as a checklist",
