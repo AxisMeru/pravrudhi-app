@@ -75,7 +75,7 @@ test("running view (assistant run): one more line", async ({ page }) => {
   await page.getByText("Cheating", { exact: false }).first().click();
   await page.getByTestId("assistant-consent").check();
   await page.getByTestId("assistant-run-button").click();
-  await expect(page.getByTestId("running-assisted")).toHaveText("The assistant is working through the steps; they are listed when it finishes.");
+  await expect(page.getByTestId("running-assisted")).toHaveText("The assistant is working through the steps; they are shown on this page when it finishes.");
   await expect(page.getByTestId("running-status")).toBeVisible();
   release();
   await expect(page.getByTestId("checklist")).toBeVisible();

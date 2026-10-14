@@ -10,7 +10,7 @@ export function waitingFor(seconds: number): string {
 }
 
 /** Added only for a run with the assistant. */
-export const ASSISTED_RUNNING_NOTE = "The assistant is working through the steps; they are listed when it finishes.";
+export const ASSISTED_RUNNING_NOTE = "The assistant is working through the steps; they are shown on this page when it finishes.";
 
 /**
  * Leave-and-return, version B (R1): the screening page keeps its state in the page itself, so leaving it (even by a link inside the app, in the same tab) drops the run and its result;

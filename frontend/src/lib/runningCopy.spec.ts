@@ -8,7 +8,7 @@ import { STEP_NAMES, STEP_LABELS } from "./assistantRun";
 
 test("R1's running-view strings, exactly", () => {
   assert.equal(RUNNING_STATUS_LINE, "Screening in progress. This page is waiting for the result.");
-  assert.equal(ASSISTED_RUNNING_NOTE, "The assistant is working through the steps; they are listed when it finishes.");
+  assert.equal(ASSISTED_RUNNING_NOTE, "The assistant is working through the steps; they are shown on this page when it finishes.");
   assert.equal(LEAVE_AND_RETURN_TEXT, "Keep this page open until the screening finishes. If you leave it, you will not see the result.");
 });
 
