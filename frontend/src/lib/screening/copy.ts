@@ -4,6 +4,9 @@
 /** The three export buttons under the checklist; the guide names them with these same strings. */
 export const EXPORT_LABELS = { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" } as const;
 
+/** The fourth export button (Word memo, 14 Oct; label for R1 to sign). Not in EXPORT_LABELS: the guide names those three exactly and needs R1's words (and a new screenshot) before it can say four. */
+export const MEMO_DOCX_LABEL = "Download memo (.docx)";
+
 export type Chip = "supported" | "suggested" | "not_supported" | "review";
 
 export const CHIP_LABEL: Readonly<Record<Chip, string>> = {

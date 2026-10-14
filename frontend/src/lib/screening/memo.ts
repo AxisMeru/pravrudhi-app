@@ -2,6 +2,7 @@
 // ingredient's chip, the cited fact in full, the review items, the engine and checker versions and the standing disclaimer. Pure functions.
 import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
+import { buildDocx } from "../docxWriter";
 import { MEMO_DISCLAIMER } from "../memo";
 import { CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
@@ -55,4 +56,9 @@ export function buildRunRecord(request: { facts: string[]; contractIds: string[]
     null,
     2,
   );
+}
+
+/** The Word (.docx) memo: made FROM the markdown memo above, so it says exactly what the .md memo says (same facts, banner, review items, versions). */
+export function buildScreeningMemoDocx(result: AnalyseFactsResult, opts: ScreeningMemoOptions): Uint8Array {
+  return buildDocx(buildScreeningMemo(result, opts));
 }
