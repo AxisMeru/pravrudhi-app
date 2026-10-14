@@ -21,10 +21,11 @@ test("the intro folds behind 'About this screening' with the standing line outsi
   await expect(page.getByTestId("standing-line")).toHaveText("This is a screening aid, not legal advice. A lawyer decides.");
   const fold = page.getByTestId("about-screening");
   await expect(fold.locator("summary")).toHaveText("About this screening");
+  await expect(page.getByTestId("caveat-strip")).toBeVisible(); // the caveats stay OUTSIDE the fold (R1 and R2): visible without opening it
   await expect(page.getByTestId("product-line")).toBeHidden();
   await fold.locator("summary").click();
   await expect(page.getByTestId("product-line")).toBeVisible();
-  await expect(page.getByTestId("caveat-strip")).toBeVisible();
+  await expect(fold.getByTestId("caveat-strip")).toHaveCount(0);
   const entry = page.getByTestId("example-entry");
   await expect(entry).toContainText("Try an example from a public court order");
   await expect(entry.getByRole("link")).toHaveText(["Madras High Court, order of 12 June 2024", "High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773"]);

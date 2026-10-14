@@ -59,12 +59,12 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
   }
 });
 
-test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt is the words version, not the digits", () => {
+test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt names the marks, never a count", () => {
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
   assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
-  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge \(check it\) and one is not supported by these facts/);
-  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
+  assert.match(GUIDE_IMAGES.checklist.alt, /one marked Supported by a fact, one marked Needs your review and one marked No fact cited under the heading To look for in your papers/);
+  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
 
 test("the guide for firm users: R1's two lines, the covered offences (the validated ones only, with 'others are referred'), no bare 'defeater', the glossary entry exactly", () => {

@@ -29,15 +29,15 @@ export const GUIDE_CITATIONS_CAPTION = "Dev stack only: the citation check is no
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
   input: {
     file: "01-screening-input.png",
-    alt: "The Screening page after Split into numbered facts: an invented plot-sale matter split into six numbered facts F1 to F6, with the offence Cheating (BNS 318 · IPC 415) ticked, and the opt-in frontier toggle and its stated limit below.",
+    alt: "The top of the Screening page with an invented plot-sale matter: the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, and the facts form with the matter pasted in.",
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The result for the invented plot-sale matter: the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge (check it) and one is not supported by these facts, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
+    alt: "The result for the invented plot-sale matter: a summary line above the standing not-legal-advice line, then three ingredient rows, one marked Supported by a fact, one marked Needs your review and one marked No fact cited under the heading To look for in your papers, each with a What to check line.",
   },
   citedFact: {
     file: "03-cited-fact.png",
-    alt: "One ingredient row marked Supported by a fact, naming fact F1 and showing that fact in full (an invented jewellery matter).",
+    alt: "One ingredient row marked Supported by a fact, naming fact F1 (an invented plot-sale matter).",
   },
   needsReview: {
     file: "04-needs-your-review.png",
