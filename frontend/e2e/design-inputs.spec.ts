@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./support/engineTest";
 
 // P5 and #138: fact boxes grow with their text instead of clipping it, and the small controls meet the 24 px target size.
 test("a long fact is shown whole (the box grows) and Remove is at least 24 px", async ({ page }) => {
