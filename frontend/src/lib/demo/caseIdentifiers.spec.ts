@@ -10,6 +10,9 @@ const root = join(__dirname, "..", "..", "..");
 const repo = join(root, "..");
 // Files that state the pattern itself or list what is not shown.
 const SELF = new Set(["frontend/src/lib/demo/caseIdentifiers.spec.ts", "frontend/src/lib/demo/example.spec.ts", "frontend/src/lib/demo/liveCheck.spec.ts"]);
+// Lead-2 14 Oct (deliberate loosening of the 12 Oct guard): each example is identified exactly as the court publishes it, and that is its CITATION: a separate pinned field in example.ts, checked by
+// example.spec.ts against the only allowed shapes. Those `citation:` lines alone are exempt here; everything else in the repository still carries no real case, crime or FIR number.
+const CITATION_FILE = "frontend/src/lib/demo/example.ts";
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -22,8 +25,8 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 
 test("the example text carries no case, crime or FIR number: the one crime number is redacted", async () => {
-  const { EXAMPLE_FACTS_TEXT, EXAMPLE_LABEL, EXAMPLE_ID } = await import("./example");
-  assert.doesNotMatch(EXAMPLE_FACTS_TEXT + "\n" + EXAMPLE_LABEL + "\n" + EXAMPLE_ID, ID);
+  const { EXAMPLES, EXAMPLE_LABEL, exampleFactsText } = await import("./example");
+  assert.doesNotMatch(EXAMPLES.map((e) => exampleFactsText(e) + "\n" + e.id).join("\n") + "\n" + EXAMPLE_LABEL, ID);
 });
 
 test("no source, test, fixture or doc file of the app carries a case, crime or FIR number", () => {
@@ -34,7 +37,7 @@ test("no source, test, fixture or doc file of the app carries a case, crime or F
     for (const f of files) {
       const rel = relative(repo, f);
       if (SELF.has(rel)) continue;
-      readFileSync(f, "utf8").split("\n").forEach((line, i) => { if (ID.test(line)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 120)}`); });
+      readFileSync(f, "utf8").split("\n").forEach((line, i) => { if (rel === CITATION_FILE && /^\s*citation:/.test(line)) return; if (ID.test(line)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 120)}`); });
     }
   }
   assert.deepEqual(hits, [], "real-looking case numbers in the public repository");

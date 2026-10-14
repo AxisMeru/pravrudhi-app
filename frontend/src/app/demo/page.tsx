@@ -2,18 +2,18 @@ import Link from "next/link";
 import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { CaveatStrip } from "@/components/CaveatStrip";
-import { EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
+import { DEFAULT_EXAMPLE, EXAMPLES, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { ASSIST_LINE } from "@/lib/demo/safety";
 import { STEPS } from "@/lib/demo/steps";
 
-// How the analysis works, as five steps on one public judgment's allegations. The steps describe what the Matters page
+// How the analysis works, as five steps on a public court order's allegations. The steps describe what the Matters page
 // does when it runs; the page itself shows no result and quotes no measure from the example (the example is illustrative,
 // not evidence). Words: Lead-2's decision on #525 (2026-10-06); R1 reviews them.
 
 export default function DemoPage() {
   return (
     <div>
-      <PageHeader title="How it works" subtitle="Five steps, on one public judgment's allegations." />
+      <PageHeader title="How it works" subtitle="Five steps, on a public court order." />
       <div className="space-y-6 p-8">
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="example-label">
           {EXAMPLE_LABEL}
@@ -30,7 +30,7 @@ export default function DemoPage() {
         </ol>
         <div className="flex flex-wrap items-center gap-4">
           <Link
-            href={`/screening?example=${EXAMPLE_ID}`}
+            href={`/screening?example=${DEFAULT_EXAMPLE.id}`}
             className="inline-flex w-fit items-center rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)]"
             data-testid="load-example"
           >
@@ -40,6 +40,18 @@ export default function DemoPage() {
             Safety record
           </Link>
         </div>
+        {EXAMPLES.length > 1 && (
+          <section aria-label="Examples" className="space-y-2" data-testid="example-list">
+            <h2 className="text-sm font-medium text-[var(--color-text)]">More examples</h2>
+            <ul className="space-y-1 text-sm">
+              {EXAMPLES.slice(1).map((e) => (
+                <li key={e.id}>
+                  <Link href={`/screening?example=${e.id}`} className="underline" data-testid={`load-example-${e.id}`}>{e.citation}</Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <NyayaSiddhiLink />
         <CaveatStrip />
         <p className="text-sm text-[var(--color-text)]">{ASSIST_LINE}</p>

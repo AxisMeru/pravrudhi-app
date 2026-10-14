@@ -32,7 +32,8 @@ import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { displayElementName, referenceOf } from "@/lib/screening/reference";
-import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS_TEXT, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
+import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
+import { exampleById, exampleFactsText, type DemoExample } from "@/lib/demo/example";
 import Link from "next/link";
 import { DEFENCE_PHRASE, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
 import { defenceShown } from "@/lib/screening/model";
@@ -280,7 +281,8 @@ export default function MattersPage() {
   const [contractsLoaded, setContractsLoaded] = useState(false);
   const [contractsTry, setContractsTry] = useState(0);
   // null until the registry read succeeds; stays null if it fails, which the page shows as "validation status unavailable".
-  const [exampleActive, setExampleActive] = useState(false);
+  const [example, setExample] = useState<DemoExample | null>(null);
+  const [exampleMissing, setExampleMissing] = useState(false);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -303,13 +305,16 @@ export default function MattersPage() {
     };
   }, []);
 
-  // /matters?example=<id> loads the demo example (the allegations of one public judgment). Applied from a microtask, not
+  // /matters?example=<id> loads a demo example (the allegations of one public court order); an unknown id shows the "not available" notice. Applied from a microtask, not
   // synchronously in the effect (the page is statically exported, so the query string is only known in the browser).
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    const asked = new URLSearchParams(window.location.search).get("example");
+    const found = exampleById(asked);
+    if (asked !== null && found === null) void Promise.resolve().then(() => setExampleMissing(true));
+    if (found === null) return;
     void Promise.resolve().then(() => {
-      setFactsText(EXAMPLE_FACTS_TEXT);
-      setExampleActive(true);
+      setFactsText(exampleFactsText(found));
+      setExample(found);
     });
   }, []);
 
@@ -331,9 +336,8 @@ export default function MattersPage() {
         setContractsError(null);
         setContracts(cs);
         setContractsLoaded(true);
-        if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
-          setSelected(new Set(EXAMPLE_CONTRACTS.filter((id) => cs.includes(id))));
-        }
+        const found = exampleById(new URLSearchParams(window.location.search).get("example"));
+        if (found !== null) setSelected(new Set(found.contracts.filter((id) => cs.includes(id))));
       })
       .catch((e: unknown) => {
         if (off) return;
@@ -400,11 +404,8 @@ export default function MattersPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={NAV_LABELS.matters} subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
-        {exampleActive && (
-          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
-            {EXAMPLE_LABEL}
-          </p>
-        )}
+        {exampleMissing && <ExampleNotFound page="/matters" />}
+        {example && <ExampleBanner example={example} />}
         <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <div className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <RetentionBefore />
@@ -447,7 +448,7 @@ export default function MattersPage() {
             value={factsText}
             onChange={(e) => {
               setFactsText(e.target.value);
-              setExampleActive(false); // an edited text is no longer the example
+              setExample(null); // an edited text is no longer the example
             }}
           />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-narrative">

@@ -131,14 +131,28 @@ test("a member who opens / lands on Screening", async ({ page }) => {
   await page.waitForURL(/\/screening/);
 });
 
-test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
+test("the demo link loads the public-order example as numbered facts, R1's label and the order's citation, with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
   await page.goto("/screening?example=madras-public-order-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
-  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
+  await expect(page.getByTestId("example-banner")).toContainText("A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. The output of this demo is illustrative, not evidence, and no measure is quoted from it.");
+  await expect(page.getByTestId("example-citation")).toHaveText("Madras High Court, order of 12 June 2024");
+  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl|invented/);
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
   await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
   await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
+  await expect(page.getByTestId("example-not-found")).toHaveCount(0);
+});
+
+test("an example id this app does not have shows 'not available' and a link to the example; no example is loaded by default", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/screening");
+  await expect(page.getByTestId("example-banner")).toHaveCount(0); // a demo with real names is never the default
+  await page.goto("/screening?example=a-retired-example");
+  await expect(page.getByTestId("example-not-found")).toContainText("That example is not available.");
+  await expect(page.getByTestId("example-banner")).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue("");
+  await page.getByRole("link", { name: "Try the example instead" }).click();
+  await expect(page.getByTestId("example-citation")).toHaveText("Madras High Court, order of 12 June 2024");
 });
 
 // #99: the contracts the registry lists but has not validated are offered too, with the line that the engine refers on them, and their rows carry a What-to-check prompt.
