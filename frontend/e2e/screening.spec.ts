@@ -93,6 +93,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   await run(page, ref);
   await expect(page.getByTestId("contract-review")).toContainText("not on the validated list");
   await expect(page.getByTestId("contract-review")).not.toHaveClass(/red/);
+  await expect(page.getByTestId("contract-review-code")).toHaveCount(0); // a known reason shows only its sentence (R1, 14 Oct)
   await expect(page.getByTestId("summary-text")).not.toHaveText("All ingredients supported (structure checked)");
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
