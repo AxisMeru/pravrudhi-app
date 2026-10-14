@@ -8,7 +8,7 @@ export function RetentionBefore() {
   return (
     <p className="text-xs text-[var(--color-text-dim)]" data-testid="retention-before">
       {PRE_SUBMIT_RETENTION.slice(0, cut)}
-      <Link href="/data-handling" className="text-[var(--color-accent)] underline">{PRE_SUBMIT_LINK_TEXT}</Link>
+      <Link href="/data-handling" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline">{PRE_SUBMIT_LINK_TEXT}</Link>
       {PRE_SUBMIT_RETENTION.slice(cut + PRE_SUBMIT_LINK_TEXT.length)}
     </p>
   );

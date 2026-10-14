@@ -59,15 +59,15 @@ test("the checklist: a chip and plain reason per ingredient, the cited fact in f
   await expect(rows).toHaveCount(3);
   await expect(rows.nth(0).getByTestId("ingredient-chip")).toHaveText("Supported by a fact");
   await expect(rows.nth(1).getByTestId("ingredient-chip")).toHaveText("Needs your review");
-  await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("Not supported by these facts");
+  await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("No fact cited");
   await expect(rows.nth(1).getByTestId("ingredient-reason")).toContainText("did not reach the level we require");
   await expect(rows.nth(0).getByTestId("cited-fact-note")).toHaveText("cites your fact F1 in full (the screening names the fact; it does not quote words)");
   await expect(rows.nth(0).getByTestId("cited-fact-text")).toContainText(F1);
   await expect(rows.nth(0).getByTestId("what-to-check")).toContainText("Check what the facts say was said or concealed");
-  await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
+  await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients supported by a fact · 1 to look for · 1 for your review");
   await expect(page.getByTestId("checklist").getByTestId("ipc-disclosure")).toHaveText("Checked against the IPC text (s.415); the BNS counterpart is not validated.");
   // the banner sentence sits directly above the standing line
-  await expect(page.getByTestId("summary-banner")).toHaveText(/1 not supported by these facts\s*This is a screening aid, not legal advice\. A lawyer decides\./);
+  await expect(page.getByTestId("summary-banner")).toHaveText(/1 for your review\s*This is a screening aid, not legal advice\. A lawyer decides\./);
   const text = await page.getByTestId("checklist").innerText();
   expect(text).not.toMatch(/\bproved\b|\bestablished\b|verbatim|offence is made out/i);
   // "Needs your review" is amber, never the error red
@@ -91,19 +91,37 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   ref.contracts[0].outcome = "REFER_TO_LAWYER";
   ref.contracts[0].reason = "contract_not_validated";
   await run(page, ref);
-  await expect(page.getByTestId("contract-review")).toContainText("not on the validated list");
+  await expect(page.getByTestId("contract-review")).toContainText("not on our validated list");
   await expect(page.getByTestId("contract-review")).not.toHaveClass(/red/);
   await expect(page.getByTestId("contract-review-code")).toHaveCount(0); // a known reason shows only its sentence (R1, 14 Oct)
   await expect(page.getByTestId("summary-text")).not.toHaveText("All ingredients supported (structure checked)");
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
 
+test("the Word memo downloads and carries the same text as the .md memo (#830 DOCX)", async ({ page }) => {
+  await run(page);
+  const [mdDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
+  const md = readFileSync((await mdDl.path()) as string, "utf8");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("memo-docx").click()]);
+  expect(dl.suggestedFilename()).toBe("screening-memo-r-invented-screen.docx");
+  const buf = readFileSync((await dl.path()) as string);
+  expect(buf.subarray(0, 2).toString("latin1")).toBe("PK"); // a zip
+  const { value } = await (await import("mammoth")).extractRawText({ buffer: buf });
+  const lines = value.split("\n").filter((l: string) => l.trim());
+  // every visible line of the .md memo (markup removed) is in the Word memo, in order
+  const plain = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "\u25e6 ").replace(/^- /, "\u2022 ").replace(/\*\*/g, ""));
+  const noStamp = (l: string) => l.replace(/Generated: .*/, "Generated: <time>"); // each download stamps its own generation time
+  expect(lines.map(noStamp)).toEqual(plain.map(noStamp));
+  expect(value).toContain(F1);
+  expect(value).toContain("not legal advice");
+});
+
 test("the memo and the run record download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {
   await run(page);
-  const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
+  const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   const memo = readFileSync((await memoDl.path()) as string, "utf8");
   expect(memo).toContain("# Screening memo");
-  expect(memo).toContain("1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
+  expect(memo).toContain("1 of 3 ingredients supported by a fact · 1 to look for · 1 for your review");
   expect(memo).toContain("**Supported by a fact**");
   expect(memo).toContain(`F1: ${F1}`);
   expect(memo).toContain("Contract checker pin (sha256)");
@@ -132,14 +150,38 @@ test("a member who opens / lands on Screening", async ({ page }) => {
   await page.waitForURL(/\/screening/);
 });
 
-test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
+test("the demo link loads the public-order example as numbered facts, R1's label and the order's citation, with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
   await page.goto("/screening?example=madras-public-order-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
-  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
+  await expect(page.getByTestId("example-banner")).toContainText("A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.");
+  await expect(page.getByTestId("example-citation")).toHaveText("Madras High Court, order of 12 June 2024");
+  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl|invented/);
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
   await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
   await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
+  await expect(page.getByTestId("example-not-found")).toHaveCount(0);
+});
+
+test("the Karnataka cheating example loads with R1's own label, the order's neutral citation and its screening line, and selects the cheating offence", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property", "ipc415_damaging_act", "ipc405_misappropriation"], entries: [] } }));
+  await page.goto("/screening?example=karnataka-cheating-2025");
+  await expect(page.getByTestId("example-banner")).toContainText("These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here.");
+  await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
+  await expect(page.getByTestId("example-screening-line")).toHaveText("Screened here for the ingredients of cheating (BNS 318 · IPC 415).");
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/gold coins/);
+  await expect(page.getByTestId("example-banner")).not.toContainText(/invented/i);
+});
+
+test("an example id this app does not have shows 'not available' and a link to the example; no example is loaded by default", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/screening");
+  await expect(page.getByTestId("example-banner")).toHaveCount(0); // a demo with real names is never the default
+  await page.goto("/screening?example=a-retired-example");
+  await expect(page.getByTestId("example-not-found")).toContainText("That example is not available.");
+  await expect(page.getByTestId("example-banner")).toHaveCount(0);
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue("");
+  await page.getByRole("link", { name: "Try the example instead" }).click();
+  await expect(page.getByTestId("example-citation")).toHaveText("Madras High Court, order of 12 June 2024");
 });
 
 // #99: the contracts the registry lists but has not validated are offered too, with the line that the engine refers on them, and their rows carry a What-to-check prompt.
@@ -162,7 +204,7 @@ test("the not-validated offences are offered with the referral line, and a suppo
   // #128 D7: one row per offence: no second "Criminal breach of trust (BNS s.316)" row, and one not-validated note
   await expect(list).not.toContainText("Criminal breach of trust (BNS s.316)");
   await expect(page.getByTestId("not-validated-note")).toHaveCount(1);
-  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the screening refers the matter to a lawyer instead of giving a result.");
+  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the screening does not give a result; a lawyer decides.");
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(NI_FACT);
   await page.getByTestId("split-facts").click();
   await list.locator("label").filter({ hasText: "Dishonour of a cheque" }).click();

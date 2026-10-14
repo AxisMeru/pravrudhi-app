@@ -1,7 +1,7 @@
-import { BANNER_STANDING_LINE, STRUCTURE_NOTE, type Chip } from "@/lib/screening/copy";
+import { AGENDA_BANNER_TEXT, BANNER_STANDING_LINE, STRUCTURE_NOTE, type Chip } from "@/lib/screening/copy";
 import type { ScreeningSummary } from "@/lib/screening/model";
 
-export function SummaryBanner({ summary }: { summary: ScreeningSummary }) {
+export function SummaryBanner({ summary, agenda = false }: { summary: ScreeningSummary; agenda?: boolean }) {
   return (
     <div
       className={`rounded-md border p-3 ${summary.allSupported ? "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg)]"}`}
@@ -9,6 +9,7 @@ export function SummaryBanner({ summary }: { summary: ScreeningSummary }) {
       role="status"
     >
       <p className="text-sm font-medium text-[var(--color-text)]" data-testid="summary-text">{summary.text}</p>
+      {agenda && <p className="mt-1 text-sm text-[var(--color-text)]" data-testid="agenda-banner">{AGENDA_BANNER_TEXT}</p>}
       <p className="mt-1 text-xs text-[var(--color-text-dim)]">{BANNER_STANDING_LINE}</p>
       {summary.allSupported && (
         <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="structure-note">{STRUCTURE_NOTE}</p>

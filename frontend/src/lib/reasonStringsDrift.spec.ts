@@ -5,7 +5,7 @@ import test from "node:test";
 
 import { ELEMENT_STATUSES, elementStatusPresentation } from "./elementStatus";
 import { NON_REFER_REASON_TEXT, QUOTE_CHECK_TEXT } from "./reasonText";
-import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING, TWO_JUDGES_ONLY_LABEL } from "./referReason";
+import { REFER_REASON_TEXT, REFER_REASONS, referReasonPresentation, REFERRED_HEADING } from "./referReason";
 import { classifyVerifyError } from "./citationCheck";
 import { classifyAnalyseError } from "./serviceStatus";
 import { streamErrorText } from "./streamError";
@@ -54,7 +54,7 @@ const NO_APP_SURFACE_FOLLOW_UP: Record<string, string> = {
 };
 
 test("the signed table is the one expected: counts, and a header that names its source, engine sha and file sha256", () => {
-  assert.equal(Object.keys(TABLE.reasons).length, 16);
+  assert.equal(Object.keys(TABLE.reasons).length, 17);
   assert.equal(Object.keys(TABLE.quote_check).length, 8);
   assert.match(TABLE.source.engine_sha, /^[0-9a-f]{40}$/);
   assert.match(TABLE.source.file_sha256, /^[0-9a-f]{64}$/);
@@ -73,7 +73,11 @@ const APP_FORM: Readonly<Record<string, string>> = {
   denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
   missing_element: "The screening did not find a cited fact for at least one required ingredient.",
   no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
-  second_judge_unavailable: "The second check was unavailable, so we give a referral, not an answer.",
+  second_judge_unavailable: "A second check was unavailable, so we hand this ingredient back to you.",
+  second_judge_not_confirmed: "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.",
+  gate1_unavailable: "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
+  contract_not_validated: "This offence is not on our validated list, so the screening hands it back to you instead of giving a result.",
+  input_too_long: "The facts are too long for the screening to read in one go, so it hands this back to you. Please shorten them or ask a lawyer to review.",
   assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
   judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
 };
@@ -134,18 +138,16 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
   assert.equal(shown(new ApiError(429, "/x")), norm(GAP.strings.http_429));
 });
 
-test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in or 'temporarily'", () => {
-  assert.equal(REFERRED_HEADING, "Referred to a lawyer");
-  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two checks only)");
+test("the referral heading is 'For a lawyer to review' (R1, 14 Oct); no REFER string has a lead-in, 'temporarily', or 'no answer'", () => {
+  assert.equal(REFERRED_HEADING, "For a lawyer to review");
   for (const r of REFER_REASONS) {
     const { message } = referReasonPresentation(r);
     assert.doesNotMatch(message, /A lawyer must decide this matter:/i, r);
-    assert.doesNotMatch(message, /temporarily/i, r);
-    assert.doesNotMatch(message, /deployments that use two judges/i, `${r}: the label is outside the sentence`);
+    assert.doesNotMatch(message, /temporarily|no answer|not an answer|\bjudges?\b.*referral/i, r);
   }
 });
 
-test("no app string source says 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
+test("no app string source says 'temporarily' or 'no answer' to a member, and none uses the 'must decide this matter' lead-in", () => {
   const files = ["referReason.ts", "reasonText.ts", "signedStrings.ts", "serviceStatus.ts", "elementStatus.ts", "memo.ts", join("..", "app", "matters", "page.tsx")];
   for (const f of files) {
     const code = readFileSync(join(__dirname, f), "utf8")

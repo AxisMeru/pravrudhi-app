@@ -5,7 +5,7 @@
 import { FRONTIER_QUOTE_LIMIT_TEXT } from "../frontierReader";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { OFFENCES, offenceLabel } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL } from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
@@ -14,7 +14,11 @@ export const GUIDE_TITLE = "User guide";
 export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each status means, and what it does not do.";
 
 export const GUIDE_SCREENSHOT_NOTE =
-  "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read, not how the assistant will do on your matter.";
+  "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.";
+
+/** R1, 14 Oct: under frame 03, which shows a No fact cited row from a real run; it never calls the image an example of a supported row. */
+export const GUIDE_CITED_FACT_CAPTION =
+  "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.";
 
 export interface GuideImage {
   file: string;
@@ -29,15 +33,16 @@ export const GUIDE_CITATIONS_CAPTION = "Dev stack only: the citation check is no
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
   input: {
     file: "01-screening-input.png",
-    alt: "The Screening page after Split into numbered facts: an invented plot-sale matter split into six numbered facts F1 to F6, with the offence Cheating (BNS 318 · IPC 415) ticked, and the opt-in frontier toggle and its stated limit below.",
+    alt: "The top of the Screening page with an invented plot-sale matter: the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, and the facts form with the matter pasted in.",
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The result for the invented plot-sale matter: the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge (check it) and one is not supported by these facts, above the standing not-legal-advice line, then three ingredient rows (two marked Suggested by the screening judge; check it, one marked Not supported by these facts), each with a What to check line, and the empty Case citations panel below.",
+    alt: "The result of a run on a public court order (High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773): the review agenda above the standing not-legal-advice line, then three ingredient rows under the heading To look for in your papers, each marked No fact cited with a What to check line.",
   },
   citedFact: {
     file: "03-cited-fact.png",
-    alt: "One ingredient row marked Supported by a fact, naming fact F1 and showing that fact in full (an invented jewellery matter).",
+    alt: "One ingredient row from the same run on a public court order, marked No fact cited, with its What to check line.",
+    caption: GUIDE_CITED_FACT_CAPTION,
   },
   needsReview: {
     file: "04-needs-your-review.png",
@@ -50,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   memo: {
     file: "06-memo-export.png",
-    alt: `The three export buttons under the checklist: ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${EXPORT_LABELS.runRecord}.`,
+    alt: `The memo export group under the checklist, labelled "${EXPORT_GROUP_LABEL}", with ${EXPORT_LABELS.memo}, ${EXPORT_LABELS.print} and ${MEMO_DOCX_LABEL}, and the ${EXPORT_LABELS.runRecord} button beside it.`,
   },
 };
 

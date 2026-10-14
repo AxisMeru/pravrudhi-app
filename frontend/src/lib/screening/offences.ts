@@ -34,6 +34,26 @@ export const OFFENCES: readonly Offence[] = [
   { id: "dishonoured-cheque", title: "Dishonour of a cheque", bns: null, ipc: null, sections: "Negotiable Instruments Act s.138", contracts: ["ni138"], ipcChecked: null, notValidated: true },
 ];
 
+/**
+ * R1, 14 Oct (#134): the block title shown for a contract that is one of an offence's several ways of being made out. Never the contract id. A contract with no entry here
+ * shows only the offence name.
+ */
+export const CONTRACT_BLOCK_TITLES: Readonly<Record<string, string>> = {
+  ipc415_property: "Cheating · BNS 318 · IPC 415: by delivery of property",
+  ipc415_damaging_act: "Cheating · BNS 318 · IPC 415: by an act or omission causing damage or harm",
+};
+
+/** The title above a result block: the contract's own title when it has one, else the offence name, else the neutral "Offence" (never the contract id). */
+export function blockTitle(contractId: string): string {
+  return CONTRACT_BLOCK_TITLES[contractId] ?? offenceOf(contractId)?.title ?? "Offence";
+}
+
+/** True for the second (or later) way of an offence that has a block title of its own: it carries the alternate-limb note. */
+export function isAlternateLimb(contractId: string): boolean {
+  const o = offenceOf(contractId);
+  return !!o && !!CONTRACT_BLOCK_TITLES[contractId] && o.contracts.indexOf(contractId) > 0;
+}
+
 export function offenceOf(contractId: string): Offence | null {
   return OFFENCES.find((o) => o.contracts.includes(contractId)) ?? null;
 }
