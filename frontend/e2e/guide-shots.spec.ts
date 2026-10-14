@@ -109,4 +109,7 @@ test("02/03 the checklist and a row from a real example run (live engine)", asyn
   await hideFloaters(page);
   await checklist.screenshot({ path: "public/guide/02-ingredient-checklist.png" });
   await page.getByTestId("ingredient-row").first().screenshot({ path: "public/guide/03-cited-fact.png" });
+  // 04 from the same live run, when a row carries the Needs your review mark (skipped silently otherwise; keep the existing frame then).
+  const review = page.getByTestId("ingredient-row").filter({ hasText: "Needs your review" }).first();
+  if (await review.count()) await review.screenshot({ path: "public/guide/04-needs-your-review.png" });
 });
