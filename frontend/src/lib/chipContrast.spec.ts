@@ -12,20 +12,30 @@ const lum = (rgb: number[]) => 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0
 const ratio = (a: number[], b: number[]) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const mix = (fg: number[], bg: number[], pct: number) => fg.map((c, i) => c * pct + bg[i] * (1 - pct));
 
-// the first :root block is the dark theme; the second plain block with --color-bg #f7f6f2 is the light theme
-function theme(startMarker: RegExp): Record<string, string> {
-  const m = startMarker.exec(css)!;
-  const block = css.slice(m.index, css.indexOf("}", m.index));
-  const out: Record<string, string> = {};
-  for (const t of block.matchAll(/--color-([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)) out[t[1]] = t[2];
+// EVERY colour block of globals.css that defines the full token set is a theme (dark base, light, the "System" light under prefers-color-scheme, the high-contrast block): all of them are held to AA,
+// not just the first two (R2, 14 Oct). The dark and the light themes must also be distinct, so swapping a marker can never leave the test green by checking the same block twice.
+const NEED = ["bg", "surface", "text-dim", "ok", "warn", "info", "note", "danger"];
+function allThemes(): Record<string, Record<string, string>> {
+  const out: Record<string, Record<string, string>> = {};
+  let n = 0;
+  for (const m of css.matchAll(/\{([^{}]*)\}/g)) {
+    const t: Record<string, string> = {};
+    for (const x of m[1].matchAll(/--color-([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)) t[x[1]] = x[2];
+    if (NEED.every((k) => t[k])) out[`block${++n} (bg ${t.bg}, surface ${t.surface})`] = t;
+  }
   return out;
 }
-const THEMES: Record<string, Record<string, string>> = {
-  dark: theme(/--color-bg:\s*#0f1114/),
-  light: theme(/--color-bg:\s*#f7f6f2/),
-};
+const THEMES = allThemes();
 
-test("each status chip's text on its own derived fill meets AA in both themes", () => {
+test("globals.css defines at least the dark theme and a light theme, with different surfaces", () => {
+  const surfaces = new Set(Object.values(THEMES).map((t) => t.surface.toLowerCase()));
+  assert.ok(Object.keys(THEMES).length >= 3, `found ${Object.keys(THEMES).length} theme blocks`);
+  assert.ok(surfaces.size >= 2, "dark and light surfaces must differ");
+  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#0f1114"), "the dark theme block is present");
+  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#f7f6f2"), "the light theme block is present");
+});
+
+test("each status chip's text on its own derived fill meets AA in every theme block", () => {
   for (const [name, t] of Object.entries(THEMES)) {
     for (const tone of ["ok", "warn", "info", "note", "danger"]) {
       const text = hex(t[tone]);
