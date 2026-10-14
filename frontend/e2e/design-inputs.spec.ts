@@ -84,3 +84,14 @@ test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain
   await page.getByTestId("example-link-karnataka-cheating-2025").click();
   await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
 });
+
+// Studio (14 Oct): on a phone the floating "Shortcuts ?" pill covered page text; it is a keyboard help, so it shows from the md breakpoint up only (the ? key still opens the help).
+test("the Shortcuts pill is hidden on a phone and shown on a desktop", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  const pill = page.getByRole("button", { name: /Shortcuts/ });
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/screening");
+  await expect(pill).toBeHidden();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(pill).toBeVisible();
+});
