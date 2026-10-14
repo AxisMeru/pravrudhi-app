@@ -28,7 +28,7 @@ test("build.json: a valid 40-hex BUILD_SHA is written; BUILD_SHA wins over VERCE
   assert.equal(buildSha({ BUILD_SHA: SHA, VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }), SHA);
   assert.equal(buildSha({ VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }), "f".repeat(40));
   assert.equal(buildSha({ BUILD_SHA: "", VERCEL_GIT_COMMIT_SHA: "f".repeat(40) }), "f".repeat(40));
-  assert.deepEqual(JSON.parse(buildJson({ BUILD_SHA: SHA })), { sha: SHA }, "exactly one key: nothing else is written");
+  assert.deepEqual(Object.keys(JSON.parse(buildJson({ BUILD_SHA: SHA }))).sort(), ["flags", "sha"], "exactly two top-level keys: nothing else is written");
 });
 
 test("build.json: a missing or malformed sha is 'unknown', never anything else", async () => {
@@ -36,7 +36,7 @@ test("build.json: a missing or malformed sha is 'unknown', never anything else",
   for (const env of [{}, { BUILD_SHA: "" }, { BUILD_SHA: "abc" }, { BUILD_SHA: SHA.toUpperCase() }, { BUILD_SHA: SHA + "0" }, { BUILD_SHA: `${SHA}\n; echo` }, { BUILD_SHA: "main" }, { BUILD_SHA: "g".repeat(40) }]) {
     assert.equal(buildSha(env as Record<string, string>), "unknown", JSON.stringify(env));
   }
-  assert.deepEqual(JSON.parse(buildJson({})), { sha: "unknown" });
+  assert.equal(JSON.parse(buildJson({})).sha, "unknown");
 });
 
 test("build.json is wired as the prebuild step and the generated file is gitignored", () => {
@@ -44,4 +44,37 @@ test("build.json is wired as the prebuild step and the generated file is gitigno
   assert.equal(pkg.scripts.prebuild, "node scripts/write-build-json.mjs");
   const ignore = readFileSync(join(__dirname, "..", "..", "..", ".gitignore"), "utf8").split("\n").map((l) => l.trim());
   assert.ok(ignore.includes("frontend/public/build.json"), "public/build.json is generated, not committed");
+});
+
+// A2 (R2, gate v6): the flags the build used, as booleans, true only for the exact string "1".
+const FLAGS_ENV_NAMES = { a: "NEXT_PUBLIC_ASSISTANT_ENTRY", d: "NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED", i: "NEXT_PUBLIC_INTAKE", c: "NEXT_PUBLIC_CITATION_NAV" };
+const FLAGS_ENV = { NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1", NEXT_PUBLIC_INTAKE: "1", NEXT_PUBLIC_CITATION_NAV: "1" };
+
+test("build.json flags: all four set to '1' are all true; all unset are all false; exactly two top-level keys and exactly four flag keys", async () => {
+  const { buildJson } = await import("../../scripts/write-build-json.mjs");
+  const on = JSON.parse(buildJson({ BUILD_SHA: SHA, ...FLAGS_ENV }));
+  assert.deepEqual(on.flags, { assistant_entry: true, delete_confirmed: true, intake: true, citation_nav: true });
+  const off = JSON.parse(buildJson({ BUILD_SHA: SHA }));
+  assert.deepEqual(off.flags, { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false });
+  for (const j of [on, off]) {
+    assert.deepEqual(Object.keys(j).sort(), ["flags", "sha"]);
+    assert.deepEqual(Object.keys(j.flags).sort(), ["assistant_entry", "citation_nav", "delete_confirmed", "intake"]);
+    assert.ok(Object.values(j.flags).every((v) => typeof v === "boolean"));
+  }
+  assert.equal(on.sha, SHA, "the sha rule is unchanged");
+});
+
+test("build.json flags: only the exact string '1' is true ('true', '0', '', ' 1', '1 ', 'yes', 'TRUE' are false), each flag independently", async () => {
+  const { buildFlags } = await import("../../scripts/write-build-json.mjs");
+  for (const v of ["true", "0", "", " 1", "1 ", "yes", "TRUE", "on", "11", "1\n"]) {
+    for (const name of Object.values(FLAGS_ENV_NAMES)) assert.equal(Object.values(buildFlags({ [name]: v })).some(Boolean), false, `${name}=${JSON.stringify(v)}`);
+  }
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_INTAKE: "1" }), { assistant_entry: false, delete_confirmed: false, intake: true, citation_nav: false });
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "true" }), { assistant_entry: true, delete_confirmed: false, intake: false, citation_nav: false });
+});
+
+test("build.json carries no other env: unrelated variables, including secret-looking ones, never appear", async () => {
+  const { buildJson } = await import("../../scripts/write-build-json.mjs");
+  const out = buildJson({ BUILD_SHA: SHA, ...FLAGS_ENV, SUPABASE_SERVICE_KEY: "secret-value", NEXT_PUBLIC_SUPABASE_URL: "https://x.example", NEXT_PUBLIC_API_BASE: "https://api.example" });
+  assert.doesNotMatch(out, /secret-value|x\.example|api\.example|SUPABASE|API_BASE/);
 });
