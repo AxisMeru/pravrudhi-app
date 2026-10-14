@@ -16,6 +16,7 @@ import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
 import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
 import { agendaContractId } from "@/lib/screening/model";
+import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
@@ -185,8 +186,9 @@ export default function ScreeningPage() {
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
-          <textarea
+          <AutoGrowTextarea
             id="screening-paste"
+            maxRows={14}
             className="min-h-[100px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
@@ -234,7 +236,7 @@ export default function ScreeningPage() {
             {facts.map((f, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-2 w-8 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">F{i + 1}</span>
-                <textarea
+                <AutoGrowTextarea
                   aria-label={`Fact F${i + 1}`}
                   className="min-h-[44px] flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
                   value={f}
@@ -242,7 +244,7 @@ export default function ScreeningPage() {
                 />
                 <button
                   type="button"
-                  className="mt-1 text-xs text-[var(--color-text-dim)] underline"
+                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline"
                   aria-label={`Remove fact F${i + 1}`}
                   onClick={() => setFacts((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : [""]))}
                 >
