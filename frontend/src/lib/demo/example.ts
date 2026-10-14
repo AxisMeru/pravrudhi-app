@@ -20,9 +20,9 @@ export interface DemoExample {
   contracts: readonly string[];
 }
 
-/** R1's label for every real example (14 Oct): true for real material, never "invented". */
+/** R1's label for the Madras example (14 Oct): true for real material, never "invented"; it says the two placeholders. Each example carries its own label. */
 export const EXAMPLE_LABEL =
-  "A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. The output of this demo is illustrative, not evidence, and no measure is quoted from it.";
+  "A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.";
 
 // Shown when ?example=<id> names an example this app does not have.
 export const EXAMPLE_NOT_FOUND_TEXT = "That example is not available.";
@@ -51,7 +51,7 @@ export const EXAMPLES: readonly DemoExample[] = [
     label:
       "A public court order, example only. These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here. The output of this demo is illustrative, not evidence, and no measure is quoted from it.",
     citation: "High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773",
-    screeningLine: "Screened here for the cheating (IPC 415) ingredients.",
+    screeningLine: "Screened here for the ingredients of cheating (BNS 318 · IPC 415).",
     facts: [
       "The prosecution alleges that petitioner Nos. 1 and 2—accused Nos. 1 and 2—approached the de facto complainants and induced them to subscribe to the membership of accused No. 4 company, promising that upon investing money, they would receive gold coins. Believing these representations, the de facto complainants invested money in accused No. 4 company. Similarly, C.Ws. 11 to 15 also invested money and subscribed to the membership. Subsequently, when they approached the company requesting the issuance of gold coins or the return of their money, accused No. 4 failed to comply and instead closed the company.",
     ],

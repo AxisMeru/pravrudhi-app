@@ -134,7 +134,7 @@ test("a member who opens / lands on Screening", async ({ page }) => {
 test("the demo link loads the public-order example as numbered facts, R1's label and the order's citation, with its offences selected", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
   await page.goto("/screening?example=madras-public-order-2024");
-  await expect(page.getByTestId("example-banner")).toContainText("A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. The output of this demo is illustrative, not evidence, and no measure is quoted from it.");
+  await expect(page.getByTestId("example-banner")).toContainText("A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.");
   await expect(page.getByTestId("example-citation")).toHaveText("Madras High Court, order of 12 June 2024");
   await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl|invented/);
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
@@ -148,7 +148,7 @@ test("the Karnataka cheating example loads with R1's own label, the order's neut
   await page.goto("/screening?example=karnataka-cheating-2025");
   await expect(page.getByTestId("example-banner")).toContainText("These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here.");
   await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
-  await expect(page.getByTestId("example-screening-line")).toHaveText("Screened here for the cheating (IPC 415) ingredients.");
+  await expect(page.getByTestId("example-screening-line")).toHaveText("Screened here for the ingredients of cheating (BNS 318 · IPC 415).");
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/gold coins/);
   await expect(page.getByTestId("example-banner")).not.toContainText(/invented/i);
 });
