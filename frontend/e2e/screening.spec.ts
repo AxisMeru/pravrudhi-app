@@ -161,7 +161,7 @@ test("the not-validated offences are offered with the referral line, and a suppo
   // #128 D7: one row per offence: no second "Criminal breach of trust (BNS s.316)" row, and one not-validated note
   await expect(list).not.toContainText("Criminal breach of trust (BNS s.316)");
   await expect(page.getByTestId("not-validated-note")).toHaveCount(1);
-  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the screening refers the matter to a lawyer instead of giving a result.");
+  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the screening does not give a result; a lawyer decides.");
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(NI_FACT);
   await page.getByTestId("split-facts").click();
   await list.locator("label").filter({ hasText: "Dishonour of a cheque" }).click();

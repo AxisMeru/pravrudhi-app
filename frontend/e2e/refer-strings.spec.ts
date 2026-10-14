@@ -32,20 +32,20 @@ async function runWith(page: import("@playwright/test").Page, reason: string): P
   await expect(page.getByTestId("referred-heading")).toBeVisible({ timeout: 15_000 });
 }
 
-test("a referral shows the heading, then the signed sentence on its own", async ({ page }) => {
+test("a referral shows the heading, then the sentence on its own", async ({ page }) => {
   await runWith(page, "gate1_unavailable");
   await expect(page.getByTestId("referred-heading")).toHaveText("For a lawyer to review");
   await expect(page.getByTestId("referred-sentence")).toHaveText(
-    "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
+    "The check of the cited fact against the claim was unavailable, so we hand this ingredient back to you.",
   );
   await expect(page.getByTestId("referred-two-judges")).toHaveCount(0);
   await expect(page.getByText(/must decide this matter|should be reviewed by a lawyer/)).toHaveCount(0);
 });
 
-test("a two-judges reason carries the label beside the sentence, not inside it", async ({ page }) => {
+test("a second-check reason shows its sentence and no deployment label (R1, 14 Oct)", async ({ page }) => {
   await runWith(page, "second_judge_unavailable");
-  await expect(page.getByTestId("referred-sentence")).toHaveText("The second judge was unavailable, so we give a referral, not an answer.");
-  await expect(page.getByTestId("referred-two-judges")).toHaveText("(deployments that use two judges only)");
+  await expect(page.getByTestId("referred-sentence")).toHaveText("A second check was unavailable, so we hand this ingredient back to you.");
+  await expect(page.getByTestId("referred-two-judges")).toHaveCount(0);
 });
 
 test("a status that is not a verdict carries its signed explanation", async ({ page }) => {
