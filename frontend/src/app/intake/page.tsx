@@ -20,7 +20,7 @@ import {
   type IntakeView,
 } from "@/lib/intake";
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
-import { INTAKE_CAVEATS, INTAKE_DATA_LINE, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
+import { INTAKE_CAVEATS, INTAKE_DATA_LINE, INTAKE_LEFT_OUT_DIGITS, intakeLeftOut, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
 
 // Intake: paste text, get numbered facts tied to the words they came from and the citations found, choose up to 8 facts, and send them to Screening. The words are R1's
 // (lib/intake.ts, lib/factSelectionCopy.ts) or proposed in lib/intakeCopy.ts. Offered only when NEXT_PUBLIC_INTAKE=1; otherwise this route goes back to Workflows.
@@ -97,6 +97,12 @@ export default function IntakePage() {
                 router.push("/screening");
               }}
             />
+            {view.leftOut > 0 && (
+              <div className="space-y-1 text-sm text-[var(--color-text)]" data-testid="intake-left-out">
+                <p>{intakeLeftOut(view.leftOut)}</p>
+                {view.leftOutHasDigit && <p data-testid="intake-left-out-digits">{INTAKE_LEFT_OUT_DIGITS}</p>}
+              </div>
+            )}
             {(view.facts.some((f) => f.status === "raw_fallback") || view.duplicates > 0) && (
               <ul className="space-y-1 text-xs text-[var(--color-text-dim)]" data-testid="intake-fact-notes">
                 {view.facts.map((f, i) => f.status === "raw_fallback" && <li key={f.id}>F{i + 1}: {INTAKE_RAW_FALLBACK}</li>)}

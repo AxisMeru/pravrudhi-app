@@ -77,3 +77,25 @@ test("a bundle whose cleaning failed its checks (clean_status served_raw) is rea
   assert.equal(parseIntake(BUNDLE)!.cleanStatus, "cleaned");
   assert.equal(I.INTAKE_SERVED_RAW, "We could not clean this text safely, so your original text is shown.");
 });
+
+import * as FC from "./factSelectionCopy";
+test("what intake left out: counted from the excluded spans, with the digit test computed from the cleaned text; both arms", () => {
+  const cleaned = "HEADING OF THE ORDER\nThe buyer paid a sum.\nPage 7";
+  const mk = (nc: object[]) => ({ ...BUNDLE, bundle: { ...BUNDLE.bundle, cleaned, not_citable: nc } });
+  const none = parseIntake(mk([]))!;
+  assert.equal(none.leftOut, 0);
+  assert.equal(none.leftOutHasDigit, false);
+  const noDigit = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 20 }]))!;
+  assert.equal(noDigit.leftOut, 1);
+  assert.equal(noDigit.leftOutHasDigit, false);
+  const withDigit = parseIntake(mk([{ status: "caption", cleaned_start: 0, cleaned_end: 20 }, { status: "repeated_line", cleaned_start: 44, cleaned_end: 50 }, { status: "no_words", cleaned_start: 44, cleaned_end: 45 }, { status: "duplicate" }, { status: "paraphrase" }]))!;
+  assert.equal(withDigit.leftOut, 3);
+  assert.equal(withDigit.leftOutHasDigit, true);
+});
+
+test("R1's left-out and renumbering sentences, exactly", () => {
+  assert.equal(C.intakeLeftOut(3), "3 lines were left out: the heading, repeated lines or lines with no words.");
+  assert.equal(C.intakeLeftOut(1), "1 line was left out: the heading, repeated lines or lines with no words.");
+  assert.equal(C.INTAKE_LEFT_OUT_DIGITS, "Some of the lines left out contain numbers. They are still in your text; check that nothing you need was dropped.");
+  assert.equal(FC.SELECTOR_RENUMBER, "Screening numbers the facts you choose again, from F1.");
+});

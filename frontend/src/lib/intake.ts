@@ -11,6 +11,9 @@ export interface IntakeView {
   /** How many candidates were not facts (duplicates are noted; paraphrases are never shown as facts). */
   duplicates: number;
   citations: IntakeCitation[];
+  /** Lines intake left out of the facts (#437: the heading/caption, repeated page lines, lines with no words): how many, and whether any of them contains a digit. */
+  leftOut: number;
+  leftOutHasDigit: boolean;
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -31,7 +34,18 @@ export function parseIntake(raw: unknown): IntakeView | null {
     citations.push({ text: c.text, verifierStatus: typeof c.verifier_status === "string" ? c.verifier_status : "NOT_CHECKED", factIds: Array.isArray(c.fact_ids) ? c.fact_ids.filter((x): x is string => typeof x === "string") : [] });
   }
   const dups = Array.isArray(b.not_citable) ? b.not_citable.filter((n) => isObj(n) && n.status === "duplicate").length : 0;
-  return { runId: raw.run_id, cleanStatus: b.clean_status === "served_raw" ? "served_raw" : "cleaned", facts, duplicates: dups, citations };
+  // #437 reports what it left out as not_citable entries with status caption / repeated_line / no_words and the cleaned-text span; the digit test is computed here from that span.
+  const cleaned = typeof b.cleaned === "string" ? b.cleaned : "";
+  let leftOut = 0;
+  let leftOutHasDigit = false;
+  if (Array.isArray(b.not_citable)) {
+    for (const n of b.not_citable) {
+      if (!isObj(n) || !(n.status === "caption" || n.status === "repeated_line" || n.status === "no_words")) continue;
+      leftOut++;
+      if (typeof n.cleaned_start === "number" && typeof n.cleaned_end === "number" && /\d/.test(cleaned.slice(n.cleaned_start, n.cleaned_end))) leftOutHasDigit = true;
+    }
+  }
+  return { runId: raw.run_id, cleanStatus: b.clean_status === "served_raw" ? "served_raw" : "cleaned", facts, duplicates: dups, citations, leftOut, leftOutHasDigit };
 }
 
 // ---- R1's plain sentences (14 Oct, exact) ----

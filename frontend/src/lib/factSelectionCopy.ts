@@ -8,3 +8,6 @@ export const SELECTOR_OVER_LIMIT = "Choose up to 8, or screen in more than one r
 export const selectorCounter = (n: number): string => `${n} of 8 chosen`;
 export const SELECTOR_EMPTY = "Choose at least one fact to screen.";
 export const SELECTOR_SCREEN_BUTTON = "Screen the chosen facts";
+
+// R1 (14 Oct, exact): one sentence under the selector; the hand-off passes the texts, so Screening numbers them again.
+export const SELECTOR_RENUMBER = "Screening numbers the facts you choose again, from F1.";

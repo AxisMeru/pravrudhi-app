@@ -17,3 +17,9 @@ export const INTAKE_CAVEATS: readonly string[] = [INTAKE_CAVEAT_HEADING, INTAKE_
 // R1 (14 Oct, exact): the plain-route data line beside the paste box, above the caveats and below the label. No consent line on this page; never "not stored".
 export const INTAKE_DATA_LINE =
   "The text you paste is read by the engine only; no model reads it on this page. The facts you choose are sent on to Screening, where models read them.";
+
+// R1 (14 Oct, exact): what intake left out, shown under the list whenever n > 0; the second line when any left-out line contains a digit. (One line left out reads "1 line was left out",
+// the same fixed sentence in the singular: flagged to R1.)
+export const intakeLeftOut = (n: number): string =>
+  n === 1 ? "1 line was left out: the heading, repeated lines or lines with no words." : `${n} lines were left out: the heading, repeated lines or lines with no words.`;
+export const INTAKE_LEFT_OUT_DIGITS = "Some of the lines left out contain numbers. They are still in your text; check that nothing you need was dropped.";

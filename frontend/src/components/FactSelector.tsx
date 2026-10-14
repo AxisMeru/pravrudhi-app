@@ -9,6 +9,7 @@ import {
   SELECTOR_HEADING,
   SELECTOR_INTRO,
   SELECTOR_OVER_LIMIT,
+  SELECTOR_RENUMBER,
   SELECTOR_SCREEN_BUTTON,
   SELECTOR_TICK_LINE,
   selectorCounter,
@@ -76,6 +77,7 @@ export function FactSelector({
           {SELECTOR_SCREEN_BUTTON}
         </button>
       </div>
+      <p className="text-xs text-[var(--color-text-dim)]" data-testid="selector-renumber">{SELECTOR_RENUMBER}</p>
       {refused && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="selector-over-limit">{SELECTOR_OVER_LIMIT}</p>}
       {triedEmpty && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="selector-empty">{SELECTOR_EMPTY}</p>}
     </section>
