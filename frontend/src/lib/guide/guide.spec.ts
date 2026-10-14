@@ -42,7 +42,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
   assert.equal(GUIDE_COLD_START, "The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
-  assert.equal(GUIDE_STEPS.find((s) => s.id === "run")!.text, "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and tries once more. You can cancel at any point.");
+  assert.equal(GUIDE_STEPS.find((s) => s.id === "run")!.text, "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and, for a screening without the assistant, tries once more. You can cancel at any point.");
 });
 
 test("the warm-up note on Screening and Matters is figure-free and the same sentence in both pages (R2, 12 Oct)", async () => {

@@ -91,7 +91,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "run",
     heading: "2. Screen the facts",
-    text: "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and tries once more. You can cancel at any point.",
+    text: "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and, for a screening without the assistant, tries once more. You can cancel at any point.",
   },
   {
     id: "checklist",

@@ -18,7 +18,7 @@
 // and referReason.spec.ts holds this list equal to it.)
 //
 // R1 (14 Oct): the app words below differ on purpose from the engine's table for the reasons in APP_FORM (reasonStringsDrift.spec.ts); the rest are the signed sentence from the partner string table (the engine's docs/api/reason-codes.md) WORD FOR WORD: no
-// lead-in, no lower-cased fragment, no paraphrase. The page and the memo show the heading "Referred to a lawyer" and then the
+// lead-in, no lower-cased fragment, no paraphrase. The page and the memo show the heading "For a lawyer to review" and then the
 // sentence on its own. reasonStringsDrift.spec.ts compares every sentence with the signed table (fixtures/reasonCodesTable.json).
 export const REFER_REASONS = [
   "denial_unquotable",
@@ -108,7 +108,7 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
 
 // `reason` is typed `string` because that is what AnalyseFactsContract carries off the wire -- the engine is
 // a separate release train and may send a reason this build predates. An unrecognised reason is shown as R1's generic
-// sentence (14 Oct), with no raw code inside it; no result screen shows the raw code (the memo keeps its labelled engine-code line).
+// sentence (14 Oct), with no raw code inside it; no result screen shows the raw code of a KNOWN reason; an unknown reason on the screening result shows "Reason code: <code>" (R1's sanctioned fallback, IngredientChecklist) and the memos keep their labelled engine-code line.
 export function referReasonPresentation(reason: string | null | undefined): ReferReasonPresentation {
   const raw = (reason ?? "").trim();
   if (!isReferReason(raw)) {
