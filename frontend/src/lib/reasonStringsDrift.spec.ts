@@ -74,6 +74,7 @@ const APP_FORM: Readonly<Record<string, string>> = {
   missing_element: "The screening did not find a cited fact for at least one required ingredient.",
   no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
   second_judge_unavailable: "The second check was unavailable, so we give a referral, not an answer.",
+  assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
   judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
 };
 
