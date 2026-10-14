@@ -99,3 +99,17 @@ test("R1's left-out and renumbering sentences, exactly", () => {
   assert.equal(C.INTAKE_LEFT_OUT_DIGITS, "Some of the lines left out contain numbers. They are still in your text; check that nothing you need was dropped.");
   assert.equal(FC.SELECTOR_RENUMBER, "Screening numbers the facts you choose again, from F1.");
 });
+
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+test("the response shape of #437's FINAL head (1814549e) is read as the app expects: left-out spans from not_citable, digit test from the cleaned text", () => {
+  const fx = JSON.parse(readFileSync(join(__dirname, "fixtures", "intakeBundle1814549.json"), "utf8")) as Record<string, unknown>;
+  const withDigits = parseIntake(fx.with_digits)!;
+  assert.equal(withDigits.facts.length, 4);
+  assert.equal(withDigits.leftOut, 4); // the header (caption) and three repeated page lines
+  assert.equal(withDigits.leftOutHasDigit, true);
+  const noDigits = parseIntake(fx.no_digits)!;
+  assert.equal(noDigits.facts.length, 4);
+  assert.equal(noDigits.leftOut, 1); // the header only
+  assert.equal(noDigits.leftOutHasDigit, false);
+});
