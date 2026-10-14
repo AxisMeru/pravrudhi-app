@@ -63,11 +63,23 @@ test("the signed table is the one expected: counts, and a header that names its 
   assert.match(GAP.source, /[0-9a-f]{64}/);
 });
 
-test("every REFER reason's message is the signed sentence, verbatim", () => {
+// R1, 14 Oct: the member-facing app form of these eight reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
+const APP_FORM: Readonly<Record<string, string>> = {
+  uncertain: "The screening is not sure whether a condition holds. Please have a lawyer look.",
+  uncertain_second_judge: "The second check is not sure whether a condition holds. Please have a lawyer look.",
+  denial_unquotable: "The screening thinks a fact that may defeat the claim exists but could not cite it in a way we can check. Please have a lawyer look.",
+  second_judge_defeater_disagreement: "The two checks disagree on whether a fact that may defeat the claim exists. Please have a lawyer look.",
+  all_elements_established: "The screening found a cited fact for every ingredient this provision requires.",
+  denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
+  missing_element: "The screening did not find a cited fact for at least one required ingredient.",
+  no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
+};
+
+test("every REFER reason's message is the signed sentence verbatim, or R1's app form where APP_FORM names it", () => {
   for (const r of REFER_REASONS) {
     const signed = TABLE.reasons[r];
     assert.ok(signed, `${r} is not in the signed table`);
-    assert.equal(norm(referReasonPresentation(r).message), norm(signed.text), r);
+    assert.equal(norm(referReasonPresentation(r).message), norm(APP_FORM[r] ?? signed.text), r);
     assert.equal(REFER_REASON_TEXT[r].twoJudgesOnly, signed.twoJudgesOnly, `${r}: the two-judges label`);
   }
 });
@@ -81,7 +93,7 @@ test("every other reason's text and every quote check's text is the signed sente
   for (const [code, signed] of Object.entries(TABLE.reasons)) {
     if ((REFER_REASONS as readonly string[]).includes(code)) continue;
     const drop = WITHOUT_API_FIELD[code];
-    const expected = drop ? signed.text.replace(drop, "") : signed.text;
+    const expected = APP_FORM[code] ?? (drop ? signed.text.replace(drop, "") : signed.text);
     if (drop) assert.ok(signed.text.includes(drop), `${code}: the engine row no longer carries the pointer; remove this exception`);
     assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(expected), code);
     if (drop) assert.doesNotMatch(NON_REFER_REASON_TEXT[code] ?? "", /citation_note|`/, `${code}: an API field name reached a member-facing sentence`);
