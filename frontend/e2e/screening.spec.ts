@@ -99,7 +99,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
 
 test("the Word memo downloads and carries the same text as the .md memo (#830 DOCX)", async ({ page }) => {
   await run(page);
-  const [mdDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
+  const [mdDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   const md = readFileSync((await mdDl.path()) as string, "utf8");
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("memo-docx").click()]);
   expect(dl.suggestedFilename()).toBe("screening-memo-r-invented-screen.docx");
@@ -117,7 +117,7 @@ test("the Word memo downloads and carries the same text as the .md memo (#830 DO
 
 test("the memo and the run record download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {
   await run(page);
-  const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
+  const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   const memo = readFileSync((await memoDl.path()) as string, "utf8");
   expect(memo).toContain("# Screening memo");
   expect(memo).toContain("1 of 3 ingredients supported by a fact · 1 to look for · 1 for your review");
