@@ -12,17 +12,15 @@ export const CAVEATS: readonly { id: string; text: string }[] = [
   {
     id: "stack",
     text:
-      "Each contract is handled by two judge models and a Lean check: the judge models read your facts and cite the " +
-      "facts they rely on, and the Lean check confirms the right elements were addressed. The Lean check does not read " +
-      "your facts.",
+      "Each offence is screened ingredient by ingredient: models read your facts and cite the facts they rely on, and a " +
+      "separate structure check confirms the right ingredients were covered. The structure check does not read your facts.",
   },
   {
     id: "validated",
     text:
-      "\"Validated\" means the contract is on the engine registry's list of validated contracts. A contract that is not on " +
-      "that list may refer to a lawyer or abstain, so verify; it is marked \"not validated, verify\". The mark is read from the " +
-      "registry when this page loads; if the registry cannot be read, every contract is marked \"validation status " +
-      "unavailable, verify\".",
+      "Offences marked \u201cvalidated\u201d are on our validated list. An offence not on that list is marked \u201cnot validated, verify\u201d: " +
+      "the screening may refer it to a lawyer or decline to give a result, so check it yourself. The marks are read when the page loads; " +
+      "if the list cannot be read, every offence is marked \u201cvalidation status unavailable, verify\u201d.",
   },
   { id: "statute", text: STATUTE_NOTICE },
 ];

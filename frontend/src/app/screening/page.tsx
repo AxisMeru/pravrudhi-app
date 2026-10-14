@@ -11,8 +11,8 @@ import { CaveatStrip } from "@/components/CaveatStrip";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
-import { FrontierToggle } from "@/components/screening/FrontierToggle";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
+import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
 import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
@@ -51,7 +51,6 @@ export default function ScreeningPage() {
   const [contractsTry, setContractsTry] = useState(0);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const [frontier, setFrontier] = useState(false);
   const assistant = useAssistantState();
   const signedIn = useSignedIn();
   const assistantProvider = useAssistantProvider(assistant);
@@ -303,7 +302,11 @@ export default function ScreeningPage() {
             )}
           </fieldset>
 
-          <FrontierToggle value={frontier} onChange={setFrontier} available={null} paused={assistant === "paused"} />
+          {pausedTreatment(assistant, ASSISTANT_ENTRY_ENABLED).line && (
+            <p className="text-xs text-[var(--color-text-dim)]" data-testid="assistant-paused">
+              {ASSISTANT_PAUSED_TEXT}
+            </p>
+          )}
 
           {ASSISTANT_ENTRY_ENABLED && <AssistantRun
             state={assistant}

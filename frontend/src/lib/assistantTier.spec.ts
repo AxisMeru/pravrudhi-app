@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { ASSISTANT_PAUSED_TEXT, PAUSED_REASONS, assistantStateOf, isGreyed, readAssistantState } from "./assistantTier";
+import { ASSISTANT_PAUSED_TEXT, PAUSED_REASONS, assistantStateOf, isGreyed, pausedTreatment, readAssistantState } from "./assistantTier";
 import { frontierToggleState } from "./frontierReader";
 
 const tier = (state: unknown, reason?: unknown) => ({ ok: true, assistant_tier: { state, reason } });
@@ -54,4 +54,12 @@ test("a paused tier greys the frontier toggle and never leaves it checked; any o
 
 test("the paused reasons are matched exactly: a near miss is not paused", () => {
   for (const reason of ["quota_x", "upstream_errors", "upstream_error_x", "xquota", "budget_floor ", " quota", "budget", "Budget_Floor"]) assert.equal(assistantStateOf(tier("unavailable", reason)), "not_configured", reason);
+});
+
+test("R1 14 Oct: the paused line and the row greying apply ONLY with the entry flag on: flag off shows neither, whatever the tier says (both arms)", () => {
+  for (const st of ["available", "paused", "not_configured", "unreachable"] as const) assert.deepEqual(pausedTreatment(st, false), { line: false, grey: false }, `flag off, ${st}`);
+  assert.deepEqual(pausedTreatment("paused", true), { line: true, grey: true });
+  assert.deepEqual(pausedTreatment("unreachable", true), { line: false, grey: true }, "unreachable greys with no line");
+  assert.deepEqual(pausedTreatment("available", true), { line: false, grey: false });
+  assert.deepEqual(pausedTreatment("not_configured", true), { line: false, grey: false });
 });

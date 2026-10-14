@@ -3,13 +3,13 @@
 import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
 import { WORKFLOWS, WORKFLOWS_CLOSING } from "@/lib/workflowsCopy";
 import { useAssistantState } from "@/components/useAssistantTier";
-import { isGreyed } from "@/lib/assistantTier";
+import { pausedTreatment } from "@/lib/assistantTier";
+import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
 
-/** The assistant workflow (the first row) is greyed when the tier is PAUSED (configured but refused or over budget) or the health read did not answer; the one paused line shows only when PAUSED. Available and not-configured leave the page as it was. */
+/** The assistant workflow (the first row) is greyed when the tier is PAUSED (configured but refused or over budget) or the health read did not answer; the one paused line shows only when PAUSED. Available and not-configured leave the page as it was. All of it only when the assistant is offered (the entry flag): otherwise the row keeps just its note and chip. */
 export function WorkflowRows() {
   const state = useAssistantState();
-  const paused = state === "paused";
-  const anyGreyed = isGreyed(state);
+  const { line: paused, grey: anyGreyed } = pausedTreatment(state, ASSISTANT_ENTRY_ENABLED);
   return (
     <>
       {paused && (
