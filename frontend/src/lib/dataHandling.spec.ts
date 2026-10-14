@@ -8,7 +8,7 @@ import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { canSeeNotifications } from "./runsAccess";
-import { WORKFLOWS, WORKFLOWS_CLOSING } from "./workflowsCopy";
+import { SCREENING_ASSISTANT_LIVE_NOTE, WORKFLOWS, WORKFLOWS_CLOSING, workflowRows } from "./workflowsCopy";
 
 const ROUTE_A = dataHandlingSections(false, false); // the page without the assistant: the shipped default, whatever the build flag is
 const text = (id: string) => ROUTE_A.find((s) => s.id === id)!.paragraphs.join(" ");
@@ -44,7 +44,7 @@ test("the sentences new to this page carry no banned word (the citation check's 
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
   assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Building"], ["Memo preparation", "Built"], ["Hearing preparation", "Building"]]);
-  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is being built. It will run the same screening steps and show you the steps it took. You see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
+  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
   // R1's exact notes (14 Oct): paste-only intake, memo built by fixed rules, hearing checklist; no row says Planned and the removed row is gone
   assert.equal(WORKFLOWS[1].note, "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only.");
   assert.equal(WORKFLOWS[2].note, "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx).");
@@ -204,4 +204,21 @@ test("R1's fallback-processing sentence is in 'Where it is processed' in every s
     if (assist) assert.equal(where.at(-1), DH_WHERE_ASSIST, "the assistant sentence stays last");
     assert.ok(where.indexOf(DH_WHERE_FALLBACK) === 1, "second paragraph, after the processing paragraph");
   }
+});
+
+// R1, 14 Oct: the Workflows rows follow the build's flags; four arms.
+test("workflowRows: Screening orchestration and Intake read Built only when their flag is on; the other two rows never change", () => {
+  const status = (a: boolean, i: boolean) => workflowRows({ assistantOn: a, intakeOn: i }).map((w) => w.status);
+  assert.deepEqual(status(false, false), ["Building", "Building", "Built", "Building"]);
+  assert.deepEqual(status(true, false), ["Built", "Building", "Built", "Building"]);
+  assert.deepEqual(status(false, true), ["Building", "Built", "Built", "Building"]);
+  assert.deepEqual(status(true, true), ["Built", "Built", "Built", "Building"]);
+  const on = workflowRows({ assistantOn: true, intakeOn: false });
+  assert.equal(on[0].note, "An optional step-by-step screening assistant, offered to signed-in users, with a consent box you tick for each run. You see the engine's own decision result, never the assistant's wording of it.");
+  assert.equal(on[0].note, SCREENING_ASSISTANT_LIVE_NOTE);
+  assert.doesNotMatch(on[0].note ?? "", /not yet offered|being built/i);
+  assert.match(workflowRows({ assistantOn: false, intakeOn: false })[0].note ?? "", /Not yet offered in the product\.$/);
+  // the signed Intake note is the same on and off; the names and the order never change
+  assert.equal(workflowRows({ assistantOn: false, intakeOn: true })[1].note, workflowRows({ assistantOn: false, intakeOn: false })[1].note);
+  assert.deepEqual(workflowRows({ assistantOn: true, intakeOn: true }).map((w) => w.name), ["Screening orchestration", "Intake", "Memo preparation", "Hearing preparation"]);
 });
