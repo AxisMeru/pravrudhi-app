@@ -61,7 +61,7 @@ test("the checklist: a chip and plain reason per ingredient, the cited fact in f
   await expect(rows.nth(1).getByTestId("ingredient-chip")).toHaveText("Needs your review");
   await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("Not supported by these facts");
   await expect(rows.nth(1).getByTestId("ingredient-reason")).toContainText("did not reach the level we require");
-  await expect(rows.nth(0).getByTestId("cited-fact-note")).toHaveText("cites your fact F1 in full (the judge names the fact; it does not quote words)");
+  await expect(rows.nth(0).getByTestId("cited-fact-note")).toHaveText("cites your fact F1 in full (the screening names the fact; it does not quote words)");
   await expect(rows.nth(0).getByTestId("cited-fact-text")).toContainText(F1);
   await expect(rows.nth(0).getByTestId("what-to-check")).toContainText("Check what the facts say was said or concealed");
   await expect(page.getByTestId("summary-text")).toHaveText("1 of 3 ingredients supported by a fact · 1 needs your review · 1 not supported by these facts");
@@ -93,6 +93,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   await run(page, ref);
   await expect(page.getByTestId("contract-review")).toContainText("not on the validated list");
   await expect(page.getByTestId("contract-review")).not.toHaveClass(/red/);
+  await expect(page.getByTestId("contract-review-code")).toHaveCount(0); // a known reason shows only its sentence (R1, 14 Oct)
   await expect(page.getByTestId("summary-text")).not.toHaveText("All ingredients supported (structure checked)");
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
@@ -181,8 +182,8 @@ test("while a first run warms up, the page says so without a timing figure, coun
   await page.getByTestId("split-facts").click();
   await page.getByText("Cheating", { exact: false }).first().click();
   await page.getByRole("button", { name: "Screen these facts" }).click();
-  const note = page.getByText(/^Warming up the judge and Lean checker/);
-  await expect(note).toContainText("a first run after idle can take a few minutes while the judges start.");
+  const note = page.getByText(/^Warming up the screening and Lean checker/);
+  await expect(note).toContainText("a first run after idle can take a few minutes while the models start.");
   await expect(note).not.toContainText(/\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/);
   await expect(note).toContainText("elapsed");
   await expect(page.getByTestId("screening-cancel")).toBeVisible();

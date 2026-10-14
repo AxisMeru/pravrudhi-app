@@ -98,7 +98,7 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
   await page.getByRole("button", { name: "Analyse" }).click();
   const notes = page.getByTestId("cited-fact-note");
   await expect(notes.nth(0)).toHaveText("— INVENTED ENGINE SENTENCE");
-  await expect(notes.nth(1)).toHaveText("— cites your fact f2 in full (the judge names the fact; it does not quote words)");
+  await expect(notes.nth(1)).toHaveText("— cites your fact f2 in full (the screening names the fact; it does not quote words)");
   // #82 shows the cited fact itself (data-driven from the facts), not a quote the facts do not contain
   await expect(page.getByTestId("cited-fact").first()).toContainText(FACT);
   await expect(page.getByText("INVENTED WHOLE FACT")).toHaveCount(0);

@@ -31,7 +31,7 @@ export const CAPABILITY_DESCRIPTION =
 export const ELEMENT_APPLICATION_STATUS =
   "The registry checker is live for all 14 BNS/IPC contracts. On the Element audit tab, the per-element " +
   "Met/Not-Met judgment is supplied by the person using it, not derived automatically from the model's " +
-  "own reasoning. Trained element judges exist but are not served on this surface yet.";
+  "own reasoning. Trained element models exist but are not served on this surface yet.";
 
 /** One contract this workspace's compiled Lean binary knows how to check, per `nyaya_lean.KNOWN_CONTRACT_IDS`
  * (src/pravrudhi/application/nyaya_lean.py). Kept in sync by hand — there is no listing endpoint yet, and the

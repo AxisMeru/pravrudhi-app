@@ -22,8 +22,8 @@ test("the engine's citation_note is used when it is there; without it the page m
   assert.equal(citationNote({ ...model, citation_note: "" }), NEUTRAL_NOTE);
   assert.equal(citationNote(model), NEUTRAL_NOTE);
   assert.equal(citationNote({ ...model, quote_check: "quote_not_found" }), NEUTRAL_NOTE);
-  assert.equal(citationNote(whole), "cites your fact f2 in full (the judge names the fact; it does not quote words)");
-  assert.equal(citationNote({ ...whole, fact_id: null }), "cites your fact in full (the judge names the fact; it does not quote words)");
+  assert.equal(citationNote(whole), "cites your fact f2 in full (the screening names the fact; it does not quote words)");
+  assert.equal(citationNote({ ...whole, fact_id: null }), "cites your fact in full (the screening names the fact; it does not quote words)");
   assert.equal(citationNote({ quote: "x", quote_source: "something_new" }), null);
   assert.ok(!/word-for-word|verbatim/i.test(NEUTRAL_NOTE));
 });
@@ -35,7 +35,7 @@ test("the memo says Supporting quote only for model quotes, and Cited fact other
   assert.equal(memoCitationHeader([{ quote: null }]), "Cited fact");
   assert.equal(memoCitationCell(model), '"an invented sentence" (f1) (cites the supporting fact)');
   assert.equal(memoCitationCell({ ...model, citation_note: "engine sentence" }), '"an invented sentence" (f1) (engine sentence)');
-  assert.equal(memoCitationCell(whole), "cites your fact f2 in full (the judge names the fact; it does not quote words)");
+  assert.equal(memoCitationCell(whole), "cites your fact f2 in full (the screening names the fact; it does not quote words)");
   assert.equal(memoCitationCell({ quote: null }), "no cited fact");
 });
 

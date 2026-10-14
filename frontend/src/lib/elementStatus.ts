@@ -124,7 +124,7 @@ export function elementStatusPresentation(
     case "not_evaluated_second_unavailable":
       return {
         status: raw,
-        label: "not evaluated — second judge unavailable",
+        label: "not evaluated — second check unavailable",
         tone: "text-[var(--color-info)] border-[var(--color-info-border)] bg-[var(--color-info-bg)]",
         verdict: null,
         explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_second_unavailable,

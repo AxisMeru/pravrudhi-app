@@ -242,3 +242,12 @@ test("R1 (13 Oct, #115): the summary names every state in the row vocabulary, in
     assert.equal(s.supported + s.suggested + s.review + s.notSupported, s.total, s.text);
   }
 });
+
+// R1, 14 Oct: a known referral reason shows only the mapped sentence on the screening result; an unknown one keeps its code, labelled.
+test("contractReferral: the code is shown only for a reason this build does not know", () => {
+  const known = contractReferral(contract([el(0)], { outcome: "REFER_TO_LAWYER", reason: "uncertain" }));
+  assert.equal(known?.unknown, false);
+  const unknown = contractReferral(contract([el(0)], { outcome: "REFER_TO_LAWYER", reason: "a_reason_from_a_newer_engine" }));
+  assert.equal(unknown?.unknown, true);
+  assert.equal(unknown?.code, "a_reason_from_a_newer_engine");
+});

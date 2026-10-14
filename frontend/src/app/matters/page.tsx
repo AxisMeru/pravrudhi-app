@@ -149,7 +149,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
-          No judge has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers
+          No screening model has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers
           instead. That is not a failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
         </p>
       </article>
@@ -173,16 +173,14 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       {c.outcome === "REFER_TO_LAWYER" && (() => {
         // R1's finding (2026-09-27): every REFER_TO_LAWYER used to show this same "not confident" sentence,
         // even for reasons that are not uncertainty at all (second_judge_unavailable, contract_not_validated,
-        // ...). referReasonPresentation names the actual situation; the raw reason code is always shown too,
-        // never hidden or reinterpreted, so a reader (or a reviewer) can always see exactly what the engine
-        // said even if this build's wording is wrong or stale.
+        // ...). referReasonPresentation names the actual situation; an unknown reason keeps its code in the
+        // sentence (R1, 14 Oct: a known reason shows only the mapped sentence, the memo keeps the labelled code line).
         const referred = referReasonPresentation(c.reason);
         return (
           <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]">
             <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
             <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
             {referred.twoJudgesOnly && <p className="mt-1 text-[11px] text-[var(--color-warn)]" data-testid="referred-two-judges">{TWO_JUDGES_ONLY_LABEL}</p>}
-            <p className="mt-1 text-xs text-[var(--color-warn)]">reason: {c.reason}</p>
           </div>
         );
       })()}
@@ -222,7 +220,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           </div>
           <div className="mt-1 text-[var(--color-text-dim)]">
             Lean checks that the right elements for this contract were addressed — it does not read the facts
-            or the cited facts. The element findings above come from the judge, which cites the supporting fact
+            or the cited facts. The element findings above come from the screening, which cites the supporting fact
             from the facts you supplied.
           </div>
           {!referenceOf(c.contract_id) && c.lean.denied_claims.length > 0 && <div className="mt-1 text-[var(--color-text-dim)]">denied: {c.lean.denied_claims.join(", ")}</div>}
@@ -246,8 +244,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
 
       {!isUncovered(c) && c.outcome !== "REFER_TO_LAWYER" && c.reason && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="reason-text">
-          {nonReferReasonText(c.reason) ?? "The engine gave a reason this app does not recognise yet."}{" "}
-          <span className="text-[11px]">(reason: {c.reason})</span>
+          {nonReferReasonText(c.reason) ?? `The engine gave a reason this app does not recognise yet. Reason code: ${c.reason}`}
         </p>
       )}
     </article>
@@ -398,7 +395,7 @@ export default function MattersPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={NAV_LABELS.matters} subtitle="Element-by-element reading of a matter's facts: each condition a judge finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
+      <PageHeader title={NAV_LABELS.matters} subtitle="Element-by-element reading of a matter's facts: each condition the screening finds supported cites the supporting fact from your facts, and anything uncertain is referred to a lawyer." />
       <div className="flex flex-1 flex-col gap-6 p-8">
         {exampleActive && (
           <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
@@ -451,7 +448,7 @@ export default function MattersPage() {
             }}
           />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="matters-narrative">
-            Narrative <span className="font-normal text-[var(--color-text-dim)]">(optional, but the judge does better with one)</span>
+            Narrative <span className="font-normal text-[var(--color-text-dim)]">(optional, but the screening does better with one)</span>
           </label>
           <textarea
             id="matters-narrative"

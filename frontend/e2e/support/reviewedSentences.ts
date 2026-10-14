@@ -58,7 +58,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
     sentences: [
       "// A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/ // 318/217/80/108, bnss187, ni138 among them).",
       "no_training_statute_text",
-      "> No judge has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers instead.",
+      "> No screening model has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers instead.",
       "Ask about a different matter, or check back once this contract is trained.",
     ],
   },
@@ -126,7 +126,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "not_evaluated_second_unavailable",
       "not_evaluated_gate1_unavailable",
       "// `status` is typed `string` because that is what AnalyseFactsElement carries off the wire — the engine is a // separate release train and may send a status this build predates.",
-      "not evaluated — second judge unavailable",
+      "not evaluated — second check unavailable",
       ", verdict: null, explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_second_unavailable, unknown: false,",
       ": // Operator decision, 2026-09-26: its own status and its own presentation, visibly different from BOTH // not_established and not_evaluated_second_unavailable.",
       "not evaluated",
@@ -165,7 +165,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
   "src/lib/nyayaLean.ts": {
     reason: "says trained element judges are not served on this surface; about model availability",
     sentences: [
-      "Trained element judges exist but are not served on this surface yet.",
+      "Trained element models exist but are not served on this surface yet.",
     ],
   },
   "src/lib/palette.ts": {

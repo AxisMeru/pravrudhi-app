@@ -38,7 +38,7 @@ test("nyayaLean: states what's actually true today -- registry checker live, jud
   // The Element audit tab's Met/Not-Met judgment is the PERSON's, not the model's -- must not be
   // overstated as automatic.
   assert.match(ELEMENT_APPLICATION_STATUS, /person|user/i);
-  assert.match(ELEMENT_APPLICATION_STATUS, /trained element judges/i);
+  assert.match(ELEMENT_APPLICATION_STATUS, /trained element models/i);
   assert.match(ELEMENT_APPLICATION_STATUS, /not served/i);
   // No internal gate numbers in user-facing copy.
   assert.doesNotMatch(ELEMENT_APPLICATION_STATUS, /gate P\d/i);

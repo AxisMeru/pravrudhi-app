@@ -44,8 +44,8 @@ test("a referral shows the heading, then the signed sentence on its own", async 
 
 test("a two-judges reason carries the label beside the sentence, not inside it", async ({ page }) => {
   await runWith(page, "second_judge_unavailable");
-  await expect(page.getByTestId("referred-sentence")).toHaveText("The second judge was unavailable, so we give a referral, not an answer.");
-  await expect(page.getByTestId("referred-two-judges")).toHaveText("(deployments that use two judges only)");
+  await expect(page.getByTestId("referred-sentence")).toHaveText("The second check was unavailable, so we give a referral, not an answer.");
+  await expect(page.getByTestId("referred-two-judges")).toHaveText("(deployments that use two checks only)");
 });
 
 test("a status that is not a verdict carries its signed explanation", async ({ page }) => {
@@ -53,5 +53,5 @@ test("a status that is not a verdict carries its signed explanation", async ({ p
   const notes = page.getByTestId("status-explanation");
   await expect(notes).toHaveCount(2);
   await expect(notes.first()).toContainText("did not reach the level we require");
-  await expect(notes.nth(1)).toHaveText("The second judge did not answer, so this condition was not confirmed.");
+  await expect(notes.nth(1)).toHaveText("The second check did not answer, so this condition was not confirmed.");
 });

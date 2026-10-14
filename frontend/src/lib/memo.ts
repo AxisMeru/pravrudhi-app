@@ -20,7 +20,7 @@ export const PROVISION_HEADING_NO_SOURCE = "Provision text (source not stated)";
 export const PROVISION_ELEMENTS_LINE =
   "The conditions above (and any defences) come from the contract this tool uses for the provision. They were not extracted from the text below, and the contract is this tool's reading of the provision.";
 export const PROVISION_MISMATCH_LINE =
-  "The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:";
+  "The screening was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:";
 
 export interface MemoOptions {
   engineVersion: string | null;
@@ -95,7 +95,7 @@ function contractSection(c: AnalyseFactsContract): string {
   }
   if (c.lean) {
     lines.push(
-      `Lean structural check: ${cell(c.lean.verdict)}. This is a structural check by a pinned checker of how the judged elements fit the contract; it does not establish that the facts are true or the law is correctly applied.`,
+      `Lean structural check: ${cell(c.lean.verdict)}. This is a structural check by a pinned checker of how the screened elements fit the contract; it does not establish that the facts are true or the law is correctly applied.`,
       "",
     );
   }
@@ -112,7 +112,7 @@ export function buildMemo(result: AnalyseFactsResult, opts: MemoOptions): string
     `> ${MEMO_VALIDATION_TIER}`,
     "",
     `- Run id: ${result.run_id}`,
-    `- Judge: ${result.judge}`,
+    `- Screening model: ${result.judge}`,
     `- Score sha256: ${result.score_sha256}`,
     `- Engine version: ${opts.engineVersion ?? "unknown"}`,
     `- Generated: ${opts.generatedAt}`,

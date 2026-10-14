@@ -28,8 +28,8 @@ test("the element chips read 'supported by a fact' and 'not supported by these f
 });
 
 test("the binding-leg lines and the unknown quote-check fallback, exactly", () => {
-  assert.equal(bindingLegText("primary"), "Not supported at the first judge's confidence threshold.");
-  assert.equal(bindingLegText("second"), "Not supported at the second judge's confidence threshold.");
+  assert.equal(bindingLegText("primary"), "Not supported at the first check's confidence threshold.");
+  assert.equal(bindingLegText("second"), "Not supported at the second check's confidence threshold.");
   assert.equal(bindingLegText(null), null);
   const u = quoteCheckPresentation("brand_new");
   assert.equal(u?.text, 'The check of the cited text gave a result this app does not recognise yet ("brand_new").');

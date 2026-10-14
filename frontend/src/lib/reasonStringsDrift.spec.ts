@@ -63,11 +63,33 @@ test("the signed table is the one expected: counts, and a header that names its 
   assert.match(GAP.source, /[0-9a-f]{64}/);
 });
 
-test("every REFER reason's message is the signed sentence, verbatim", () => {
+// R1, 14 Oct (supersedes the earlier ban on the words 'second check': his sentence for uncertain_second_judge uses them): the member-facing app form of these reasons (nine codes) differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
+const APP_FORM: Readonly<Record<string, string>> = {
+  uncertain: "The screening is not sure whether a condition holds. Please have a lawyer look.",
+  uncertain_second_judge: "The second check is not sure whether a condition holds. Please have a lawyer look.",
+  denial_unquotable: "The screening thinks a fact that may defeat the claim exists but could not cite it in a way we can check. Please have a lawyer look.",
+  second_judge_defeater_disagreement: "The two checks disagree on whether a fact that may defeat the claim exists. Please have a lawyer look.",
+  all_elements_established: "The screening found a cited fact for every ingredient this provision requires.",
+  denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
+  missing_element: "The screening did not find a cited fact for at least one required ingredient.",
+  no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
+  second_judge_unavailable: "The second check was unavailable, so we give a referral, not an answer.",
+  assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
+  judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
+};
+
+// Same ruling (R1, 14 Oct): the quote-check sentences and the status explanations say "the screening", never "the judge". Only the "judge" word is replaced; the rest is the signed sentence.
+const unjudge = (t: string): string =>
+  t.replace("(the judge's quoted words, or, when the judge only names the fact, the fact itself)", "(the quoted words, or, when only the fact is named, the fact itself)")
+    .replace("The second judge did not answer", "The second check did not answer")
+    .replace(/The judge's /g, "The screening's ")
+    .replace(/The judge /g, "The screening ");
+
+test("every REFER reason's message is the signed sentence verbatim, or R1's app form where APP_FORM names it", () => {
   for (const r of REFER_REASONS) {
     const signed = TABLE.reasons[r];
     assert.ok(signed, `${r} is not in the signed table`);
-    assert.equal(norm(referReasonPresentation(r).message), norm(signed.text), r);
+    assert.equal(norm(referReasonPresentation(r).message), norm(APP_FORM[r] ?? signed.text), r);
     assert.equal(REFER_REASON_TEXT[r].twoJudgesOnly, signed.twoJudgesOnly, `${r}: the two-judges label`);
   }
 });
@@ -81,12 +103,12 @@ test("every other reason's text and every quote check's text is the signed sente
   for (const [code, signed] of Object.entries(TABLE.reasons)) {
     if ((REFER_REASONS as readonly string[]).includes(code)) continue;
     const drop = WITHOUT_API_FIELD[code];
-    const expected = drop ? signed.text.replace(drop, "") : signed.text;
+    const expected = APP_FORM[code] ?? (drop ? signed.text.replace(drop, "") : signed.text);
     if (drop) assert.ok(signed.text.includes(drop), `${code}: the engine row no longer carries the pointer; remove this exception`);
     assert.equal(norm(NON_REFER_REASON_TEXT[code] ?? ""), norm(expected), code);
     if (drop) assert.doesNotMatch(NON_REFER_REASON_TEXT[code] ?? "", /citation_note|`/, `${code}: an API field name reached a member-facing sentence`);
   }
-  for (const [code, text] of Object.entries(TABLE.quote_check)) assert.equal(norm(QUOTE_CHECK_TEXT[code] ?? ""), norm(text), code);
+  for (const [code, text] of Object.entries(TABLE.quote_check)) assert.equal(norm(QUOTE_CHECK_TEXT[code] ?? ""), norm(unjudge(text)), code);
 });
 
 test("the table has exactly the reasons the app knows: 9 referrals + 6 others, and no extras either way", () => {
@@ -95,7 +117,7 @@ test("the table has exactly the reasons the app knows: 9 referrals + 6 others, a
 });
 
 test("the gap strings (statuses and service errors) are the signed wording, verbatim", () => {
-  for (const [status, text] of Object.entries(ELEMENT_STATUS_EXPLANATION)) assert.equal(norm(text), norm(GAP.strings[status]), status);
+  for (const [status, text] of Object.entries(ELEMENT_STATUS_EXPLANATION)) assert.equal(norm(text), norm(unjudge(GAP.strings[status])), status);
   for (const code of ["judges_offline", "judges_warming", "judge_unavailable", "outside_service_window", "service_config_missing"] as const) {
     assert.equal(norm(SERVICE_ERROR_TEXT[code]), norm(GAP.strings[code]), code);
   }
@@ -112,25 +134,25 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
   assert.equal(shown(new ApiError(429, "/x")), norm(GAP.strings.http_429));
 });
 
-test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in, 'second check' or 'temporarily'", () => {
+test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in or 'temporarily'", () => {
   assert.equal(REFERRED_HEADING, "Referred to a lawyer");
-  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two judges only)");
+  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two checks only)");
   for (const r of REFER_REASONS) {
     const { message } = referReasonPresentation(r);
     assert.doesNotMatch(message, /A lawyer must decide this matter:/i, r);
-    assert.doesNotMatch(message, /second check|temporarily/i, r);
+    assert.doesNotMatch(message, /temporarily/i, r);
     assert.doesNotMatch(message, /deployments that use two judges/i, `${r}: the label is outside the sentence`);
   }
 });
 
-test("no app string source says 'second check' or 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
+test("no app string source says 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
   const files = ["referReason.ts", "reasonText.ts", "signedStrings.ts", "serviceStatus.ts", "elementStatus.ts", "memo.ts", join("..", "app", "matters", "page.tsx")];
   for (const f of files) {
     const code = readFileSync(join(__dirname, f), "utf8")
       .split("\n")
       .filter((l) => !l.trim().startsWith("//"))
       .join("\n");
-    assert.doesNotMatch(code, /second check|temporarily/i, f);
+    assert.doesNotMatch(code, /temporarily/i, f);
     assert.doesNotMatch(code, /must decide this matter/i, f);
   }
 });

@@ -135,8 +135,8 @@ export function summarize(contract: AnalyseFactsContract, rows: { ingredients: S
 }
 
 /** When the engine referred the whole contract to a lawyer: the signed reason sentence, shown under the banner; null otherwise. */
-export function contractReferral(contract: AnalyseFactsContract): { message: string; code: string; twoJudgesOnly: boolean } | null {
+export function contractReferral(contract: AnalyseFactsContract): { message: string; code: string; twoJudgesOnly: boolean; unknown: boolean } | null {
   if (contract.outcome !== "REFER_TO_LAWYER") return null;
   const p = referReasonPresentation(contract.reason);
-  return { message: p.message, code: contract.reason, twoJudgesOnly: p.twoJudgesOnly };
+  return { message: p.message, code: contract.reason, twoJudgesOnly: p.twoJudgesOnly, unknown: p.unknown };
 }

@@ -39,7 +39,7 @@ export type ReferReason = (typeof REFER_REASONS)[number];
 export const REFERRED_HEADING = "Referred to a lawyer";
 
 /** The signed table marks some reasons with this parenthesis; it is shown beside the sentence, never inside it. */
-export const TWO_JUDGES_ONLY_LABEL = "(deployments that use two judges only)";
+export const TWO_JUDGES_ONLY_LABEL = "(deployments that use two checks only)";
 
 export interface ReferReasonPresentation {
   // The canonical reason this presentation came from, or null when the engine sent something this build does
@@ -59,23 +59,23 @@ export function isReferReason(reason: string): reason is ReferReason {
 /** The signed sentences (docs/api/reason-codes.md), one per REFER reason, word for word. */
 export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; twoJudgesOnly: boolean }>> = {
   denial_unquotable: {
-    text: "The judge thinks a defeating fact exists but could not cite it in a way we can check. Please have a lawyer look.",
+    text: "The screening thinks a fact that may defeat the claim exists but could not cite it in a way we can check. Please have a lawyer look.",
     twoJudgesOnly: false,
   },
   second_judge_defeater_disagreement: {
-    text: "The two judges disagree on whether a defeating fact exists. Please have a lawyer look.",
+    text: "The two checks disagree on whether a fact that may defeat the claim exists. Please have a lawyer look.",
     twoJudgesOnly: true,
   },
   uncertain: {
-    text: "The judge is not sure whether a condition holds. Please have a lawyer look.",
+    text: "The screening is not sure whether a condition holds. Please have a lawyer look.",
     twoJudgesOnly: false,
   },
   uncertain_second_judge: {
-    text: "The second judge is not sure whether a condition holds. Please have a lawyer look.",
+    text: "The second check is not sure whether a condition holds. Please have a lawyer look.",
     twoJudgesOnly: true,
   },
   second_judge_unavailable: {
-    text: "The second judge was unavailable, so we give a referral, not an answer.",
+    text: "The second check was unavailable, so we give a referral, not an answer.",
     twoJudgesOnly: true,
   },
   gate1_unavailable: {

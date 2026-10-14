@@ -50,7 +50,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
 
 test("the warm-up note on Screening and Matters is figure-free and the same sentence in both pages (R2, 12 Oct)", async () => {
   const { WARM_UP_NOTE } = await import("../surfaceCopy");
-  assert.equal(WARM_UP_NOTE, "Warming up the judge and Lean checker — a first run after idle can take a few minutes while the judges start.");
+  assert.equal(WARM_UP_NOTE, "Warming up the screening and Lean checker — a first run after idle can take a few minutes while the models start.");
   assert.doesNotMatch(WARM_UP_NOTE, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/);
   for (const page of ["screening", "matters"]) {
     const src = readFileSync(join(root, "src", "app", page, "page.tsx"), "utf8");
