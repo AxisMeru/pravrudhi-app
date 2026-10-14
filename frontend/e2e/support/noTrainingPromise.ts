@@ -66,7 +66,7 @@ export const INNOCENT_SAMPLES: readonly string[] = [
   "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier.",
   "A run record can include the text of facts the screening marked as supported.",
   "The screening models were trained on public statute text before you used this product.",
-  "No judge has been trained on this contract's statute text yet.",
+  "No screening model has been trained on this contract's statute text yet.",
   "More under Data handling.",
   "Do not enter real names or case details unless your firm's setup allows it.",
 ];
