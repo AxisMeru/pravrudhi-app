@@ -24,7 +24,8 @@ import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
 import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
-import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
+import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
+import { exampleById, type DemoExample } from "@/lib/demo/example";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
@@ -58,7 +59,8 @@ export default function ScreeningPage() {
   const signedIn = useSignedIn();
   const assistantProvider = useAssistantProvider(assistant);
   const [assistantConsent, setAssistantConsent] = useState(false); // per run: unticked on load and after every run, never kept
-  const [exampleActive, setExampleActive] = useState(false);
+  const [example, setExample] = useState<DemoExample | null>(null);
+  const [exampleMissing, setExampleMissing] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,13 +95,16 @@ export default function ScreeningPage() {
     };
   }, []);
 
-  // /screening?example=<id> loads the demo example: the allegations of one public judgment as numbered facts (read in the browser, as the
-  // page is a static export).
+  // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
+  // static export). An id this app does not have shows the "not available" notice with a link to the first example.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    const asked = new URLSearchParams(window.location.search).get("example");
+    const found = exampleById(asked);
+    if (asked !== null && found === null) void Promise.resolve().then(() => setExampleMissing(true));
+    if (found === null) return;
     void Promise.resolve().then(() => {
-      setFacts([...EXAMPLE_FACTS]);
-      setExampleActive(true);
+      setFacts([...found.facts]);
+      setExample(found);
     });
   }, []);
 
@@ -111,9 +116,10 @@ export default function ScreeningPage() {
         setContractsError(null);
         setContracts(cs);
         setContractsLoaded(true);
-        if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
+        const found = exampleById(new URLSearchParams(window.location.search).get("example"));
+        if (found !== null) {
           // the offence is the unit of choice: every contract of an offence the example invokes
-          const ids = EXAMPLE_CONTRACTS.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+          const ids = found.contracts.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
           setPicked(new Set(ids.filter((id) => cs.includes(id))));
         }
       })
@@ -177,11 +183,8 @@ export default function ScreeningPage() {
         <p className="text-sm" data-testid="guide-link">
           <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
         </p>
-        {exampleActive && (
-          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
-            {EXAMPLE_LABEL}
-          </p>
-        )}
+        {exampleMissing && <ExampleNotFound page="/screening" />}
+        {example && <ExampleBanner example={example} />}
         <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
           <RetentionBefore />
