@@ -21,10 +21,11 @@ test("the intro folds behind 'About this screening' with the standing line outsi
   await expect(page.getByTestId("standing-line")).toHaveText("This is a screening aid, not legal advice. A lawyer decides.");
   const fold = page.getByTestId("about-screening");
   await expect(fold.locator("summary")).toHaveText("About this screening");
+  await expect(page.getByTestId("caveat-strip")).toBeVisible(); // the caveats stay OUTSIDE the fold (R1 and R2): visible without opening it
   await expect(page.getByTestId("product-line")).toBeHidden();
   await fold.locator("summary").click();
   await expect(page.getByTestId("product-line")).toBeVisible();
-  await expect(page.getByTestId("caveat-strip")).toBeVisible();
+  await expect(fold.getByTestId("caveat-strip")).toHaveCount(0);
   const entry = page.getByTestId("example-entry");
   await expect(entry).toContainText("Try an example from a public court order");
   await expect(entry.getByRole("link")).toHaveText(["Madras High Court, order of 12 June 2024", "High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773"]);
@@ -67,4 +68,18 @@ test("on a phone the menu button clears the page title; Sign in is a secondary l
   const signIn = page.getByRole("link", { name: "Sign in", exact: true }).first();
   await expect(signIn).toBeVisible();
   expect(await signIn.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+
+// R2 (14 Oct): a modified click on an example link opens it elsewhere and must NOT overwrite what the lawyer typed in this tab.
+test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain click loads the example", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/screening");
+  const box = page.getByRole("textbox", { name: "Fact F1", exact: true });
+  await box.fill("Invented: what the lawyer typed in this tab.");
+  const popup = page.context().waitForEvent("page");
+  await page.getByTestId("example-link-karnataka-cheating-2025").click({ modifiers: ["Control"] });
+  await (await popup).close();
+  await expect(box).toHaveValue("Invented: what the lawyer typed in this tab.");
+  await expect(page.getByTestId("example-citation")).toHaveCount(0);
+  await page.getByTestId("example-link-karnataka-cheating-2025").click();
+  await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
 });

@@ -59,12 +59,13 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
   }
 });
 
-test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt is the words version, not the digits", () => {
+test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt names the marks, never a count", () => {
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
+  assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
   assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
-  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge \(check it\) and one is not supported by these facts/);
-  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
+  assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
+  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
 
 test("the guide for firm users: R1's two lines, the covered offences (the validated ones only, with 'others are referred'), no bare 'defeater', the glossary entry exactly", () => {
@@ -98,4 +99,10 @@ test("R1 (#283): the guide's defence glossary entry and the defence line under '
   assert.equal(GUIDE_STATUSES.find((s) => s.label === DEFENCE_HEADING)!.note, DEFENCE_PROMPT_NOTE);
   assert.equal(GUIDE_GLOSSARY.filter((g) => g.note).length, 1);
   assert.equal(GUIDE_STATUSES.filter((s) => s.note).length, 1);
+});
+
+test("R1's screenshot note (14 Oct): development stack, which frames are invented and which show a public court order; no engine version", async () => {
+  const { GUIDE_SCREENSHOT_NOTE } = await import("./copy");
+  assert.equal(GUIDE_SCREENSHOT_NOTE, "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.");
+  assert.doesNotMatch(GUIDE_SCREENSHOT_NOTE, /0\.6\.\d/);
 });
