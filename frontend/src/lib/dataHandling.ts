@@ -113,6 +113,39 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
 
 export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = dataHandlingSections(ASSISTANT_ENTRY_ENABLED, ASSISTANT_DELETE_CONFIRMED);
 
+// P10 (R1, 14 Oct): a summary at the top and, with the assistant on, the two routes as labelled groups. Signed text only: the glance shows the FIRST signed paragraph of three sections
+// verbatim with a link to each, the groups use the signed assistant lines, and the group "Without the assistant" sits BELOW the standard sections so "described above" (DH_NOASSIST) stays true.
+export const DH_GLANCE_HEADING = "At a glance";
+export const DH_GLANCE_LINE = "These are the first lines of the sections below; read the full section for the rest.";
+export const DH_GLANCE_LINK = "See the full section";
+export const DH_ROUTE_A_LABEL = "Without the assistant";
+export const DH_ROUTE_B_LABEL = "With the assistant (only when you tick the consent box)";
+/** The sections the glance quotes, in this order: what is sent, where it is processed, how long it is kept. */
+export const DH_GLANCE_IDS = ["sent", "where", "kept"] as const;
+
+export interface DataHandlingPage {
+  glance: { heading: string; line: string; linkText: string; blocks: { id: string; heading: string; text: string; href: string }[] };
+  /** The standard route's sections, in order (the assistant section is not among them). */
+  standard: readonly DataHandlingSection[];
+  /** Only with the assistant flag on: the section (heading kept, so the "where" sentence that names it stays true) holding the two labelled groups. */
+  assistant?: { section: DataHandlingSection; groups: { label: string; paragraphs: string[] }[] };
+}
+
+export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): DataHandlingPage {
+  const sections = dataHandlingSections(assist, deleteConfirmed);
+  const standard = sections.filter((s) => s.id !== "assistant");
+  const blocks = DH_GLANCE_IDS.map((id) => {
+    const s = standard.find((x) => x.id === id)!;
+    return { id, heading: s.heading, text: s.paragraphs[0], href: `#dh-${id}` };
+  });
+  const out: DataHandlingPage = { glance: { heading: DH_GLANCE_HEADING, line: DH_GLANCE_LINE, linkText: DH_GLANCE_LINK, blocks }, standard };
+  const a = sections.find((s) => s.id === "assistant");
+  if (a) out.assistant = { section: a, groups: [{ label: DH_ROUTE_A_LABEL, paragraphs: a.paragraphs.filter((p) => p === DH_NOASSIST) }, { label: DH_ROUTE_B_LABEL, paragraphs: a.paragraphs.filter((p) => p !== DH_NOASSIST) }] };
+  return out;
+}
+
+export const DATA_HANDLING_PAGE: DataHandlingPage = dataHandlingPage(ASSISTANT_ENTRY_ENABLED, ASSISTANT_DELETE_CONFIRMED);
+
 export const DATA_HANDLING_FOOTER = BANNER_STANDING_LINE;
 
 /** localStorage keys that may appear on the firm surface; everything else in src must be one of OPERATOR_ONLY_KEYS or fail the test. */
