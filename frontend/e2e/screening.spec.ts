@@ -143,6 +143,16 @@ test("the demo link loads the public-order example as numbered facts, R1's label
   await expect(page.getByTestId("example-not-found")).toHaveCount(0);
 });
 
+test("the Karnataka cheating example loads with R1's own label, the order's neutral citation and its screening line, and selects the cheating offence", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property", "ipc415_damaging_act", "ipc405_misappropriation"], entries: [] } }));
+  await page.goto("/screening?example=karnataka-cheating-2025");
+  await expect(page.getByTestId("example-banner")).toContainText("These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here.");
+  await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
+  await expect(page.getByTestId("example-screening-line")).toHaveText("Screened here for the cheating (IPC 415) ingredients.");
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/gold coins/);
+  await expect(page.getByTestId("example-banner")).not.toContainText(/invented/i);
+});
+
 test("an example id this app does not have shows 'not available' and a link to the example; no example is loaded by default", async ({ page }) => {
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
   await page.goto("/screening");
