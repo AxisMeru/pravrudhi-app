@@ -25,7 +25,8 @@ import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
-import { exampleById, type DemoExample } from "@/lib/demo/example";
+import { EXAMPLES, exampleById, type DemoExample } from "@/lib/demo/example";
+import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
@@ -74,6 +75,8 @@ export default function ScreeningPage() {
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const warming = svc?.kind === "ok" && svc.status.judge.state === "warming";
+  // The intro fold is closed by default (R1, 14 Oct) because the standing line ("This is a screening aid, not legal advice. A lawyer decides.") stays visible outside it; it opens by itself while the judges warm.
   const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
@@ -179,13 +182,35 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
-        <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
-        <p className="text-sm" data-testid="guide-link">
-          <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
-        </p>
+        <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
+        <details
+          className="rounded-md border border-[var(--color-border)] p-3"
+          data-testid="about-screening"
+          open={warming ? true : undefined}
+        >
+          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)]">{ABOUT_SCREENING_LABEL}</summary>
+          <div className="mt-3 flex flex-col gap-3">
+            <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
+            <p className="text-sm" data-testid="guide-link">
+              <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
+            </p>
+            <CaveatStrip warming={warming} />
+          </div>
+        </details>
         {exampleMissing && <ExampleNotFound page="/screening" />}
         {example && <ExampleBanner example={example} />}
-        <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
+        {!example && (
+          <div className="flex flex-col gap-1" data-testid="example-entry">
+            <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
+            <ul className="flex flex-col gap-1 text-sm">
+              {EXAMPLES.map((e) => (
+                <li key={e.id}>
+                  <a href={`/screening?example=${e.id}`} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>

@@ -32,6 +32,11 @@ export const DEFENCE_PROMPT_NOTE = "Facts that may defeat the claim are shown as
 export const NOT_VALIDATED_OFFENCE_NOTE = "Not on the validated list: for this offence the screening does not give a result; a lawyer decides.";
 export const NO_CHECK_NOTE = "This ingredient is not screened yet; a lawyer should read the facts for it.";
 
+/** R1, 14 Oct (P1): the label of the fold that holds the product line, the guide link and the caveat strip. */
+export const ABOUT_SCREENING_LABEL = "About this screening";
+/** R1, 14 Oct (P13): the entry to the examples; the choices under it are named by their citations as pinned. */
+export const EXAMPLE_ENTRY_LABEL = "Try an example from a public court order";
+
 /** The standing line beside every summary banner. */
 export const BANNER_STANDING_LINE = "This is a screening aid, not legal advice. A lawyer decides.";
 /** R1, 14 Oct: shown once on EVERY result where no ingredient is supported (own runs and examples), above the first block. */
