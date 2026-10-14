@@ -15,6 +15,9 @@ const NOTES: Record<string, string> = {
 // #128 D2: with the nav flag OFF (the hosted build) /citations has no form; every spec that uses the form runs only against a NEXT_PUBLIC_CITATION_NAV=1 build (CITATION_NAV_BUILD=1).
 const NEEDS_FORM = "needs a build with NEXT_PUBLIC_CITATION_NAV=1 (the form exists only then)";
 
+// #128 D4: NOT_IN_INDEX is shown as "Not found in our index"; every other status as the engine sent it.
+const shown = (status: string) => (status === "NOT_IN_INDEX" ? "Not found in our index" : status);
+
 async function run(page: import("@playwright/test").Page): Promise<void> {
   await page.goto("/citations");
   await page.getByLabel("Citation (one)").fill("(2020) 3 SCC 456");
@@ -26,7 +29,7 @@ test("the page carries the preview label and says what the check is not", async 
   await page.goto("/citations");
   await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
   await expect(page.getByTestId("citation-limits")).toHaveText(
-    "The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.",
+    "The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and spacing. It does not say whether the case supports a point. If the case is not found in our index, that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.",
   );
   await expect(page.getByText(/\bfake\b/i)).toHaveCount(0);
 });
@@ -40,7 +43,7 @@ for (const [status, note] of Object.entries(NOTES)) {
       return r.fulfill({ json: { result: status, note, status: status.toLowerCase(), label: status, verified: status === "VERIFIED", preview: true } });
     });
     await run(page);
-    await expect(page.getByTestId("citation-status")).toHaveText(status);
+    await expect(page.getByTestId("citation-status")).toHaveText(shown(status));
     if (note.includes("fake")) await expect(page.getByTestId("citation-note")).toHaveCount(0);
     else await expect(page.getByTestId("citation-note")).toHaveText(note);
     await expect(page.getByText(/\bfake\b/i)).toHaveCount(0);
@@ -52,7 +55,7 @@ test("an engine note carrying the word \"fake\" is withheld, the status still sh
   test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "NOT_IN_INDEX", note: "Not a finding that the citation is fake.", status: "not_in_index", label: "not in index", verified: false, preview: true } }));
   await run(page);
-  await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
+  await expect(page.getByTestId("citation-status")).toHaveText("Not found in our index"); // #128 D4: the code token is never on screen
   await expect(page.getByTestId("citation-note")).toHaveCount(0);
 });
 
@@ -100,7 +103,7 @@ test("the product status fields are wired but OFF: an engine that sends them cha
     r.fulfill({ json: { result: "NOT_IN_INDEX", note: NOTES.NOT_IN_INDEX, status: "not_in_index", label: "not in index", preview: true, verified: false } }),
   );
   await run(page);
-  await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
+  await expect(page.getByTestId("citation-status")).toHaveText("Not found in our index"); // #128 D4: the code token is never on screen
   await expect(page.getByTestId("citation-note")).toHaveText(NOTES.NOT_IN_INDEX);
   await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
 });

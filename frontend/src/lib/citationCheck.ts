@@ -92,6 +92,10 @@ export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STA
   return { status, label, preview: reply.preview !== false };
 }
 
+/** R1 14 Oct (#128 D4): the code token NOT_IN_INDEX stays in the data and never on screen; the result is shown as this label. Every other status is shown as the engine sent it. */
+export const NOT_IN_INDEX_LABEL = "Not found in our index";
+export const statusLabel = (status: string): string => (status === "NOT_IN_INDEX" ? NOT_IN_INDEX_LABEL : status);
+
 export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";

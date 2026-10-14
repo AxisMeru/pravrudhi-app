@@ -43,11 +43,11 @@ test("data: every element and defence of the 18 contracts has exactly one what-t
   for (const t of Object.values(whatToCheck.checks)) assert.match(t, /^Check /);
 });
 
-test("data: the offence table covers the 14 validated contracts and the 4 not-validated ones (ni138, bns316) exactly once; only the last two offences are flagged not validated, each has its sections on one line", () => {
+test("data: the offence table covers the 14 validated contracts and ni138 exactly once; the three bns316 contracts are not offered as a second row (#128 D7: one row per offence); only the last offence is flagged not validated, each has its sections on one line", () => {
   const ids = OFFENCES.flatMap((o) => [...o.contracts]);
-  assert.deepEqual([...ids].sort(), Object.keys(contractElements.contracts).sort());
+  assert.deepEqual([...ids].sort(), Object.keys(contractElements.contracts).filter((id) => !id.startsWith("bns316_")).sort());
   assert.equal(new Set(ids).size, ids.length);
-  assert.deepEqual(OFFENCES.filter((o) => o.notValidated).map((o) => o.id), ["dishonoured-cheque", "breach-of-trust-bns"]);
+  assert.deepEqual(OFFENCES.filter((o) => o.notValidated).map((o) => o.id), ["dishonoured-cheque"]);
   assert.match(contractElements.contracts.ni138.sources, /Negotiable Instruments Act §138/);
   assert.match(contractElements.contracts.bns316_misappropriation.sources, /Bharatiya Nyaya Sanhita §316/);
   assert.equal(offenceOf("bns85")?.sections, "BNS 85, 86 · IPC 498A");
@@ -149,7 +149,7 @@ test("R1 (8 Oct): the IPC-text disclosure is on exactly the four IPC-family offe
   assert.deepEqual(disclosed, {
     "breach-of-trust": "405", cheating: "415", "cheating-personation": "416", "false-information": "182",
     "bns-69": null, cruelty: null, abetment: null, "abetment-outside-india": null,
-    "dishonoured-cheque": null, "breach-of-trust-bns": null,
+    "dishonoured-cheque": null,
   });
   assert.equal(ipcDisclosure("405"), "Checked against the IPC text (s.405); the BNS counterpart is not validated.");
 });

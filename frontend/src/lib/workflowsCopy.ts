@@ -9,7 +9,7 @@ export interface WorkflowRow {
 }
 
 export const WORKFLOWS: readonly WorkflowRow[] = [
-  { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is in development. In development checks on invented matters it completed every screening and produced a decision result each time. The app shows you only the engine's decision result, never an assistant's own wording of it. Not yet offered in the product." },
+  { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is being built. It will run the same screening steps and show you the steps it took. You see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
   { name: "Intake", status: "Planned" },
   { name: "Memo preparation", status: "Planned" },
   { name: "Matter update review", status: "Planned" },

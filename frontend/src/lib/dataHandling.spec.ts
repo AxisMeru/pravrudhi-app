@@ -20,10 +20,9 @@ test("the data-handling text is R1's exact words, and it answers all three quest
   );
   assert.equal(
     text("where"),
-    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). The larger of the two screening models runs in EU data centres; the region of the other is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; its location is not stated here. The hosting providers may keep their own logs.",
+    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs.",
   );
-  assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps two notification-preference flags.");
-  assert.equal(text("frontier"), "Use a frontier model as an additional reader. Not available: this deployment has not switched the frontier reader on.");
+  assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps your notification preferences.");
   assert.equal(text("citations"), "The citation check does not save the citation or the quote you enter.");
 });
 
@@ -43,7 +42,7 @@ test("the sentences new to this page carry no banned word (the citation check's 
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
   assert.deepEqual(WORKFLOWS.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Planned"], ["Memo preparation", "Planned"], ["Matter update review", "Planned"], ["Hearing preparation", "Planned"]]);
-  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is in development. In development checks on invented matters it completed every screening and produced a decision result each time. The app shows you only the engine's decision result, never an assistant's own wording of it. Not yet offered in the product.");
+  assert.equal(WORKFLOWS[0].note, "The step-by-step screening assistant is being built. It will run the same screening steps and show you the steps it took. You see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
   assert.equal(WORKFLOWS_CLOSING, "A workflow runs only when you start it, and only on the matter you give it.");
   assert.doesNotMatch(JSON.stringify(WORKFLOWS) + WORKFLOWS_CLOSING, /\d|\bA[0-9]\b/);
 });
@@ -121,7 +120,7 @@ test("the memo, the run record and the file-reading path make no network call in
 
 test("the two notification flags are demo-only: the page says so, and no member path writes them (R1, 13 Oct)", () => {
   assert.deepEqual([...DEMO_ONLY_KEYS], ["pravrudhi.notifications.asked", "pravrudhi.notifications.optin"]);
-  assert.ok(text("browser").endsWith("The public demo also keeps two notification-preference flags."));
+  assert.ok(text("browser").endsWith("The public demo also keeps your notification preferences."));
   for (const k of DEMO_ONLY_KEYS) assert.ok(!FIRM_STORAGE_KEYS.includes(k), `${k} is not one of the member keys`);
   const bell = readFileSync(join(root, "components", "notifications", "NotificationBell.tsx"), "utf8");
   for (const k of DEMO_ONLY_KEYS) assert.ok(bell.includes(`"${k}"`), `NotificationBell writes ${k}`);

@@ -30,9 +30,8 @@ export const OFFENCES: readonly Offence[] = [
   { id: "cruelty", title: "Cruelty by the husband or his relatives", bns: "85", ipc: "498A", sections: sections("85, 86", "498A"), contracts: ["bns85"], ipcChecked: null },
   { id: "abetment", title: "Abetment", bns: "45, 46", ipc: "107, 108", sections: sections("45, 46", "107, 108"), contracts: ["bns46_instigation", "bns46_conspiracy", "bns46_intentional_aid"], ipcChecked: null },
   { id: "abetment-outside-india", title: "Abetment in India of an offence outside India", bns: "47", ipc: "108A", sections: sections("47", "108A"), contracts: ["bns47"], ipcChecked: null },
-  // Offered so a user can see the engine refer on them (#99); the registry marks these contracts "not validated, verify" and the engine's answer is a referral.
+  // Offered so a user can see the screening refer on it (#99); the registry marks this contract "not validated, verify" and the answer is a referral. One row per offence (#128 D7): the BNS 316 contracts are shown under "Criminal breach of trust" above, not as a second row.
   { id: "dishonoured-cheque", title: "Dishonour of a cheque", bns: null, ipc: null, sections: "Negotiable Instruments Act s.138", contracts: ["ni138"], ipcChecked: null, notValidated: true },
-  { id: "breach-of-trust-bns", title: "Criminal breach of trust (BNS s.316)", bns: "316", ipc: null, sections: "BNS 316", contracts: ["bns316_misappropriation", "bns316_use_or_disposal", "bns316_wilfully_suffers"], ipcChecked: null, notValidated: true },
 ];
 
 export function offenceOf(contractId: string): Offence | null {

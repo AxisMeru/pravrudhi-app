@@ -21,12 +21,11 @@ const NOT_CONFIGURED: Array<[string, Answer]> = [
   ["a malformed field", { json: health({ assistant_tier: "unavailable" }) }],
 ];
 
-test("Screening, health call fails (unreachable): the toggle is disabled and unchecked, no paused line", async ({ page }) => {
+// #128 D6: the frontier reader is not shown while it is unavailable, so Screening has no toggle in any state; the one paused line is printed by the page itself, once, only when the tier is PAUSED.
+test("Screening, health call fails (unreachable): no frontier toggle, no paused line", async ({ page }) => {
   await mockHealth(page, { status: 503 });
   await page.goto("/screening");
-  const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
-  await expect(box).toBeDisabled();
-  await expect(box).not.toBeChecked();
+  await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
   await page.waitForTimeout(1200);
   await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/paused/i);
@@ -40,38 +39,33 @@ test("Workflows, health call fails (unreachable): the assistant row is greyed, n
 });
 
 for (const [name, answer] of PAUSED_STATES) {
-  test(`Screening, ${name}: the frontier toggle is greyed and unchecked and the paused line shows once, with no reason code`, async ({ page }) => {
+  test(`Screening, ${name}: the paused line shows once, with no reason code, and no frontier toggle`, async ({ page }) => {
     await mockHealth(page, answer);
     await page.goto("/screening");
     await expect(page.getByTestId("assistant-paused")).toHaveCount(1);
     await expect(page.getByTestId("assistant-paused")).toHaveText(PAUSED);
-    const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
-    await expect(box).toBeDisabled();
-    await expect(box).not.toBeChecked();
-    await expect(page.getByTestId("frontier-unavailable")).toHaveCount(0);
+    await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText(/upstream_error|budget_floor|quota/);
     await expect(page.getByRole("button", { name: "Screen these facts" })).toBeVisible();
   });
 }
 
 for (const [name, answer] of NOT_CONFIGURED) {
-  test(`Screening, not configured (${name}): nothing new is shown; the toggle is as it was`, async ({ page }) => {
+  test(`Screening, not configured (${name}): nothing about the assistant or the frontier reader is shown`, async ({ page }) => {
     await mockHealth(page, answer);
     await page.goto("/screening");
-    await expect(page.getByTestId("frontier-unavailable")).toHaveText(TODAY_REASON);
-    const box = page.getByTestId("frontier-toggle").getByRole("checkbox");
-    await expect(box).toBeDisabled();
-    await expect(box).not.toBeChecked();
+    await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText(TODAY_REASON);
     await page.waitForTimeout(1200);
     await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText(/paused/i);
   });
 }
 
-test("Screening, available: no paused line (the toggle is as before)", async ({ page }) => {
+test("Screening, available: no paused line and no frontier toggle", async ({ page }) => {
   await mockHealth(page, { json: health({ assistant_tier: { state: "available", reason: null } }) });
   await page.goto("/screening");
-  await expect(page.getByTestId("frontier-toggle")).toBeVisible();
+  await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
   await page.waitForTimeout(1200);
   await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
 });

@@ -20,7 +20,8 @@ test("the panel shows each status verbatim, an existence-only answer, an honest 
   const rows = await checkCitations(verify, parseCitationLines("(2020) 3 SCC 456 | the words\nB | q\nno quote here\nD | q").items);
   const html = render(rows, 2, panelCoverage(rows));
   assert.match(html, />VERIFIED</);
-  assert.match(html, />NOT_IN_INDEX</);
+  assert.match(html, />Not found in our index</); // #128 D4: the code token is never on screen
+  assert.doesNotMatch(html, /NOT_IN_INDEX/);
   assert.match(html, /was not checked/); // the signed index-unavailable sentence, not a status
   assert.match(html, />IN_INDEX</); // the no-quote line was sent and answered with its own status
   assert.doesNotMatch(html, /Not checked: add the quoted words/);

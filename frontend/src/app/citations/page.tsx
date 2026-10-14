@@ -14,6 +14,7 @@ import {
   PREVIEW_LABEL,
   QUOTE_MAX,
   checkInputs,
+  statusLabel,
   classifyVerifyError,
   verifyView,
   type VerifyView,
@@ -63,8 +64,7 @@ export default function CitationsPage() {
         </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
           The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and
-          spacing. It does not say whether the case supports a point. A result of NOT_IN_INDEX means the case was not found in our index; that does
-          not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
+          spacing. It does not say whether the case supports a point. If the case is not found in our index, that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
         </p>
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
         {!served ? (
@@ -109,7 +109,7 @@ export default function CitationsPage() {
           <section className="space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="citation-result">
             <div className="text-sm text-[var(--color-text-dim)]">Result</div>
             <div className="font-mono text-base text-[var(--color-text)]" data-testid="citation-status">
-              {view.status || "(no status)"}
+              {statusLabel(view.status) || "(no status)"}
             </div>
             {view.product && (
               <div className="space-y-1" data-testid="citation-product-status">

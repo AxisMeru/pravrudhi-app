@@ -115,11 +115,11 @@ test("the memo and the run record download, carrying the checklist, the cited fa
   expect(audit.checker_pin_sha256).toHaveLength(64);
 });
 
-test("the Citations panel is below the checklist and the frontier toggle is off and disabled until the engine says it is available", async ({ page }) => {
+test("the Citations panel is below the checklist and nothing about the frontier reader is shown while it is unavailable (#128 D6)", async ({ page }) => {
   await run(page);
-  await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).not.toBeChecked();
-  await expect(page.getByTestId("frontier-toggle").getByRole("checkbox")).toBeDisabled();
-  await expect(page.getByTestId("frontier-limit")).toHaveText("On the opt-in frontier route, the quote check is exact-text and may flag a verbatim quote whose whitespace differs.");
+  await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
+  await expect(page.getByTestId("frontier-limit")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/frontier/i);
   const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
   await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
   expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
@@ -158,9 +158,10 @@ test("the not-validated offences are offered with the referral line, and a suppo
   await page.goto("/screening");
   const list = page.getByTestId("offence-list");
   await expect(list).toContainText("Dishonour of a cheque");
-  await expect(list).toContainText("Criminal breach of trust (BNS s.316)");
-  await expect(page.getByTestId("not-validated-note")).toHaveCount(2);
-  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the engine gives a referral, not a proof or denial.");
+  // #128 D7: one row per offence: no second "Criminal breach of trust (BNS s.316)" row, and one not-validated note
+  await expect(list).not.toContainText("Criminal breach of trust (BNS s.316)");
+  await expect(page.getByTestId("not-validated-note")).toHaveCount(1);
+  await expect(page.getByTestId("not-validated-note").first()).toHaveText("Not on the validated list: for this offence the screening refers the matter to a lawyer instead of giving a result.");
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(NI_FACT);
   await page.getByTestId("split-facts").click();
   await list.locator("label").filter({ hasText: "Dishonour of a cheque" }).click();

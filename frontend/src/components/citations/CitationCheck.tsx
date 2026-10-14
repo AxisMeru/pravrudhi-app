@@ -4,7 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { verifyCitation } from "@/lib/api";
-import { PREVIEW_LABEL } from "@/lib/citationCheck";
+import { PREVIEW_LABEL, statusLabel } from "@/lib/citationCheck";
 import { runCitationCheck, type CitationCheckState } from "@/lib/citationCheckRun";
 
 /** What a finished (or failed) check shows: the engine's status verbatim with its note, or the honest refusal / invalid-input text. */
@@ -19,7 +19,7 @@ export function CitationCheckResult({ state }: { state: CitationCheckState }) {
     {state.phase === "result" && (
       <div data-testid="citation-check-result" className="rounded-md border border-[var(--color-border)] p-2">
         <div className="font-mono text-sm text-[var(--color-text)]" data-testid="citation-check-status">
-          {state.view.status || "(no status)"}
+          {statusLabel(state.view.status) || "(no status)"}
         </div>
         {state.view.product && (
           <p className="text-[var(--color-text)]" data-testid="citation-check-product-label">
