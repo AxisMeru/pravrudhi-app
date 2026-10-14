@@ -13,3 +13,7 @@ export const INTAKE_CAVEAT_NO_BLANK_LINES = "If your text has no blank lines, pa
 export const INTAKE_CAVEAT_PAGE_FURNITURE =
   "Page numbers, running headings and page breaks from your file can appear inside a fact or split a sentence between two facts; they are part of your text.";
 export const INTAKE_CAVEATS: readonly string[] = [INTAKE_CAVEAT_HEADING, INTAKE_CAVEAT_NO_BLANK_LINES, INTAKE_CAVEAT_PAGE_FURNITURE];
+
+// R1 (14 Oct, exact): the plain-route data line beside the paste box, above the caveats and below the label. No consent line on this page; never "not stored".
+export const INTAKE_DATA_LINE =
+  "The text you paste is read by the engine only; no model reads it on this page. The facts you choose are sent on to Screening, where models read them.";

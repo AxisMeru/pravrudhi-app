@@ -20,6 +20,7 @@ test("intake returns facts; the choice is capped at 8; the chosen facts reach Sc
   await page.route("**/api/v1/intake", (r) => r.fulfill({ json: ANSWER }));
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
   await page.goto("/intake");
+  await expect(page.getByTestId("intake-data-line")).toHaveText("The text you paste is read by the engine only; no model reads it on this page. The facts you choose are sent on to Screening, where models read them.");
   await expect(page.getByTestId("intake-caveats").locator("li").first()).toContainText("Intake leaves out the heading of a court order.");
   await page.getByLabel("Paste the text").fill(FACTS.map((f) => f.text).join("\n\n"));
   await page.getByTestId("intake-run").click();

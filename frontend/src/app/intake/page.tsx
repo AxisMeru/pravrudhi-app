@@ -20,7 +20,7 @@ import {
   type IntakeView,
 } from "@/lib/intake";
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
-import { INTAKE_CAVEATS, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
+import { INTAKE_CAVEATS, INTAKE_DATA_LINE, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
 
 // Intake: paste text, get numbered facts tied to the words they came from and the citations found, choose up to 8 facts, and send them to Screening. The words are R1's
 // (lib/intake.ts, lib/factSelectionCopy.ts) or proposed in lib/intakeCopy.ts. Offered only when NEXT_PUBLIC_INTAKE=1; otherwise this route goes back to Workflows.
@@ -67,6 +67,7 @@ export default function IntakePage() {
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="intake">
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="intake-text">{INTAKE_PASTE_LABEL}</label>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="intake-data-line">{INTAKE_DATA_LINE}</p>
           <textarea
             id="intake-text"
             className="min-h-[160px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"

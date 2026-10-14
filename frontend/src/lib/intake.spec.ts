@@ -62,6 +62,8 @@ test("the Intake page's own words are R1's (signed at b6435e5 with his two edits
   assert.equal(C.INTAKE_RUN_BUTTON, "Run intake");
   assert.equal(C.INTAKE_UNREADABLE, "Intake could not run just now. Try again.");
   assert.equal(C.INTAKE_CITATIONS_HEADING, "Citations in your text");
+  assert.equal(C.INTAKE_DATA_LINE, "The text you paste is read by the engine only; no model reads it on this page. The facts you choose are sent on to Screening, where models read them.");
+  assert.doesNotMatch(C.INTAKE_DATA_LINE, /not stored/i);
   // R1's FINAL caveat set for the paste box (14 Oct), (1) the privacy one first
   assert.deepEqual([...C.INTAKE_CAVEATS], [
     "Intake leaves out the heading of a court order. For other kinds of text it may not recognise the heading, and then names, addresses and other details in it stay as facts and are part of what is screened.",
