@@ -5,10 +5,10 @@
 
 export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   all_elements_established:
-    "The judge found every condition this provision requires shown in your facts, citing a fact for each, and found no fact that defeats the claim.",
-  denial_established: "The judge found a fact in your case that defeats this claim, and cited it.",
-  missing_element: "The judge did not find at least one required condition shown in your facts.",
-  no_training_statute_text: "We have no statute text for this provision, so we did not judge it.",
+    "The screening found a cited fact for every ingredient this provision requires.",
+  denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
+  missing_element: "The screening did not find a cited fact for at least one required ingredient.",
+  no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
   judge_error: "A check failed to run for this ingredient, so we hand it back to you.",
   assembly_lean_mismatch: "Two checks inside the screening disagreed, so we hand this ingredient back to you.",
 };

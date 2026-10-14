@@ -115,6 +115,14 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
 // R1, 14 Oct: the member-facing app form of these reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge",
 // no "referral, not an answer"; unavailable or failed checks are "handed back to you". Exactly these codes, nothing else.
 const APP_FORM: Readonly<Record<string, string>> = {
+  uncertain: "The screening is not sure whether a condition holds. Please have a lawyer look.",
+  uncertain_second_judge: "The second check is not sure whether a condition holds. Please have a lawyer look.",
+  denial_unquotable: "The screening thinks a fact that may defeat the claim exists but could not cite it in a way we can check. Please have a lawyer look.",
+  second_judge_defeater_disagreement: "The two checks disagree on whether a fact that may defeat the claim exists. Please have a lawyer look.",
+  all_elements_established: "The screening found a cited fact for every ingredient this provision requires.",
+  denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
+  missing_element: "The screening did not find a cited fact for at least one required ingredient.",
+  no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
   second_judge_unavailable: "A second check was unavailable, so we hand this ingredient back to you.",
   second_judge_not_confirmed: "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.",
   gate1_unavailable: "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
