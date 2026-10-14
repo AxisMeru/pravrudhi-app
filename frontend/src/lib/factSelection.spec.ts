@@ -51,6 +51,4 @@ test("the selector's words are R1's exact text (14 Oct)", () => {
   assert.equal(copy.SELECTOR_OVER_LIMIT, "Choose up to 8, or screen in more than one round.");
   assert.equal(copy.SELECTOR_EMPTY, "Choose at least one fact to screen.");
   assert.equal(copy.SELECTOR_SCREEN_BUTTON, "Screen the chosen facts");
-  assert.equal(copy.SELECTOR_PAGE_MARKER_NOTE, "Page numbers and headings from your file can appear inside a fact; they are part of your text.");
-  assert.equal(copy.SELECTOR_NO_BLANK_LINES_NOTE, "This text has no blank lines, so the heading of the order may sit inside the first fact. Skip any fact that is not about what happened.");
 });

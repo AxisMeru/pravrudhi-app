@@ -20,7 +20,7 @@ import {
   type IntakeView,
 } from "@/lib/intake";
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
-import { INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
+import { INTAKE_CAVEATS, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
 
 // Intake: paste text, get numbered facts tied to the words they came from and the citations found, choose up to 8 facts, and send them to Screening. The words are R1's
 // (lib/intake.ts, lib/factSelectionCopy.ts) or proposed in lib/intakeCopy.ts. Offered only when NEXT_PUBLIC_INTAKE=1; otherwise this route goes back to Workflows.
@@ -31,7 +31,6 @@ export default function IntakePage() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<IntakeView | null>(null);
   const [selected, setSelected] = useState<readonly number[]>([]);
-  const [noBlankLines, setNoBlankLines] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -53,7 +52,6 @@ export default function IntakePage() {
       } else {
         setView(v);
         setSelected(initialSelection(v.facts.length));
-        setNoBlankLines(!/\n[ \t]*\n/.test(text));
       }
     } catch (e) {
       setError(e instanceof ApiError && (e.status === 401 || e.status === 403) ? INTAKE_SIGNED_IN_ONLY : INTAKE_UNREADABLE);
@@ -75,6 +73,9 @@ export default function IntakePage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
+          <ul className="space-y-1 text-xs text-[var(--color-text-dim)]" data-testid="intake-caveats">
+            {INTAKE_CAVEATS.map((c) => <li key={c}>{c}</li>)}
+          </ul>
           <div className="flex items-center gap-3">
             <button type="button" className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm" data-testid="intake-run" disabled={loading || !text.trim()} onClick={run}>
               {loading ? <Loader2 size={14} className="animate-spin" aria-hidden /> : INTAKE_RUN_BUTTON}
@@ -90,7 +91,6 @@ export default function IntakePage() {
               facts={view.facts.map((f) => f.text)}
               selected={selected}
               onChange={setSelected}
-              noBlankLines={noBlankLines}
               onScreen={() => {
                 setHandoff(chosenFacts(view.facts.map((f) => f.text), selected).map((c) => c.text));
                 router.push("/screening");

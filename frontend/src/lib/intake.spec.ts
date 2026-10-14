@@ -62,4 +62,10 @@ test("the Intake page's own words are R1's (signed at b6435e5 with his two edits
   assert.equal(C.INTAKE_RUN_BUTTON, "Run intake");
   assert.equal(C.INTAKE_UNREADABLE, "Intake could not run just now. Try again.");
   assert.equal(C.INTAKE_CITATIONS_HEADING, "Citations in your text");
+  // R1's FINAL caveat set for the paste box (14 Oct), (1) the privacy one first
+  assert.deepEqual([...C.INTAKE_CAVEATS], [
+    "Intake leaves out the heading of a court order. For other kinds of text it may not recognise the heading, and then names, addresses and other details in it stay as facts and are part of what is screened.",
+    "If your text has no blank lines, part of the heading can stay inside the first fact; skip any fact that is not about what happened.",
+    "Page numbers, running headings and page breaks from your file can appear inside a fact or split a sentence between two facts; they are part of your text.",
+  ]);
 });

@@ -8,17 +8,12 @@ import {
   SELECTOR_EMPTY,
   SELECTOR_HEADING,
   SELECTOR_INTRO,
-  SELECTOR_NO_BLANK_LINES_NOTE,
   SELECTOR_OVER_LIMIT,
-  SELECTOR_PAGE_MARKER_NOTE,
   SELECTOR_SCREEN_BUTTON,
   SELECTOR_TICK_LINE,
   selectorCounter,
   selectorLimitLine,
 } from "@/lib/factSelectionCopy";
-
-// A page marker or a heading line inside a fact ("Page 3", "- 4 -", "[12]", an all-capitals line): shown as part of the user's own text, with R1's note.
-const PAGE_MARKER = /(?:^|\s)(?:page\s+\d+|-\s*\d+\s*-|\[\d+\])(?:\s|$)|^[A-Z][A-Z .,'-]{12,}$/m;
 
 /** Intake's "choose up to 8 facts" step: a checkbox list over the numbered facts with a counter. Screening takes the chosen facts (onScreen). Words: lib/factSelectionCopy.ts. */
 export function FactSelector({
@@ -26,26 +21,21 @@ export function FactSelector({
   selected,
   onChange,
   onScreen,
-  noBlankLines = false,
 }: {
   facts: readonly string[];
   selected: readonly number[];
   onChange: (selected: readonly number[]) => void;
   onScreen: () => void;
-  noBlankLines?: boolean;
 }) {
   const [refused, setRefused] = useState(false);
   const [triedEmpty, setTriedEmpty] = useState(false);
   const state = selectionState(selected, MAX_FACTS);
-  const anyMarker = facts.some((f) => PAGE_MARKER.test(f));
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Choose facts" data-testid="fact-selector">
       <h2 className="text-base font-medium text-[var(--color-text)]">{SELECTOR_HEADING}</h2>
       <p className="text-sm text-[var(--color-text)]">{SELECTOR_TICK_LINE}</p>
       <p className="text-sm text-[var(--color-text)]">{SELECTOR_INTRO}</p>
       {facts.length > MAX_FACTS && <p className="text-sm text-[var(--color-text)]" data-testid="selector-limit-line">{selectorLimitLine(facts.length)}</p>}
-      {noBlankLines && <p className="text-xs text-[var(--color-text-dim)]" data-testid="selector-no-blank-lines">{SELECTOR_NO_BLANK_LINES_NOTE}</p>}
-      {anyMarker && <p className="text-xs text-[var(--color-text-dim)]" data-testid="selector-page-marker">{SELECTOR_PAGE_MARKER_NOTE}</p>}
       <ul className="flex flex-col gap-2" aria-label="Facts to choose from">
         {facts.map((f, i) => {
           const checked = selected.includes(i);
