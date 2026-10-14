@@ -7,7 +7,7 @@ export default function BenchmarksPage() {
   return (
     <div>
       <PageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
-      <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-8">
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8">
         <ul className="space-y-3" data-testid="benchmark-statements">
           {BENCHMARK_STATEMENTS.map((s) => (
             <li key={s} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text)]">
