@@ -11,7 +11,7 @@ export const INTAKE_CAVEAT_HEADING =
   "Intake leaves out the heading of a court order. For other kinds of text it may not recognise the heading, and then names, addresses and other details in it stay as facts and are part of what is screened.";
 export const INTAKE_CAVEAT_NO_BLANK_LINES = "If your text has no blank lines, part of the heading can stay inside the first fact; skip any fact that is not about what happened.";
 export const INTAKE_CAVEAT_PAGE_FURNITURE =
-  "Page numbers, running headings and page breaks from your file can appear inside a fact or split a sentence between two facts; they are part of your text.";
+  "Running headings and page breaks from your file can appear inside a fact or split a sentence between two facts; they are part of your text.";
 export const INTAKE_CAVEATS: readonly string[] = [INTAKE_CAVEAT_HEADING, INTAKE_CAVEAT_NO_BLANK_LINES, INTAKE_CAVEAT_PAGE_FURNITURE];
 
 // R1 (14 Oct, exact): the plain-route data line beside the paste box, above the caveats and below the label. No consent line on this page; never "not stored".
