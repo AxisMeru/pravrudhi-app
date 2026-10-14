@@ -29,7 +29,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -64,6 +64,7 @@ export default function ScreeningPage() {
   const [invalidRunId, setInvalidRunId] = useState<string | null | undefined>(undefined); // set (to the run id or null) only when the engine's answer was unreadable
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
@@ -134,13 +135,14 @@ export default function ScreeningPage() {
     setInvalidRunId(undefined);
     setNotSignedIn(null);
     setSigningIn(false);
+    setRetrying(false);
     setResult(null);
     setElapsed(0);
     const ticker = window.setInterval(() => setElapsed((s) => s + 1), 1000);
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true) });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onTimeoutRetry: () => setRetrying(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
     } catch (e) {
@@ -154,6 +156,7 @@ export default function ScreeningPage() {
       window.clearInterval(ticker);
       abortRef.current = null;
       setSigningIn(false);
+      setRetrying(false);
       setLoading(false);
     }
   }
@@ -343,6 +346,7 @@ export default function ScreeningPage() {
                 Cancel
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
+              {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
               {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
                 {WARM_UP_NOTE}{" "}
                 <span className="font-mono">{String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span> elapsed.

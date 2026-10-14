@@ -559,3 +559,66 @@ test("#113 fail closed: a listed field of the wrong type, or an unknown assertio
   assert.deepEqual(JSON.parse(invalidAnswerRecord("r1")), { invalid_engine_answer: true, run_id: "r1" });
   assert.deepEqual(JSON.parse(invalidAnswerRecord(null)), { invalid_engine_answer: true, run_id: null });
 });
+
+// #151 (Lead-2, R1 14 Oct): a fetch timeout on the plain route is retried ONCE with the same body, the line shows between the two tries, a second timeout is the ordinary error.
+const timeoutError = () => new DOMException("timed out", "TimeoutError");
+const analyseCalls = (calls: { url: string; init?: RequestInit }[]) => calls.filter((c) => c.url.includes("/api/v1/analyse-facts"));
+
+test("analyseFacts: a timeout is retried once with the SAME request, and the notice callback fires once", async () => {
+  const { analyseFacts } = await import("./api");
+  let n = 0;
+  const { restore, calls } = mockFetch((url) => {
+    if (url.includes("/api/v1/analyse-facts") && ++n === 1) throw timeoutError();
+    return ok(FAKE_RESULT);
+  });
+  let notices = 0;
+  try {
+    const r = await analyseFacts(["fact"], ["bns69"], undefined, undefined, { onTimeoutRetry: () => { notices++; } });
+    assert.equal(r.run_id, FAKE_RESULT.run_id);
+  } finally {
+    restore();
+  }
+  const sent = analyseCalls(calls);
+  assert.equal(sent.length, 2);
+  assert.equal(String(sent[0].init?.body), String(sent[1].init?.body), "the retry sends the same body");
+  assert.equal(notices, 1);
+});
+
+test("analyseFacts: a second timeout is the ordinary error, with no third try", async () => {
+  const { analyseFacts } = await import("./api");
+  const { restore, calls } = mockFetch((url) => {
+    if (url.includes("/api/v1/analyse-facts")) throw timeoutError();
+    return ok(FAKE_RESULT);
+  });
+  try {
+    await assert.rejects(analyseFacts(["fact"], ["bns69"], undefined, undefined, { onTimeoutRetry: () => {} }), (e: unknown) => e instanceof DOMException && e.name === "TimeoutError");
+  } finally {
+    restore();
+  }
+  assert.equal(analyseCalls(calls).length, 2);
+});
+
+test("analyseFacts: no retry without the notice callback, on the assisted route, or when the user cancelled", async () => {
+  const { analyseFacts } = await import("./api");
+  const timeouts = (url: string) => { if (url.includes("/api/v1/analyse-facts")) throw timeoutError(); return ok(FAKE_RESULT); };
+  for (const run of [
+    () => analyseFacts(["fact"], ["bns69"]),
+    (cb: () => void) => analyseFacts(["fact"], ["bns69"], undefined, undefined, { assisted: true, onTimeoutRetry: cb }),
+    (cb: () => void) => { const ac = new AbortController(); ac.abort(); return analyseFacts(["fact"], ["bns69"], undefined, ac.signal, { onTimeoutRetry: cb }); },
+  ]) {
+    const { restore, calls } = mockFetch(timeouts);
+    let notices = 0;
+    try {
+      await assert.rejects(run(() => { notices++; }));
+    } finally {
+      restore();
+    }
+    assert.ok(analyseCalls(calls).length <= 1, "never a second analyse call");
+    assert.equal(notices, 0);
+  }
+});
+
+test("analyseFacts: R1's retry line, exactly", async () => {
+  const { TIMEOUT_RETRY_TEXT } = await import("./surfaceCopy");
+  assert.equal(TIMEOUT_RETRY_TEXT, "The screening is taking longer than usual to start. Trying once more.");
+});
