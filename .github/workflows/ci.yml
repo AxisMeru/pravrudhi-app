@@ -161,3 +161,72 @@ jobs:
       - name: engine log on failure
         if: failure()
         run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true
+
+  # The SHIPPED configuration (Lead-2, 14 Oct): the same suite, built with the flags the production deploy carries, so the flag-gated specs (assistant entry and run, Run again, the
+  # assistant provider read, the running view, the memo steps, the intake page) RUN instead of skipping. The env names are exactly the ones Track A's pre-deploy run uses:
+  # NEXT_PUBLIC_ASSISTANT_ENTRY=1, NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED=1, NEXT_PUBLIC_INTAKE=1 at build time, and INTAKE_BUILD=1 for the intake specs. The default `e2e` job above stays
+  # as is (flags off), so its check name is unchanged. Citations are NOT in this entry: they are added only if production turns citations on.
+  e2e-shipped:
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+
+      - name: frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: build the interface (shipped flags)
+        working-directory: frontend
+        # The sign-in page renders its form only when a Supabase project is named at build time; these are public,
+        # inert placeholders so the guards have a form to check (nothing is called until submit).
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+          NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
+          NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
+          NEXT_PUBLIC_INTAKE: "1"
+        run: npm run build
+
+      - name: install the pinned engine release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
+
+      - name: browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: serve the built pages from a product engine and run the suite
+        working-directory: frontend
+        env:
+          PRAVRUDHI_EDITION: product
+          NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
+          NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
+          NEXT_PUBLIC_INTAKE: "1"
+          INTAKE_BUILD: "1"
+        run: |
+          ENGINE="$RUNNER_TEMP/app-home/engine/.venv/bin/pravrudhi"
+          ROOT="$RUNNER_TEMP/root"; mkdir -p "$ROOT"
+          "$ENGINE" init --root "$ROOT"
+          PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$ROOT" --no-browser --port 8301 --host 127.0.0.1 > "$RUNNER_TEMP/engine.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8301/api/health > /dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:8301/api/me
+          # A second engine as the Studio edition (loopback only, no credentials) for the specs that drive the
+          # improvement loop's pages, which are closed to a member on the product edition (#525).
+          STUDIO_ROOT="$RUNNER_TEMP/studio-root"; mkdir -p "$STUDIO_ROOT"
+          "$ENGINE" init --root "$STUDIO_ROOT"
+          PRAVRUDHI_EDITION=studio PRAVRUDHI_STUDIO_LOOPBACK_ONLY=1 PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$STUDIO_ROOT" --no-browser --port 8302 --host 127.0.0.1 > "$RUNNER_TEMP/engine-studio.log" 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8302/api/health > /dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:8302/api/me
+          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test
+
+      - name: engine log on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true
