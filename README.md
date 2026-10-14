@@ -138,8 +138,9 @@ Two scheduled checks run on the operator's own box (`pravrudhi-e2e-nightly.timer
 Needs the same seed, non-admin account the nightly uses (`~/.config/pravrudhi/e2e.env`, never a real client's
 credentials) and, for `partner-api-live.spec.ts`, the Supabase project config (`~/.config/pravrudhi/supabase.env`)
 to sign in directly via the password grant (no browser for that one). Both `live-chromium` and `live-api` only
-exist in the project list when `E2E_EMAIL` is set, so listing/running without it silently skips them -- the
-same guard that keeps CI (which has no such account) from ever being asked to run them.
+exist in the project list when the OPERATOR sets `LIVE_E2E_GO=1` (and the account is then in the environment): with
+the flag unset the guard (`frontend/playwright.live-guard.ts`) defines no live project and never reads `E2E_EMAIL` or
+`E2E_PASSWORD`, so an account left in an environment is inert. This is what keeps CI and agent sessions from ever running them.
 
 ```bash
 cd frontend
