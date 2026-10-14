@@ -1,5 +1,8 @@
 import { expect, test } from "./support/engineTest";
 
+// The existence-only build (NEXT_PUBLIC_CITATION_EXISTENCE_ONLY=1) has its own spec: citations-existence.spec.ts.
+test.skip(process.env.CITATION_EXISTENCE_BUILD === "1", "the existence-only build is covered in citations-existence.spec.ts");
+
 /**
  * The citation check (#539), against RECORDED engine answers (page.route), not an index: the preview label, the status shown verbatim
  * with the engine's note, the signed wording for each coded refusal, and that the page never says the word "fake".

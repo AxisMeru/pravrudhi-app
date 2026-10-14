@@ -2,6 +2,7 @@
 // engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
 
 import { ApiError } from "./api";
+import { CITATION_EXISTENCE_ONLY, CONFLICT_TEXT, DETAIL_422_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -94,25 +95,29 @@ export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STA
 
 /** R1 14 Oct (#128 D4): the code token NOT_IN_INDEX stays in the data and never on screen; the result is shown as this label. Every other status is shown as the engine sent it. */
 export const NOT_IN_INDEX_LABEL = "Not found in our index";
-export const statusLabel = (status: string): string => (status === "NOT_IN_INDEX" ? NOT_IN_INDEX_LABEL : status);
+/** While the index is existence-only (flag) a CONFLICT reads as R1's sentence; every other status is as before. */
+export const statusLabel = (status: string, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): string =>
+  status === "NOT_IN_INDEX" ? NOT_IN_INDEX_LABEL : existenceOnly && status === "CONFLICT" ? CONFLICT_TEXT : status;
 
-export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED): VerifyView {
+export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";
   const withheld = !note || NOTE_BANNED.test(note);
+  // Existence-only index (R1 14 Oct): the engine's note "The case was not found in our index" is inexact under the stricter match rule (several matches or a longer title also give NOT_IN_INDEX), so R1's note replaces it.
+  const override = existenceOnly && status === "NOT_IN_INDEX";
   return {
     status,
     known: (VERIFY_STATUSES as readonly string[]).includes(status),
-    note: withheld ? null : note,
-    noteWithheld: withheld && !!note,
+    note: override ? NOT_IN_INDEX_NOTE : withheld ? null : note,
+    noteWithheld: !override && withheld && !!note,
     product: productStatus(reply, enabled),
   };
 }
 
-export type VerifyErrorKind = "timeout" | "cancelled" | "rate_limited" | "signed_out" | "index_unavailable" | "at_capacity" | "server" | "network";
+export type VerifyErrorKind = "quote_not_served" | "invalid_request" | "timeout" | "cancelled" | "rate_limited" | "signed_out" | "index_unavailable" | "at_capacity" | "server" | "network";
 
 /** The page's message for a failed check: the signed sentence for each coded refusal, the existing wording for the generic cases. */
-export function classifyVerifyError(e: unknown): { kind: VerifyErrorKind; message: string } {
+export function classifyVerifyError(e: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): { kind: VerifyErrorKind; message: string } {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") return { kind: "timeout", message: CITATION_ERROR_TEXT.verify_timeout };
   if (name === "AbortError") return { kind: "cancelled", message: "Citation check cancelled." };
@@ -125,6 +130,10 @@ export function classifyVerifyError(e: unknown): { kind: VerifyErrorKind; messag
     if (e.status === 503 && e.code === "verify_timeout") return { kind: "timeout", message: CITATION_ERROR_TEXT.verify_timeout };
     if (e.status === 503 && e.code === "verify_at_capacity") return { kind: "at_capacity", message: CITATION_ERROR_TEXT.verify_at_capacity };
     if (e.status === 503 && e.code === "citation_index_unavailable") return { kind: "index_unavailable", message: CITATION_ERROR_TEXT.citation_index_unavailable };
+    if (existenceOnly && e.status === 422) {
+      // quote_not_served (a quote reached the existence-only index) or a validation detail (blank citation, over length): plain words, never the code
+      return e.code === "quote_not_served" ? { kind: "quote_not_served", message: QUOTE_NOT_SERVED_TEXT } : { kind: "invalid_request", message: DETAIL_422_TEXT };
+    }
     return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). No result was returned.` };
   }
   return { kind: "network", message: "Could not reach the engine. Check your connection and try again." };

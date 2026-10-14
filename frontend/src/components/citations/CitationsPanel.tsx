@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { verifyCitation } from "@/lib/api";
 import { PREVIEW_LABEL } from "@/lib/citationCheck";
+import { CITATION_EXISTENCE_ONLY, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT } from "@/lib/citationExistence";
 import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, checkCitations, coverageLine, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
 import { CitationCheckResult } from "./CitationCheck";
 
@@ -25,6 +26,7 @@ export function CitationsPanelView({ rows, skipped, coverage }: { rows: readonly
           <div className="font-mono text-xs text-[var(--color-text)]">{r.item.citation}</div>
           {r.state.phase === "idle" && <p className="mt-1 text-xs text-[var(--color-text-dim)]">Not checked.</p>}
           {r.state.phase !== "idle" && <CitationCheckResult state={r.state} />}
+          {r.item.quoteIgnored && r.state.phase !== "idle" && <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-quote-note">{QUOTE_NOT_CHECKED_TEXT}</p>}
         </div>
       ))}
       {skipped > 0 && (
@@ -80,13 +82,13 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
       </h2>
       <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]">{PREVIEW_LABEL}</p>
       <label className="block text-sm text-[var(--color-text)]">
-        One citation per line. To check that words appear in the case, add them after a | on the same line; without them only the citation is looked up.
+        {CITATION_EXISTENCE_ONLY ? `One citation per line. ${EXISTENCE_PANEL_LINE}` : "One citation per line. To check that words appear in the case, add them after a | on the same line; without them only the citation is looked up."}
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={4}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
-          placeholder="(2020) 3 SCC 456 | the words to look for"
+          placeholder={CITATION_EXISTENCE_ONLY ? "(2020) 3 SCC 456" : "(2020) 3 SCC 456 | the words to look for"}
         />
       </label>
       <button
