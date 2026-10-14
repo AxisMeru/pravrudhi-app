@@ -99,6 +99,15 @@ export default function ScreeningPage() {
     };
   }, []);
 
+  // Choosing an example link (client-side navigation: the page does not remount, so the URL read below does not run again) loads it directly.
+  function applyExample(found: DemoExample) {
+    setExampleMissing(false);
+    setFacts([...found.facts]);
+    setExample(found);
+    const ids = found.contracts.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+    setPicked(new Set(ids.filter((id) => contracts.includes(id))));
+  }
+
   // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
   // static export). An id this app does not have shows the "not available" notice with a link to the first example.
   useEffect(() => {
@@ -207,7 +216,7 @@ export default function ScreeningPage() {
             <ul className="flex flex-col gap-1 text-sm">
               {EXAMPLES.map((e) => (
                 <li key={e.id}>
-                  <Link href={`/screening?example=${e.id}`} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</Link>
+                  <Link href={`/screening?example=${e.id}`} onClick={() => applyExample(e)} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</Link>
                 </li>
               ))}
             </ul>
