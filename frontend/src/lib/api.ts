@@ -1529,6 +1529,11 @@ export interface AnalyseFactsOptions {
   allowAnonymous?: boolean;
   /** Called once when the session is being retried ("Signing you in…"). */
   onSigningIn?: () => void;
+  /**
+   * #151 (Lead-2, R1 14 Oct): called once when the plain request timed out and is being sent ONCE more. Only a fetch timeout qualifies (never a 4xx/5xx answer, never the user cancelling), only on the
+   * plain analyse-facts route (the assisted route is consent-bearing and paid: no retry until Track C says it is safe), and only when the caller shows the line. The second timeout is the ordinary error.
+   */
+  onTimeoutRetry?: () => void;
 }
 
 export async function analyseFacts(
@@ -1544,7 +1549,15 @@ export async function analyseFacts(
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", ...(opts.assisted ? { consent: true } : {}) });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
-  let res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  let res: Response;
+  try {
+    res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  } catch (e) {
+    const timedOut = e instanceof DOMException && e.name === "TimeoutError";
+    if (!timedOut || opts.assisted || !opts.onTimeoutRetry || signal?.aborted) throw e;
+    opts.onTimeoutRetry();
+    res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  }
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
     if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
