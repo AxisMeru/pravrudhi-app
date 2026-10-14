@@ -40,7 +40,7 @@ async function open(page: import("@playwright/test").Page, opts: { tier?: unknow
   await page.route("**/api/me", (r) => (opts.me === 401 || opts.me === 503 ? r.fulfill({ status: opts.me, json: { error: "x" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
   await page.route("**/api/health", (r) => (opts.healthStatus ? r.fulfill({ status: opts.healthStatus, json: { error: "x" } }) : r.fulfill({ json: health(opts.tier) })));
-  await page.route("**/api/assistant", (r) => r.fulfill({ json: opts.info ?? { provider: "Anthropic", call_timeout_s: 60, session_budget_usd: 0.25, consent_required: true, assistant_tier: { state: "available", reason: null } } }));
+  await page.route("**/api/assistant", (r) => r.fulfill({ json: opts.info ?? { provider: "Anthropic", call_timeout_s: 60, session_budget_usd: 0.25, consent_required: true, assistant_tier: { state: "available", reason: null }, oldest_pending_delete_age_s: 4321, sweep_last_ok_age_s: 987 } }));
   await page.route("**/api/v1/analyse-facts/assist", (r) => {
     posts.assist.push(r.request().postData() ?? "");
     if (opts.assistStatus) return r.fulfill({ status: opts.assistStatus, json: { error: "rate_limited" } });
@@ -185,7 +185,7 @@ for (const [name, tier] of NOT_CONFIGURED) {
 }
 
 test("the consent line names no vendor of its own when the engine gives no provider", async ({ page }) => {
-  await open(page, { tier: AVAILABLE, info: { call_timeout_s: 60 } });
+  await open(page, { tier: AVAILABLE, info: { provider: "  ", call_timeout_s: 60, assistant_tier: { state: "available", reason: null } } });
   await expect(page.getByTestId("assistant-consent-line")).toHaveText("Running with the assistant sends your facts to an AI provider through our account. Screening without the assistant does not.");
 });
 
@@ -229,4 +229,12 @@ test("the identity call fails (503): nothing is shown, not the sign-in line, and
   await expect(page.getByTestId("assistant-run")).toHaveCount(0);
   await expect(page.getByTestId("assistant-signin")).toHaveCount(0);
   await expect(page.getByTestId("assistant-run-button")).toHaveCount(0);
+});
+
+test("GET /api/assistant: the signed-in-only ages and the limits are on the wire and are never shown", async ({ page }) => {
+  await open(page, { tier: AVAILABLE });
+  await expect(page.getByTestId("assistant-consent-line")).toHaveText(CONSENT);
+  await page.waitForTimeout(800);
+  const body = await page.locator("body").innerText();
+  expect(body).not.toMatch(/4321|987|0\.25|session_budget|pending|sweep/i);
 });

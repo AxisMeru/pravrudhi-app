@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { STEP_TRACE_HEADING, ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantViolations, entryState, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
+import { STEP_TRACE_HEADING, ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantInfoViolations, assistantViolations, entryState, parseAssistantInfo, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
 import { ASSISTANT_PAUSED_TEXT } from "./assistantTier";
 import { DH_ASSIST_SIGNIN } from "./dataHandling";
 
@@ -106,4 +106,18 @@ test("the outcome and reason must fit: budget carries per_session_budget ONLY (n
 
 test("the trace heading is R1's words: it states only that these steps ran and attributes the decision to no one", () => {
   assert.equal(STEP_TRACE_HEADING, "Steps of this screening");
+});
+
+const INFO = { provider: "Anthropic", call_timeout_s: 60, session_budget_usd: 0.25, consent_required: true, assistant_tier: { state: "available", reason: null }, oldest_pending_delete_age_s: 4321, sweep_last_ok_age_s: 987 };
+
+test("GET /api/assistant: the contract's answer has no violations; the app keeps ONLY the provider name (limits and the signed-in ages are dropped)", () => {
+  assert.deepEqual(assistantInfoViolations(INFO), []);
+  assert.deepEqual(assistantInfoViolations({ provider: "Anthropic", assistant_tier: { state: "unavailable", reason: "quota" } }), [], "ages and limits are omitted for anonymous callers");
+  assert.deepEqual(parseAssistantInfo(INFO), { provider: "Anthropic" });
+  assert.ok(!JSON.stringify(parseAssistantInfo(INFO)).match(/4321|987|0\.25|60/));
+});
+
+test("GET /api/assistant: an answer off the contract names no vendor; planted violations are caught", () => {
+  for (const bad of [null, "x", [], {}, { provider: 3 }, { provider: "  " }]) assert.equal(parseAssistantInfo(bad), null, JSON.stringify(bad));
+  for (const bad of [{ ...INFO, extra: 1 }, { ...INFO, provider: 3 }, { ...INFO, oldest_pending_delete_age_s: 1.5 }, { ...INFO, call_timeout_s: "60" }, { ...INFO, assistant_tier: { state: "maybe" } }, { provider: "A" }]) assert.notDeepEqual(assistantInfoViolations(bad), [], JSON.stringify(bad));
 });

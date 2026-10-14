@@ -141,3 +141,29 @@ export function entryState(tier: AssistantState, flagOn: boolean, signedIn: bool
   if (tier === "available") return signedIn === true ? "usable" : signedIn === false ? "signin" : "hidden"; // not yet known: nothing shown, nothing enabled
   return tier === "paused" || tier === "unreachable" ? "greyed" : "hidden";
 }
+
+/** What the app keeps of GET /api/assistant (engine response model AssistantStatusResponse, pravrudhi#391): only the provider name, for the consent line. The limits and the two pending-delete ages (signed-in only) are on the wire and are never read for display. */
+export interface AssistantInfo {
+  provider: string;
+}
+
+/** The contract's `info` shape (response_model_exclude_unset: optional fields are absent, not null). Violations are listed for the e2e mock check; the app itself only needs `parseAssistantInfo`. */
+export function assistantInfoViolations(v: unknown): string[] {
+  if (!isObj(v)) return ["assistant info: not an object"];
+  const out: string[] = [];
+  const allowed = new Set(["provider", "call_timeout_s", "session_budget_usd", "consent_required", "assistant_tier", "oldest_pending_delete_age_s", "sweep_last_ok_age_s"]);
+  for (const k of Object.keys(v)) if (!allowed.has(k)) out.push(`assistant info.${k}: not in the engine response model`);
+  if (typeof v.provider !== "string") out.push("assistant info.provider: expected text");
+  for (const k of ["call_timeout_s", "session_budget_usd"]) if (v[k] !== undefined && v[k] !== null && typeof v[k] !== "number") out.push(`assistant info.${k}: expected a number`);
+  for (const k of ["oldest_pending_delete_age_s", "sweep_last_ok_age_s"]) if (v[k] !== undefined && v[k] !== null && !Number.isInteger(v[k])) out.push(`assistant info.${k}: expected whole seconds`);
+  if (v.consent_required !== undefined && typeof v.consent_required !== "boolean") out.push("assistant info.consent_required: expected true or false");
+  const t = v.assistant_tier;
+  if (!isObj(t) || (t.state !== "available" && t.state !== "unavailable")) out.push("assistant info.assistant_tier: missing or not a tier");
+  return out;
+}
+
+/** The provider name from a GET /api/assistant answer, or null when the answer is not the contract's (no vendor is named then). Everything else, ages included, is dropped. */
+export function parseAssistantInfo(v: unknown): AssistantInfo | null {
+  if (!isObj(v) || typeof v.provider !== "string" || !v.provider.trim()) return null;
+  return { provider: v.provider.trim() };
+}

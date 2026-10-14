@@ -3,7 +3,7 @@
 // Every function here can fail — there may be no engine running, or an endpoint may not exist yet on an
 // older engine build. Callers are expected to handle rejection; nothing here retries or hides a failure.
 
-import { parseAssistantBlock, type AssistantBlock } from "./assistantRun";
+import { parseAssistantBlock, parseAssistantInfo, type AssistantBlock } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
 
 function detectBase(): string {
@@ -1566,11 +1566,10 @@ export async function analyseFacts(
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
 }
 
-/** What GET /api/assistant says (engine contract assistant_v1_2 `info`): read only for the provider name in the consent line. Any failure is null and the line names no vendor. */
+/** GET /api/assistant (engine response model AssistantStatusResponse, pravrudhi#391): read only for the provider name in the consent line. Any failure or an answer off the contract is null and the line names no vendor; the limits and the signed-in-only ages are never displayed. */
 export async function assistantProvider(): Promise<string | null> {
   try {
-    const j = await getJSON<{ provider?: unknown }>("/api/assistant");
-    return typeof j.provider === "string" && j.provider.trim() ? j.provider.trim() : null;
+    return parseAssistantInfo(await getJSON<unknown>("/api/assistant"))?.provider ?? null;
   } catch {
     return null;
   }
