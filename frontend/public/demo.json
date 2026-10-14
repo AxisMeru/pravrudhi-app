@@ -6,7 +6,7 @@
   "external": [
     {
       "condition": "base",
-      "file": "research/ext/qwen3-0.6b-base/results.json",
+      "file": "results.json",
       "kind": "external_eval",
       "metrics": {
         "gsm8k": {
@@ -37,7 +37,7 @@
     },
     {
       "condition": "adapter:c-0045",
-      "file": "research/ext/qwen3-0.6b-c0045/results.json",
+      "file": "results.json",
       "kind": "external_eval",
       "metrics": {
         "gsm8k": {
@@ -69,7 +69,7 @@
     {
       "condition": "base",
       "dataset": "humaneval",
-      "file": "research/ext/humaneval-before/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -99,7 +99,7 @@
     {
       "condition": "harness:c-0060",
       "dataset": "humaneval",
-      "file": "research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -129,7 +129,7 @@
     {
       "condition": "base-replicate",
       "dataset": "humaneval",
-      "file": "research/ext/humaneval-after/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -159,7 +159,7 @@
     {
       "condition": "base",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/base/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -189,7 +189,7 @@
     {
       "condition": "harness:bestof4",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/bestof4/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -219,7 +219,7 @@
     {
       "condition": "harness:retry3",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/retry3/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -249,7 +249,7 @@
     {
       "condition": "harness:combo",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/combo/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "humaneval": {
@@ -279,7 +279,7 @@
     {
       "condition": "base",
       "dataset": "mbpp",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/mb/base/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "mbpp": {
@@ -309,7 +309,7 @@
     {
       "condition": "harness:combo",
       "dataset": "mbpp",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/mb/combo/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "kind": "external_eval",
       "metrics": {
         "mbpp": {
@@ -339,7 +339,7 @@
     {
       "condition": "base",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/base/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "items": {
         "HumanEval/0": 1,
         "HumanEval/1": 0,
@@ -535,7 +535,7 @@
     {
       "condition": "harness:combo",
       "dataset": "humaneval",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/hn/combo/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "items": {
         "HumanEval/0": 1,
         "HumanEval/1": 1,
@@ -731,7 +731,7 @@
     {
       "condition": "base",
       "dataset": "mbpp",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/mb/base/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "items": {
         "Mbpp/100": 0,
         "Mbpp/101": 1,
@@ -1141,7 +1141,7 @@
     {
       "condition": "harness:combo",
       "dataset": "mbpp",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/mb/combo/out/evalplus_samples_eval_results.json",
+      "file": "evalplus_samples_eval_results.json",
       "items": {
         "Mbpp/100": 0,
         "Mbpp/101": 1,
@@ -1550,7 +1550,7 @@
     },
     {
       "condition": "base",
-      "file": "/tmp/redacted-session/-redacted-projects-pravrudhi/9e647463-05b0-43fe-9b20-48a82dacf7a6/scratchpad/nyaya/base/results.json",
+      "file": "results.json",
       "kind": "external_eval",
       "metrics": {
         "mmlu_jurisprudence": {
@@ -1591,7 +1591,7 @@
         "viruddha",
         "savyabhicara"
       ],
-      "file": "research/nyaya/validity/night-0-base-constructed.json",
+      "file": "night-0-base-constructed.json",
       "kind": "external_eval",
       "metrics": {
         "nyaya_validity": {
@@ -1676,7 +1676,7 @@
         "satpratipaksa",
         "badhita"
       ],
-      "file": "research/nyaya/validity/night-0-base-constructed.json",
+      "file": "night-0-base-constructed.json",
       "kind": "external_eval",
       "lean_source_commit": "f47267f2d28f1c358071eaefa69d9fa4909f66b9",
       "metrics": {
@@ -1974,7 +1974,7 @@
   },
   "models": [
     {
-      "artefact": ".pravrudhi/kernel/jobs/n4-train-c-0045-95769407/out/adapter",
+      "artefact": "adapter",
       "external_after": {
         "gsm8k": {
           "exact_match,flexible-extract": 0.49128127369219105,
@@ -2026,7 +2026,7 @@
       "track": "model"
     },
     {
-      "artefact": "research/inbox/harness-night3/c-0078",
+      "artefact": "c-0078",
       "external_after": null,
       "external_before": {
         "mbpp": {
@@ -2058,7 +2058,7 @@
       "track": "harness"
     },
     {
-      "artefact": "research/inbox/harness-night20/c-0206",
+      "artefact": "c-0206",
       "external_after": null,
       "external_before": {
         "mbpp": {
@@ -2090,7 +2090,7 @@
       "track": "harness"
     },
     {
-      "artefact": "research/inbox/harness-night26/c-0251",
+      "artefact": "c-0251",
       "external_after": null,
       "external_before": {
         "mbpp": {
@@ -3768,7 +3768,7 @@
     "chain_ok": true,
     "events": 3688,
     "inbox_pending": [
-      "research/inbox/harness-night26/c-0251"
+      "c-0251"
     ],
     "initialised": true,
     "ledger_head": "c49e0d64b3cac8b25f82dea13c20ec8a841ea2beffde814cc78f8f90ecffe75b",
