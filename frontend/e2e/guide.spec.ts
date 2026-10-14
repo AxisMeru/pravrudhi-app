@@ -3,6 +3,7 @@ import { expect, test } from "./support/engineTest";
 test("the guide opens from the Screening page, shows its steps, statuses and limits, and every screenshot loads", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
+  await page.getByTestId("about-screening").locator("summary").click();
   await page.getByTestId("guide-link").getByRole("link", { name: "New here? Read the user guide." }).click();
   await expect(page).toHaveURL(/\/guide\/?$/);
   await expect(page.getByRole("heading", { name: "User guide", exact: true })).toBeVisible();
