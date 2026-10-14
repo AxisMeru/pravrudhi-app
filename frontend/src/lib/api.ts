@@ -1529,6 +1529,8 @@ export interface AnalyseFactsOptions {
   allowAnonymous?: boolean;
   /** Called once when the session is being retried ("Signing you in…"). */
   onSigningIn?: () => void;
+  /** Called once when the sign-in check is over and the request is about to be sent (immediately for the anonymous demo, which skips the check): from here on a request is really in flight. */
+  onRequestStart?: () => void;
   /**
    * #151 (Lead-2, R1 14 Oct): called once when the plain request timed out and is being sent ONCE more. Only a fetch timeout qualifies (never a 4xx/5xx answer, never the user cancelling), only on the
    * plain analyse-facts route (the assisted route is consent-bearing and paid: no retry until Track C says it is safe), and only when the caller shows the line. The second timeout is the ordinary error.
@@ -1546,6 +1548,7 @@ export async function analyseFacts(
   const path = opts.assisted ? "/api/v1/analyse-facts/assist" : "/api/v1/analyse-facts";
   if (IS_DEMO) throw new ApiError(501, path);
   if (!opts.allowAnonymous) await requireSession({ onSigningIn: opts.onSigningIn, signal });
+  opts.onRequestStart?.();
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", ...(opts.assisted ? { consent: true } : {}) });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.

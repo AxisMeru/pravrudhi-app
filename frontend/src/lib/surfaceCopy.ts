@@ -104,6 +104,8 @@ export const CITATION_RETENTION = "The citation check does not save the citation
 export const WARM_UP_NOTE = "Warming up the screening and Lean checker — a first run after idle can take a few minutes while the models start.";
 /** Shown instead of sending anything when the engine says this browser is not signed in (R1 reads, 12 Oct). The anonymous demo is only ever started by the user's own choice. */
 export const SIGNING_IN_TEXT = "Signing you in…";
+/** R1, 14 Oct (P2): the screen button while the page re-checks sign-in before anything is sent. Disabled, with no Cancel (nothing is in flight); "Screening…" and Cancel appear only once a request really is. */
+export const CHECKING_SIGN_IN_LABEL = "Checking whether you are signed in…";
 /** #151 (R1, 14 Oct): shown only between a fetch timeout and its single retry, cleared when the retry returns. */
 export const TIMEOUT_RETRY_TEXT = "The screening is taking longer than usual to start. Trying once more.";
 export const NOT_SIGNED_IN_TEXT = "You are not signed in, so nothing has been sent. Sign in to screen your facts, or choose the anonymous demo instead.";

@@ -622,3 +622,35 @@ test("analyseFacts: R1's retry line, exactly", async () => {
   const { TIMEOUT_RETRY_TEXT } = await import("./surfaceCopy");
   assert.equal(TIMEOUT_RETRY_TEXT, "The screening is taking longer than usual to start. Trying once more.");
 });
+
+// R1, 14 Oct (P2): onRequestStart fires only when the check is over and the request is about to go; a signed-out check never fires it; the anonymous demo fires it at once.
+test("analyseFacts: onRequestStart is not called while signed out, is called once before the request when signed in, and at once for the anonymous demo", async () => {
+  const { analyseFacts, signInPolicy } = await import("./api");
+  const old = { ...signInPolicy };
+  signInPolicy.pauseMs = 0;
+  try {
+    const out = mockFetch(me(401));
+    let started = 0;
+    await assert.rejects(() => analyseFacts(["fact"], ["bns69"], undefined, undefined, { onRequestStart: () => { started += 1; } }));
+    out.restore();
+    assert.equal(started, 0, "nothing is in flight while signed out");
+    const inn = mockFetch(me(200));
+    let order = "";
+    await analyseFacts(["fact"], ["bns69"], undefined, undefined, { onRequestStart: () => { order += `start(${posts(inn.calls).length})`; } });
+    inn.restore();
+    assert.equal(order, "start(0)", "called once, before the request is sent");
+    const anon = mockFetch(me(401));
+    let anonStarted = 0;
+    await analyseFacts(["fact"], ["bns69"], undefined, undefined, { allowAnonymous: true, onRequestStart: () => { anonStarted += 1; } });
+    anon.restore();
+    assert.equal(anonStarted, 1);
+    assert.equal(anon.calls.filter((c) => c.url.includes("/api/me")).length, 0, "the anonymous demo does not look at the session");
+  } finally {
+    Object.assign(signInPolicy, old);
+  }
+});
+
+test("the sign-in re-check label is R1's exact string", async () => {
+  const { CHECKING_SIGN_IN_LABEL } = await import("./surfaceCopy");
+  assert.equal(CHECKING_SIGN_IN_LABEL, "Checking whether you are signed in…");
+});
