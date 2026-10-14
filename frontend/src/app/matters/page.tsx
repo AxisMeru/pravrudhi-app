@@ -16,7 +16,7 @@ import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from
 import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
 import { buildMemo } from "@/lib/memo";
-import { REFERRED_HEADING, referReasonPresentation } from "@/lib/referReason";
+import { REFERRED_HEADING, referReasonPresentation, UNKNOWN_REASON_TEXT } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
@@ -244,7 +244,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
 
       {!isUncovered(c) && c.outcome !== "REFER_TO_LAWYER" && c.reason && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="reason-text">
-          {nonReferReasonText(c.reason) ?? "The engine gave a reason this app does not recognise yet."}
+          {nonReferReasonText(c.reason) ?? UNKNOWN_REASON_TEXT}
         </p>
       )}
     </article>

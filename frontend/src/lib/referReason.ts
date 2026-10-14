@@ -37,6 +37,9 @@ export const REFER_REASONS = [
 export type ReferReason = (typeof REFER_REASONS)[number];
 
 /** The heading every referral is shown under. The signed sentence follows it on its own line, with no lead-in. */
+/** R1 (14 Oct): the one sentence for a reason this build does not know, on every result screen; no engine word, no code. */
+export const UNKNOWN_REASON_TEXT = "This ingredient needs a lawyer's look. The screening has no further detail for it.";
+
 export const REFERRED_HEADING = "For a lawyer to review";
 
 
@@ -113,7 +116,7 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
     return {
       reason: null,
       message: raw
-        ? "This ingredient needs a lawyer's look. The screening has no further detail for it."
+        ? UNKNOWN_REASON_TEXT
         : "No further detail is available for this ingredient.",
       twoJudgesOnly: false,
       unknown: true,
