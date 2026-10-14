@@ -100,3 +100,9 @@ test("R1 (#283): the guide's defence glossary entry and the defence line under '
   assert.equal(GUIDE_GLOSSARY.filter((g) => g.note).length, 1);
   assert.equal(GUIDE_STATUSES.filter((s) => s.note).length, 1);
 });
+
+test("R1's screenshot note (14 Oct): development stack, which frames are invented and which show a public court order; no engine version", async () => {
+  const { GUIDE_SCREENSHOT_NOTE } = await import("./copy");
+  assert.equal(GUIDE_SCREENSHOT_NOTE, "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.");
+  assert.doesNotMatch(GUIDE_SCREENSHOT_NOTE, /0\.6\.\d/);
+});

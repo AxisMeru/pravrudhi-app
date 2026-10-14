@@ -216,7 +216,11 @@ export default function ScreeningPage() {
             <ul className="flex flex-col gap-1 text-sm">
               {EXAMPLES.map((e) => (
                 <li key={e.id}>
-                  <Link href={`/screening?example=${e.id}`} onClick={() => applyExample(e)} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</Link>
+                  <Link href={`/screening?example=${e.id}`} onClick={(ev) => {
+                      // only a plain primary click loads the example here; a modified or middle click opens the link elsewhere (the same test next/link uses) and must not touch this tab's facts
+                      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+                      applyExample(e);
+                    }} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</Link>
                 </li>
               ))}
             </ul>

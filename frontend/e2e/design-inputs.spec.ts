@@ -55,3 +55,18 @@ test("the result is brought into view and the run identifiers are the last line 
   const last = await result.locator(":scope > *").last().getAttribute("data-testid");
   expect(last).toBe("run-ids");
 });
+
+// R2 (14 Oct): a modified click on an example link opens it elsewhere and must NOT overwrite what the lawyer typed in this tab.
+test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain click loads the example", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/screening");
+  const box = page.getByRole("textbox", { name: "Fact F1", exact: true });
+  await box.fill("Invented: what the lawyer typed in this tab.");
+  const popup = page.context().waitForEvent("page");
+  await page.getByTestId("example-link-karnataka-cheating-2025").click({ modifiers: ["Control"] });
+  await (await popup).close();
+  await expect(box).toHaveValue("Invented: what the lawyer typed in this tab.");
+  await expect(page.getByTestId("example-citation")).toHaveCount(0);
+  await page.getByTestId("example-link-karnataka-cheating-2025").click();
+  await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
+});

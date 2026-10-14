@@ -14,7 +14,7 @@ export const GUIDE_TITLE = "User guide";
 export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each status means, and what it does not do.";
 
 export const GUIDE_SCREENSHOT_NOTE =
-  "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read, not how the assistant will do on your matter.";
+  "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.";
 
 /** R1, 14 Oct: under frame 03, which shows a No fact cited row from a real run; it never calls the image an example of a supported row. */
 export const GUIDE_CITED_FACT_CAPTION =
