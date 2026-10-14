@@ -68,6 +68,7 @@ test("on a phone the menu button clears the page title; Sign in is a secondary l
   const signIn = page.getByRole("link", { name: "Sign in", exact: true }).first();
   await expect(signIn).toBeVisible();
   expect(await signIn.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+});
 
 // R2 (14 Oct): a modified click on an example link opens it elsewhere and must NOT overwrite what the lawyer typed in this tab.
 test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain click loads the example", async ({ page }) => {
