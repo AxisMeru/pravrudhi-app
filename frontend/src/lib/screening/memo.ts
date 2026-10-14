@@ -40,7 +40,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     // The banner sentence never appears without the standing line directly under it (R1).
     out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
     const ref = contractReferral(c);
-    if (ref) out.push(`Needs your review: ${line(ref.message)} (reason: ${ref.code})`, "");
+    if (ref) out.push(`Needs your review: ${line(ref.message)}${(ref.code ?? "").trim() ? ` (Engine reason code: ${ref.code})` : ""}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
     if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_PROMPT_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;
