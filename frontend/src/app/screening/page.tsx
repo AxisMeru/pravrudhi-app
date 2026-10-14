@@ -12,7 +12,7 @@ import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
-import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
+import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
 import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
@@ -302,7 +302,7 @@ export default function ScreeningPage() {
             )}
           </fieldset>
 
-          {assistant === "paused" && (
+          {pausedTreatment(assistant, ASSISTANT_ENTRY_ENABLED).line && (
             <p className="text-xs text-[var(--color-text-dim)]" data-testid="assistant-paused">
               {ASSISTANT_PAUSED_TEXT}
             </p>

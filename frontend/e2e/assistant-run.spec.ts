@@ -225,7 +225,7 @@ test("a rate-limited assisted run (429) still gives the screening result, with t
   expect(posts.assist).toHaveLength(1);
   expect(posts.plain).toBe(1);
   await expect(page.getByTestId("assistant-outcome-line")).toHaveText("The assistant could not be used for this run; this is the screening result without it.");
-  await expect(page.locator("body")).not.toContainText(/rate|429|limit/i);
+  await expect(page.locator("body")).not.toContainText(/rate[ _-]?limit|\b429\b|too many requests/i); // (a bare "rate" would match "separate" in the D5 intro)
 });
 
 test("the identity call fails (503): nothing is shown, not the sign-in line, and nothing is enabled", async ({ page }) => {

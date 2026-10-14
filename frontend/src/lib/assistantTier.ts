@@ -15,6 +15,14 @@ export const PAUSED_REASONS: readonly string[] = ["upstream_error", "quota", "bu
 /** Greyed features: a paused tier, or a health read that did not answer. */
 export const isGreyed = (s: AssistantState) => s === "paused" || s === "unreachable";
 
+/**
+ * What the pages show for a tier state (R1 14 Oct): the paused line and the greying of the assistant-backed workflow row apply ONLY when the assistant is offered (the entry build flag is on).
+ * While it is off, the guard pauses can read "paused" once the engine route is on, and a page must never describe or grey a feature that is not offered.
+ */
+export function pausedTreatment(state: AssistantState, entryOn: boolean): { line: boolean; grey: boolean } {
+  return { line: entryOn && state === "paused", grey: entryOn && isGreyed(state) };
+}
+
 export function assistantStateOf(health: unknown): AssistantState {
   if (typeof health !== "object" || health === null) return "not_configured";
   const tier = (health as { assistant_tier?: unknown }).assistant_tier;
