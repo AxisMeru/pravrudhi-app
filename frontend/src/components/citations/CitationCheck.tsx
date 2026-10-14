@@ -1,11 +1,9 @@
 "use client";
 
 import { Loader2, SearchCheck } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 
-import { verifyCitation } from "@/lib/api";
 import { PREVIEW_LABEL, statusLabel } from "@/lib/citationCheck";
-import { runCitationCheck, type CitationCheckState } from "@/lib/citationCheckRun";
+import type { CitationCheckState } from "@/lib/citationCheckRun";
 
 /** What a finished (or failed) check shows: the engine's status verbatim with its note, or the honest refusal / invalid-input text. */
 export function CitationCheckResult({ state }: { state: CitationCheckState }) {
@@ -42,7 +40,7 @@ export function CitationCheckResult({ state }: { state: CitationCheckState }) {
   );
 }
 
-/** What one citation's check shows. Pure: the state in, markup out (the tests render this). */
+/** What one citation's check shows. Pure: the state in, markup out (the tests render this). The panel (CitationsPanel) is the one caller that runs checks; no component here sends a quote on its own (R2, 14 Oct). */
 export function CitationCheckView({ state, onCheck, citation }: { state: CitationCheckState; onCheck: () => void; citation: string }) {
   const checking = state.phase === "checking";
   return (
@@ -63,20 +61,4 @@ export function CitationCheckView({ state, onCheck, citation }: { state: Citatio
       <CitationCheckResult state={state} />
     </div>
   );
-}
-
-/** One citation and the quote to look for, with its own button and result. Self-contained: it holds no page state. */
-export function CitationCheck({ citation, quote }: { citation: string; quote: string }) {
-  const [state, setState] = useState<CitationCheckState>({ phase: "idle" });
-  const abortRef = useRef<AbortController | null>(null);
-  useEffect(() => () => abortRef.current?.abort(), []);
-  const check = useCallback(async () => {
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
-    setState({ phase: "checking" });
-    const next = await runCitationCheck(verifyCitation, citation, quote, ac.signal);
-    if (abortRef.current === ac) setState(next); // a newer run or an unmount owns the state now
-  }, [citation, quote]);
-  return <CitationCheckView state={state} onCheck={check} citation={citation} />;
 }
