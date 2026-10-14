@@ -126,7 +126,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "not_evaluated_second_unavailable",
       "not_evaluated_gate1_unavailable",
       "// `status` is typed `string` because that is what AnalyseFactsElement carries off the wire — the engine is a // separate release train and may send a status this build predates.",
-      "not evaluated — second judge unavailable",
+      "not evaluated — second check unavailable",
       ", verdict: null, explanation: ELEMENT_STATUS_EXPLANATION.not_evaluated_second_unavailable, unknown: false,",
       ": // Operator decision, 2026-09-26: its own status and its own presentation, visibly different from BOTH // not_established and not_evaluated_second_unavailable.",
       "not evaluated",
