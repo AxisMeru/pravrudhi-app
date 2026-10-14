@@ -2,7 +2,7 @@ import { expect, test } from "./support/engineTest";
 import { promiseHits } from "./support/noTrainingPromise";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
-const LINE_START = "Element-by-element screening of Indian criminal matters. For each offence it covers under the BNS and the IPC";
+const LINE_START = "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC";
 
 test("the name and the line: the title, the sidebar name, and the line on the Screening page", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
