@@ -16,3 +16,13 @@ test("the screening memo's referral line names the engine reason code with its l
   assert.match(md, /Needs your review: .* \(Engine reason code: contract_not_validated\)/);
   assert.doesNotMatch(md, /\(reason: /);
 });
+
+const withReason = (reason: string): AnalyseFactsResult => ({ ...RESULT, contracts: [{ ...(RESULT.contracts[0] as object), reason }] } as unknown as AnalyseFactsResult);
+const referralLine = (r: AnalyseFactsResult): string => buildScreeningMemo(r, { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z" }).split("\n").find((l) => l.startsWith("Needs your review:")) ?? "";
+
+test("referral line, three cases: known reason, unknown reason, empty reason (R1, 14 Oct)", () => {
+  assert.match(referralLine(withReason("uncertain")), /^Needs your review: The screening is not sure whether a condition holds\. Please have a lawyer look\. \(Engine reason code: uncertain\)$/);
+  assert.equal(referralLine(withReason("a_reason_from_a_newer_engine")), "Needs your review: This ingredient needs a lawyer's look. The screening has no further detail for it. (Engine reason code: a_reason_from_a_newer_engine)");
+  assert.equal(referralLine(withReason("")), "Needs your review: This ingredient needs a lawyer's look. The screening gave no reason for it.");
+  assert.equal(referralLine(withReason("   ")), "Needs your review: This ingredient needs a lawyer's look. The screening gave no reason for it.");
+});
