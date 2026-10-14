@@ -485,7 +485,7 @@ test("the anonymous-demo note takes its retention period from the before-you-sub
   const phrase = PRE_SUBMIT_RETENTION.match(/kept for up to \d+ days/)?.[0];
   assert.ok(phrase, "the retention notice names a period");
   assert.ok(ANONYMOUS_DEMO_NOTE.includes(phrase!));
-  assert.equal(ANONYMOUS_DEMO_NOTE, `The anonymous demo is not tied to your account, shows no second-judge detail, and what you submit is ${phrase}.`);
+  assert.equal(ANONYMOUS_DEMO_NOTE, `The anonymous demo is not tied to your account, shows no second-check detail, and what you submit is ${phrase}.`);
   assert.doesNotMatch(ANONYMOUS_DEMO_NOTE, /does not use the second judge/);
 });
 

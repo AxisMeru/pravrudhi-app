@@ -38,7 +38,7 @@ export function citationNote(e: CitedElement): string | null {
   const kind = citationKind(e);
   if (kind === "whole_fact") {
     const fact = e.fact_id ? `your fact ${e.fact_id}` : "your fact";
-    return `cites ${fact} in full (the judge names the fact; it does not quote words)`;
+    return `cites ${fact} in full (the screening names the fact; it does not quote words)`;
   }
   if (kind === "model" || kind === "unstated") return NEUTRAL_NOTE;
   return null;

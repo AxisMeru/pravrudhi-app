@@ -119,7 +119,7 @@ test("buildMemo: REFER and ABSTAIN state the reason in plain language and make n
   const { buildMemo } = await import("./memo");
   const md = buildMemo(FIXTURE, OPTS);
   assert.match(md, /Referred to a lawyer/);
-  assert.match(md, /The second judge was unavailable, so we give a referral, not an answer\./);
+  assert.match(md, /The second check was unavailable, so we give a referral, not an answer\./);
   assert.doesNotMatch(md, /must decide this matter/);
   assert.match(md, /No verdict was reached/i);
   assert.match(md, /judge_error/);
@@ -208,7 +208,7 @@ test("buildMemo: no mismatch note unless the engine sent the judge's own version
   const withJudge = structuredClone(noJudge);
   withJudge.contracts[0].judge_rule_text = TOY_JUDGED;
   const md = buildMemo(withJudge, OPTS);
-  assert.ok(md.includes("The judge was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:"));
+  assert.ok(md.includes("The screening was shown this version of the provision, which is shorter or different from the provision text above; its findings were made against this version, which may be cut short:"));
   assert.doesNotMatch(md, /rest on this version|official text above/);
   assert.doesNotMatch(md.split("### ").filter((b) => b.startsWith("Provision text")).join(""), /\bofficial\b(?! version)/i, "official is used only for the India Code version, never for provision text");
   assert.ok(md.includes(`> ${TOY_JUDGED}`));
@@ -294,4 +294,11 @@ test("R1/R2 (#283): the Matters memo carries the unmeasured-defence line once pe
   assert.equal(count(buildMemo(mk("REFER_TO_LAWYER", [el({}), el({ is_denial: true, element: "a defence", status: "established" })]), OPTS)), 1);
   assert.equal(count(buildMemo(mk("REFER_TO_LAWYER", [el({ is_denial: true, element: "a defence", status: "not_established" })]), OPTS)), 0);
   assert.equal(count(buildMemo(mk("PROOF", [el({})]), OPTS)), 0);
+});
+
+// R1, 14 Oct: the exported memo labels the model id as such and never calls it a judge.
+test("memo: the run-record line is 'Screening model:', and no exported memo line says 'judge'", async () => {
+  const src = (await import("node:fs")).readFileSync(new URL("./memo.ts", import.meta.url), "utf8");
+  assert.ok(src.includes("`- Screening model: ${result.judge}`"));
+  assert.doesNotMatch(src.split("\n").filter((l) => !/^\s*\/\//.test(l) && !/result\.judge/.test(l)).join("\n"), /\bjudged?\b|\bjudges\b/i);
 });

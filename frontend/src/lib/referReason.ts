@@ -39,7 +39,7 @@ export type ReferReason = (typeof REFER_REASONS)[number];
 export const REFERRED_HEADING = "Referred to a lawyer";
 
 /** The signed table marks some reasons with this parenthesis; it is shown beside the sentence, never inside it. */
-export const TWO_JUDGES_ONLY_LABEL = "(deployments that use two judges only)";
+export const TWO_JUDGES_ONLY_LABEL = "(deployments that use two checks only)";
 
 export interface ReferReasonPresentation {
   // The canonical reason this presentation came from, or null when the engine sent something this build does
@@ -75,7 +75,7 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: true,
   },
   second_judge_unavailable: {
-    text: "The second judge was unavailable, so we give a referral, not an answer.",
+    text: "The second check was unavailable, so we give a referral, not an answer.",
     twoJudgesOnly: true,
   },
   gate1_unavailable: {

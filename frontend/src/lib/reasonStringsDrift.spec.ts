@@ -63,7 +63,7 @@ test("the signed table is the one expected: counts, and a header that names its 
   assert.match(GAP.source, /[0-9a-f]{64}/);
 });
 
-// R1, 14 Oct (supersedes the earlier ban on the words 'second check': his sentence for uncertain_second_judge uses them): the member-facing app form of these eight reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
+// R1, 14 Oct (supersedes the earlier ban on the words 'second check': his sentence for uncertain_second_judge uses them): the member-facing app form of these reasons (nine codes) differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
 const APP_FORM: Readonly<Record<string, string>> = {
   uncertain: "The screening is not sure whether a condition holds. Please have a lawyer look.",
   uncertain_second_judge: "The second check is not sure whether a condition holds. Please have a lawyer look.",
@@ -73,6 +73,7 @@ const APP_FORM: Readonly<Record<string, string>> = {
   denial_established: "The screening found a fact in your case that may defeat this claim, and cited it.",
   missing_element: "The screening did not find a cited fact for at least one required ingredient.",
   no_training_statute_text: "We have no statute text for this provision, so we did not screen it.",
+  second_judge_unavailable: "The second check was unavailable, so we give a referral, not an answer.",
   judge_error: "The screening could not complete this check. Please try again, or have a lawyer look.",
 };
 
@@ -134,7 +135,7 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
 
 test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in or 'temporarily'", () => {
   assert.equal(REFERRED_HEADING, "Referred to a lawyer");
-  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two judges only)");
+  assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two checks only)");
   for (const r of REFER_REASONS) {
     const { message } = referReasonPresentation(r);
     assert.doesNotMatch(message, /A lawyer must decide this matter:/i, r);
