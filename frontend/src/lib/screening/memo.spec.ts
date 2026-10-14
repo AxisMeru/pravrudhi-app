@@ -26,3 +26,12 @@ test("referral line, three cases: known reason, unknown reason, empty reason (R1
   assert.equal(referralLine(withReason("")), "Needs your review: This ingredient needs a lawyer's look. The screening gave no reason for it.");
   assert.equal(referralLine(withReason("   ")), "Needs your review: This ingredient needs a lawyer's look. The screening gave no reason for it.");
 });
+
+test("referral line with a reason that is undefined or null (a malformed-but-accepted answer): no throw, the signed empty-reason sentence, no parenthesis", () => {
+  const EMPTY = "Needs your review: This ingredient needs a lawyer's look. The screening gave no reason for it.";
+  const noReason = (v: unknown): AnalyseFactsResult => ({ ...RESULT, contracts: [{ ...(RESULT.contracts[0] as object), reason: v }] } as unknown as AnalyseFactsResult);
+  for (const v of [undefined, null]) assert.equal(referralLine(noReason(v)), EMPTY, String(v));
+  // the key absent altogether
+  const rest = Object.fromEntries(Object.entries(RESULT.contracts[0] as unknown as Record<string, unknown>).filter(([k]) => k !== "reason"));
+  assert.equal(referralLine({ ...RESULT, contracts: [rest] } as unknown as AnalyseFactsResult), EMPTY);
+});
