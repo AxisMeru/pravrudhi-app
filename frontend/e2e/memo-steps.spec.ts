@@ -65,9 +65,9 @@ test("plain run: the downloaded memo has no steps section and no mention", async
   expect(md).not.toMatch(/Steps of this screening|Read the facts|Ran the structure check/);
 });
 
-test("an assisted answer with a malformed appendix still shows the result; the memo has no steps section and no error", async ({ page }) => {
+test("an assisted answer whose appendix has no readable steps still shows the result; the memo has no steps section and no error", async ({ page }) => {
   test.skip(!ON, "needs the build with NEXT_PUBLIC_ASSISTANT_ENTRY=1");
-  await open(page, true, { ...FINISHED, appendix: { appendix_version: 9, steps: "junk" } });
+  await open(page, true, { ...FINISHED, appendix: { appendix_version: 1, steps: [{ name: "ingest", calls: 1 }].slice(1), per_contract: [], refused_calls: 0 } });
   await page.getByTestId("assistant-consent").check();
   await page.getByTestId("assistant-run-button").click();
   await expect(page.getByTestId("checklist")).toBeVisible();

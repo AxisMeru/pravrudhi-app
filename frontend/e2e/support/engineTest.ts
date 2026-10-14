@@ -1,6 +1,6 @@
 import { expect, test as base, type Route } from "@playwright/test";
 
-import { assistantInfoViolations, assistantViolations } from "../../src/lib/assistantRun";
+import { appendixViolations, assistantInfoViolations, assistantViolations } from "../../src/lib/assistantRun";
 import { mockViolations, type MockedEndpoint } from "../../src/lib/mockSchema";
 
 /**
@@ -28,8 +28,8 @@ export const test = base.extend<{ _mockSchema: void }>({
           return (o: Parameters<Route["fulfill"]>[0] = {}) => {
             if (new URL(q.url()).pathname === ASSIST_PATH && (o.status ?? 200) === 200 && o.json !== undefined) {
               // the assist route answers the analyse-facts answer plus an `assistant` block (engine contract assistant_v1_2): each half is checked against its own schema
-              const { assistant, ...core } = o.json as Record<string, unknown>;
-              violations.push(...mockViolations("analyse-facts", core).map((v) => `assist: ${v}`), ...assistantViolations(assistant).map((v) => `assist: ${v}`));
+              const { assistant, appendix, ...core } = o.json as Record<string, unknown>;
+              violations.push(...mockViolations("analyse-facts", core).map((v) => `assist: ${v}`), ...assistantViolations(assistant).map((v) => `assist: ${v}`), ...appendixViolations(appendix).map((v) => `assist: ${v}`));
               return t.fulfill(o);
             }
             if (new URL(q.url()).pathname === "/api/assistant" && (o.status ?? 200) === 200 && o.json !== undefined) {

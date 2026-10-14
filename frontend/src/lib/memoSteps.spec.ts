@@ -89,3 +89,11 @@ test("the run record keeps the appendix (the technical record) and the plain run
   const without = JSON.parse(buildRunRecord({ facts: [FACT], contractIds: [CID] }, BASE as unknown as AnalyseFactsResult, OPTS));
   assert.equal(without.response.appendix, undefined);
 });
+
+test("the mock harness accepts the recorded appendix shape and rejects fields the engine does not send", async () => {
+  const { appendixViolations } = await import("./assistantRun");
+  assert.deepEqual(appendixViolations(APPENDIX_WIRE), []);
+  assert.deepEqual(appendixViolations(undefined), []);
+  assert.ok(appendixViolations({ ...APPENDIX_WIRE, summary: "x" }).length > 0);
+  assert.ok(appendixViolations({ ...APPENDIX_WIRE, steps: [{ name: "ingest" }] }).length > 0);
+});
