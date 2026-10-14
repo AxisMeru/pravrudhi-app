@@ -53,7 +53,7 @@ interface NavEntry extends NavItem {
 // below show only to the Studio edition.
 const NAV: NavEntry[] = [
   { group: "work", href: "/screening", label: NAV_LABELS.screening, icon: ScanSearch },
-  { group: "work", href: "/matters", label: NAV_LABELS.matters, icon: Gavel },
+  // /matters ("Offence rules", the contract-picker form) is not offered in the product nav (Lead-2, 14 Oct: it shows raw contract ids); the route and the page stay.
   { group: "work", href: "/citations", label: NAV_LABELS.citations, icon: Library },
   { group: "reference", href: "/workflows", label: NAV_LABELS.workflows, icon: Workflow },
   { group: "reference", href: "/safety", label: NAV_LABELS.safety, icon: Gavel },

@@ -7,8 +7,8 @@ import test from "node:test";
 import { EMPTY_INDEX, PALETTE_PAGES, STUDIO_ONLY_PAGES, buildCatalogue, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
 
 test("a non-Studio caller is offered Matters and Settings, nothing of the improvement loop", () => {
-  assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["benchmarks", "data-handling", "demo", "guide", "how-it-was-built", "matters", "safety", "screening", "settings", "workflows"]);
-  assert.deepEqual(pagesFor(false, false, true, true).map((p) => p.id).sort(), ["benchmarks", "citations", "data-handling", "demo", "guide", "how-it-was-built", "matters", "safety", "screening", "settings", "workflows"]);
+  assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["benchmarks", "data-handling", "demo", "guide", "how-it-was-built", "safety", "screening", "settings", "workflows"]);
+  assert.deepEqual(pagesFor(false, false, true, true).map((p) => p.id).sort(), ["benchmarks", "citations", "data-handling", "demo", "guide", "how-it-was-built", "safety", "screening", "settings", "workflows"]);
 });
 
 test("Studio is offered every page", () => {
@@ -40,4 +40,12 @@ test("a caller the engine does not call admin is never offered Runs: not the pag
   assert.ok(shown.some((r) => r.group === "Runs"));
   assert.ok(!hidden.some((r) => r.group === "Runs" || r.href === "/runs"));
   assert.ok(hidden.length > 0, "the rest of the palette is untouched");
+});
+
+// Lead-2, 14 Oct (#177): "Offence rules" (/matters) shows raw contract ids, so it is not offered in the product nav or the palette; the route and its page stay.
+test("/matters is not in the palette pages, and the route is still allowed on the surface", async () => {
+  const { routeAllowedOnSurface } = await import("./demoPath");
+  assert.ok(!PALETTE_PAGES.some((p) => p.href === "/matters" || p.id === "matters"));
+  assert.ok(!pagesFor(false, false, true, true).some((p) => p.href === "/matters"));
+  assert.equal(routeAllowedOnSurface("/matters"), true);
 });
