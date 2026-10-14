@@ -40,6 +40,9 @@ export const DH_ASSIST_CONSENT = "The consent box is off for every run until you
 /** Also shown, as a short line, beside the assistant entry for an anonymous visitor in place of the consent box. Says "signed-in", nothing about how. */
 export const DH_ASSIST_SIGNIN = "The assistant is offered only to signed-in users. Without signing in, you get the screening result without it.";
 
+// R1's final sentence (Lead-2, 14 Oct): a fallback processing region is disclosed BEFORE it can take any traffic. Always shown: it is true whatever the assistant flags are.
+export const DH_WHERE_FALLBACK = "If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.";
+
 export const DH_WHERE_ASSIST = "If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).";
 
 /** The page's sections. `assist` adds the assistant section and the "where it is processed" sentence for it (both behind the one assistant flag); `deleteConfirmed` adds the delete sentence. */
@@ -88,6 +91,7 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     paragraphs: [
       "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. " +
         "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs.",
+      DH_WHERE_FALLBACK,
     ],
   },
   {
