@@ -125,3 +125,24 @@ test("GET /api/assistant: an answer off the contract names no vendor; planted vi
 test("the link beside the consent line names what it leads to", () => {
   assert.equal(ASSISTANT_DATA_LINK_TEXT, "How the assistant handles your facts");
 });
+
+// The timeout fallback (Track A, local lane, engine 0.6.9; Track B round 2): a timed-out assisted run answers the ordinary result plus an assistant block that carries `progress`. The recorded shape
+// (keys and types only; invented numbers) must be readable, so the user sees the timeout line and the core result, never "the engine's answer could not be read".
+const TIMED_OUT = { used: false, outcome: "timed_out", reason: "timeout", steps: [], cost: { used_cents: 2, budget_cents: 2 }, summary: null, session_id: null, progress: { tool_calls: 2, refused_calls: 0, events: 14, max_events: 1000, elapsed_s: 6.1, wall_limit_s: 6, last_tool: "select_contracts" } };
+
+test("a timed-out assistant block with the engine's `progress` object is a valid block and parses to the timeout fallback", async () => {
+  const { assistantViolations, parseAssistantBlock, assistantOutcomeLine, ASSISTANT_TIMEOUT_TEXT } = await import("./assistantRun");
+  assert.deepEqual(assistantViolations(TIMED_OUT), []);
+  const b = parseAssistantBlock(TIMED_OUT, () => { throw new Error("unreadable"); });
+  assert.deepEqual([b.used, b.outcome, b.reason, b.steps], [false, "timed_out", "timeout", []]);
+  assert.equal(assistantOutcomeLine(b), ASSISTANT_TIMEOUT_TEXT);
+  assert.deepEqual(assistantViolations({ ...TIMED_OUT, progress: { ...TIMED_OUT.progress, last_tool: null } }), [], "last_tool null (nothing had run yet)");
+  assert.deepEqual(assistantViolations({ ...TIMED_OUT, progress: null }), []);
+});
+
+test("progress is checked loosely, and any OTHER unknown assistant key still makes the block unreadable", async () => {
+  const { assistantViolations } = await import("./assistantRun");
+  assert.ok(assistantViolations({ ...TIMED_OUT, progress: "x" }).some((m) => /progress/.test(m)));
+  assert.ok(assistantViolations({ ...TIMED_OUT, progress: { ...TIMED_OUT.progress, events: "many" } }).some((m) => /progress\.events/.test(m)));
+  assert.ok(assistantViolations({ ...TIMED_OUT, surprise: 1 }).some((m) => /surprise: not in the contract/.test(m)));
+});
