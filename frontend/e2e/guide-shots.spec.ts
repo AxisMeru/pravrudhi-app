@@ -102,6 +102,7 @@ test("02/03 the checklist and a row from a real example run (live engine)", asyn
   await page.setViewportSize({ width: 832, height: 900 });
   await page.goto(`/screening?example=${process.env.GUIDE_EXAMPLE}`);
   await expect(page.getByTestId("example-citation")).toBeVisible();
+  await expect(page.getByTestId("offence-list").locator("input:checked")).not.toHaveCount(0); // the example selects its offence once the registry has loaded
   await page.getByRole("button", { name: "Screen these facts" }).click();
   const checklist = page.getByTestId("checklist").first();
   await expect(checklist).toBeVisible({ timeout: 380_000 });

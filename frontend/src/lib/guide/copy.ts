@@ -33,11 +33,11 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   checklist: {
     file: "02-ingredient-checklist.png",
-    alt: "The result for the invented plot-sale matter: a summary line above the standing not-legal-advice line, then three ingredient rows, one marked Supported by a fact, one marked Needs your review and one marked No fact cited under the heading To look for in your papers, each with a What to check line.",
+    alt: "The result of a run on a public court order (High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773): the review agenda above the standing not-legal-advice line, then three ingredient rows under the heading To look for in your papers, each marked No fact cited with a What to check line.",
   },
   citedFact: {
     file: "03-cited-fact.png",
-    alt: "One ingredient row marked Supported by a fact, naming fact F1 (an invented plot-sale matter).",
+    alt: "One ingredient row from the same run on a public court order, marked No fact cited, with its What to check line.",
   },
   needsReview: {
     file: "04-needs-your-review.png",
