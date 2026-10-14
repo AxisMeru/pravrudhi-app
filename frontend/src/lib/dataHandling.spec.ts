@@ -4,8 +4,9 @@ import { join, relative } from "node:path";
 import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
-import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, ASSISTANT_RETENTION_MAX_HOURS, DH_NOASSIST, DH_WHERE_ASSIST, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
+import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, DH_NOASSIST, DH_WHERE_ASSIST, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
+import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { canSeeNotifications } from "./runsAccess";
 import { WORKFLOWS, WORKFLOWS_CLOSING } from "./workflowsCopy";
 
@@ -165,14 +166,11 @@ test("the assistant section names no retention period and says nothing about the
   for (const p of para(dataHandlingSections(true, true), "assistant")) if (p !== DH_ASSIST_TERMS) assert.doesNotMatch(p, BANNED, p);
 });
 
-test("the '2 hours' on the page is the one constant; before the delete sentence can ship, the engine's contract value must equal it", () => {
+test("the '2 hours' on the page is the one pinned constant, and the constant is the vendored engine contract's retention_max_hours (a change to either fails)", () => {
+  const contract = JSON.parse(readFileSync(join(__dirname, "fixtures", "assistantContract.json"), "utf8")) as { retention_max_hours: number };
+  assert.equal(ASSISTANT_RETENTION_MAX_HOURS, contract.retention_max_hours);
   assert.equal(ASSISTANT_RETENTION_MAX_HOURS, 2);
-  assert.ok(DH_ASSIST_DELETE.includes(`within ${ASSISTANT_RETENTION_MAX_HOURS} hours at the latest`));
+  assert.ok(DH_ASSIST_DELETE.includes(`within ${contract.retention_max_hours} hours at the latest`));
   assert.ok(!DH_ASSIST_DELETE.includes("not stored") && !/\bprivate\b|\bsecure\b/.test(DH_ASSIST_DELETE));
-  if (ASSISTANT_DELETE_CONFIRMED) {
-    // Turning the flag on needs the vendored contract (src/lib/fixtures/assistantContract.json, from the engine's schema) to carry retention_max_hours equal to the constant.
-    const f = join(__dirname, "fixtures", "assistantContract.json");
-    assert.ok(existsSync(f), "the delete sentence is on: vendor the engine contract with retention_max_hours");
-    assert.equal(JSON.parse(readFileSync(f, "utf8")).retention_max_hours, ASSISTANT_RETENTION_MAX_HOURS);
-  }
+  assert.equal(typeof ASSISTANT_DELETE_CONFIRMED, "boolean"); // the delete sentence ships only with this flag, after R2 has read the sweeper
 });

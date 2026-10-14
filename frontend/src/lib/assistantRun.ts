@@ -1,12 +1,12 @@
-// The assistant run (pravrudhi-app#125; engine contract assistant_v1_1, Track C 14 Oct; strings R1 14 Oct). One extra request, opted into per run with a consent tick, that
+// The assistant run (pravrudhi-app#125; engine contract assistant_v1_2, Track C 14 Oct; strings R1 14 Oct). One extra request, opted into per run with a consent tick, that
 // drives the screening stages and answers the same decide result plus an `assistant` block. The app shows the decide result and a fixed-word step trace, and nothing the
 // assistant wrote: `summary` and `cost` are on the wire and are never read for display. A block that does not match the contract makes the whole answer unreadable.
 
+import { DH_ASSIST_SIGNIN } from "./dataHandling";
 import { ASSISTANT_PAUSED_TEXT, type AssistantState } from "./assistantTier";
-import { QUOTE_NOT_FOUND_TEXT, QUOTE_PASSED_TEXT } from "./frontierReader";
 
 export const ASSISTANT_RUN_LABEL = "Run with the screening assistant";
-export const STEP_TRACE_HEADING = "What the assistant did";
+export const STEP_TRACE_HEADING = "Steps of this screening"; // states only that these steps ran; attributes the decision to no one (R1 14 Oct)
 
 /** Shown beside the consent tick EVERY time, per request; the tick is unticked on each load and after each run. `provider` comes from the engine; with none it names no vendor of its own. */
 export function assistantConsentLine(provider?: string | null): string {
@@ -33,7 +33,7 @@ export const STEP_LABELS: Readonly<Record<StepName, string>> = {
 
 export const OUTCOMES = ["finished", "timed_out", "budget", "refused"] as const;
 export type AssistantOutcome = (typeof OUTCOMES)[number];
-export const REASONS = ["not_configured", "paused", "consent_required", "timeout", "per_session_budget", "daily_ceiling", "error", "safety"] as const;
+export const REASONS = ["not_configured", "paused", "consent_required", "timeout", "per_session_budget", "daily_ceiling", "error", "safety", "sign_in_required", "rate_limited"] as const;
 export type AssistantReason = (typeof REASONS)[number];
 export const CHECKS = ["valid", "invalid", "agrees", "differs"] as const;
 export type StepCheck = (typeof CHECKS)[number];
@@ -59,7 +59,7 @@ const OUTCOME_REASONS: Readonly<Record<AssistantOutcome, readonly (AssistantReas
   finished: [null],
   timed_out: ["timeout"],
   budget: ["per_session_budget"],
-  refused: ["not_configured", "paused", "consent_required", "daily_ceiling", "error", "safety"],
+  refused: ["not_configured", "paused", "consent_required", "daily_ceiling", "error", "safety", "sign_in_required", "rate_limited"],
 };
 
 /** The list of ways `v` is not the contract's assistant block (empty = a valid block). Used by the app's guard and by the e2e mock check. */
@@ -112,14 +112,21 @@ export function assistantOutcomeLine(b: AssistantBlock): string | null {
     case "budget":
       return ASSISTANT_BUDGET_TEXT;
     case "refused":
-      return b.reason === "daily_ceiling" || b.reason === "paused" ? ASSISTANT_PAUSED_TEXT : ASSISTANT_COULD_NOT_USE_TEXT;
+      // the daily ceiling or a paused tier: the one paused line; sign-in required (an expired session): the sign-in line, shown once; every other refusal, including a rate limit, the could-not-use line with no reason
+      if (b.reason === "daily_ceiling" || b.reason === "paused") return ASSISTANT_PAUSED_TEXT;
+      return b.reason === "sign_in_required" ? DH_ASSIST_SIGNIN : ASSISTANT_COULD_NOT_USE_TEXT;
   }
 }
 
+/** The short forms for a trace row (the row label already says what was checked; the frontier reader keeps its own quote phrases). */
+export const CHECK_PASSED_TEXT = "passed";
+export const CHECK_NOT_PASSED_TEXT = "did not pass";
+export const QUOTE_NOT_FOUND_ROW_TEXT = "a quote was not found in your facts";
+
 /** A step's check in plain words, or null (shown as nothing). Lean is only "passed" / "did not pass"; a check on a stage that does not carry it is ignored. */
 export function stepCheckText(s: AssistantStep): string | null {
-  if (s.name === "quote_check") return s.check === "valid" ? QUOTE_PASSED_TEXT : s.check === "invalid" ? QUOTE_NOT_FOUND_TEXT : null;
-  if (s.name === "lean_check") return s.check === "agrees" ? "Structure check: passed" : s.check === "differs" ? "Structure check: did not pass" : null;
+  if (s.name === "quote_check") return s.check === "valid" ? CHECK_PASSED_TEXT : s.check === "invalid" ? QUOTE_NOT_FOUND_ROW_TEXT : null;
+  if (s.name === "lean_check") return s.check === "agrees" ? CHECK_PASSED_TEXT : s.check === "differs" ? CHECK_NOT_PASSED_TEXT : null;
   return null;
 }
 

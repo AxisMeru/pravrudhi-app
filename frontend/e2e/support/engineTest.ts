@@ -27,7 +27,7 @@ export const test = base.extend<{ _mockSchema: void }>({
           if (p !== "fulfill") { const v = Reflect.get(t, p); return typeof v === "function" ? v.bind(t) : v; }
           return (o: Parameters<Route["fulfill"]>[0] = {}) => {
             if (new URL(q.url()).pathname === ASSIST_PATH && (o.status ?? 200) === 200 && o.json !== undefined) {
-              // the assist route answers the analyse-facts answer plus an `assistant` block (engine contract assistant_v1_1): each half is checked against its own schema
+              // the assist route answers the analyse-facts answer plus an `assistant` block (engine contract assistant_v1_2): each half is checked against its own schema
               const { assistant, ...core } = o.json as Record<string, unknown>;
               violations.push(...mockViolations("analyse-facts", core).map((v) => `assist: ${v}`), ...assistantViolations(assistant).map((v) => `assist: ${v}`));
               return t.fulfill(o);

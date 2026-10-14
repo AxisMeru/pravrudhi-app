@@ -2,6 +2,7 @@
 // existing signed constant quoted unchanged. Kept in ONE file so a late fact change is one edit. NOT said here, on purpose: any region for the smaller screening model,
 // any location for the sign-in provider, "no fact text is kept" (a run record can carry the text of a supported fact), and any promise about how the models handle submissions
 // (the code enforces none).
+import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { FRONTIER_TOGGLE_LABEL, FRONTIER_UNAVAILABLE_TEXT } from "./frontierReader";
 import { BANNER_STANDING_LINE } from "./screening/copy";
@@ -28,8 +29,6 @@ export const DH_ASSIST_LINK_HREF = "https://www.anthropic.com/legal/commercial-t
 export const DH_ASSIST_INTRO = `With the assistant, and only when you tick the consent box for that run, your facts are also sent to Anthropic through our account, under ${DH_ASSIST_LINK_TEXT}.`;
 // About Anthropic's terms, not our own promise (R1 14 Oct). This exact string is the one sentence the promise scan exempts.
 export const DH_ASSIST_TERMS = "Anthropic's commercial terms say it may not train models on customer content from its services.";
-/** The hours in the delete sentence. It must equal the engine's retention_max_hours (assistant contract): the unit test ties the two before ASSISTANT_DELETE_CONFIRMED can be turned on. */
-export const ASSISTANT_RETENTION_MAX_HOURS = 2;
 // Lead-2's final (Variant B, 14 Oct), R1's words. It says what WE do; it ships only with ASSISTANT_DELETE_CONFIRMED, i.e. once R2 has read the sweeper.
 export const DH_ASSIST_DELETE = `When your screening finishes, we delete the assistant's session record from Anthropic's service. If that fails, we retry, and it is deleted within ${ASSISTANT_RETENTION_MAX_HOURS} hours at the latest.`;
 export const DH_ASSIST_LAW = "Anthropic may keep content longer where the law requires it or to enforce its usage policy.";

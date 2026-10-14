@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { ASSISTANT_BUDGET_TEXT, ASSISTANT_COULD_NOT_USE_TEXT, ASSISTANT_TIMEOUT_TEXT, STEP_LABELS, STEP_NAMES, assistantConsentLine, assistantOutcomeLine, assistantViolations, entryState, parseAssistantBlock, stepCheckText, type AssistantBlock } from "./assistantRun";
 import { ASSISTANT_PAUSED_TEXT } from "./assistantTier";
+import { DH_ASSIST_SIGNIN } from "./dataHandling";
 
 const unreadable = (): never => { throw new Error("unreadable"); };
 const good = { used: true, outcome: "finished", reason: null, steps: [{ name: "ingest" }, { name: "quote_check", check: "valid" }], cost: { used_cents: 1, budget_cents: 25 }, summary: "x", session_id: null };
@@ -55,11 +56,11 @@ test("the outcome line: none when finished; timeout, session budget; the paused 
   for (const r of ["error", "safety", "consent_required", "not_configured"] as const) assert.equal(assistantOutcomeLine(block("refused", r)), ASSISTANT_COULD_NOT_USE_TEXT, r);
 });
 
-test("a step check in plain words: quote check phrases, Lean only as passed / did not pass, anything else nothing", () => {
-  assert.equal(stepCheckText({ name: "quote_check", check: "valid" }), "passed the quote check");
-  assert.equal(stepCheckText({ name: "quote_check", check: "invalid" }), "quote not found in your facts");
-  assert.equal(stepCheckText({ name: "lean_check", check: "agrees" }), "Structure check: passed");
-  assert.equal(stepCheckText({ name: "lean_check", check: "differs" }), "Structure check: did not pass");
+test("a step check in plain words, short forms (the row label says what was checked): quote check, Lean only as passed / did not pass, anything else nothing", () => {
+  assert.equal(stepCheckText({ name: "quote_check", check: "valid" }), "passed");
+  assert.equal(stepCheckText({ name: "quote_check", check: "invalid" }), "a quote was not found in your facts");
+  assert.equal(stepCheckText({ name: "lean_check", check: "agrees" }), "passed");
+  assert.equal(stepCheckText({ name: "lean_check", check: "differs" }), "did not pass");
   assert.equal(stepCheckText({ name: "lean_check" }), null);
   assert.equal(stepCheckText({ name: "lean_check", check: "valid" }), null, "a quote word on the Lean stage shows nothing");
   assert.equal(stepCheckText({ name: "ingest", check: "agrees" }), null);
@@ -79,4 +80,26 @@ test("the entry for a signed-out or not-yet-known user: signed-in is required to
   assert.equal(entryState("available", true, null), "hidden", "before /api/me answers nothing is shown or enabled");
   assert.equal(entryState("paused", true, false), "greyed");
   assert.equal(entryState("not_configured", true, false), "hidden");
+});
+
+test("contract v1.2: refused with sign_in_required or rate_limited is a readable block (the core result is kept); an unknown reason is still unreadable", () => {
+  for (const reason of ["sign_in_required", "rate_limited"]) {
+    const v = { used: false, outcome: "refused", reason, steps: [], cost: null, summary: null, session_id: null };
+    assert.deepEqual(assistantViolations(v), [], reason);
+    assert.deepEqual(parseAssistantBlock(v, unreadable), { used: false, outcome: "refused", reason, steps: [] });
+  }
+  for (const reason of ["rate_limitedX", "sign_in_requiredX", "Rate_Limited", "signin_required"]) assert.notDeepEqual(assistantViolations({ used: false, outcome: "refused", reason, steps: [] }), [], reason);
+});
+
+test("rate_limited reads as the could-not-use line (no reason shown); sign_in_required reads as the one sign-in line", () => {
+  assert.equal(assistantOutcomeLine(block("refused", "rate_limited")), ASSISTANT_COULD_NOT_USE_TEXT);
+  assert.equal(assistantOutcomeLine(block("refused", "sign_in_required")), DH_ASSIST_SIGNIN);
+  for (const r of ["rate_limited", "sign_in_required", "error"] as const) assert.doesNotMatch(assistantOutcomeLine(block("refused", r)) ?? "", /rate_limited|sign_in_required|429|\berror\b/);
+});
+
+test("the outcome and reason must fit: budget carries per_session_budget ONLY (not daily_ceiling, not null); timed_out only timeout; finished no reason", () => {
+  const base = { used: false, steps: [] };
+  for (const [outcome, reason] of [["budget", "daily_ceiling"], ["budget", null], ["budget", "timeout"], ["timed_out", "per_session_budget"], ["timed_out", null], ["finished", "daily_ceiling"], ["refused", "timeout"], ["refused", "per_session_budget"], ["refused", null]] as const)
+    assert.notDeepEqual(assistantViolations({ ...base, outcome, reason }), [], `${outcome}+${reason}`);
+  for (const [outcome, reason] of [["budget", "per_session_budget"], ["timed_out", "timeout"], ["finished", null]] as const) assert.deepEqual(assistantViolations({ ...base, outcome, reason }), [], `${outcome}+${reason}`);
 });

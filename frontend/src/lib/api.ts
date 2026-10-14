@@ -1513,9 +1513,13 @@ export async function requireSession(opts: { onSigningIn?: () => void; signal?: 
   throw last === "signed_out" ? new NotSignedInError() : new SignInUnverifiedError();
 }
 
-/** True only when GET /api/me says 200 (a signed-in user). 401, 404/405 (an engine with no identity endpoint), any error or a dropped connection is false: the assistant entry is offered only to a signed-in user (Lead-2, #125). */
-export async function isSignedIn(signal?: AbortSignal): Promise<boolean> {
-  return (await sessionState(signal)) === "signed_in";
+/**
+ * GET /api/me for the assistant entry (Lead-2, #125; R1 14 Oct): true on 200; false only on a clear 401 or a 404/405 (an engine with no identity endpoint); null on any error, timeout or dropped
+ * connection, so a signed-in user whose identity call failed is never shown a sign-in line that is not their situation (nothing is shown, nothing enabled).
+ */
+export async function isSignedIn(signal?: AbortSignal): Promise<boolean | null> {
+  const s = await sessionState(signal);
+  return s === "signed_in" ? true : s === "signed_out" || s === "no_endpoint" ? false : null;
 }
 
 export interface AnalyseFactsOptions {
@@ -1562,7 +1566,7 @@ export async function analyseFacts(
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
 }
 
-/** What GET /api/assistant says (engine contract assistant_v1_1 `info`): read only for the provider name in the consent line. Any failure is null and the line names no vendor. */
+/** What GET /api/assistant says (engine contract assistant_v1_2 `info`): read only for the provider name in the consent line. Any failure is null and the line names no vendor. */
 export async function assistantProvider(): Promise<string | null> {
   try {
     const j = await getJSON<{ provider?: unknown }>("/api/assistant");

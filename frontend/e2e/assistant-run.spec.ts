@@ -37,7 +37,7 @@ const health = (tier?: unknown) => ({ ok: true, version: "0.6.2", kernel: "0.6.2
 
 async function open(page: import("@playwright/test").Page, opts: { tier?: unknown; info?: unknown; answer?: unknown; healthStatus?: number; me?: number; assistStatus?: number } = {}) {
   const posts: { assist: string[]; plain: number } = { assist: [], plain: 0 };
-  await page.route("**/api/me", (r) => (opts.me === 401 ? r.fulfill({ status: 401, json: { error: "x" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
+  await page.route("**/api/me", (r) => (opts.me === 401 || opts.me === 503 ? r.fulfill({ status: opts.me, json: { error: "x" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
   await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
   await page.route("**/api/health", (r) => (opts.healthStatus ? r.fulfill({ status: opts.healthStatus, json: { error: "x" } }) : r.fulfill({ json: health(opts.tier) })));
   await page.route("**/api/assistant", (r) => r.fulfill({ json: opts.info ?? { provider: "Anthropic", call_timeout_s: 60, session_budget_usd: 0.25, consent_required: true, assistant_tier: { state: "available", reason: null } } }));
@@ -90,8 +90,9 @@ test("finished: the request carries consent true; the checklist is the engine's 
   await expect(steps).toHaveCount(8);
   await expect(steps.nth(0)).toHaveText("Read the facts");
   await expect(steps.nth(2)).toHaveText("Read the offence's ingredients");
-  await expect(steps.nth(4)).toHaveText("Checked the quotes: passed the quote check");
-  await expect(steps.nth(6)).toHaveText("Ran the structure check: Structure check: passed");
+  await expect(steps.nth(4)).toHaveText("Checked the quotes: passed");
+  await expect(steps.nth(6)).toHaveText("Ran the structure check: passed");
+  await expect(page.getByTestId("assistant-trace").locator("summary")).toHaveText("Steps of this screening");
   await expect(steps.nth(7)).toHaveText("Decided");
   await expect(page.getByTestId("assistant-outcome-line")).toHaveCount(0);
   const body = await page.locator("body").innerText();
@@ -116,6 +117,8 @@ const LINES: Array<[string, unknown, string | null]> = [
   ["refused: safety", blockOf("refused", "safety"), "The assistant could not be used for this run; this is the screening result without it."],
   ["refused: consent_required", blockOf("refused", "consent_required"), "The assistant could not be used for this run; this is the screening result without it."],
   ["refused: not_configured", blockOf("refused", "not_configured"), "The assistant could not be used for this run; this is the screening result without it."],
+  ["refused: rate_limited (HTTP 200 with the core result)", blockOf("refused", "rate_limited"), "The assistant could not be used for this run; this is the screening result without it."],
+  ["refused: sign_in_required (HTTP 200 with the core result)", blockOf("refused", "sign_in_required"), "The assistant is offered only to signed-in users. Without signing in, you get the screening result without it."],
   ["refused: daily_ceiling", blockOf("refused", "daily_ceiling"), PAUSED],
   ["refused: paused", blockOf("refused", "paused"), PAUSED],
 ];
@@ -127,7 +130,7 @@ for (const [name, answer, line] of LINES) {
     await expect(page.getByTestId("checklist")).toBeVisible();
     await expect(page.getByTestId("assistant-outcome-line")).toHaveText(line as string);
     await expect(page.getByTestId("assistant-trace")).toHaveCount(0);
-    await expect(page.locator("body")).not.toContainText(/per_session_budget|daily_ceiling|consent_required|not_configured|timed_out/);
+    await expect(page.locator("body")).not.toContainText(/per_session_budget|daily_ceiling|consent_required|not_configured|timed_out|rate_limited|sign_in_required/);
   });
 }
 
@@ -218,4 +221,12 @@ test("a rate-limited assisted run (429) still gives the screening result, with t
   expect(posts.plain).toBe(1);
   await expect(page.getByTestId("assistant-outcome-line")).toHaveText("The assistant could not be used for this run; this is the screening result without it.");
   await expect(page.locator("body")).not.toContainText(/rate|429|limit/i);
+});
+
+test("the identity call fails (503): nothing is shown, not the sign-in line, and nothing is enabled", async ({ page }) => {
+  await open(page, { tier: AVAILABLE, me: 503 });
+  await page.waitForTimeout(1500);
+  await expect(page.getByTestId("assistant-run")).toHaveCount(0);
+  await expect(page.getByTestId("assistant-signin")).toHaveCount(0);
+  await expect(page.getByTestId("assistant-run-button")).toHaveCount(0);
 });
