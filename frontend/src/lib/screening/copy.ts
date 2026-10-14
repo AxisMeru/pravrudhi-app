@@ -57,4 +57,3 @@ export function bannerText(supported: number, total: number, suggested: number, 
 }
 
 export const CONTRACT_REVIEW_HEADING = "Needs your review";
-export const SEE_REASON = "reason";

@@ -181,7 +181,6 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
           <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]">
             <p className="font-medium" data-testid="referred-heading">{REFERRED_HEADING}</p>
             <p className="mt-1" data-testid="referred-sentence">{referred.message}</p>
-            <p className="mt-1 text-xs text-[var(--color-warn)]">reason: {c.reason}</p>
           </div>
         );
       })()}
@@ -245,8 +244,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
 
       {!isUncovered(c) && c.outcome !== "REFER_TO_LAWYER" && c.reason && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="reason-text">
-          {nonReferReasonText(c.reason) ?? "The engine gave a reason this app does not recognise yet."}{" "}
-          <span className="text-[11px]">(reason: {c.reason})</span>
+          {nonReferReasonText(c.reason) ?? "The engine gave a reason this app does not recognise yet."}
         </p>
       )}
     </article>
