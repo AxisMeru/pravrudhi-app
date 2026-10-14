@@ -169,6 +169,12 @@ jobs:
   e2e-shipped:
     runs-on: ubuntu-latest
     needs: frontend
+    # The production flags, written ONCE here for the build and the test step (the specs read them to decide whether to skip).
+    env:
+      NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
+      NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
+      NEXT_PUBLIC_INTAKE: "1"
+      INTAKE_BUILD: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -189,9 +195,6 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
-          NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
-          NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
-          NEXT_PUBLIC_INTAKE: "1"
         run: npm run build
 
       - name: install the pinned engine release
@@ -207,10 +210,6 @@ jobs:
         working-directory: frontend
         env:
           PRAVRUDHI_EDITION: product
-          NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
-          NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
-          NEXT_PUBLIC_INTAKE: "1"
-          INTAKE_BUILD: "1"
         run: |
           ENGINE="$RUNNER_TEMP/app-home/engine/.venv/bin/pravrudhi"
           ROOT="$RUNNER_TEMP/root"; mkdir -p "$ROOT"
@@ -225,7 +224,12 @@ jobs:
           PRAVRUDHI_EDITION=studio PRAVRUDHI_STUDIO_LOOPBACK_ONLY=1 PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$STUDIO_ROOT" --no-browser --port 8302 --host 127.0.0.1 > "$RUNNER_TEMP/engine-studio.log" 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8302/api/health > /dev/null && break; sleep 1; done
           curl -sf http://127.0.0.1:8302/api/me
-          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test
+          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 PLAYWRIGHT_JSON_OUTPUT_NAME="$RUNNER_TEMP/pw-report.json" npx playwright test --reporter=line,json
+
+      # A Playwright run exits 0 when specs SKIP: if the flags stopped reaching the test process, the flag-gated specs would skip and this job would stay green. Fail unless each required spec file ran
+      # (assistant-run, intake and anonymous-assistant: no skips; assistant-tier skips one test on purpose in a flags-ON build, so it needs passes only). Same groups as the pre-deploy gate.
+      - name: the flag-gated specs ran (not skipped)
+        run: node scripts/check-flag-specs-ran.mjs "$RUNNER_TEMP/pw-report.json"
 
       - name: engine log on failure
         if: failure()
