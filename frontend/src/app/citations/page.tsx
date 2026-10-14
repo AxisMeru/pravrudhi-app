@@ -5,7 +5,9 @@ import { useRef, useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
+import { CITATION_ERROR_TEXT } from "@/lib/signedStrings";
 import { verifyCitation } from "@/lib/api";
+import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
 import {
   CITATION_MAX,
   CITATION_CHECK_TITLE,
@@ -21,6 +23,8 @@ import {
 // is labelled as a preview until the accuracy study reports, and says what a status is not (it checks existence and the quote, not
 // whether the case supports a point).
 export default function CitationsPage() {
+  // #128 D2: while the check is not served in the hosted deployment (NEXT_PUBLIC_CITATION_NAV off) the page has NO form, only the signed "index not available" sentence: it says the check is not served, so it must not invite one.
+  const served = CITATION_NAV_ENABLED;
   const [citation, setCitation] = useState("");
   const [quote, setQuote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,6 +67,10 @@ export default function CitationsPage() {
           not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
         </p>
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
+        {!served ? (
+          <p className="text-sm text-[var(--color-text)]" data-testid="citation-not-served">{CITATION_ERROR_TEXT.citation_index_unavailable}</p>
+        ) : (
+          <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
           <input
@@ -126,6 +134,8 @@ export default function CitationsPage() {
               </p>
             )}
           </section>
+        )}
+          </>
         )}
       </div>
     </div>

@@ -12,6 +12,9 @@ const NOTES: Record<string, string> = {
   CONFLICT: "The citation maps to conflicting indexed cases; verify by hand.",
 };
 
+// #128 D2: with the nav flag OFF (the hosted build) /citations has no form; every spec that uses the form runs only against a NEXT_PUBLIC_CITATION_NAV=1 build (CITATION_NAV_BUILD=1).
+const NEEDS_FORM = "needs a build with NEXT_PUBLIC_CITATION_NAV=1 (the form exists only then)";
+
 async function run(page: import("@playwright/test").Page): Promise<void> {
   await page.goto("/citations");
   await page.getByLabel("Citation (one)").fill("(2020) 3 SCC 456");
@@ -30,6 +33,7 @@ test("the page carries the preview label and says what the check is not", async 
 
 for (const [status, note] of Object.entries(NOTES)) {
   test(`${status} is shown verbatim${note.includes("fake") ? "; the engine note with the word \"fake\" is withheld" : " with the engine's note"}`, async ({ page }) => {
+    test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
     let body: unknown = null;
     await page.route("**/api/v1/verify-citations", (r) => {
       body = r.request().postDataJSON();
@@ -45,6 +49,7 @@ for (const [status, note] of Object.entries(NOTES)) {
 }
 
 test("an engine note carrying the word \"fake\" is withheld, the status still shown", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "NOT_IN_INDEX", note: "Not a finding that the citation is fake.", status: "not_in_index", label: "not in index", verified: false, preview: true } }));
   await run(page);
   await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
@@ -52,6 +57,7 @@ test("an engine note carrying the word \"fake\" is withheld, the status still sh
 });
 
 test("the coded refusals show the signed wording", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   const cases: Array<[string, number, Record<string, string>, string]> = [
     ["verify_timeout", 503, {}, "The citation check did not finish in time, so no result was returned. Try again later."],
     ["verify_at_capacity", 503, { "retry-after": "5" }, "The citation check is busy, so no result was returned. Try again in about 5 seconds."],
@@ -67,6 +73,7 @@ test("the coded refusals show the signed wording", async ({ page }) => {
 });
 
 test("empty inputs send no request", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   let calls = 0;
   await page.route("**/api/v1/verify-citations", (r) => {
     calls += 1;
@@ -88,6 +95,7 @@ test("the citation check is not in the nav until the build turns it on, and the 
 });
 
 test("the product status fields are wired but OFF: an engine that sends them changes nothing on the page in this build", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   await page.route("**/api/v1/verify-citations", (r) =>
     r.fulfill({ json: { result: "NOT_IN_INDEX", note: NOTES.NOT_IN_INDEX, status: "not_in_index", label: "not in index", preview: true, verified: false } }),
   );
@@ -95,4 +103,15 @@ test("the product status fields are wired but OFF: an engine that sends them cha
   await expect(page.getByTestId("citation-status")).toHaveText("NOT_IN_INDEX");
   await expect(page.getByTestId("citation-note")).toHaveText(NOTES.NOT_IN_INDEX);
   await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
+});
+
+test("flag off (the hosted build): /citations has no form, only the signed 'index not available' sentence, and the explanation is kept", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD === "1", "the flag-on build has the form");
+  await page.goto("/citations");
+  await expect(page.getByTestId("citation-not-served")).toHaveText("The citation index is not available, so this citation was not checked.");
+  await expect(page.getByLabel("Citation (one)")).toHaveCount(0);
+  await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Check" })).toHaveCount(0);
+  await expect(page.getByTestId("citation-limits")).toContainText("This check is not yet served in the hosted deployment.");
+  await expect(page.getByTestId("citation-retention")).toBeVisible();
 });
