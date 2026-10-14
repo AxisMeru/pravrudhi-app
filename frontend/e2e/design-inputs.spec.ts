@@ -76,9 +76,11 @@ test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain
   await page.goto("/screening");
   const box = page.getByRole("textbox", { name: "Fact F1", exact: true });
   await box.fill("Invented: what the lawyer typed in this tab.");
-  const popup = page.context().waitForEvent("page");
+  // A ctrl-click asks the BROWSER to open the link in a new tab; whether headless Chromium actually opens one is not the app's behaviour and not reliable (4 of 40 runs opened none and the old
+  // waitForEvent("page") timed out). The contract under test is only that THIS tab is left alone, so a tab that does open is closed and nothing waits for one.
+  page.context().on("page", (p) => { void p.close(); });
   await page.getByTestId("example-link-karnataka-cheating-2025").click({ modifiers: ["Control"] });
-  await (await popup).close();
+  await page.waitForTimeout(600); // long enough for a click handler that wrongly loaded the example into this tab to have done so
   await expect(box).toHaveValue("Invented: what the lawyer typed in this tab.");
   await expect(page.getByTestId("example-citation")).toHaveCount(0);
   await page.getByTestId("example-link-karnataka-cheating-2025").click();
