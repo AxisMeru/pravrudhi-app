@@ -113,3 +113,20 @@ test("02/03 the checklist and a row from a real example run (live engine)", asyn
   const review = page.getByTestId("ingredient-row").filter({ hasText: "Needs your review" }).first();
   if (await review.count()) await review.screenshot({ path: "public/guide/04-needs-your-review.png" });
 });
+
+// 05: the Case citations panel as the hosted build serves it today: no citation index, so the engine refuses and the panel says so (the product's own refusal; the citation is the
+// neutral citation of the Karnataka public order the first example uses, not an invented case).
+test("05 the citations panel with the index not available (hosted state)", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status: 503, json: { error: "citation_index_unavailable", code: "citation_index_unavailable" } }));
+  await openWith(page, full); // the panel sits under a result
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist").first()).toBeVisible();
+  await page.setViewportSize({ width: 832, height: 900 });
+  const panel = page.getByTestId("citations-panel");
+  await panel.scrollIntoViewIfNeeded();
+  await panel.locator("textarea").fill("2025:KHC:12773");
+  await panel.getByRole("button", { name: "Check citations" }).click();
+  await expect(panel).toContainText("The citation index is not available");
+  await hideFloaters(page);
+  await panel.screenshot({ path: "public/guide/05-citations-panel.png" });
+});

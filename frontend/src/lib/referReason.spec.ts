@@ -57,6 +57,7 @@ test("referReason: a missing or empty reason fails closed without a code to name
     assert.equal(p.reason, null);
     assert.equal(p.unknown, true);
     assert.doesNotMatch(p.message, /""/, "must not render an empty-string code as if it were a real one");
+    assert.equal(p.message, "This ingredient needs a lawyer's look. The screening gave no reason for it.", "R1 14 Oct: the signed empty-reason sentence");
   }
 });
 

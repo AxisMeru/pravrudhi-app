@@ -116,7 +116,7 @@ export function referReasonPresentation(reason: string | null | undefined): Refe
       reason: null,
       message: raw
         ? UNKNOWN_REASON_TEXT
-        : "No further detail is available for this ingredient.",
+        : "This ingredient needs a lawyer's look. The screening gave no reason for it.",
       twoJudgesOnly: false,
       unknown: true,
     };

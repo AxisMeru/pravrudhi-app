@@ -88,9 +88,15 @@ interface Run {
   bold: boolean;
 }
 
-/** Split a line on ** into alternating plain and bold runs. */
+/**
+ * The memo emits bold in exactly one place: a label at the START of a line ("**Label**", then the rest). Only that leading span is bold; every other "*" in the line is the
+ * submitter's own text and stays as typed, so the Word memo says exactly what the .md memo says ("a ** b", "the **price**" and the anonymisation mark "***" are not markup).
+ */
 function runsOf(s: string): Run[] {
-  return s.split("**").map((text, i) => ({ text, bold: i % 2 === 1 })).filter((r) => r.text.length > 0);
+  const lead = /^\*\*([^*]+)\*\*/.exec(s);
+  if (!lead) return s.length > 0 ? [{ text: s, bold: false }] : [];
+  const rest = s.slice(lead[0].length);
+  return rest.length > 0 ? [{ text: lead[1], bold: true }, { text: rest, bold: false }] : [{ text: lead[1], bold: true }];
 }
 
 function run(r: Run, size?: number, italic = false): string {

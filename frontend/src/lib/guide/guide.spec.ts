@@ -60,7 +60,7 @@ test("R1's conditions on the images: the citations shot carries the dev-stack ca
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
   assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
-  assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
+  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel as captured on the hosted build: a preview label and the sentence saying the citation index is not available, so no citation is checked.");
   assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
@@ -88,6 +88,7 @@ test("the guide names the three export buttons with the exact text the screening
 test("the guide's export step says what the run record holds (the facts you entered, the result, the versions)", () => {
   const s = GUIDE_STEPS.find((x) => x.id === "export")!;
   assert.match(s.text, /includes the facts you entered/);
+  assert.match(s.text, /the full result that came back, the engine version and the checker version/);
   assert.doesNotMatch(s.text, /records what was sent/);
 });
 
@@ -100,7 +101,7 @@ test("R1 (#283): the guide's defence glossary entry and the defence line under '
 
 test("R1's screenshot note (14 Oct): development stack, which frames are invented and which show a public court order; no engine version", async () => {
   const { GUIDE_SCREENSHOT_NOTE } = await import("./copy");
-  assert.equal(GUIDE_SCREENSHOT_NOTE, "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.");
+  assert.equal(GUIDE_SCREENSHOT_NOTE, "These screenshots were captured on a development stack, not on the live service. The screening input and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist, the cited-fact row and the needs-your-review crop show a run on a public court order, used as an illustrative example; its output is not evidence.");
   assert.doesNotMatch(GUIDE_SCREENSHOT_NOTE, /0\.6\.\d/);
 });
 
@@ -111,6 +112,7 @@ test("P16: R1's four-marks sentence, the No fact cited description, the banner d
   assert.ok(text.includes("Each ingredient shows one of four marks: Supported by a fact, Suggested by the screening judge; check it, Needs your review, or No fact cited."));
   assert.ok(GUIDE_STATUSES.some((s) => s.label === "No fact cited" && s.meaning === "No fact cited means the screening found no fact in your papers that supports this ingredient. It is a prompt to look for one, not a finding about your matter."));
   assert.ok(c.GUIDE_BANNER_TEXT.startsWith("On a result where no ingredient has a cited fact, a review agenda is shown first: what each ingredient needs, and which facts to look for. Nothing there is a finding about your matter."));
-  assert.ok(text.includes("You can download the memo as Markdown, as PDF or as a Word (.docx) file"));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md), PDF and Word (.docx); Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid."));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.endsWith("Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file."));
   assert.doesNotMatch(c.GUIDE_BANNER_TEXT + text, /\b\d+ of \d+\b|0 of 3/);
 });

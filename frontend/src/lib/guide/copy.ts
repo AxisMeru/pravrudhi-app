@@ -13,7 +13,7 @@ export const GUIDE_TITLE = "User guide";
 export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each status means, and what it does not do.";
 
 export const GUIDE_SCREENSHOT_NOTE =
-  "These screenshots were captured on a development stack, not on the live service. The screening input, the needs-your-review crop and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist and the cited-fact row show a run on a public court order, used as an illustrative example; its output is not evidence.";
+  "These screenshots were captured on a development stack, not on the live service. The screening input and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist, the cited-fact row and the needs-your-review crop show a run on a public court order, used as an illustrative example; its output is not evidence.";
 
 /** R1, 14 Oct: under frame 03, which shows a No fact cited row from a real run; it never calls the image an example of a supported row. */
 export const GUIDE_CITED_FACT_CAPTION =
@@ -49,7 +49,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: `The empty Case citations panel: a preview label, a line saying how to enter citations, an empty box and a Check citations button. ${GUIDE_CITATIONS_CAPTION}`,
+    alt: "The Case citations panel as captured on the hosted build: a preview label and the sentence saying the citation index is not available, so no citation is checked.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
@@ -120,7 +120,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "You can download the memo as Markdown, as PDF or as a Word (.docx) file, and the run record. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both files are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
+    text: "Under the checklist, the group Download the memo holds Markdown (.md), PDF and Word (.docx); Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
     image: GUIDE_IMAGES.memo,
   },
 ];

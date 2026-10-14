@@ -29,9 +29,9 @@ test("the .docx is a readable archive by the app's own checks, with exactly the 
 });
 
 test("Word reads it back: headings, quotes, bullets and bold text, with markup characters and control characters handled", async () => {
-  const md = ["# Screening memo", "", "> A quote & a <tag> \"x\" 'y'", "", "- **Supported by a fact**: the ingredient", "  - F1: a fact with \u0001 a control character", "Plain **bold** end"].join("\n");
+  const md = ["# Screening memo", "", "> A quote & a <tag> \"x\" 'y'", "", "- **Supported by a fact**: the ingredient", "  - F1: a fact with \u0001 a control character", "**Label** end"].join("\n");
   const back = (await text(buildDocx(md))).split("\n").filter((l) => l.trim());
-  assert.deepEqual(back, ["Screening memo", "A quote & a <tag> \"x\" 'y'", "• Supported by a fact: the ingredient", "◦ F1: a fact with  a control character", "Plain bold end"]);
+  assert.deepEqual(back, ["Screening memo", "A quote & a <tag> \"x\" 'y'", "• Supported by a fact: the ingredient", "◦ F1: a fact with  a control character", "Label end"]);
 });
 
 test("blank lines make no paragraph; an unknown line is plain text", () => {
@@ -63,4 +63,23 @@ test("the screening memo as .docx says exactly what the .md memo says, line for 
   assert.deepEqual(back, plain(md));
   assert.ok(back.some((l) => l.includes("Invented: Ravi told Meena the toy lorry was his & sold it to her for <500>.")), "fact text kept whole, markup characters intact");
   assert.ok(back.some((l) => /ingredients supported by a fact/.test(l)) && back.some((l) => l.includes("This is a screening aid, not legal advice")), "banner and the standing line");
+});
+
+const RESULT_WITH_STARS = {
+  ...RESULT,
+  facts: [
+    { id: "F1", text: "Mr. *** told ***", sha256: "a".repeat(64) },
+    { id: "F2", text: "a ** b", sha256: "b".repeat(64) },
+    { id: "F3", text: "the **price** was paid", sha256: "c".repeat(64) },
+  ],
+} as AnalyseFactsResult;
+
+// R2, 14 Oct: the submitter's own asterisks are text, not markup. Compared against the memo's INTENDED bold spans only (the leading label), never a blanket "**" strip.
+test("a fact's own asterisks reach the Word memo exactly as in the .md memo; only the memo's leading label is bold", async () => {
+  const md = buildScreeningMemo(RESULT_WITH_STARS, OPTS);
+  const docx = buildScreeningMemoDocx(RESULT_WITH_STARS, OPTS);
+  const back = (await text(docx)).split("\n").filter((l) => l.trim());
+  const intended = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "\u25e6 ").replace(/^(- )?\*\*([^*]+)\*\*/, (_m, b: string | undefined, label: string) => `${b ? "\u2022 " : ""}${label}`).replace(/^- /, "\u2022 "));
+  assert.deepEqual(back, intended);
+  for (const s of ["Mr. *** told ***", "a ** b", "the **price**"]) assert.ok(back.some((l) => l.includes(s)), s);
 });
