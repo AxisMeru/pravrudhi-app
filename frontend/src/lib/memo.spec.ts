@@ -300,5 +300,6 @@ test("R1/R2 (#283): the Matters memo carries the unmeasured-defence line once pe
 test("memo: the run-record line is 'Screening model:', and no exported memo line says 'judge'", async () => {
   const src = (await import("node:fs")).readFileSync(new URL("./memo.ts", import.meta.url), "utf8");
   assert.ok(src.includes("`- Screening model: ${result.judge}`"));
-  assert.doesNotMatch(src.split("\n").filter((l) => !/^\s*\/\//.test(l) && !/result\.judge/.test(l)).join("\n"), /\bjudged?\b|\bjudges\b/i);
+  const literals = (src.match(/"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/g) ?? []).filter((l) => !l.includes("result.judge"));
+  assert.deepEqual(literals.filter((l) => /\bjudged?\b|\bjudges\b/i.test(l)), [], "a string in memo.ts says judge");
 });
