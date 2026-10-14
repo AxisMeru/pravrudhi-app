@@ -27,7 +27,7 @@ export const EXAMPLE_NOT_FOUND_LINK = "Try the example instead";
 export const EXAMPLES: readonly DemoExample[] = [
   {
     id: "madras-public-order-2024",
-    // TODO(Track B): the full citation as printed (court + case type + number + date). Until it is supplied the citation is the court and date only, as before.
+    // Court + date only (Goal, 14 Oct): nobody holds the original order's printed header; a case type and number may arrive later as its own change. Pinned by example.spec.ts.
     citation: "Madras High Court, order of 12 June 2024",
     facts: [
   "The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.",
