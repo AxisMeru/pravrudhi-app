@@ -16,6 +16,8 @@ import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
 import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
 import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
+import { agendaContractId } from "@/lib/screening/model";
+import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
@@ -23,19 +25,23 @@ import { GUIDE_LANDING_LINK, GUIDE_PATH } from "@/lib/guide/copy";
 import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
-import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
+import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
+import { takeHandoff } from "@/lib/handoff";
+import { EXAMPLES, exampleById, type DemoExample } from "@/lib/demo/example";
+import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
-import { buildRunRecord, buildScreeningMemo } from "@/lib/screening/memo";
+import { DOCX_MIME } from "@/lib/docxWriter";
+import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
-function download(name: string, body: string, type: string): void {
-  const url = URL.createObjectURL(new Blob([body], { type }));
+function download(name: string, body: string | Uint8Array, type: string): void {
+  const url = URL.createObjectURL(new Blob([body as BlobPart], { type }));
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
@@ -56,20 +62,26 @@ export default function ScreeningPage() {
   const signedIn = useSignedIn();
   const assistantProvider = useAssistantProvider(assistant);
   const [assistantConsent, setAssistantConsent] = useState(false); // per run: unticked on load and after every run, never kept
-  const [exampleActive, setExampleActive] = useState(false);
+  const [example, setExample] = useState<DemoExample | null>(null);
+  const [exampleMissing, setExampleMissing] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [assistedTimeout, setAssistedTimeout] = useState<number | null>(null); // seconds the assisted run waited, set only when it ended on the app's own timeout (Run again)
   const [error, setError] = useState<string | null>(null);
+  const [limitNotice, setLimitNotice] = useState<string | null>(null);
   const [invalidRunId, setInvalidRunId] = useState<string | null | undefined>(undefined); // set (to the run id or null) only when the engine's answer was unreadable
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const resultRef = useRef<HTMLDivElement>(null);
+  const warming = svc?.kind === "ok" && svc.status.judge.state === "warming";
+  // The intro fold is closed by default (R1, 14 Oct) because the standing line ("This is a screening aid, not legal advice. A lawyer decides.") stays visible outside it, and so does the caveat strip (validated list, what the models read, the warming line), directly under the standing line (R1 and R2, 14 Oct).
   const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
@@ -91,13 +103,30 @@ export default function ScreeningPage() {
     };
   }, []);
 
-  // /screening?example=<id> loads the demo example: the allegations of one public judgment as numbered facts (read in the browser, as the
-  // page is a static export).
+  // Choosing an example link (client-side navigation: the page does not remount, so the URL read below does not run again) loads it directly.
+  function applyExample(found: DemoExample) {
+    setExampleMissing(false);
+    setFacts([...found.facts]);
+    setExample(found);
+    const ids = found.contracts.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+    setPicked(new Set(ids.filter((id) => contracts.includes(id))));
+  }
+  // Facts chosen on the Intake page arrive through a one-time in-memory hand-off (lib/handoff.ts): taken once, never stored.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("example") !== EXAMPLE_ID) return;
+    const handed = takeHandoff();
+    if (handed && handed.length > 0) void Promise.resolve().then(() => setFacts(handed));
+  }, []);
+
+  // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
+  // static export). An id this app does not have shows the "not available" notice with a link to the first example.
+  useEffect(() => {
+    const asked = new URLSearchParams(window.location.search).get("example");
+    const found = exampleById(asked);
+    if (asked !== null && found === null) void Promise.resolve().then(() => setExampleMissing(true));
+    if (found === null) return;
     void Promise.resolve().then(() => {
-      setFacts([...EXAMPLE_FACTS]);
-      setExampleActive(true);
+      setFacts([...found.facts]);
+      setExample(found);
     });
   }, []);
 
@@ -109,9 +138,10 @@ export default function ScreeningPage() {
         setContractsError(null);
         setContracts(cs);
         setContractsLoaded(true);
-        if (new URLSearchParams(window.location.search).get("example") === EXAMPLE_ID) {
+        const found = exampleById(new URLSearchParams(window.location.search).get("example"));
+        if (found !== null) {
           // the offence is the unit of choice: every contract of an offence the example invokes
-          const ids = EXAMPLE_CONTRACTS.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+          const ids = found.contracts.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
           setPicked(new Set(ids.filter((id) => cs.includes(id))));
         }
       })
@@ -125,10 +155,19 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
 
+  // P2: a new result is brought into view at once, so the user does not scroll past the facts they just typed.
+  useEffect(() => {
+    if (result) resultRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }, [result]);
+
   async function submit(anonymous: boolean = false, assisted: boolean = false) {
     const cleaned = facts.map((f) => f.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
     const check = checkFacts(cleaned.join("\n"));
-    if (!check.ok) return setError(check.message);
+    setLimitNotice(null);
+    if (!check.ok) {
+      if (check.neutral) { setError(null); return setLimitNotice(check.message); }
+      return setError(check.message);
+    }
     const ids = Array.from(picked);
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
     setLoading(true);
@@ -136,6 +175,7 @@ export default function ScreeningPage() {
     setInvalidRunId(undefined);
     setNotSignedIn(null);
     setSigningIn(false);
+    setRetrying(false);
     setResult(null);
     setAssistedTimeout(null);
     setElapsed(0);
@@ -144,7 +184,7 @@ export default function ScreeningPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true) });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onTimeoutRetry: () => setRetrying(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
     } catch (e) {
@@ -159,6 +199,7 @@ export default function ScreeningPage() {
       window.clearInterval(ticker);
       abortRef.current = null;
       setSigningIn(false);
+      setRetrying(false);
       setLoading(false);
     }
   }
@@ -170,21 +211,41 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
-        <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
-        <p className="text-sm" data-testid="guide-link">
-          <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
-        </p>
-        {exampleActive && (
-          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-sm text-[var(--color-text)]" data-testid="example-banner">
-            {EXAMPLE_LABEL}
-          </p>
+        <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
+        <CaveatStrip warming={warming} />
+        <details className="rounded-md border border-[var(--color-border)] p-3" data-testid="about-screening">
+          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)]">{ABOUT_SCREENING_LABEL}</summary>
+          <div className="mt-3 flex flex-col gap-3">
+            <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
+            <p className="text-sm" data-testid="guide-link">
+              <Link href={GUIDE_PATH} className="text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
+            </p>
+          </div>
+        </details>
+        {exampleMissing && <ExampleNotFound page="/screening" />}
+        {example && <ExampleBanner example={example} />}
+        {!example && (
+          <div className="flex flex-col gap-1" data-testid="example-entry">
+            <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
+            <ul className="flex flex-col gap-1 text-sm">
+              {EXAMPLES.map((e) => (
+                <li key={e.id}>
+                  <Link href={`/screening?example=${e.id}`} onClick={(ev) => {
+                      // only a plain primary click loads the example here; a modified or middle click opens the link elsewhere (the same test next/link uses) and must not touch this tab's facts
+                      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+                      applyExample(e);
+                    }} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid={`example-link-${e.id}`}>{e.citation}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
-        <CaveatStrip warming={svc?.kind === "ok" && svc.status.judge.state === "warming"} />
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
-          <textarea
+          <AutoGrowTextarea
             id="screening-paste"
+            maxRows={14}
             className="min-h-[100px] rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
@@ -232,7 +293,7 @@ export default function ScreeningPage() {
             {facts.map((f, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-2 w-8 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">F{i + 1}</span>
-                <textarea
+                <AutoGrowTextarea
                   aria-label={`Fact F${i + 1}`}
                   className="min-h-[44px] flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
                   value={f}
@@ -240,7 +301,7 @@ export default function ScreeningPage() {
                 />
                 <button
                   type="button"
-                  className="mt-1 text-xs text-[var(--color-text-dim)] underline"
+                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline"
                   aria-label={`Remove fact F${i + 1}`}
                   onClick={() => setFacts((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : [""]))}
                 >
@@ -349,6 +410,7 @@ export default function ScreeningPage() {
                 Cancel
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
+              {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
               {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">
                 {WARM_UP_NOTE}{" "}
                 <span className="font-mono">{String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}</span> elapsed.
@@ -361,6 +423,7 @@ export default function ScreeningPage() {
             </p>
           )}
           {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
+          {limitNotice && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="facts-limit-notice">{limitNotice}</p>}
           {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
           {invalidRunId !== undefined && (
             <div className="print:hidden">
@@ -372,25 +435,32 @@ export default function ScreeningPage() {
         </section>
 
         {result && request && (
-          <div className="flex flex-col gap-6" data-testid="screening-result">
-            <div className="text-xs text-[var(--color-text-dim)]">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
-            <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
-                {EXPORT_LABELS.memo}
-              </button>
-              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
-                {EXPORT_LABELS.print}
-              </button>
+          <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions">
+              <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
+                <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
+                  {EXPORT_LABELS.memo}
+                </button>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
+                  {EXPORT_LABELS.print}
+                </button>
+                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
+                  {MEMO_DOCX_LABEL}
+                </button>
+              </div>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
                 {EXPORT_LABELS.runRecord}
               </button>
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {result.contracts.map((c) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}
             <CitationsPanel />
             <StatuteNotice />
+            {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
+            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
           </div>
         )}
       </div>

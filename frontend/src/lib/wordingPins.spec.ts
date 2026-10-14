@@ -17,7 +17,7 @@ test("demo step 3 title and body, exactly (the Screening flow: the three chips a
   assert.equal(s.title, "See which ingredients your facts support");
   assert.equal(
     s.body,
-    "Each ingredient is marked Supported by a fact, Not supported by these facts, or Needs your review, with the reason. A supported ingredient shows the fact of yours it cites, as you wrote it; nothing is filled in to look complete.",
+    "Each ingredient is marked Supported by a fact, No fact cited, or Needs your review, with the reason. A supported ingredient shows the fact of yours it cites, as you wrote it; nothing is filled in to look complete.",
   );
 });
 
@@ -28,8 +28,8 @@ test("the element chips read 'supported by a fact' and 'not supported by these f
 });
 
 test("the binding-leg lines and the unknown quote-check fallback, exactly", () => {
-  assert.equal(bindingLegText("primary"), "Not supported at the first check's confidence threshold.");
-  assert.equal(bindingLegText("second"), "Not supported at the second check's confidence threshold.");
+  assert.equal(bindingLegText("primary"), "The first check was not confident enough that your facts support this ingredient.");
+  assert.equal(bindingLegText("second"), "The second check was not confident enough that your facts support this ingredient.");
   assert.equal(bindingLegText(null), null);
   const u = quoteCheckPresentation("brand_new");
   assert.equal(u?.text, 'The check of the cited text gave a result this app does not recognise yet ("brand_new").');
@@ -77,4 +77,26 @@ test("memo: a missing or undefined quote_source prints the cited text bare, neve
   const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
   assert.ok(md.includes("| d | supported by a fact | plain text (F1) |"), md);
   assert.ok(md.includes("| e | supported by a fact | plain two (F1) |"), md);
+});
+
+test("R1's agenda wording (14 Oct): the banner, group heading, alternate-limb note, unscreened note and validated-list note, exactly", async () => {
+  const c = await import("./screening/copy");
+  assert.equal(c.AGENDA_BANNER_TEXT, "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.");
+  assert.equal(c.NO_FACT_GROUP_HEADING, "To look for in your papers");
+  assert.equal(c.CHIP_LABEL.not_supported, "No fact cited");
+  assert.equal(c.ALTERNATE_LIMB_NOTE, "This is a second way the same offence can be made out. Each way is screened separately.");
+  assert.equal(c.NO_CHECK_NOTE, "This ingredient is not screened yet; a lawyer should read the facts for it.");
+  assert.equal(c.NOT_VALIDATED_OFFENCE_NOTE, "Not on the validated list: for this offence the screening does not give a result; a lawyer decides.");
+  assert.doesNotMatch(c.AGENDA_BANNER_TEXT, /\d|failed|no result|nothing found/i);
+});
+
+test("R1's block titles (#134): never the contract id; only cheating's two ways have their own title, and only the second carries the note", async () => {
+  const o = await import("./screening/offences");
+  assert.equal(o.blockTitle("ipc415_property"), "Cheating · BNS 318 · IPC 415: by delivery of property");
+  assert.equal(o.blockTitle("ipc415_damaging_act"), "Cheating · BNS 318 · IPC 415: by an act or omission causing damage or harm");
+  assert.equal(o.blockTitle("ipc405_misappropriation"), "Criminal breach of trust");
+  assert.equal(o.blockTitle("not_a_contract"), "Offence");
+  assert.equal(o.isAlternateLimb("ipc415_property"), false);
+  assert.equal(o.isAlternateLimb("ipc415_damaging_act"), true);
+  assert.equal(o.isAlternateLimb("ipc405_use_or_disposal"), false);
 });

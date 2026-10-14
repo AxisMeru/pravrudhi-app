@@ -11,12 +11,12 @@ import { join } from "node:path";
 
 import { REFER_REASONS, referReasonPresentation, isReferReason } from "./referReason";
 
-test("referReason: every canonical reason has a mapping (trips if a tenth is added without one)", () => {
+test("referReason: every canonical reason has a mapping (trips if a twelfth is added without one)", () => {
   for (const reason of REFER_REASONS) {
     assert.doesNotThrow(() => referReasonPresentation(reason), `${reason} has no message mapping`);
     assert.equal(isReferReason(reason), true);
   }
-  assert.equal(REFER_REASONS.length, 10, "the canonical reason list changed — review the mapping and these tests");
+  assert.equal(REFER_REASONS.length, 11, "the canonical reason list changed — review the mapping and these tests");
 });
 
 test("referReason: the nine canonical reasons each get a distinct, non-empty message", () => {
@@ -41,12 +41,13 @@ test("referReason: uncertain_second_judge and second_judge_unavailable read as d
   assert.doesNotMatch(uncertainSecond.message, /temporarily unavailable/);
 });
 
-test("referReason: an unknown reason fails closed but still names the reason code, never hidden", () => {
+test("referReason: an unknown reason gets R1's generic sentence with no raw code (the Matters page still shows the code beside it)", () => {
   for (const junk of ["reason_from_the_future", "REFER_ELSEWHERE", "0"]) {
     const p = referReasonPresentation(junk);
     assert.equal(p.reason, null);
     assert.equal(p.unknown, true);
-    assert.ok(p.message.includes(junk), `unknown-reason message must name the reason code, got: ${p.message}`);
+    assert.equal(p.message, "This ingredient needs a lawyer's look. The screening has no further detail for it.");
+    assert.ok(!p.message.includes(junk));
   }
 });
 
@@ -56,6 +57,7 @@ test("referReason: a missing or empty reason fails closed without a code to name
     assert.equal(p.reason, null);
     assert.equal(p.unknown, true);
     assert.doesNotMatch(p.message, /""/, "must not render an empty-string code as if it were a real one");
+    assert.equal(p.message, "This ingredient needs a lawyer's look. The screening gave no reason for it.", "R1 14 Oct: the signed empty-reason sentence");
   }
 });
 
@@ -106,4 +108,11 @@ test("referReason: a reason the signed table marks 'two judges only' says so bes
   for (const r of ["uncertain", "denial_unquotable", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction", "contract_not_validated"]) {
     assert.equal(referReasonPresentation(r).twoJudgesOnly, false, r);
   }
+});
+
+test("referReason: second_judge_not_confirmed has R1's signed sentence (pravrudhi#407) and is a two-judges reason", () => {
+  const p = referReasonPresentation("second_judge_not_confirmed");
+  assert.equal(p.unknown, false);
+  assert.equal(p.twoJudgesOnly, true);
+  assert.equal(p.message, "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.");
 });

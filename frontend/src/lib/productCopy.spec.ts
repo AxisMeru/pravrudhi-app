@@ -12,7 +12,7 @@ test("the product name and the two lines are R1's exact text", () => {
   assert.equal(PRODUCT_NAME, "Pravrudhi-Nyaya");
   assert.equal(
     PRODUCT_LINE,
-    "Element-by-element screening of Indian criminal matters. For each offence it covers under the BNS and the IPC, every ingredient is set against the facts in your papers. An ingredient is shown as supported only where a cited fact appears to carry it, as a suggestion for you to check; where none does, it is referred back to you.",
+    "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC, every ingredient is set against the facts in your papers. An ingredient is shown as supported only where a cited fact appears to carry it, as a suggestion for you to check; where none does, it is referred back to you.",
   );
   assert.equal(
     ABOUT_LINE,

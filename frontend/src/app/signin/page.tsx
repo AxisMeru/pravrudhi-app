@@ -185,7 +185,7 @@ export default function SignInPage() {
                 setError(null);
                 setConfirmationMessage(null);
               }}
-              className="font-medium text-[var(--color-text)] hover:underline"
+              className="min-h-6 py-1 font-medium text-[var(--color-text)] hover:underline"
             >
               {isSignUp ? "Sign in" : "Create an account"}
             </button>

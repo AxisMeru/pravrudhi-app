@@ -52,13 +52,31 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "> <p>For training, use an NVIDIA GPU with at least 8 GB of GPU memory.",
     ],
   },
+  "src/lib/howItWasBuilt.ts": {
+    reason: "the explorer's signed #914 \"How it was built\" text (R1 sign, R2 confirmed, v5): how the models were built; no statement about what happens to a submission",
+    sentences: [
+      "We trained the Prabhāsa-Nyāya models behind Pravrudhi-Nyaya on real court text, alongside constructed cases.",
+      "Rows went to training, to held-out checks, or to evaluation by a fixed rule, and the sealed and registered evaluation sets were checked against training data by identity and text;",
+      "where a document-level overlap was found, we removed the affected evaluation rows and disclosed it.",
+      "the real-text part of the training material is traceable to a public source;",
+      "removed repeated copies of the same judgment, tolerated scanning noise and spacing differences when matching quotes, and checked rows against our evaluation and sealed lists for overlap.",
+      "a result that looks good is not a result that merely re-reads its own training text.",
+      "The quality gate, and what we learned about it",
+      "Training, held-out and evaluation",
+      "sealed and registered evaluation sets were checked against training data by identity and text;",
+      "where a document-level overlap was found (in the earlier v5.x model line), we removed the affected evaluation rows and disclosed it;",
+      "no evaluation judgment is also a training judgment (identity check);",
+      "the next judge version was trained and evaluated under its registered rules;",
+      "that more training would help;",
+      "we paused further judge training for the current release.",
+      "In a small continued-pre-training test, extra legal text did not improve held-out legal text prediction over a control, so we changed approach rather than scale it.",
+    ],
+  },
   "src/app/matters/page.tsx": {
     reason: "says which contracts have no model coverage yet (the models' own coverage), and the reason-code name for it",
     sentences: [
       "// A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/ // 318/217/80/108, bnss187, ni138 among them).",
       "no_training_statute_text",
-      "> No screening model has been trained on this contract&apos;s statute text yet, so this product gives no answer here and refers instead.",
-      "Ask about a different matter, or check back once this contract is trained.",
     ],
   },
   "src/app/objectives/page.tsx": {

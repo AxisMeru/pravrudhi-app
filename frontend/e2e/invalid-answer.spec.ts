@@ -57,8 +57,8 @@ for (const [name, mutate] of WRONG) {
     await screen(page);
     await expect(page.getByTestId("screening-error")).toHaveText(TEXT);
     for (const id of ["checklist", "screening-result", "memo-actions", "ingredient-row"]) await expect(page.getByTestId(id)).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Download memo (.md)" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Print / save as PDF" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Markdown (.md)", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "PDF", exact: true })).toHaveCount(0);
     await expect(page.locator("body")).not.toContainText(MARKER);
     await expect(page.locator("body")).not.toContainText(/Needs your review/);
     const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("invalid-run-record").click()]);

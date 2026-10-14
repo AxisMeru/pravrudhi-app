@@ -17,8 +17,8 @@
 // recognises yet". src/lib/fixtures/engineContractReasons.json is the engine's own list, copied with its source,
 // and referReason.spec.ts holds this list equal to it.)
 //
-// Each message is the signed sentence from the partner string table (the engine's docs/api/reason-codes.md) WORD FOR WORD: no
-// lead-in, no lower-cased fragment, no paraphrase. The page and the memo show the heading "Referred to a lawyer" and then the
+// R1 (14 Oct): the app words below differ on purpose from the engine's table for the reasons in APP_FORM (reasonStringsDrift.spec.ts); the rest are the signed sentence from the partner string table (the engine's docs/api/reason-codes.md) WORD FOR WORD: no
+// lead-in, no lower-cased fragment, no paraphrase. The page and the memo show the heading "For a lawyer to review" and then the
 // sentence on its own. reasonStringsDrift.spec.ts compares every sentence with the signed table (fixtures/reasonCodesTable.json).
 export const REFER_REASONS = [
   "denial_unquotable",
@@ -26,6 +26,7 @@ export const REFER_REASONS = [
   "uncertain_second_judge",
   "second_judge_defeater_disagreement",
   "second_judge_unavailable",
+  "second_judge_not_confirmed",
   "gate1_unavailable",
   "gate1_not_entailed",
   "gate1_contradiction",
@@ -36,10 +37,11 @@ export const REFER_REASONS = [
 export type ReferReason = (typeof REFER_REASONS)[number];
 
 /** The heading every referral is shown under. The signed sentence follows it on its own line, with no lead-in. */
-export const REFERRED_HEADING = "Referred to a lawyer";
+/** R1 (14 Oct): the one sentence for a reason this build does not know, on every result screen; no engine word, no code. */
+export const UNKNOWN_REASON_TEXT = "This ingredient needs a lawyer's look. The screening has no further detail for it.";
 
-/** The signed table marks some reasons with this parenthesis; it is shown beside the sentence, never inside it. */
-export const TWO_JUDGES_ONLY_LABEL = "(deployments that use two checks only)";
+export const REFERRED_HEADING = "For a lawyer to review";
+
 
 export interface ReferReasonPresentation {
   // The canonical reason this presentation came from, or null when the engine sent something this build does
@@ -75,11 +77,15 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: true,
   },
   second_judge_unavailable: {
-    text: "The second check was unavailable, so we give a referral, not an answer.",
+    text: "A second check was unavailable, so we hand this ingredient back to you.",
+    twoJudgesOnly: true,
+  },
+  second_judge_not_confirmed: {
+    text: "One check found support for this ingredient in your facts, but a second check did not confirm it. A lawyer should look.",
     twoJudgesOnly: true,
   },
   gate1_unavailable: {
-    text: "The entailment check (a separate check of the cited fact against the claim) was unavailable, so we give a referral, not an answer.",
+    text: "A check of the cited fact was unavailable, so we hand this ingredient back to you.",
     twoJudgesOnly: false,
   },
   gate1_not_entailed: {
@@ -91,28 +97,26 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
     twoJudgesOnly: false,
   },
   contract_not_validated: {
-    text: "This provision is not on the validated list, so we give a referral, not a proof or denial.",
+    text: "This offence is not on our validated list, so the screening hands it back to you instead of giving a result.",
     twoJudgesOnly: false,
   },
   input_too_long: {
-    text: "The facts and question together are too long for the checker to read in one go, so we give a referral, not an answer. Please shorten them or have a lawyer look.",
+    text: "The facts are too long for the screening to read in one go, so it hands this back to you. Please shorten them or ask a lawyer to review.",
     twoJudgesOnly: false,
   },
 };
 
 // `reason` is typed `string` because that is what AnalyseFactsContract carries off the wire -- the engine is
-// a separate release train and may send a reason this build predates. Never hidden or reinterpreted: an
-// unrecognised reason still names itself in the message (never silently substitutes a generic sentence with
-// no trace of what the engine actually said), and the raw code is always shown alongside the message by the
-// caller regardless of which branch below produced it. There is no signed wording for an unrecognised code.
+// a separate release train and may send a reason this build predates. An unrecognised reason is shown as R1's generic
+// sentence (14 Oct), with no raw code inside it; no result screen shows the raw code of a KNOWN reason; an unknown reason on the screening result shows "Reason code: <code>" (R1's sanctioned fallback, IngredientChecklist) and the memos keep their labelled engine-code line.
 export function referReasonPresentation(reason: string | null | undefined): ReferReasonPresentation {
   const raw = (reason ?? "").trim();
   if (!isReferReason(raw)) {
     return {
       reason: null,
       message: raw
-        ? `The engine's reason, "${raw}", is not one this app recognises yet.`
-        : "The engine gave no reason.",
+        ? UNKNOWN_REASON_TEXT
+        : "This ingredient needs a lawyer's look. The screening gave no reason for it.",
       twoJudgesOnly: false,
       unknown: true,
     };

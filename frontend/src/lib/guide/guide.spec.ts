@@ -12,15 +12,13 @@ import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE
 const root = join(__dirname, "..", "..", "..");
 const copySource = readFileSync(join(__dirname, "copy.ts"), "utf8");
 
-test("the guide's own words carry no wording-audit hit: no proof, established or verbatim on the house path; the frontier sentence is imported, not written here", () => {
+test("the guide's own words carry no wording-audit hit: no proof, established or verbatim on the house path; the stale frontier sentences are gone (the frontier reader was removed in #129)", () => {
   assert.deepEqual(scanSource("src/lib/guide/copy.ts", copySource), []);
   assert.deepEqual(scanSource("src/app/guide/page.tsx", readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8")), []);
 });
 
-test("every string the page shows, rendered from the copy, is free of the banned words except the imported frontier sentence", () => {
-  const allowed = GUIDE_LIMITS.filter((l) => /frontier route, the/.test(l));
-  assert.equal(allowed.length, 1);
-  const shown = [...GUIDE_STEPS.flatMap((s) => [s.heading, s.text, s.image?.alt ?? ""]), ...GUIDE_STATUSES.flatMap((s) => [s.label, s.meaning]), ...GUIDE_LIMITS.filter((l) => !allowed.includes(l))];
+test("every string the page shows, rendered from the copy, is free of the banned words", () => {
+  const shown = [...GUIDE_STEPS.flatMap((s) => [s.heading, s.text, s.image?.alt ?? ""]), ...GUIDE_STATUSES.flatMap((s) => [s.label, s.meaning]), ...GUIDE_LIMITS];
   for (const t of shown) assert.doesNotMatch(t, BANNED, t);
 });
 
@@ -36,16 +34,15 @@ test("the six screenshots are the files the guide names, each with plain alt tex
   assert.deepEqual(extra, [], "unlisted files in public/guide");
 });
 
-test("the guide states each limit it was asked to: not legal advice, the citation check not served in the hosted deployment, the frontier route opt-in and exact-text, and the cold start", () => {
+test("the guide states each limit it was asked to: not legal advice, the citation check not served in the hosted deployment, and the cold start; the frontier route is no longer described", () => {
   const text = GUIDE_LIMITS.join(" ");
   assert.match(text, /not legal advice/);
   assert.match(text, /dev stack only; it is not served in the hosted deployment/);
-  assert.match(text, /opt-in/);
-  assert.match(text, /exact-text/);
+  assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
-  assert.match(GUIDE_COLD_START, /^The first analysis after idle can take a few minutes while the judges start; a later one can be faster\. The time varies; the page counts it, says so if it is slow, and you can cancel at any point\.$/);
-  assert.match(GUIDE_STEPS.find((s) => s.id === "run")!.text, /^Choose Screen these facts\. The first analysis after idle can take a few minutes while the judges start \(see If it seems slow\)\. The page counts the time and says so if it is slow; you can cancel at any point\.$/);
+  assert.equal(GUIDE_COLD_START, "The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
+  assert.equal(GUIDE_STEPS.find((s) => s.id === "run")!.text, "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and, for a screening without the assistant, tries once more. You can cancel at any point.");
 });
 
 test("the warm-up note on Screening and Matters is figure-free and the same sentence in both pages (R2, 12 Oct)", async () => {
@@ -59,12 +56,13 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
   }
 });
 
-test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt is the words version, not the digits", () => {
+test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt names the marks, never a count", () => {
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
-  assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
-  assert.match(GUIDE_IMAGES.checklist.alt, /the summary saying that none of the three ingredients is supported by a fact, two are suggested by the screening judge \(check it\) and one is not supported by these facts/);
-  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b0 of 3\b/);
+  assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
+  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel as captured on the hosted build: a preview label and the sentence saying the citation index is not available, so no citation is checked.");
+  assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
+  assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
 
 test("the guide for firm users: R1's two lines, the covered offences (the validated ones only, with 'others are referred'), no bare 'defeater', the glossary entry exactly", () => {
@@ -81,7 +79,7 @@ test("the guide for firm users: R1's two lines, the covered offences (the valida
 });
 
 test("the guide names the three export buttons with the exact text the screening page shows (R1, 13 Oct)", () => {
-  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Download memo (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" });
+  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Markdown (.md)", print: "PDF", runRecord: "Download run record (.json)" });
   const page = readFileSync(join(root, "src", "app", "screening", "page.tsx"), "utf8");
   for (const k of ["memo", "print", "runRecord"]) assert.ok(page.includes(`{EXPORT_LABELS.${k}}`), `the page renders EXPORT_LABELS.${k}`);
   for (const label of Object.values(EXPORT_LABELS)) assert.ok(GUIDE_IMAGES.memo.alt.includes(label), `the guide names "${label}"`);
@@ -90,6 +88,7 @@ test("the guide names the three export buttons with the exact text the screening
 test("the guide's export step says what the run record holds (the facts you entered, the result, the versions)", () => {
   const s = GUIDE_STEPS.find((x) => x.id === "export")!;
   assert.match(s.text, /includes the facts you entered/);
+  assert.match(s.text, /the full result that came back, the engine version and the checker version/);
   assert.doesNotMatch(s.text, /records what was sent/);
 });
 
@@ -98,4 +97,22 @@ test("R1 (#283): the guide's defence glossary entry and the defence line under '
   assert.equal(GUIDE_STATUSES.find((s) => s.label === DEFENCE_HEADING)!.note, DEFENCE_PROMPT_NOTE);
   assert.equal(GUIDE_GLOSSARY.filter((g) => g.note).length, 1);
   assert.equal(GUIDE_STATUSES.filter((s) => s.note).length, 1);
+});
+
+test("R1's screenshot note (14 Oct): development stack, which frames are invented and which show a public court order; no engine version", async () => {
+  const { GUIDE_SCREENSHOT_NOTE } = await import("./copy");
+  assert.equal(GUIDE_SCREENSHOT_NOTE, "These screenshots were captured on a development stack, not on the live service. The screening input and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist, the cited-fact row and the needs-your-review crop show a run on a public court order, used as an illustrative example; its output is not evidence.");
+  assert.doesNotMatch(GUIDE_SCREENSHOT_NOTE, /0\.6\.\d/);
+});
+
+// P16 (R1, 14 Oct): his given strings verbatim; the rest are my proposals pending his read (the pins move with his edits).
+test("P16: R1's four-marks sentence, the No fact cited description, the banner description and the export sentence are exact", async () => {
+  const c = await import("./copy");
+  const text = GUIDE_STEPS.map((s) => s.text).join(" ");
+  assert.ok(text.includes("Each ingredient shows one of four marks: Supported by a fact, Suggested by the screening judge; check it, Needs your review, or No fact cited."));
+  assert.ok(GUIDE_STATUSES.some((s) => s.label === "No fact cited" && s.meaning === "No fact cited means the screening found no fact in your papers that supports this ingredient. It is a prompt to look for one, not a finding about your matter."));
+  assert.ok(c.GUIDE_BANNER_TEXT.startsWith("On a result where no ingredient has a cited fact, a review agenda is shown first: what each ingredient needs, and which facts to look for. Nothing there is a finding about your matter."));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md), PDF and Word (.docx); Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid."));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.endsWith("Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file."));
+  assert.doesNotMatch(c.GUIDE_BANNER_TEXT + text, /\b\d+ of \d+\b|0 of 3/);
 });

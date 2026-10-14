@@ -8,6 +8,7 @@ import { CITATION_RETENTION } from "@/lib/surfaceCopy";
 import { CITATION_ERROR_TEXT } from "@/lib/signedStrings";
 import { verifyCitation } from "@/lib/api";
 import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
+import { CITATION_EXISTENCE_ONLY, EXISTENCE_LIMITS, EXISTENCE_SUBTITLE } from "@/lib/citationExistence";
 import {
   CITATION_MAX,
   CITATION_CHECK_TITLE,
@@ -34,7 +35,7 @@ export default function CitationsPage() {
   const abortRef = useRef<AbortController | null>(null);
 
   async function submit() {
-    const check = checkInputs(citation, quote);
+    const check = checkInputs(citation, CITATION_EXISTENCE_ONLY ? null : quote);
     if (!check.ok) {
       setError(check.message);
       setView(null);
@@ -46,7 +47,7 @@ export default function CitationsPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      setView(verifyView(await verifyCitation(citation, quote, ac.signal)));
+      setView(verifyView(await verifyCitation(citation, CITATION_EXISTENCE_ONLY ? null : quote, ac.signal)));
     } catch (e) {
       setError(classifyVerifyError(e).message);
     } finally {
@@ -57,14 +58,18 @@ export default function CitationsPage() {
 
   return (
     <div>
-      <PageHeader title={CITATION_CHECK_TITLE} subtitle="Look up one citation and check that a quote appears in its text." />
+      <PageHeader title={CITATION_CHECK_TITLE} subtitle={CITATION_EXISTENCE_ONLY ? EXISTENCE_SUBTITLE : "Look up one citation and check that a quote appears in its text."} />
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
         <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]" data-testid="citation-preview-label">
           {PREVIEW_LABEL}
         </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
+          {CITATION_EXISTENCE_ONLY ? EXISTENCE_LIMITS : (
+            <>
           The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and
           spacing. It does not say whether the case supports a point. If the case is not found in our index, that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.
+            </>
+          )}
         </p>
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
         {!served ? (
@@ -81,6 +86,7 @@ export default function CitationsPage() {
             placeholder="(2020) 3 SCC 456"
           />
         </label>
+        {!CITATION_EXISTENCE_ONLY && (
         <label className="block text-sm text-[var(--color-text)]">
           Quote to look for
           <textarea
@@ -91,6 +97,7 @@ export default function CitationsPage() {
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
           />
         </label>
+        )}
         <button
           type="button"
           onClick={submit}

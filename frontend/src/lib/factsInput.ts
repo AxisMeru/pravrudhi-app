@@ -19,13 +19,14 @@ export function splitFacts(text: string): string[] {
     .filter((f) => f.length > 0);
 }
 
-export type FactsCheck = { ok: true; facts: string[] } | { ok: false; message: string };
+/** `neutral` marks a limit the user can simply act on (R1, #139): shown as a plain notice, not styled as an error. */
+export type FactsCheck = { ok: true; facts: string[] } | { ok: false; message: string; neutral?: boolean };
 
 export function checkFacts(text: string): FactsCheck {
   const facts = splitFacts(text);
   if (facts.length === 0) return { ok: false, message: "Enter at least one fact." };
   if (facts.length > MAX_FACTS) {
-    return { ok: false, message: `You have ${facts.length} facts; the limit is ${MAX_FACTS}. Merge or remove some.` };
+    return { ok: false, neutral: true, message: `The screening reads up to ${MAX_FACTS} facts at a time, and you have entered ${facts.length}. Combine or remove ${facts.length - MAX_FACTS}, then screen again.` };
   }
   const long = facts.findIndex((f) => f.length > MAX_FACT_CHARS);
   if (long >= 0) {

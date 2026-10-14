@@ -5,7 +5,7 @@ export const PRODUCT_NAME = "Pravrudhi-Nyaya";
 
 /** Under the name. */
 export const PRODUCT_LINE =
-  "Element-by-element screening of Indian criminal matters. For each offence it covers under the BNS and the IPC, every ingredient is set against the facts in your papers. " +
+  "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC, every ingredient is set against the facts in your papers. " +
   "An ingredient is shown as supported only where a cited fact appears to carry it, as a suggestion for you to check; where none does, it is referred back to you.";
 
 /** On the guide's About section. */
@@ -13,4 +13,4 @@ export const ABOUT_LINE =
   "Nyāya is the Indian school of reasoning in which a claim is accepted only when each step is shown and its evidence named. " +
   "Pravrudhi-Nyaya is built to follow that discipline when it reads a matter file.";
 
-export const PRODUCT_DESCRIPTION = "Element-by-element screening of Indian criminal matters, for law firms.";
+export const PRODUCT_DESCRIPTION = "Element-by-element screening under Indian law, starting with criminal matters, for law firms.";

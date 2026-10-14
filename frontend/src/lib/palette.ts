@@ -75,6 +75,7 @@ export const PALETTE_PAGES: PalettePage[] = [
   { id: "catalogue", label: "Catalogue", href: "/catalogue", icon: "Library" },
   { id: "citations", label: "Citation check", href: "/citations", icon: "Library" },
   { id: "demo", label: "How it works", href: "/demo", icon: "Scale" },
+  { id: "how-it-was-built", label: "How it was built", href: "/how-it-was-built", icon: "Hammer" },
   { id: "safety", label: "Safety record", href: "/safety", icon: "Gavel" },
   { id: "benchmarks", label: "Benchmarks", href: "/benchmarks", icon: "LineChart" },
   { id: "guide", label: "User guide", href: "/guide", icon: "BookOpen" },

@@ -21,4 +21,5 @@ export const NAV_LABELS = {
   safety: "Safety record",
   benchmarks: "Benchmarks",
   demo: "How it works",
+  howBuilt: "How it was built",
 } as const;

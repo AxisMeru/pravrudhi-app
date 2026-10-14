@@ -1529,6 +1529,11 @@ export interface AnalyseFactsOptions {
   allowAnonymous?: boolean;
   /** Called once when the session is being retried ("Signing you in…"). */
   onSigningIn?: () => void;
+  /**
+   * #151 (Lead-2, R1 14 Oct): called once when the plain request timed out and is being sent ONCE more. Only a fetch timeout qualifies (never a 4xx/5xx answer, never the user cancelling), only on the
+   * plain analyse-facts route (the assisted route is consent-bearing and paid: no retry until Track C says it is safe), and only when the caller shows the line. The second timeout is the ordinary error.
+   */
+  onTimeoutRetry?: () => void;
 }
 
 export async function analyseFacts(
@@ -1544,7 +1549,15 @@ export async function analyseFacts(
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", ...(opts.assisted ? { consent: true } : {}) });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
-  let res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  let res: Response;
+  try {
+    res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  } catch (e) {
+    const timedOut = e instanceof DOMException && e.name === "TimeoutError";
+    if (!timedOut || opts.assisted || !opts.onTimeoutRetry || signal?.aborted) throw e;
+    opts.onTimeoutRetry();
+    res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
+  }
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
     if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
@@ -1564,6 +1577,21 @@ export async function analyseFacts(
   const raw = wire as unknown as Record<string, unknown>;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
+}
+
+/** POST /api/v1/intake (pravrudhi#414): pasted text only, signed-in users only; the plain deterministic route (no model). Returns the engine's answer unparsed: lib/intake.ts reads it. */
+export async function postIntake(text: string, signal?: AbortSignal): Promise<unknown> {
+  const path = "/api/v1/intake";
+  if (IS_DEMO) throw new ApiError(501, path);
+  await requireSession({ signal });
+  const res = await engineFetch(`${detectBase()}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+    signal,
+  });
+  if (!res.ok) throw await apiErrorFrom(res, path);
+  return res.json();
 }
 
 /** GET /api/assistant (engine response model AssistantStatusResponse, pravrudhi#391): read only for the provider name in the consent line. Any failure or an answer off the contract is null and the line names no vendor; the limits and the signed-in-only ages are never displayed. */

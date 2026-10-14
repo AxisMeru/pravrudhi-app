@@ -3,12 +3,12 @@
   "all": [
     "all_elements_established", "denial_established", "missing_element", "no_training_statute_text",
     "judge_error", "assembly_lean_mismatch", "denial_unquotable", "second_judge_defeater_disagreement",
-    "uncertain", "uncertain_second_judge", "second_judge_unavailable", "gate1_unavailable",
+    "uncertain", "uncertain_second_judge", "second_judge_unavailable", "second_judge_not_confirmed", "gate1_unavailable",
     "gate1_not_entailed", "gate1_contradiction", "contract_not_validated", "input_too_long"
   ],
   "refer": [
     "denial_unquotable", "second_judge_defeater_disagreement", "uncertain", "uncertain_second_judge",
-    "second_judge_unavailable", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction",
+    "second_judge_unavailable", "second_judge_not_confirmed", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction",
     "contract_not_validated", "input_too_long"
   ]
 }

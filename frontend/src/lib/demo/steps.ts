@@ -3,7 +3,7 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "Paste the facts and name the offence",
     body:
-      "The example loads the allegations recited in a public High Court order as numbered facts, with the offences it invokes " +
+      "The example loads the allegations recited in a public court order as numbered facts, with the offences it invokes " +
       "selected. You can edit, add or remove facts before you screen them.",
   },
   {
@@ -13,7 +13,7 @@ export const STEPS: { title: string; body: string }[] = [
   {
     title: "See which ingredients your facts support",
     body:
-      "Each ingredient is marked Supported by a fact, Not supported by these facts, or Needs your review, with the reason. " +
+      "Each ingredient is marked Supported by a fact, No fact cited, or Needs your review, with the reason. " +
       "A supported ingredient shows the fact of yours it cites, as you wrote it; nothing is filled in to look complete.",
   },
   {

@@ -3,6 +3,7 @@ import { expect, test } from "./support/engineTest";
 test("the guide opens from the Screening page, shows its steps, statuses and limits, and every screenshot loads", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
+  await page.getByTestId("about-screening").locator("summary").click();
   await page.getByTestId("guide-link").getByRole("link", { name: "New here? Read the user guide." }).click();
   await expect(page).toHaveURL(/\/guide\/?$/);
   await expect(page.getByRole("heading", { name: "User guide", exact: true })).toBeVisible();
@@ -13,8 +14,8 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("The first analysis after idle can take a few minutes while the judges start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
-  await expect(page.getByTestId("guide-caption")).toHaveText("Dev stack only: the citation check is not yet served in the hosted deployment.");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
+  await expect(page.getByTestId("guide-caption")).toHaveText(["This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.", "Dev stack only: the citation check is not yet served in the hosted deployment."]);
   const imgs = page.locator('[data-testid="guide"] img');
   await expect(imgs).toHaveCount(6);
   for (let i = 0; i < 6; i++) {

@@ -3,6 +3,7 @@
 // for per call and caps how many lookups run at once, so the checks run in sequence. Statuses and refusal wording come from citationCheck.ts and
 // citationCheckRun.ts unchanged; this file adds no status of its own.
 
+import { CITATION_EXISTENCE_ONLY } from "./citationExistence";
 import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 export const MAX_CITATIONS = 10;
@@ -18,6 +19,8 @@ export interface CitationLine {
   line: number;
   citation: string;
   quote: string | null;
+  /** Existence-only index: the user typed words after a | ; they are NOT sent, and the row says so. */
+  quoteIgnored?: true;
 }
 
 export interface ParsedCitations {
@@ -26,7 +29,7 @@ export interface ParsedCitations {
   skipped: number;
 }
 
-export function parseCitationLines(text: string): ParsedCitations {
+export function parseCitationLines(text: string, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): ParsedCitations {
   const items: CitationLine[] = [];
   let skipped = 0;
   text.split(/\r?\n/).forEach((raw, i) => {
@@ -41,7 +44,8 @@ export function parseCitationLines(text: string): ParsedCitations {
     // prefix of what the user typed (and a prefix that is found would read VERIFIED). The FIRST bar splits; later bars belong to the quote.
     const citation = (bar === -1 ? line : line.slice(0, bar)).trim();
     const quote = bar === -1 ? "" : line.slice(bar + 1).trim();
-    items.push({ line: i + 1, citation, quote: quote || null });
+    // existence-only (flag): no quote is ever sent; a typed quote is said to be unchecked, never silently dropped
+    items.push(existenceOnly ? { line: i + 1, citation, quote: null, ...(quote ? { quoteIgnored: true as const } : {}) } : { line: i + 1, citation, quote: quote || null });
   });
   return { items, skipped };
 }

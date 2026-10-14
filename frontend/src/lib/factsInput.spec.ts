@@ -26,7 +26,7 @@ test("one fact per non-empty line", () => {
 test("more than 8 facts is refused with the limit, not truncated", () => {
   const r = checkFacts(Array.from({ length: MAX_FACTS + 1 }, (_, i) => `f${i}`).join("\n"));
   assert.equal(r.ok, false);
-  if (!r.ok) assert.match(r.message, /limit is 8/);
+  if (!r.ok) assert.match(r.message, /reads up to 8 facts/);
 });
 
 test("an over-length fact names its line and the limit", () => {

@@ -3,7 +3,7 @@ import { DEFENCE_PROMPT_NOTE } from "./screening/copy";
 import { defenceShown } from "./screening/model";
 import { displayElementName, referenceOf } from "./screening/reference";
 import { elementStatusPresentation } from "./elementStatus";
-import { REFERRED_HEADING, referReasonPresentation, TWO_JUDGES_ONLY_LABEL } from "./referReason";
+import { REFERRED_HEADING, referReasonPresentation } from "./referReason";
 import { nonReferReasonText } from "./reasonText";
 import { MEMO_DISCLAIMER_TEXT } from "./signedStrings";
 import { STATUTE_NOTICE, provisionSourceLink } from "./statuteNotice";
@@ -68,7 +68,6 @@ function contractSection(c: AnalyseFactsContract): string {
       `**${REFERRED_HEADING}**`,
       "",
       r.message,
-      ...(r.twoJudgesOnly ? [TWO_JUDGES_ONLY_LABEL] : []),
       "",
       "No verdict was reached.",
       `Engine reason code: ${c.reason || "none"}`,

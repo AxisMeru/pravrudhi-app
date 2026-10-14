@@ -74,7 +74,7 @@ test("more than the fact limit blocks Analyse with the limit message and sends n
     return r.abort();
   });
   await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(page.getByTestId("matters-error")).toHaveText(`You have ${n} facts; the limit is ${MAX_FACTS}. Merge or remove some.`);
+  await expect(page.getByTestId("matters-error")).toHaveText(`The screening reads up to ${MAX_FACTS} facts at a time, and you have entered ${n}. Combine or remove ${n - MAX_FACTS}, then screen again.`);
   expect(analyseCalls).toBe(0);
 });
 

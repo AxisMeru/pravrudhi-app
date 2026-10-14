@@ -2,7 +2,7 @@ import { expect, test } from "./support/engineTest";
 import { promiseHits } from "./support/noTrainingPromise";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
-const LINE_START = "Element-by-element screening of Indian criminal matters. For each offence it covers under the BNS and the IPC";
+const LINE_START = "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC";
 
 test("the name and the line: the title, the sidebar name, and the line on the Screening page", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
@@ -39,8 +39,8 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
 
 test("/workflows: five rows with a status word each, no start button, and the closing line", async ({ page }) => {
   await page.goto("/workflows");
-  await expect(page.getByTestId("workflow-row")).toHaveCount(5);
-  await expect(page.getByTestId("workflow-status")).toHaveText(["Building", "Planned", "Planned", "Planned", "Planned"]);
+  await expect(page.getByTestId("workflow-row")).toHaveCount(4);
+  await expect(page.getByTestId("workflow-status")).toHaveText(["Building", "Building", "Built", "Building"]);
   await expect(page.getByTestId("workflows").getByRole("button")).toHaveCount(0);
   await expect(page.getByTestId("workflows-closing")).toHaveText("A workflow runs only when you start it, and only on the matter you give it.");
 });
