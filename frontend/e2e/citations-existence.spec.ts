@@ -86,3 +86,16 @@ test("the Screening Citations panel: R1's line, no quote is sent even after a |,
   await expect(page.getByTestId("citations-panel-quote-note")).toHaveCount(1);
   await expect(page.getByTestId("citations-panel-quote-note")).toHaveText("Only the citation was looked up; the quote was not checked.");
 });
+
+// Lead-2 (14 Oct): both arms through the Worker. Anonymous: the Worker answers 401 and the page shows the signed sign-in sentence (never a raw 401, never a redirect away from the page).
+// Signed in: the answer is the existence-only wording (covered above). This build has NEXT_PUBLIC_SUPABASE_URL set, so a redirect would be visible as a change of path.
+test("/citations anonymous (the Worker answers 401): the signed sign-in sentence, no raw 401, no redirect to /signin", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
+  await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
+  await page.goto("/citations");
+  await page.getByLabel("Citation (one)").fill(CITATION);
+  await page.getByRole("button", { name: "Check" }).click();
+  await expect(page.getByTestId("citation-error")).toHaveText("You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.");
+  await expect(page.locator("body")).not.toContainText(/\b401\b|unauthorized/i);
+  expect(new URL(page.url()).pathname).toMatch(/^\/citations\/?$/);
+});
