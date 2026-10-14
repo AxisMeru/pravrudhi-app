@@ -63,7 +63,7 @@ test("the signed table is the one expected: counts, and a header that names its 
   assert.match(GAP.source, /[0-9a-f]{64}/);
 });
 
-// R1, 14 Oct: the member-facing app form of these eight reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
+// R1, 14 Oct (supersedes the earlier ban on the words 'second check': his sentence for uncertain_second_judge uses them): the member-facing app form of these eight reasons differs from the engine's table on purpose (the engine docs keep their own text): no "judge". Exactly these codes, nothing else.
 const APP_FORM: Readonly<Record<string, string>> = {
   uncertain: "The screening is not sure whether a condition holds. Please have a lawyer look.",
   uncertain_second_judge: "The second check is not sure whether a condition holds. Please have a lawyer look.",
@@ -124,25 +124,25 @@ test("the gap strings (statuses and service errors) are the signed wording, verb
   assert.equal(shown(new ApiError(429, "/x")), norm(GAP.strings.http_429));
 });
 
-test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in, 'second check' or 'temporarily'", () => {
+test("the referral heading is 'Referred to a lawyer'; no REFER string has a lead-in or 'temporarily'", () => {
   assert.equal(REFERRED_HEADING, "Referred to a lawyer");
   assert.equal(TWO_JUDGES_ONLY_LABEL, "(deployments that use two judges only)");
   for (const r of REFER_REASONS) {
     const { message } = referReasonPresentation(r);
     assert.doesNotMatch(message, /A lawyer must decide this matter:/i, r);
-    assert.doesNotMatch(message, /second check|temporarily/i, r);
+    assert.doesNotMatch(message, /temporarily/i, r);
     assert.doesNotMatch(message, /deployments that use two judges/i, `${r}: the label is outside the sentence`);
   }
 });
 
-test("no app string source says 'second check' or 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
+test("no app string source says 'temporarily', and none uses the 'must decide this matter' lead-in", () => {
   const files = ["referReason.ts", "reasonText.ts", "signedStrings.ts", "serviceStatus.ts", "elementStatus.ts", "memo.ts", join("..", "app", "matters", "page.tsx")];
   for (const f of files) {
     const code = readFileSync(join(__dirname, f), "utf8")
       .split("\n")
       .filter((l) => !l.trim().startsWith("//"))
       .join("\n");
-    assert.doesNotMatch(code, /second check|temporarily/i, f);
+    assert.doesNotMatch(code, /temporarily/i, f);
     assert.doesNotMatch(code, /must decide this matter/i, f);
   }
 });
