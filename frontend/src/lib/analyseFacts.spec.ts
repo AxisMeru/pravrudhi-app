@@ -654,3 +654,26 @@ test("the sign-in re-check label is R1's exact string", async () => {
   const { CHECKING_SIGN_IN_LABEL } = await import("./surfaceCopy");
   assert.equal(CHECKING_SIGN_IN_LABEL, "Checking whether you are signed in…");
 });
+
+// #169: the engine's top-level `appendix` of a finished assisted answer is kept on the result (parsed, tolerant); a plain run, or an assisted answer without one, has none.
+test("analyseFacts (assisted): the top-level appendix is kept, a malformed one is dropped without an error, a plain run has none", async () => {
+  const { analyseFacts } = await import("./api");
+  const block = { used: true, outcome: "finished", reason: null, steps: [{ name: "ingest" }], cost: null, summary: null, session_id: null };
+  const good = { ...FAKE_RESULT, assistant: block, appendix: { appendix_version: 1, steps: [{ name: "ingest", calls: 1 }, { name: "decide", calls: 1 }], per_contract: [], refused_calls: 0 } };
+  const m1 = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status: 200 }) : url.includes("analyse-facts") ? ok(good) : ok({ token: "t" })));
+  try {
+    const r = await analyseFacts(["fact"], ["bns69"], undefined, undefined, { assisted: true });
+    assert.deepEqual(r.appendix?.steps.map((s) => s.name), ["ingest", "decide"]);
+  } finally { m1.restore(); }
+  const m2 = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status: 200 }) : url.includes("analyse-facts") ? ok({ ...good, appendix: { appendix_version: 7 } }) : ok({ token: "t" })));
+  try {
+    const r = await analyseFacts(["fact"], ["bns69"], undefined, undefined, { assisted: true });
+    assert.equal(r.appendix, undefined);
+    assert.equal(r.assistant?.used, true);
+  } finally { m2.restore(); }
+  const m3 = mockFetch((url) => (url.includes("/api/me") ? new Response("{}", { status: 200 }) : url.includes("analyse-facts") ? ok({ ...FAKE_RESULT, appendix: good.appendix }) : ok({ token: "t" })));
+  try {
+    const r = await analyseFacts(["fact"], ["bns69"]);
+    assert.equal(r.appendix, undefined, "a plain run never carries an appendix");
+  } finally { m3.restore(); }
+});

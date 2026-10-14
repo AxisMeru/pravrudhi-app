@@ -7,6 +7,7 @@ import { MEMO_DISCLAIMER } from "../memo";
 import { CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { offenceLabel, offenceOf } from "./offences";
+import { STEP_LABELS, STEP_TRACE_HEADING, stepCheckText } from "../assistantRun";
 
 const line = (s: string): string => s.replace(/\r?\n/g, " ");
 
@@ -45,6 +46,15 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_PROMPT_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;
     if (att?.binary_sha256) out.push(`Lean checker: binary sha256 ${att.binary_sha256}${att.wire_sha256 ? `, wire sha256 ${att.wire_sha256}` : ""}`, "");
+  }
+  // #169 (R1): the steps of an assisted run, as on the screen: the signed label, then ": " and the signed check wording only for a step that carries a check. Nothing when there is no appendix.
+  if (result.appendix && result.appendix.steps.length > 0) {
+    out.push(`## ${STEP_TRACE_HEADING}`, "");
+    for (const s of result.appendix.steps) {
+      const check = stepCheckText(s);
+      out.push(`- ${STEP_LABELS[s.name]}${check ? `: ${check}` : ""}`);
+    }
+    out.push("");
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
 }

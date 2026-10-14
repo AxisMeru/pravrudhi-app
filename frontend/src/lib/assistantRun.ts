@@ -45,6 +45,29 @@ export interface AssistantStep {
   check?: StepCheck;
 }
 
+/**
+ * The engine's memo appendix (appendix_version 1, pravrudhi #416/#421), a TOP-LEVEL key of a finished assisted answer: { appendix_version, steps: [{ name, calls, check? }], per_contract, refused_calls }.
+ * The app keeps the version and the steps (name, check and calls); the memo prints only the signed step labels and signed check wording (R1, #169), never counts. Anything that does not match is no appendix.
+ */
+export interface ScreeningAppendix {
+  appendix_version: 1;
+  steps: { name: StepName; check?: StepCheck; calls?: number }[];
+}
+
+/** Tolerant: an absent or malformed appendix is `undefined` (never an error); a step with a name or check this build does not know is left out. */
+export function parseAppendix(v: unknown): ScreeningAppendix | undefined {
+  if (!isObj(v) || v.appendix_version !== 1 || !Array.isArray(v.steps)) return undefined;
+  const steps: ScreeningAppendix["steps"] = [];
+  for (const s of v.steps) {
+    if (!isObj(s) || !has(STEP_NAMES, s.name)) continue;
+    const step: ScreeningAppendix["steps"][number] = { name: s.name as StepName };
+    if (has(CHECKS, s.check)) step.check = s.check as StepCheck;
+    if (Number.isInteger(s.calls) && (s.calls as number) >= 0) step.calls = s.calls as number;
+    steps.push(step);
+  }
+  return steps.length > 0 ? { appendix_version: 1, steps } : undefined;
+}
+
 /** What the app keeps of the engine's `assistant` block. `summary` and `cost` are deliberately dropped. */
 export interface AssistantBlock {
   used: boolean;
