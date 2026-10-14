@@ -27,11 +27,13 @@ const THEMES: Record<string, Record<string, string>> = {
 
 test("each status chip's text on its own derived fill meets AA in both themes", () => {
   for (const [name, t] of Object.entries(THEMES)) {
-    for (const tone of ["ok", "warn", "info", "note"]) {
+    for (const tone of ["ok", "warn", "info", "note", "danger"]) {
       const text = hex(t[tone]);
       const fill = mix(text, hex(t.surface), 0.12);
       assert.ok(ratio(text, fill) >= 4.5, `${name} ${tone}: ${ratio(text, fill).toFixed(2)}:1`);
     }
+    // the danger tone (error lines) is plain text on the surface and on the page background, not a derived fill: held at AA too (Studio and R2, 14 Oct)
+    for (const ground of ["surface", "bg"]) assert.ok(ratio(hex(t.danger), hex(t[ground])) >= 4.5, `${name} danger on ${ground}: ${ratio(hex(t.danger), hex(t[ground])).toFixed(2)}:1`);
     // dim text on the plain surface (the neutral chip and the row notes)
     assert.ok(ratio(hex(t["text-dim"]), hex(t.surface)) >= 4.5, `${name} dim on surface`);
   }
