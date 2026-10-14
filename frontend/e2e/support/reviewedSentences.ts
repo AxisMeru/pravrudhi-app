@@ -107,6 +107,10 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "no train/eval/dev/bank file holds it",
     ],
   },
+  "src/lib/dataHandling.ts": {
+    reason: "R1's Data handling sentence about Anthropic's published commercial terms (14 Oct): a statement about a provider's terms, not a promise about what the app does with a submission; it is the one sentence the promise scan exempts",
+    sentences: ["Anthropic's commercial terms say it may not train models on customer content from its services."],
+  },
   "src/lib/demo.ts": {
     reason: "capability flags of the recorded demo machine profile",
     sentences: [

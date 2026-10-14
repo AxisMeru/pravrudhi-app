@@ -1,0 +1,4 @@
+{
+  "retention_max_hours": 2,
+  "source": "pravrudhi engine configs/assistant_tier.yaml (retention_max_hours); to be served by GET /api/assistant (Track C adds it). Update this file only from the engine's value."
+}

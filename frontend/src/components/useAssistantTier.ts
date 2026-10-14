@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { health } from "@/lib/api";
+import { assistantProvider, health, isSignedIn } from "@/lib/api";
 import { readAssistantState, type AssistantState } from "@/lib/assistantTier";
 
 const POLL_MS = 60_000;
@@ -21,4 +21,31 @@ export function useAssistantState(): AssistantState {
     };
   }, []);
   return state;
+}
+
+/** The provider name for the consent line (GET /api/assistant), read once the tier is available. Null until then and on any failure. */
+export function useAssistantProvider(state: AssistantState): string | null {
+  const [provider, setProvider] = useState<string | null>(null);
+  useEffect(() => {
+    if (state !== "available") return;
+    let off = false;
+    assistantProvider().then((p) => !off && setProvider(p));
+    return () => {
+      off = true;
+    };
+  }, [state]);
+  return provider;
+}
+
+/** Whether this browser is signed in: null until /api/me has answered (nothing is shown or enabled meanwhile), then true or false. Read once. */
+export function useSignedIn(): boolean | null {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  useEffect(() => {
+    let off = false;
+    isSignedIn().then((v) => !off && setSignedIn(v));
+    return () => {
+      off = true;
+    };
+  }, []);
+  return signedIn;
 }

@@ -12,7 +12,9 @@ import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
 import { FrontierToggle } from "@/components/screening/FrontierToggle";
-import { useAssistantState } from "@/components/useAssistantTier";
+import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
+import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
+import { useAssistantProvider, useAssistantState, useSignedIn } from "@/components/useAssistantTier";
 import { IngredientChecklist } from "@/components/screening/IngredientChecklist";
 import { StatuteNotice } from "@/components/StatuteNotice";
 import { ApiError, analyseFacts, invalidAnswerRecord, nyayaRegistryContracts, nyayaRegistryEntries, type AnalyseFactsResult } from "@/lib/api";
@@ -51,6 +53,9 @@ export default function ScreeningPage() {
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [frontier, setFrontier] = useState(false);
   const assistant = useAssistantState();
+  const signedIn = useSignedIn();
+  const assistantProvider = useAssistantProvider(assistant);
+  const [assistantConsent, setAssistantConsent] = useState(false); // per run: unticked on load and after every run, never kept
   const [exampleActive, setExampleActive] = useState(false);
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
@@ -119,7 +124,7 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
 
-  async function submit(anonymous: boolean = false) {
+  async function submit(anonymous: boolean = false, assisted: boolean = false) {
     const cleaned = facts.map((f) => f.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
     const check = checkFacts(cleaned.join("\n"));
     if (!check.ok) return setError(check.message);
@@ -136,7 +141,7 @@ export default function ScreeningPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, onSigningIn: () => setSigningIn(true) });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
     } catch (e) {
@@ -146,6 +151,7 @@ export default function ScreeningPage() {
       if (c.kind === "invalid_answer") setInvalidRunId(c.runId ?? null);
       if (c.kind === "outside_window") fetchServiceStatus().then(setSvc);
     } finally {
+      if (assisted) setAssistantConsent(false);
       window.clearInterval(ticker);
       abortRef.current = null;
       setSigningIn(false);
@@ -299,6 +305,16 @@ export default function ScreeningPage() {
 
           <FrontierToggle value={frontier} onChange={setFrontier} available={null} paused={assistant === "paused"} />
 
+          {ASSISTANT_ENTRY_ENABLED && <AssistantRun
+            state={assistant}
+            signedIn={signedIn}
+            consent={assistantConsent}
+            onConsent={setAssistantConsent}
+            provider={assistantProvider}
+            busy={loading || closed || offline}
+            onRun={() => submit(false, true)}
+          />}
+
           <button
             type="button"
             onClick={() => submit()}
@@ -360,6 +376,7 @@ export default function ScreeningPage() {
                 {EXPORT_LABELS.runRecord}
               </button>
             </div>
+            {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {result.contracts.map((c) => (
               <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} />
             ))}
