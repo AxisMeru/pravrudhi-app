@@ -32,3 +32,25 @@ test("the intro folds behind 'About this screening' with the standing line outsi
   await expect(page.getByTestId("example-citation")).toHaveText("High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773");
   await expect(page.getByTestId("example-entry")).toHaveCount(0);
 });
+
+// P2 and P3: a new result is scrolled into view, and the run id and score sha come last, not first.
+test("the result is brought into view and the run identifiers are the last line of it", async ({ page }) => {
+  const F = "A person was promised gold coins for money paid, and the company then closed without returning it, and nothing was delivered to the buyer at all afterwards.";
+  const answer = {
+    run_id: "run-1", score_sha256: "0".repeat(64), facts: [{ id: "F1", sha256: "1".repeat(64) }],
+    contracts: [{ contract_id: "ipc415_property", outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null, elements: [] }],
+  };
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: answer }));
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F.repeat(3));
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const result = page.getByTestId("screening-result");
+  await expect(result).toBeVisible();
+  await expect.poll(async () => (await result.boundingBox())!.y, { timeout: 5000 }).toBeLessThan(200);
+  const last = await result.locator(":scope > *").last().getAttribute("data-testid");
+  expect(last).toBe("run-ids");
+});

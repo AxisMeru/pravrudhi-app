@@ -75,6 +75,7 @@ export default function ScreeningPage() {
   const abortRef = useRef<AbortController | null>(null);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
+  const resultRef = useRef<HTMLDivElement>(null);
   const warming = svc?.kind === "ok" && svc.status.judge.state === "warming";
   // The intro fold is closed by default (R1, 14 Oct) because the standing line ("This is a screening aid, not legal advice. A lawyer decides.") stays visible outside it; it opens by itself while the judges warm.
   const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
@@ -135,6 +136,11 @@ export default function ScreeningPage() {
   }, [contractsTry]);
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
+
+  // P2: a new result is brought into view at once, so the user does not scroll past the facts they just typed.
+  useEffect(() => {
+    if (result) resultRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }, [result]);
 
   async function submit(anonymous: boolean = false, assisted: boolean = false) {
     const cleaned = facts.map((f) => f.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
@@ -404,8 +410,7 @@ export default function ScreeningPage() {
         </section>
 
         {result && request && (
-          <div className="flex flex-col gap-6" data-testid="screening-result">
-            <div className="text-xs text-[var(--color-text-dim)]">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
+          <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
             <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
                 {EXPORT_LABELS.memo}
@@ -426,6 +431,8 @@ export default function ScreeningPage() {
             ))}
             <CitationsPanel />
             <StatuteNotice />
+            {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
+            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
           </div>
         )}
       </div>
