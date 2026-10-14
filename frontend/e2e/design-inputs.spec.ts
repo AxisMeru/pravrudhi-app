@@ -56,6 +56,20 @@ test("the result is brought into view and the run identifiers are the last line 
   expect(last).toBe("run-ids");
 });
 
+// P12: on a phone the menu button no longer sits on top of the page title, and a signed-out visitor's "Sign in" is a quiet link, not the loudest control.
+test("on a phone the menu button clears the page title; Sign in is a secondary link", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/screening");
+  const menu = (await page.getByRole("button", { name: "Open navigation" }).boundingBox())!;
+  const title = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
+  expect(menu.x + menu.width).toBeLessThanOrEqual(title.x + 1);
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const signIn = page.getByRole("link", { name: "Sign in", exact: true }).first();
+  await expect(signIn).toBeVisible();
+  expect(await signIn.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+});
+
 // R2 (14 Oct): a modified click on an example link opens it elsewhere and must NOT overwrite what the lawyer typed in this tab.
 test("a ctrl-click on an example link leaves this tab's facts unchanged; a plain click loads the example", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
