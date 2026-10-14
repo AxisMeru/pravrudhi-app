@@ -181,7 +181,7 @@ test("while a first run warms up, the page says so without a timing figure, coun
   await page.getByTestId("split-facts").click();
   await page.getByText("Cheating", { exact: false }).first().click();
   await page.getByRole("button", { name: "Screen these facts" }).click();
-  const note = page.getByText(/^Warming up the judge and Lean checker/);
+  const note = page.getByText(/^Warming up the screening and Lean checker/);
   await expect(note).toContainText("a first run after idle can take a few minutes while the models start.");
   await expect(note).not.toContainText(/\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/);
   await expect(note).toContainText("elapsed");
