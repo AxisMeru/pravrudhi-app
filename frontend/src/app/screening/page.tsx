@@ -11,6 +11,7 @@ import { CaveatStrip } from "@/components/CaveatStrip";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { PageHeader } from "@/components/PageHeader";
+import { runAgainState } from "@/lib/runAgain";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
 import { ASSISTANT_PAUSED_TEXT, pausedTreatment } from "@/lib/assistantTier";
 import { AssistantRun, AssistantTrace } from "@/components/screening/AssistantRun";
@@ -60,6 +61,7 @@ export default function ScreeningPage() {
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [assistedTimeout, setAssistedTimeout] = useState<number | null>(null); // seconds the assisted run waited, set only when it ended on the app's own timeout (Run again)
   const [error, setError] = useState<string | null>(null);
   const [invalidRunId, setInvalidRunId] = useState<string | null | undefined>(undefined); // set (to the run id or null) only when the engine's answer was unreadable
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
@@ -135,7 +137,9 @@ export default function ScreeningPage() {
     setNotSignedIn(null);
     setSigningIn(false);
     setResult(null);
+    setAssistedTimeout(null);
     setElapsed(0);
+    const startedAt = Date.now();
     const ticker = window.setInterval(() => setElapsed((s) => s + 1), 1000);
     const ac = new AbortController();
     abortRef.current = ac;
@@ -145,6 +149,7 @@ export default function ScreeningPage() {
       setResult(r);
     } catch (e) {
       const c = classifyAnalyseError(e);
+      if (assisted && c.kind === "timeout") setAssistedTimeout(Math.round((Date.now() - startedAt) / 1000));
       if (c.kind === "not_signed_in") setNotSignedIn(c.message);
       else setError(c.message);
       if (c.kind === "invalid_answer") setInvalidRunId(c.runId ?? null);
@@ -316,6 +321,7 @@ export default function ScreeningPage() {
             provider={assistantProvider}
             busy={loading || closed || offline}
             onRun={() => submit(false, true)}
+            runAgain={runAgainState({ assisted: assistedTimeout !== null, timedOut: assistedTimeout !== null, secondsSinceFirstSubmit: assistedTimeout ?? 0 })}
           />}
 
           <button
