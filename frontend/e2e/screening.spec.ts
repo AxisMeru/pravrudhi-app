@@ -91,7 +91,7 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   ref.contracts[0].outcome = "REFER_TO_LAWYER";
   ref.contracts[0].reason = "contract_not_validated";
   await run(page, ref);
-  await expect(page.getByTestId("contract-review")).toContainText("not on the validated list");
+  await expect(page.getByTestId("contract-review")).toContainText("not on our validated list");
   await expect(page.getByTestId("contract-review")).not.toHaveClass(/red/);
   await expect(page.getByTestId("summary-text")).not.toHaveText("All ingredients supported (structure checked)");
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
