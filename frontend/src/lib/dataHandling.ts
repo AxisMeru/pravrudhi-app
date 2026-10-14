@@ -2,6 +2,8 @@
 // existing signed constant quoted unchanged. Kept in ONE file so a late fact change is one edit. NOT said here, on purpose: any region for the smaller screening model,
 // any location for the sign-in provider, "no fact text is kept" (a run record can carry the text of a supported fact), and any promise about how the models handle submissions
 // (the code enforces none).
+import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
+import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { BANNER_STANDING_LINE } from "./screening/copy";
 import { CITATION_RETENTION } from "./surfaceCopy";
 
@@ -12,9 +14,44 @@ export interface DataHandlingSection {
   id: string;
   heading: string;
   paragraphs: string[];
+  /** Phrases rendered as links; each is linked in the FIRST paragraph that contains it, so every paragraph carries at most one link. */
+  links?: { text: string; href: string }[];
 }
 
-export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = [
+// The assistant route (#125; R1's exact words, 14 Oct; PROVISIONAL until Track C confirms on the API that the delete call really deletes the session and R2 has read it).
+// The delete sentence says what WE do, never what Anthropic's systems end up holding; it ships only when ASSISTANT_DELETE_CONFIRMED is on. No retention period appears here.
+// Set at build time (NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED=1) by L2A, in the same deploy as the entry flag, only after R2 has read the sweeper and the delete canary has passed. Off by default; no effect while the entry flag is off.
+export const ASSISTANT_DELETE_CONFIRMED = process.env.NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED === "1";
+export const DH_ASSISTANT_HEADING = "Screening with the assistant (optional)";
+export const DH_NOASSIST = "Without the assistant, your facts are processed as described above and are not sent to Anthropic.";
+export const DH_ASSIST_LINK_TEXT = "Anthropic's commercial terms";
+export const DH_ASSIST_LINK_HREF = "https://www.anthropic.com/legal/commercial-terms";
+export const DH_ASSIST_INTRO = `With the assistant, and only when you tick the consent box for that run, your facts are also sent to Anthropic through our account, under ${DH_ASSIST_LINK_TEXT}.`;
+// About Anthropic's terms, not our own promise (R1 14 Oct). This exact string is the one sentence the promise scan exempts.
+export const DH_ASSIST_TERMS = "Anthropic's commercial terms say it may not train models on customer content from its services.";
+// Lead-2's final (Variant B, 14 Oct), R1's words. It says what WE do; it ships only with ASSISTANT_DELETE_CONFIRMED, i.e. once R2 has read the sweeper.
+export const DH_ASSIST_DELETE = `When your screening finishes, we delete the assistant's session record from Anthropic's service. If that fails, we retry, and it is deleted within ${ASSISTANT_RETENTION_MAX_HOURS} hours at the latest.`;
+export const DH_ASSIST_RETENTION_LINK_TEXT = "data retention policy";
+export const DH_ASSIST_RETENTION_LINK_HREF = "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention";
+// R1 14 Oct: about Anthropic's own policy, no period stated (none is true for this route). Checked by opening the URL once (14 Oct): it resolves and says Managed Agents session transcripts persist until the customer deletes them.
+export const DH_ASSIST_RETENTION_ANTHROPIC = `Anthropic's own ${DH_ASSIST_RETENTION_LINK_TEXT} applies to any copy of your facts that it keeps.`;
+export const DH_ASSIST_LAW = "Anthropic may keep content longer where the law requires it or to enforce its usage policy.";
+export const DH_ASSIST_CONSENT = "The consent box is off for every run until you tick it.";
+/** Also shown, as a short line, beside the assistant entry for an anonymous visitor in place of the consent box. Says "signed-in", nothing about how. */
+export const DH_ASSIST_SIGNIN = "The assistant is offered only to signed-in users. Without signing in, you get the screening result without it.";
+
+export const DH_WHERE_ASSIST = "If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).";
+
+/** The page's sections. `assist` adds the assistant section and the "where it is processed" sentence for it (both behind the one assistant flag); `deleteConfirmed` adds the delete sentence. */
+export function dataHandlingSections(assist: boolean, deleteConfirmed: boolean): readonly DataHandlingSection[] {
+  return BASE_SECTIONS.flatMap((s): DataHandlingSection[] => {
+    if (s.id === "assistant") return assist ? [{ ...s, paragraphs: s.paragraphs.filter((p) => deleteConfirmed || p !== DH_ASSIST_DELETE) }] : [];
+    if (s.id === "where" && assist) return [{ ...s, paragraphs: [...s.paragraphs, DH_WHERE_ASSIST] }];
+    return [s];
+  });
+}
+
+const BASE_SECTIONS: readonly DataHandlingSection[] = [
   {
     id: "sent",
     heading: "What is sent",
@@ -24,6 +61,12 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = [
       // (lib/docParsers.ts:11-12, lib/docx.worker.ts:14-15); no upload, FormData or network call in that path.
       "Files you choose are read in your browser; only the text read from them is sent.",
     ],
+  },
+  {
+    id: "assistant",
+    heading: DH_ASSISTANT_HEADING,
+    paragraphs: [DH_NOASSIST, DH_ASSIST_INTRO, DH_ASSIST_TERMS, DH_ASSIST_DELETE, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_LAW, DH_ASSIST_CONSENT, DH_ASSIST_SIGNIN],
+    links: [{ text: DH_ASSIST_LINK_TEXT, href: DH_ASSIST_LINK_HREF }, { text: DH_ASSIST_RETENTION_LINK_TEXT, href: DH_ASSIST_RETENTION_LINK_HREF }],
   },
   {
     id: "citations",
@@ -63,6 +106,8 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = [
     paragraphs: ["The memo and the run record are built in your browser from the result on your screen."],
   },
 ];
+
+export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = dataHandlingSections(ASSISTANT_ENTRY_ENABLED, ASSISTANT_DELETE_CONFIRMED);
 
 export const DATA_HANDLING_FOOTER = BANNER_STANDING_LINE;
 

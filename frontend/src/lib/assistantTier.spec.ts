@@ -51,3 +51,7 @@ test("a paused tier greys the frontier toggle and never leaves it checked; any o
   assert.equal(frontierToggleState({ available: true, value: true, provider: "p" }).checked, true);
   assert.equal(frontierToggleState({ available: null, value: true }).disabled, true);
 });
+
+test("the paused reasons are matched exactly: a near miss is not paused", () => {
+  for (const reason of ["quota_x", "upstream_errors", "upstream_error_x", "xquota", "budget_floor ", " quota", "budget", "Budget_Floor"]) assert.equal(assistantStateOf(tier("unavailable", reason)), "not_configured", reason);
+});

@@ -1,3 +1,5 @@
+import { DH_ASSIST_TERMS } from "../../src/lib/dataHandling";
+
 // The rule for a promise about how submissions feed the models. The app states only what the code enforces (R1/Lead-2, 13 Oct; widened by R2).
 // The unit scan (src/lib/noTrainingPromise.spec.ts) and the browser tests import this one module. Sample phrases are encoded below, so this file holds none in readable form.
 //
@@ -19,7 +21,12 @@ const flag = (s: string): boolean =>
     ((has(s, TOPIC) && has(s, USE)) ||
       new RegExp(String.raw`\b(?:train|fine[- ]?tun|learn)\w*\s+(?:\w+\s+){0,2}(?:on|with|from|using)\b[^.;]{0,30}${YOURS}`, "i").test(s) ||
       has(s, String.raw`\bmodel training\b`)));
-export const promiseHits = (text: string): string[] => sentences(text).filter(flag).map((s) => s.slice(0, 120));
+/**
+ * The ONE sentence exempt from the scan: a statement about a provider's published terms on the Data handling page (R1 14 Oct), never the app's own promise. It is matched exactly;
+ * a changed or extended version is scanned like any other sentence.
+ */
+export const EXEMPT_ANTHROPIC_TERMS = DH_ASSIST_TERMS;
+export const promiseHits = (text: string): string[] => sentences(text.split(EXEMPT_ANTHROPIC_TERMS).join(" ")).filter(flag).map((s) => s.slice(0, 120));
 /** For toContainText / not.toContainText in the browser tests: a body text has no promise. Use `expect(promiseHits(await body.innerText())).toEqual([])`. */
 export const hasPromise = (text: string): boolean => promiseHits(text).length > 0;
 /** Kept so existing calls stay valid: a regex that matches the old engine sentence's tail; the full rule is promiseHits. */
