@@ -1566,6 +1566,21 @@ export async function analyseFacts(
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable) };
 }
 
+/** POST /api/v1/intake (pravrudhi#414): pasted text only, signed-in users only; the plain deterministic route (no model). Returns the engine's answer unparsed: lib/intake.ts reads it. */
+export async function postIntake(text: string, signal?: AbortSignal): Promise<unknown> {
+  const path = "/api/v1/intake";
+  if (IS_DEMO) throw new ApiError(501, path);
+  await requireSession({ signal });
+  const res = await engineFetch(`${detectBase()}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
+    signal,
+  });
+  if (!res.ok) throw await apiErrorFrom(res, path);
+  return res.json();
+}
+
 /** GET /api/assistant (engine response model AssistantStatusResponse, pravrudhi#391): read only for the provider name in the consent line. Any failure or an answer off the contract is null and the line names no vendor; the limits and the signed-in-only ages are never displayed. */
 export async function assistantProvider(): Promise<string | null> {
   try {

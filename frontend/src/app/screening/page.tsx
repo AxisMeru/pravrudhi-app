@@ -25,6 +25,7 @@ import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
+import { takeHandoff } from "@/lib/handoff";
 import { EXAMPLES, exampleById, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -97,6 +98,12 @@ export default function ScreeningPage() {
     return () => {
       off = true;
     };
+  }, []);
+
+  // Facts chosen on the Intake page arrive through a one-time in-memory hand-off (lib/handoff.ts): taken once, never stored.
+  useEffect(() => {
+    const handed = takeHandoff();
+    if (handed && handed.length > 0) void Promise.resolve().then(() => setFacts(handed));
   }, []);
 
   // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
