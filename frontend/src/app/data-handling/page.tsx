@@ -40,11 +40,18 @@ export default function DataHandlingPage() {
             {glance.blocks.map((b) => (
               <div key={b.id} data-testid={`dh-glance-${b.id}`}>
                 <h3 className="text-sm font-medium text-[var(--color-text)]">{b.heading}</h3>
-                <p className="mt-1 text-sm text-[var(--color-text-dim)]">{b.text}</p>
+                {b.texts.map((t) => <p key={t} className="mt-1 text-sm text-[var(--color-text-dim)]">{t}</p>)}
                 <a href={b.href} className="mt-1 inline-block text-sm text-[var(--color-accent)] underline" data-testid={`dh-glance-link-${b.id}`} aria-label={`${glance.linkText}: ${b.heading}`}>{glance.linkText}</a>
               </div>
             ))}
           </div>
+          {glance.assistantLine && (
+            <p className="mt-4 text-sm text-[var(--color-text-dim)]" data-testid="dh-glance-assistant">
+              {glance.assistantLine.before}
+              <a href={glance.assistantLine.href} className="text-[var(--color-accent)] underline" data-testid="dh-glance-assistant-link">{glance.assistantLine.link}</a>
+              {glance.assistantLine.after}
+            </p>
+          )}
         </section>
         {standard.map((s) => (
           <section key={s.id} id={`dh-${s.id}`} data-testid={`dh-${s.id}`}>

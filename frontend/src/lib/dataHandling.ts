@@ -118,13 +118,22 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = dataHandli
 export const DH_GLANCE_HEADING = "At a glance";
 export const DH_GLANCE_LINE = "These are the first lines of the sections below; read the full section for the rest.";
 export const DH_GLANCE_LINK = "See the full section";
+// R1 (14 Oct): with the assistant on, ONE line after the three blocks pointing at route B; no other words, nothing about Anthropic. The link label is the quoted group title.
+export const DH_GLANCE_ASSIST_BEFORE = "The optional assistant changes this: see \u201c";
+export const DH_GLANCE_ASSIST_AFTER = "\u201d below.";
 export const DH_ROUTE_A_LABEL = "Without the assistant";
 export const DH_ROUTE_B_LABEL = "With the assistant (only when you tick the consent box)";
 /** The sections the glance quotes, in this order: what is sent, where it is processed, how long it is kept. */
 export const DH_GLANCE_IDS = ["sent", "where", "kept"] as const;
 
 export interface DataHandlingPage {
-  glance: { heading: string; line: string; linkText: string; blocks: { id: string; heading: string; text: string; href: string }[] };
+  glance: {
+    heading: string; line: string; linkText: string;
+    /** `texts`: the first signed paragraph of the section, verbatim; the "where" block also carries the fallback-region sentence (R1), each as its own paragraph. */
+    blocks: { id: string; heading: string; texts: string[]; href: string }[];
+    /** Only with the assistant flag on (R1): one line after the three blocks, its link label is the quoted group title. */
+    assistantLine?: { before: string; link: string; after: string; href: string };
+  };
   /** The standard route's sections, in order (the assistant section is not among them). */
   standard: readonly DataHandlingSection[];
   /** Only with the assistant flag on: the section (heading kept, so the "where" sentence that names it stays true) holding the two labelled groups. */
@@ -136,9 +145,12 @@ export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): Dat
   const standard = sections.filter((s) => s.id !== "assistant");
   const blocks = DH_GLANCE_IDS.map((id) => {
     const s = standard.find((x) => x.id === id)!;
-    return { id, heading: s.heading, text: s.paragraphs[0], href: `#dh-${id}` };
+    // R1 (14 Oct): the "where" glance shows the first signed paragraph AND the fallback-region sentence, each verbatim as its own paragraph, so a skimmer sees every location fact.
+    const texts = id === "where" ? [s.paragraphs[0], DH_WHERE_FALLBACK] : [s.paragraphs[0]];
+    return { id, heading: s.heading, texts, href: `#dh-${id}` };
   });
   const out: DataHandlingPage = { glance: { heading: DH_GLANCE_HEADING, line: DH_GLANCE_LINE, linkText: DH_GLANCE_LINK, blocks }, standard };
+  if (assist) out.glance.assistantLine = { before: DH_GLANCE_ASSIST_BEFORE, link: DH_ROUTE_B_LABEL, after: DH_GLANCE_ASSIST_AFTER, href: "#dh-assistant" };
   const a = sections.find((s) => s.id === "assistant");
   if (a) out.assistant = { section: a, groups: [{ label: DH_ROUTE_A_LABEL, paragraphs: a.paragraphs.filter((p) => p === DH_NOASSIST) }, { label: DH_ROUTE_B_LABEL, paragraphs: a.paragraphs.filter((p) => p !== DH_NOASSIST) }] };
   return out;
