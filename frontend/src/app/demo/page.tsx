@@ -6,14 +6,14 @@ import { EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { ASSIST_LINE } from "@/lib/demo/safety";
 import { STEPS } from "@/lib/demo/steps";
 
-// How the analysis works, as five steps on an invented sample. The steps describe what the Matters page
+// How the analysis works, as five steps on one public judgment's allegations. The steps describe what the Matters page
 // does when it runs; the page itself shows no result and quotes no measure from the example (the example is illustrative,
 // not evidence). Words: Lead-2's decision on #525 (2026-10-06); R1 reviews them.
 
 export default function DemoPage() {
   return (
     <div>
-      <PageHeader title="How it works" subtitle="Five steps, on an invented sample." />
+      <PageHeader title="How it works" subtitle="Five steps, on one public judgment's allegations." />
       <div className="space-y-6 p-8">
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="example-label">
           {EXAMPLE_LABEL}

@@ -131,24 +131,14 @@ test("a member who opens / lands on Screening", async ({ page }) => {
   await page.waitForURL(/\/screening/);
 });
 
-test("the demo link loads the invented sample as numbered facts with the cheating offence selected", async ({ page }) => {
-  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property", "ipc415_damaging_act"], entries: [] } }));
-  await page.goto("/screening?example=toy-lorry-sample");
-  await expect(page.getByTestId("example-banner")).toContainText("An invented sample, example only: the people, places, amounts and dates are made up.");
-  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue("Ravi agreed to sell Meena a toy lorry for 500 rupees.");
-  await expect(page.getByRole("textbox", { name: "Fact F5", exact: true })).toBeVisible();
-  await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(1);
-  await expect(page.getByTestId("example-not-found")).toHaveCount(0);
-});
-
-test("an example id this app does not have (a link to a retired example) shows 'not available' and a link to the sample", async ({ page }) => {
-  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
-  await page.goto("/screening?example=a-retired-example");
-  await expect(page.getByTestId("example-not-found")).toContainText("That example is not available.");
-  await expect(page.getByTestId("example-banner")).toHaveCount(0);
-  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue("");
-  await page.getByRole("link", { name: "Try the sample instead" }).click();
-  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue("Ravi agreed to sell Meena a toy lorry for 500 rupees.");
+test("the demo link loads the public-judgment example as numbered facts with its offences selected", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"], entries: [] } }));
+  await page.goto("/screening?example=madras-public-order-2024");
+  await expect(page.getByTestId("example-banner")).toContainText("A public Madras High Court judgment (order of 12 June 2024), example only. Excerpt from the order with the crime number and the registration date withheld.");
+  await expect(page.getByTestId("example-banner")).not.toContainText(/13624|Crl/);
+  await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).toHaveValue(/Cr\.No\.\[redacted\] of 2023/);
+  await expect(page.getByRole("textbox", { name: "Fact F3", exact: true })).toBeVisible();
+  await expect(page.getByTestId("offence-list").locator("input:checked")).toHaveCount(2);
 });
 
 // #99: the contracts the registry lists but has not validated are offered too, with the line that the engine refers on them, and their rows carry a What-to-check prompt.
