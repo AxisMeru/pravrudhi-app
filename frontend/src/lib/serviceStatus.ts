@@ -50,8 +50,14 @@ export async function fetchServiceStatus(): Promise<StatusResult> {
   }
 }
 
+/**
+ * The app closes the form ONLY when the engine really enforces its service window and it is outside it: `enforced === true && open_now === false`. The engine reports its window
+ * (production: 09:00-21:00 London) even when it does not enforce it (`enforced: false`, it answers 24/7), and `open_now` alone would disable Screening after 21:00 although the engine
+ * would still answer (Lead-2/L2A, 14 Oct). A missing window, or `enforced` that is not exactly true, never closes the form.
+ */
 export function isClosed(s: ServiceStatus): boolean {
-  return s.service_window?.open_now === false;
+  const w = s.service_window;
+  return w?.enforced === true && w.open_now === false;
 }
 
 function hhmmIn(utcIso: string, tz: string): string {
