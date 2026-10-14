@@ -172,7 +172,8 @@ test("the '2 hours' on the page is the one pinned constant, and the constant is 
   assert.equal(ASSISTANT_RETENTION_MAX_HOURS, 2);
   assert.ok(DH_ASSIST_DELETE.includes(`within ${contract.retention_max_hours} hours at the latest`));
   assert.ok(!DH_ASSIST_DELETE.includes("not stored") && !/\bprivate\b|\bsecure\b/.test(DH_ASSIST_DELETE));
-  assert.equal(typeof ASSISTANT_DELETE_CONFIRMED, "boolean"); // the delete sentence ships only with this flag, after R2 has read the sweeper
+  assert.equal(ASSISTANT_DELETE_CONFIRMED, process.env.NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED === "1"); // the delete sentence ships only with this build flag, after R2 has read the sweeper
+  if (ASSISTANT_DELETE_CONFIRMED) assert.ok(dataHandlingSections(true, ASSISTANT_DELETE_CONFIRMED).find((s) => s.id === "assistant")!.paragraphs.includes(DH_ASSIST_DELETE));
 });
 
 test("R1's Anthropic-retention sentence: the exact words, one link on 'data retention policy' to Anthropic's page, no period, and each paragraph carries at most one link", () => {

@@ -204,7 +204,8 @@ test("the consent line links to the Data handling section, which describes both 
   await expect(sec.getByRole("link", { name: "Anthropic's commercial terms" })).toHaveAttribute("href", "https://www.anthropic.com/legal/commercial-terms");
   await expect(sec).toContainText("The consent box is off for every run until you tick it.");
   await expect(sec).toContainText("The assistant is offered only to signed-in users. Without signing in, you get the screening result without it.");
-  await expect(sec).not.toContainText("we delete the assistant's session"); // behind its own flag until confirmed
+  if (process.env.NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED === "1") await expect(sec).toContainText("it is deleted within 2 hours at the latest");
+  else await expect(sec).not.toContainText("we delete the assistant's session"); // behind its own flag until confirmed
   await expect(page.getByTestId("dh-where")).toContainText("If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).");
 });
 

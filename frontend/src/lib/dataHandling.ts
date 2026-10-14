@@ -20,8 +20,9 @@ export interface DataHandlingSection {
 }
 
 // The assistant route (#125; R1's exact words, 14 Oct; PROVISIONAL until Track C confirms on the API that the delete call really deletes the session and R2 has read it).
-// The delete sentence says what WE do, never what Anthropic's systems end up holding; it ships only when ASSISTANT_DELETE_CONFIRMED is true. No retention period appears here.
-export const ASSISTANT_DELETE_CONFIRMED = false;
+// The delete sentence says what WE do, never what Anthropic's systems end up holding; it ships only when ASSISTANT_DELETE_CONFIRMED is on. No retention period appears here.
+// Set at build time (NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED=1) by L2A, in the same deploy as the entry flag, only after R2 has read the sweeper and the delete canary has passed. Off by default; no effect while the entry flag is off.
+export const ASSISTANT_DELETE_CONFIRMED = process.env.NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED === "1";
 export const DH_ASSISTANT_HEADING = "Screening with the assistant (optional)";
 export const DH_NOASSIST = "Without the assistant, your facts are processed as described above and are not sent to Anthropic.";
 export const DH_ASSIST_LINK_TEXT = "Anthropic's commercial terms";
