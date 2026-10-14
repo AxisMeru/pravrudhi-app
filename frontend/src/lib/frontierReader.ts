@@ -35,7 +35,9 @@ export interface FrontierToggleState {
   consent: string | null;
 }
 
-export function frontierToggleState(input: { available?: boolean | null; value: boolean; reason?: string | null; provider?: string | null }): FrontierToggleState {
+export function frontierToggleState(input: { available?: boolean | null; value: boolean; reason?: string | null; provider?: string | null; paused?: boolean }): FrontierToggleState {
+  // The assistant tier is paused (lib/assistantTier.ts): the toggle is greyed and never checked; the one paused line is shown by the caller, not a reason here.
+  if (input.paused) return { disabled: true, checked: false, reason: null, consent: null };
   const usable = input.available === true;
   if (!usable) {
     const reason = typeof input.reason === "string" && input.reason.trim() ? input.reason.trim() : FRONTIER_UNAVAILABLE_TEXT;

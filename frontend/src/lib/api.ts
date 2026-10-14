@@ -294,6 +294,8 @@ export function ensureDefaultWorkspace(): Promise<void> {
 }
 
 export interface HealthResponse {
+  /** The assistant tier (#122): read through lib/assistantTier.ts, which fails closed when this is absent or malformed. */
+  assistant_tier?: { state?: string; reason?: string | null };
   ok: boolean;
   version: string;
   kernel: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
 import { FRONTIER_QUOTE_LIMIT_TEXT, FRONTIER_TOGGLE_LABEL, frontierToggleState } from "@/lib/frontierReader";
 
 /** The opt-in frontier reader switch. Off by default; disabled with a plain reason until the engine says the reader is available. */
@@ -9,14 +10,20 @@ export function FrontierToggle({
   available,
   reason,
   provider,
+  paused,
+  pausedLineShown,
 }: {
   value: boolean;
   onChange: (next: boolean) => void;
   available?: boolean | null;
   reason?: string | null;
   provider?: string | null;
+  /** The assistant tier is unavailable: greyed, never checked. */
+  paused?: boolean;
+  /** Show the one paused line (once the tier has been read). */
+  pausedLineShown?: boolean;
 }) {
-  const s = frontierToggleState({ available, value, reason, provider });
+  const s = frontierToggleState({ available, value, reason, provider, paused });
   return (
     <div className="space-y-1 text-sm" data-testid="frontier-toggle">
       <label className="inline-flex items-center gap-2 text-[var(--color-text)]">
@@ -26,6 +33,11 @@ export function FrontierToggle({
       <p className="text-xs text-[var(--color-text-dim)]" data-testid="frontier-limit">
         {FRONTIER_QUOTE_LIMIT_TEXT}
       </p>
+      {paused && pausedLineShown && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="assistant-paused">
+          {ASSISTANT_PAUSED_TEXT}
+        </p>
+      )}
       {s.reason && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="frontier-unavailable">
           {s.reason}
