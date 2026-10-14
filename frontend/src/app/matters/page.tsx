@@ -150,7 +150,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
           This offence is not on our validated list yet. Where the screening gives no result, it hands the matter back for your review or a lawyer&apos;s.
-          That is not a failed or wrong answer. Ask about a different matter, or check back once this contract is trained.
+          That is not a failed or wrong answer. Ask about a different matter.
         </p>
       </article>
     );
