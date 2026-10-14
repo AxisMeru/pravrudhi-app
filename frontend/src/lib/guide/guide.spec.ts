@@ -62,6 +62,7 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
 test("R1's conditions on the images: the citations shot carries the dev-stack caption and its alt says it too; the checklist alt names the marks, never a count", () => {
   const sentence = "Dev stack only: the citation check is not yet served in the hosted deployment.";
   assert.equal(GUIDE_IMAGES.citations.caption, sentence);
+  assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
   assert.ok(GUIDE_IMAGES.citations.alt.endsWith(sentence));
   assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);

@@ -16,6 +16,10 @@ export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each
 export const GUIDE_SCREENSHOT_NOTE =
   "The screens below were captured on the dev stack (local), engine 0.6.0, with invented matters. Nothing on them is a real person or a real case. They show how the screens read, not how the assistant will do on your matter.";
 
+/** R1, 14 Oct: under frame 03, which shows a No fact cited row from a real run; it never calls the image an example of a supported row. */
+export const GUIDE_CITED_FACT_CAPTION =
+  "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.";
+
 export interface GuideImage {
   file: string;
   alt: string;
@@ -38,6 +42,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   citedFact: {
     file: "03-cited-fact.png",
     alt: "One ingredient row from the same run on a public court order, marked No fact cited, with its What to check line.",
+    caption: GUIDE_CITED_FACT_CAPTION,
   },
   needsReview: {
     file: "04-needs-your-review.png",
