@@ -9,7 +9,7 @@ const ID = /Cr\.?\s*No\.?\s*\d+|\d+ of \d{4}|Crl\.?\s*O\.?\s*P|FIR\s*No|C\.?C\.?
 const root = join(__dirname, "..", "..", "..");
 const repo = join(root, "..");
 // Files that state the pattern itself or list what is not shown.
-const SELF = new Set(["frontend/src/lib/demo/caseIdentifiers.spec.ts", "frontend/src/lib/demo/example.spec.ts", "frontend/src/lib/demo/liveCheck.spec.ts"]);
+const SELF = new Set(["frontend/src/lib/demo/caseIdentifiers.spec.ts", "frontend/src/lib/demo/example.spec.ts", "frontend/src/lib/demo/liveCheck.spec.ts", "frontend/src/lib/demo/factsGuard.ts"]);
 // Lead-2 14 Oct (deliberate loosening of the 12 Oct guard): each example is identified exactly as the court publishes it, and that is its CITATION: a separate pinned field in example.ts, checked by
 // example.spec.ts against the only allowed shapes. Those `citation:` lines alone are exempt here; everything else in the repository still carries no real case, crime or FIR number.
 const CITATION_FILE = "frontend/src/lib/demo/example.ts";

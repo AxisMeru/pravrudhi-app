@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { DEFAULT_EXAMPLE, EXAMPLES, EXAMPLE_LABEL, EXAMPLE_NOT_FOUND_TEXT, exampleById, exampleFactsText } from "./example";
 import { DO_NOT_CLAIM } from "../surfaceCopy";
+import { FACTS_GUARD } from "./factsGuard";
 
 // Every example is generic here: its facts are pinned by sha256, carry no FIR / crime / CNR number, address, phone number or age, and are allegations only. The citation is a separate field, as the court
 // printed it (Lead-2's 14 Oct ruling), pinned below per example; the guard test (caseIdentifiers.spec.ts) lists the only citation patterns allowed.
@@ -64,15 +65,21 @@ test("the demo steps walk the Screening flow and do not say every ingredient has
 
 // Guard (narrowed 14 Oct by Lead-2's ruling: each example is identified exactly as the court publishes it, and that IS its citation, a separate pinned field). The FACTS carry no FIR, crime or CNR number,
 // no address, no phone number, no age and no dotted date (the redaction placeholders pass); parties appear only as the court's printed title gives them, never in the excerpt.
-test("every example's facts carry no FIR / crime / CNR number, phone number, age or dotted date", () => {
-  const forbidden = [/Cr\.?\s?No(?!\.?\[redacted\])/i, /\bFIR\b\s*(?:No|number)/i, /\bcrime\s+(?:no|number)/i, /\b\d{1,2}\.\d{1,2}\.\d{4}\b/, /CNR|HCMA/, /(?:\+?91[-\s]?)?\b[6-9]\d{9}\b/, /\baged\s+\d{1,2}\b|\b\d{1,2}\s*years?\s*old\b|\b\d{1,2}[-\s]year[-\s]old\b/i];
-  for (const e of EXAMPLES) for (const re of forbidden) assert.doesNotMatch(exampleFactsText(e), re, `${e.id}: ${re}`);
+test("every example's facts carry no FIR / crime / CNR number, address, phone number, age or dotted date (both arms: each class catches its own known-bad sample; no example matches any class; the placeholders pass)", () => {
+  assert.deepEqual(FACTS_GUARD.map((g) => g.name), ["crime number", "FIR number", "crime number (words)", "dotted date", "CNR", "phone number", "age", "address"], "a guard class was added or removed");
+  for (const g of FACTS_GUARD) {
+    assert.match(g.bad, g.re, `${g.name}: the regex no longer catches its own known-bad sample`);
+    // every OTHER class's sample must not be what proves this one: the sample belongs to this class (a mutated regex that matched everything would still be caught below)
+    for (const e of EXAMPLES) assert.doesNotMatch(exampleFactsText(e), g.re, `${e.id}: ${g.name}`);
+  }
+  assert.doesNotMatch("registered in Cr.No.[redacted] of 2023 on [date]", FACTS_GUARD[0].re, "the redaction placeholders pass");
+  assert.doesNotMatch("a clean sentence about money lent and not repaid", new RegExp(FACTS_GUARD.map((g) => g.re.source).join("|"), "i"));
 });
 
 // The ONLY citation shapes allowed (Lead-2 14 Oct): the court's neutral citation, or court + case type + number + date as printed on the order, or (until Track B supplies the printed number) court + date.
 const ALLOWED_CITATION = [
   /^[A-Z][A-Za-z .&'-]+(?: High Court| Supreme Court of India| Supreme Court)?, \d{4}:[A-Z]{2,6}:\d{1,6}(?:-DB)?$/, // neutral citation, e.g. Placeholder High Court, 2000:KHC:0000 (a visibly fake number)
-  /^[A-Z][A-Za-z .&'-]+ (?:High Court|Supreme Court of India), [A-Za-z.() &-]+ No\. ?\d{1,6}(?: of |\/)\d{4}, (?:order|judgment) of \d{1,2} [A-Z][a-z]+ \d{4}$/, // court, case type + number, order date
+  /^[A-Z][A-Za-z .&'-]+ (?:High Court|Supreme Court of India), (?:Crl\.(?: ?[A-Z]\.?)+|W\.P\.(?: ?\(C\))?|Writ Petition(?: \(C\))?|Criminal (?:Appeal|Petition|Original Petition|Revision Case|Miscellaneous Petition)|Civil Appeal|Special Leave Petition(?: \(Crl\.\))?|S\.L\.P\.(?: ?\(Crl\.\))?|C\.A\.) No\. ?\d{1,6}(?: of |\/)\d{4}, (?:order|judgment) of \d{1,2} [A-Z][a-z]+ \d{4}$/, // court, case type + number, order date
   /^[A-Z][A-Za-z .&'-]+ High Court, order of \d{1,2} [A-Z][a-z]+ \d{4}$/, // court and date only
   /^[A-Z][A-Za-z .&'-]+ at [A-Z][a-z]+, order of \d{1,2} [A-Z][a-z]+ \d{4}, \d{4}:[A-Z]{2,6}:\d{1,6}$/, // court, date and the neutral citation as printed
 ];
@@ -82,7 +89,7 @@ test("every citation is one of the allowed shapes (neutral citation; court + cas
   // the shapes themselves: what they allow and what they refuse (the court names, numbers and dates below are placeholders, not real cases)
   assert.ok(ALLOWED_CITATION.some((re) => re.test("Placeholder High Court, 2000:KHC:0000")));
   assert.ok(ALLOWED_CITATION.some((re) => re.test("Madras High Court, Crl.O.P. No. 1 of 2000, order of 12 June 2024")));
-  for (const bad of ["Madras High Court, FIR No. 12/2023", "Cr.No. 123 of 2023", "Madras High Court, CNR TNHC010012342023", "Somebody v. Another", "Madras High Court, order of 12.06.2024"]) assert.ok(!ALLOWED_CITATION.some((re) => re.test(bad)), bad);
+  for (const bad of ["Madras High Court, FIR No. 12/2023", "Cr.No. 123 of 2023", "Madras High Court, CNR TNHC010012342023", "Somebody v. Another", "Madras High Court, order of 12.06.2024", "Madras High Court, Ram v. Shyam No. 5 of 2020, order of 12 June 2024", "Madras High Court, Anything Goes No. 5 of 2020, order of 12 June 2024"]) assert.ok(!ALLOWED_CITATION.some((re) => re.test(bad)), bad);
 });
 
 test("the Karnataka example carries R1's own label (14 Oct): the prosecution's allegations as the court recited them, and its screening line", () => {
