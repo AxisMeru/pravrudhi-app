@@ -1597,7 +1597,7 @@ export async function postIntake(text: string, signal?: AbortSignal): Promise<un
 /** GET /api/assistant (engine response model AssistantStatusResponse, pravrudhi#391): read only for the provider name in the consent line. Any failure or an answer off the contract is null and the line names no vendor; the limits and the signed-in-only ages are never displayed. */
 export async function assistantProvider(): Promise<string | null> {
   try {
-    return parseAssistantInfo(await getJSON<unknown>("/api/assistant"))?.provider ?? null;
+    return parseAssistantInfo(await getJSON<unknown>("/api/assistant", { authOptional: true }))?.provider ?? null;
   } catch {
     return null;
   }

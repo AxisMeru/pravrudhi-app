@@ -23,17 +23,17 @@ export function useAssistantState(): AssistantState {
   return state;
 }
 
-/** The provider name for the consent line (GET /api/assistant), read once the tier is available. Null until then and on any failure. */
-export function useAssistantProvider(state: AssistantState): string | null {
+/** The provider name for the consent line (GET /api/assistant), read once the tier is available AND this browser is signed in (the read needs a session; an anonymous visitor makes no call and is never sent to sign-in by it). Null until then and on any failure. */
+export function useAssistantProvider(state: AssistantState, signedIn: boolean | null): string | null {
   const [provider, setProvider] = useState<string | null>(null);
   useEffect(() => {
-    if (state !== "available") return;
+    if (state !== "available" || signedIn !== true) return;
     let off = false;
     assistantProvider().then((p) => !off && setProvider(p));
     return () => {
       off = true;
     };
-  }, [state]);
+  }, [state, signedIn]);
   return provider;
 }
 

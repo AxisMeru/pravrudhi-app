@@ -60,7 +60,7 @@ export default function ScreeningPage() {
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const assistant = useAssistantState();
   const signedIn = useSignedIn();
-  const assistantProvider = useAssistantProvider(assistant);
+  const assistantProvider = useAssistantProvider(assistant, signedIn);
   const [assistantConsent, setAssistantConsent] = useState(false); // per run: unticked on load and after every run, never kept
   const [example, setExample] = useState<DemoExample | null>(null);
   const [exampleMissing, setExampleMissing] = useState(false);
