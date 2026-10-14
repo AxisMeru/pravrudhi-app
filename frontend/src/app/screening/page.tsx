@@ -24,17 +24,18 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { EXAMPLE_CONTRACTS, EXAMPLE_FACTS, EXAMPLE_ID, EXAMPLE_LABEL } from "@/lib/demo/example";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
-import { buildRunRecord, buildScreeningMemo } from "@/lib/screening/memo";
+import { DOCX_MIME } from "@/lib/docxWriter";
+import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceOf } from "@/lib/screening/offences";
-import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { FILE_NOTE, SIGNING_IN_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
-function download(name: string, body: string, type: string): void {
-  const url = URL.createObjectURL(new Blob([body], { type }));
+function download(name: string, body: string | Uint8Array, type: string): void {
+  const url = URL.createObjectURL(new Blob([body as BlobPart], { type }));
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
@@ -371,6 +372,9 @@ export default function ScreeningPage() {
             <div className="flex flex-wrap gap-2 print:hidden" data-testid="memo-actions">
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
                 {EXPORT_LABELS.memo}
+              </button>
+              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
+                {MEMO_DOCX_LABEL}
               </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
                 {EXPORT_LABELS.print}

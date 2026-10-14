@@ -97,6 +97,24 @@ test("a referral shows the signed reason under 'Needs your review', not as an er
   await expect(page.getByTestId("structure-note")).toHaveCount(0);
 });
 
+test("the Word memo downloads and carries the same text as the .md memo (#830 DOCX)", async ({ page }) => {
+  await run(page);
+  const [mdDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
+  const md = readFileSync((await mdDl.path()) as string, "utf8");
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("memo-docx").click()]);
+  expect(dl.suggestedFilename()).toBe("screening-memo-r-invented-screen.docx");
+  const buf = readFileSync((await dl.path()) as string);
+  expect(buf.subarray(0, 2).toString("latin1")).toBe("PK"); // a zip
+  const { value } = await (await import("mammoth")).extractRawText({ buffer: buf });
+  const lines = value.split("\n").filter((l: string) => l.trim());
+  // every visible line of the .md memo (markup removed) is in the Word memo, in order
+  const plain = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "\u25e6 ").replace(/^- /, "\u2022 ").replace(/\*\*/g, ""));
+  const noStamp = (l: string) => l.replace(/Generated: .*/, "Generated: <time>"); // each download stamps its own generation time
+  expect(lines.map(noStamp)).toEqual(plain.map(noStamp));
+  expect(value).toContain(F1);
+  expect(value).toContain("not legal advice");
+});
+
 test("the memo and the run record download, carrying the checklist, the cited fact, the versions and the disclaimer", async ({ page }) => {
   await run(page);
   const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);
