@@ -30,6 +30,7 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   await expect(page.getByRole("heading", { name: "Data handling", exact: true, level: 1 })).toBeVisible();
   await expect(body.getByTestId("dh-kept")).toContainText("Run records are kept for up to 7 days.");
   await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
+  await expect(body.getByTestId("dh-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");
   expect(promiseHits(await body.innerText())).toEqual([]);
   await expect(body).not.toContainText(/no fact text is kept/i);

@@ -4,7 +4,7 @@ import { join, relative } from "node:path";
 import test from "node:test";
 
 import { BANNED } from "./wordingAudit";
-import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_RETENTION_LINK_HREF, DH_ASSIST_RETENTION_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, DH_NOASSIST, DH_WHERE_ASSIST, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
+import { DATA_HANDLING_SUBTITLE, DH_ASSIST_CONSENT, DH_ASSIST_DELETE, DH_ASSIST_INTRO, DH_ASSIST_LAW, DH_ASSIST_LINK_TEXT, DH_ASSIST_RETENTION_ANTHROPIC, DH_ASSIST_RETENTION_LINK_HREF, DH_ASSIST_RETENTION_LINK_TEXT, DH_ASSIST_SIGNIN, DH_ASSIST_TERMS, ASSISTANT_DELETE_CONFIRMED, DH_NOASSIST, DH_WHERE_ASSIST, DH_WHERE_FALLBACK, FIRM_STORAGE_KEYS, dataHandlingSections } from "./dataHandling";
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { canSeeNotifications } from "./runsAccess";
@@ -22,7 +22,7 @@ test("the data-handling text is R1's exact words, and it answers all three quest
   );
   assert.equal(
     text("where"),
-    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs.",
+    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs. If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.",
   );
   assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps your notification preferences.");
   assert.equal(text("citations"), "The citation check does not save the citation or the quote you enter.");
@@ -188,4 +188,15 @@ test("R1's Anthropic-retention sentence: the exact words, one link on 'data rete
   assert.ok(sec.paragraphs.indexOf(DH_ASSIST_RETENTION_ANTHROPIC) > sec.paragraphs.indexOf(DH_ASSIST_DELETE), "after the delete sentence");
   assert.ok(sec.paragraphs.indexOf(DH_ASSIST_RETENTION_ANTHROPIC) < sec.paragraphs.indexOf(DH_ASSIST_LAW), "before the legal-holds sentence");
   assert.ok(dataHandlingSections(true, false).find((s) => s.id === "assistant")!.paragraphs.includes(DH_ASSIST_RETENTION_ANTHROPIC), "it ships whether or not the delete sentence does");
+});
+
+test("R1's fallback-processing sentence is in 'Where it is processed' in every state: exact words, before the assistant sentence, assistant flag off or on", () => {
+  assert.equal(DH_WHERE_FALLBACK, "If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
+  assert.doesNotMatch(DH_WHERE_FALLBACK, /RunPod|Vercel|Supabase|\d/);
+  for (const assist of [false, true]) {
+    const where = para(dataHandlingSections(assist, false), "where");
+    assert.ok(where.includes(DH_WHERE_FALLBACK), `assist=${assist}`);
+    if (assist) assert.equal(where.at(-1), DH_WHERE_ASSIST, "the assistant sentence stays last");
+    assert.ok(where.indexOf(DH_WHERE_FALLBACK) === 1, "second paragraph, after the processing paragraph");
+  }
 });
