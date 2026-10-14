@@ -11,12 +11,12 @@ import { join } from "node:path";
 
 import { REFER_REASONS, referReasonPresentation, isReferReason } from "./referReason";
 
-test("referReason: every canonical reason has a mapping (trips if a tenth is added without one)", () => {
+test("referReason: every canonical reason has a mapping (trips if a twelfth is added without one)", () => {
   for (const reason of REFER_REASONS) {
     assert.doesNotThrow(() => referReasonPresentation(reason), `${reason} has no message mapping`);
     assert.equal(isReferReason(reason), true);
   }
-  assert.equal(REFER_REASONS.length, 10, "the canonical reason list changed — review the mapping and these tests");
+  assert.equal(REFER_REASONS.length, 11, "the canonical reason list changed — review the mapping and these tests");
 });
 
 test("referReason: the nine canonical reasons each get a distinct, non-empty message", () => {
@@ -106,4 +106,11 @@ test("referReason: a reason the signed table marks 'two judges only' says so bes
   for (const r of ["uncertain", "denial_unquotable", "gate1_unavailable", "gate1_not_entailed", "gate1_contradiction", "contract_not_validated"]) {
     assert.equal(referReasonPresentation(r).twoJudgesOnly, false, r);
   }
+});
+
+test("referReason: second_judge_not_confirmed has R1's signed sentence (pravrudhi#407) and is a two-judges reason", () => {
+  const p = referReasonPresentation("second_judge_not_confirmed");
+  assert.equal(p.unknown, false);
+  assert.equal(p.twoJudgesOnly, true);
+  assert.equal(p.message, "A check found support in your facts for an ingredient, but a second check did not confirm it, so no answer is given. Please have a lawyer look.");
 });

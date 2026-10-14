@@ -26,6 +26,7 @@ export const REFER_REASONS = [
   "uncertain_second_judge",
   "second_judge_defeater_disagreement",
   "second_judge_unavailable",
+  "second_judge_not_confirmed",
   "gate1_unavailable",
   "gate1_not_entailed",
   "gate1_contradiction",
@@ -76,6 +77,10 @@ export const REFER_REASON_TEXT: Readonly<Record<ReferReason, { text: string; two
   },
   second_judge_unavailable: {
     text: "The second judge was unavailable, so we give a referral, not an answer.",
+    twoJudgesOnly: true,
+  },
+  second_judge_not_confirmed: {
+    text: "A check found support in your facts for an ingredient, but a second check did not confirm it, so no answer is given. Please have a lawyer look.",
     twoJudgesOnly: true,
   },
   gate1_unavailable: {

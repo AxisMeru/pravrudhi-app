@@ -1,10 +1,10 @@
 {
  "source": {
   "path": "docs/api/reason-codes.md (pravrudhi engine repository)",
-  "ref": "d67b43c4",
-  "engine_sha": "d67b43c46c1e3c564635eb9e518d366b36f0613e",
-  "file_sha256": "81f90dfa66646669750ee7119a510dd7295571c8cd68c4bc08d9a87c3abcd603",
-  "note": "Copied verbatim; the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
+  "ref": "36d59776",
+  "engine_sha": "36d597767def06887dbd50094d2f32dfb74db6d1",
+  "file_sha256": "55154367fc96298ca3202ce69ac129e37a492713675fe9820823430eff89d9f8",
+  "note": "Copied verbatim from the head of pravrudhi#407 (adds second_judge_not_confirmed; re-pin to main once #407 merges); the 'deployments that use two judges only' parenthesis is held apart as twoJudgesOnly. Regenerate with scripts/gen-reason-table.py."
  },
  "reasons": {
   "all_elements_established": {
@@ -49,6 +49,10 @@
   },
   "second_judge_unavailable": {
    "text": "The second judge was unavailable, so we give a referral, not an answer.",
+   "twoJudgesOnly": true
+  },
+  "second_judge_not_confirmed": {
+   "text": "A check found support in your facts for an ingredient, but a second check did not confirm it, so no answer is given. Please have a lawyer look.",
    "twoJudgesOnly": true
   },
   "gate1_unavailable": {
