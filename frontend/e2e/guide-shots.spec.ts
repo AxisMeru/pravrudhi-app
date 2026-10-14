@@ -92,3 +92,20 @@ test("02 the ingredient checklist", async ({ page }) => {
   await rows.nth(0).screenshot({ path: "public/guide/03-cited-fact.png" });
   await rows.nth(1).screenshot({ path: "public/guide/04-needs-your-review.png" });
 });
+
+// R1 (14 Oct): frames 02 and 03 should come from a REAL run of a public-order example, not from invented facts. GUIDE_EXAMPLE=<example id> (for instance karnataka-cheating-2025) loads
+// that example and screens it against a LIVE engine (no mocked analyse-facts: LOCAL_ENGINE_URL must point at an engine with judges); frame 01 stays the invented input form above.
+// Run: GUIDE_SHOTS=1 GUIDE_EXAMPLE=karnataka-cheating-2025 npx playwright test guide-shots -g "real example".
+test("02/03 the checklist and a row from a real example run (live engine)", async ({ page }) => {
+  test.skip(!process.env.GUIDE_EXAMPLE, "set GUIDE_EXAMPLE=<example id> and a live engine to retake 02 and 03 from the real example");
+  test.setTimeout(400_000);
+  await page.setViewportSize({ width: 832, height: 900 });
+  await page.goto(`/screening?example=${process.env.GUIDE_EXAMPLE}`);
+  await expect(page.getByTestId("example-citation")).toBeVisible();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  const checklist = page.getByTestId("checklist").first();
+  await expect(checklist).toBeVisible({ timeout: 380_000 });
+  await hideFloaters(page);
+  await checklist.screenshot({ path: "public/guide/02-ingredient-checklist.png" });
+  await page.getByTestId("ingredient-row").first().screenshot({ path: "public/guide/03-cited-fact.png" });
+});
