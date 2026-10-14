@@ -12,6 +12,10 @@ export interface DemoExample {
   facts: readonly string[];
   /** sha256 of facts.join("\n") + "\n" (UTF-8). */
   factsSha256: string;
+  /** The label shown over this example (R1, 14 Oct): each says what the excerpt is, as the court recited it. */
+  label: string;
+  /** One line naming what the demo screens for, shown under the citation when set. */
+  screeningLine?: string;
   /** The contracts the example selects (the provisions its allegations invoke). The reader can add others; a contract the registry does not mark validated is marked as such. */
   contracts: readonly string[];
 }
@@ -27,6 +31,7 @@ export const EXAMPLE_NOT_FOUND_LINK = "Try the example instead";
 export const EXAMPLES: readonly DemoExample[] = [
   {
     id: "madras-public-order-2024",
+    label: EXAMPLE_LABEL,
     // Court + date only (Goal, 14 Oct): nobody holds the original order's printed header; a case type and number may arrive later as its own change. Pinned by example.spec.ts.
     citation: "Madras High Court, order of 12 June 2024",
     facts: [
@@ -39,6 +44,19 @@ export const EXAMPLES: readonly DemoExample[] = [
     factsSha256: "15bbc22e072d69954ae65bde222a216417eb16477ce2e460c4b31081df51d33f",
     // the IPC provisions the complaint invokes (ss. 406 and 420 IPC: criminal breach of trust and cheating)
     contracts: ["ipc405_misappropriation", "ipc415_property"],
+  },
+  {
+    // High Court of Karnataka, 25 March 2025: four whole sentences of the prosecution's allegations as recited, nothing edited (explorer's DISPLAYED_STRINGS_SAMPLES_v2, file sha dc4c070e8de8246e; R1 read; R2 sealed-list PASS).
+    id: "karnataka-cheating-2025",
+    label:
+      "A public court order, example only. These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here. The output of this demo is illustrative, not evidence, and no measure is quoted from it.",
+    citation: "High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773",
+    screeningLine: "Screened here for the cheating (IPC 415) ingredients.",
+    facts: [
+      "The prosecution alleges that petitioner Nos. 1 and 2—accused Nos. 1 and 2—approached the de facto complainants and induced them to subscribe to the membership of accused No. 4 company, promising that upon investing money, they would receive gold coins. Believing these representations, the de facto complainants invested money in accused No. 4 company. Similarly, C.Ws. 11 to 15 also invested money and subscribed to the membership. Subsequently, when they approached the company requesting the issuance of gold coins or the return of their money, accused No. 4 failed to comply and instead closed the company.",
+    ],
+    factsSha256: "45ecf08958f567be567e7ca7855bfe0733330281b680138ca6fda9805658d408",
+    contracts: ["ipc415_property"],
   },
 ];
 

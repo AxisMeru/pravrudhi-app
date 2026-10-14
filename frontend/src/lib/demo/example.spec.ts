@@ -8,7 +8,8 @@ import { DO_NOT_CLAIM } from "../surfaceCopy";
 // Every example is generic here: its facts are pinned by sha256, carry no FIR / crime / CNR number, address, phone number or age, and are allegations only. The citation is a separate field, as the court
 // printed it (Lead-2's 14 Oct ruling), pinned below per example; the guard test (caseIdentifiers.spec.ts) lists the only citation patterns allowed.
 const CITATIONS: Record<string, string> = {
-  "madras-public-order-2024": "Madras High Court, order of 12 June 2024", // TODO(Track B): the printed case type + number once supplied
+  "madras-public-order-2024": "Madras High Court, order of 12 June 2024",
+  "karnataka-cheating-2025": "High Court of Karnataka at Bengaluru, order of 25 March 2025, 2025:KHC:12773",
 };
 
 test("every example's facts are exactly the checked text (sha256 pinned) and every example has a pinned citation, a contract and a unique id", () => {
@@ -73,6 +74,7 @@ const ALLOWED_CITATION = [
   /^[A-Z][A-Za-z .&'-]+(?: High Court| Supreme Court of India| Supreme Court)?, \d{4}:[A-Z]{2,6}:\d{1,6}(?:-DB)?$/, // neutral citation, e.g. Karnataka High Court, 2024:KHC:3954
   /^[A-Z][A-Za-z .&'-]+ (?:High Court|Supreme Court of India), [A-Za-z.() &-]+ No\. ?\d{1,6}(?: of |\/)\d{4}, (?:order|judgment) of \d{1,2} [A-Z][a-z]+ \d{4}$/, // court, case type + number, order date
   /^[A-Z][A-Za-z .&'-]+ High Court, order of \d{1,2} [A-Z][a-z]+ \d{4}$/, // court and date only
+  /^[A-Z][A-Za-z .&'-]+ at [A-Z][a-z]+, order of \d{1,2} [A-Z][a-z]+ \d{4}, \d{4}:[A-Z]{2,6}:\d{1,6}$/, // court, date and the neutral citation as printed
 ];
 
 test("every citation is one of the allowed shapes (neutral citation; court + case type + number + date as printed; court + date)", () => {
@@ -81,4 +83,13 @@ test("every citation is one of the allowed shapes (neutral citation; court + cas
   assert.ok(ALLOWED_CITATION.some((re) => re.test("Karnataka High Court, 2024:KHC:3954")));
   assert.ok(ALLOWED_CITATION.some((re) => re.test("Madras High Court, Crl.O.P. No. 12345 of 2023, order of 12 June 2024")));
   for (const bad of ["Madras High Court, FIR No. 12/2023", "Cr.No. 123 of 2023", "Madras High Court, CNR TNHC010012342023", "Somebody v. Another", "Madras High Court, order of 12.06.2024"]) assert.ok(!ALLOWED_CITATION.some((re) => re.test(bad)), bad);
+});
+
+test("the Karnataka example carries R1's own label (14 Oct): the prosecution's allegations as the court recited them, and its screening line", () => {
+  const k = exampleById("karnataka-cheating-2025")!;
+  assert.equal(k.label, "A public court order, example only. These are the prosecution's allegations as the court recited them, not findings by us and not a view on the case. The court's decision is not shown here. The output of this demo is illustrative, not evidence, and no measure is quoted from it.");
+  assert.equal(k.screeningLine, "Screened here for the cheating (IPC 415) ingredients.");
+  assert.deepEqual([...k.contracts], ["ipc415_property"]);
+  assert.doesNotMatch(k.label, /invented|made up/i);
+  for (const re of DO_NOT_CLAIM) assert.doesNotMatch(k.label, re);
 });
