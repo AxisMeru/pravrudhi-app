@@ -39,7 +39,6 @@ export const INTAKE_SIGNED_IN_ONLY = "Intake is offered only to signed-in users.
 export const INTAKE_SERVED_RAW = "We could not clean this text safely, so your original text is shown.";
 export const INTAKE_RAW_FALLBACK = "Shown as you wrote it.";
 export const INTAKE_DUPLICATE = "Same as an earlier fact; not counted again.";
-export const INTAKE_PARAPHRASE = "This sentence is a paraphrase, not your own words, so it is not used as a fact to cite.";
 export const INTAKE_LIMIT_SENTENCE = "Intake only joins broken lines, removes repeated page headers and tidies spacing; it never changes a number.";
 export const CITATION_FOUND = "Found in our index";
 export const CITATION_NOT_FOUND = "Not found in our index: this does not show whether the citation is real";

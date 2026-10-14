@@ -27,13 +27,15 @@ test("the limit is the app's MAX_FACTS (8) by default and can be passed", () => 
   assert.equal(selectionState([0, 1], 2).atLimit, true);
 });
 
-test("the starting choice is the first eight; fewer facts are all chosen", () => {
-  assert.deepEqual(initialSelection(12), [0, 1, 2, 3, 4, 5, 6, 7]);
+test("the starting choice is every fact when there are eight or fewer, and NONE when there are more (the user chooses on purpose)", () => {
+  assert.deepEqual(initialSelection(12), []);
+  assert.deepEqual(initialSelection(9), []);
+  assert.deepEqual(initialSelection(8), [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.deepEqual(initialSelection(3), [0, 1, 2]);
   assert.deepEqual(initialSelection(0), []);
 });
 
-test("chosen facts keep their original F-numbers and order, whatever order they were ticked in", () => {
+test("chosen facts keep their order and the number they had on the intake page, whatever order they were ticked in", () => {
   const facts = ["a", "b", "c", "d"];
   assert.deepEqual(chosenFacts(facts, [3, 0]), [{ number: 1, text: "a" }, { number: 4, text: "d" }]);
   assert.deepEqual(chosenFacts(facts, [9]), []);

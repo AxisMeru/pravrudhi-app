@@ -38,7 +38,6 @@ test("R1's plain sentences, exactly, and an unknown status reads Not checked.", 
   assert.equal(I.INTAKE_SERVED_RAW, "We could not clean this text safely, so your original text is shown.");
   assert.equal(I.INTAKE_RAW_FALLBACK, "Shown as you wrote it.");
   assert.equal(I.INTAKE_DUPLICATE, "Same as an earlier fact; not counted again.");
-  assert.equal(I.INTAKE_PARAPHRASE, "This sentence is a paraphrase, not your own words, so it is not used as a fact to cite.");
   assert.equal(I.INTAKE_LIMIT_SENTENCE, "Intake only joins broken lines, removes repeated page headers and tidies spacing; it never changes a number.");
   assert.equal(citationLine("IN_INDEX"), "Found in our index");
   assert.equal(citationLine("NOT_IN_INDEX"), "Not found in our index: this does not show whether the citation is real");
@@ -70,4 +69,11 @@ test("the Intake page's own words are R1's (signed at b6435e5 with his two edits
     "If your text has no blank lines, part of the heading can stay inside the first fact; skip any fact that is not about what happened.",
     "Page numbers, running headings and page breaks from your file can appear inside a fact or split a sentence between two facts; they are part of your text.",
   ]);
+});
+
+test("a bundle whose cleaning failed its checks (clean_status served_raw) is read as served_raw, and R1's line for it is exact", () => {
+  const v = parseIntake({ ...BUNDLE, bundle: { ...BUNDLE.bundle, clean_status: "served_raw" } })!;
+  assert.equal(v.cleanStatus, "served_raw");
+  assert.equal(parseIntake(BUNDLE)!.cleanStatus, "cleaned");
+  assert.equal(I.INTAKE_SERVED_RAW, "We could not clean this text safely, so your original text is shown.");
 });

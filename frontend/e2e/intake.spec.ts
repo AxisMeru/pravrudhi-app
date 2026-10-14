@@ -26,6 +26,9 @@ test("intake returns facts; the choice is capped at 8; the chosen facts reach Sc
   await page.getByTestId("intake-run").click();
   await expect(page.getByTestId("fact-selector")).toBeVisible();
   await expect(page.getByTestId("selector-limit-line")).toHaveText("Intake found 10 facts. Screening takes up to 8 at a time: choose the ones that matter.");
+  // more than 8 facts: nothing is ticked to start (the user chooses on purpose)
+  await expect(page.getByTestId("selector-counter")).toHaveText("0 of 8 chosen");
+  for (let i = 0; i < 8; i++) await page.getByTestId(`pick-${i}`).check();
   await expect(page.getByTestId("selector-counter")).toHaveText("8 of 8 chosen");
   // the ninth tick is refused, with R1's words; unticking one makes room
   await page.getByTestId("pick-8").check({ force: true }).catch(() => {});

@@ -1,7 +1,7 @@
 import { MAX_FACTS } from "./factsInput";
 
 // Intake's "choose up to 8 facts" step (Lead-2 option A, 14 Oct): a checkbox list over the numbered facts that intake produced. The engine's cap and the app's MAX_FACTS (8) are
-// unchanged; screening takes the chosen facts, in their original order, with their original F-numbers. This file is pure logic: no words, no DOM.
+// unchanged; screening takes the chosen facts in their original order. Screening numbers whatever it is given from F1 (a fact ticked as F12 becomes F1 there and in the memo): the hand-off passes texts, not numbers. This file is pure logic: no words, no DOM.
 
 export interface ToggleResult {
   selected: readonly number[];
@@ -16,12 +16,12 @@ export function toggleFact(selected: readonly number[], index: number, limit: nu
   return { selected: [...selected, index].sort((a, b) => a - b), refused: false };
 }
 
-/** The first `limit` facts, a sensible starting choice when intake produced more than the limit (the user can change it). */
+/** The starting choice: every fact when intake produced no more than the limit; NONE when it produced more, so the user chooses on purpose (R2 14 Oct: a silent "first 8" hides the rest). */
 export function initialSelection(factCount: number, limit: number = MAX_FACTS): number[] {
-  return Array.from({ length: Math.min(factCount, limit) }, (_, i) => i);
+  return factCount <= limit ? Array.from({ length: factCount }, (_, i) => i) : [];
 }
 
-/** The chosen facts with their original numbers, in order, ready for screening. */
+/** The chosen facts in order, with the number each had on the intake page (`number`), ready for screening (which renumbers them from F1). */
 export function chosenFacts(facts: readonly string[], selected: readonly number[]): { number: number; text: string }[] {
   return [...selected].sort((a, b) => a - b).filter((i) => i >= 0 && i < facts.length).map((i) => ({ number: i + 1, text: facts[i] }));
 }
