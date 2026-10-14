@@ -58,7 +58,6 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
     sentences: [
       "// A contract's judge is ABSTAIN with a reason containing this token when no judge has been trained on its // statute text yet (Lead-2, 2026-09-24: 12 of the 26 registry contracts are in this state today — bns316/ // 318/217/80/108, bnss187, ni138 among them).",
       "no_training_statute_text",
-      "> No judge has been trained on this contract&apos;s statute text yet.",
       "Ask about a different matter, or check back once this contract is trained.",
     ],
   },
