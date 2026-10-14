@@ -84,19 +84,34 @@ test("R1's agenda wording (14 Oct): the banner, group heading, alternate-limb no
   assert.equal(c.AGENDA_BANNER_TEXT, "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.");
   assert.equal(c.NO_FACT_GROUP_HEADING, "To look for in your papers");
   assert.equal(c.CHIP_LABEL.not_supported, "No fact cited");
-  assert.equal(c.ALTERNATE_LIMB_NOTE, "This is a second way the same offence can be made out. Each way is screened separately.");
+  assert.equal(c.ALTERNATE_LIMB_NOTE, "This is another way the same offence can be made out. Each way is screened separately.");
   assert.equal(c.NO_CHECK_NOTE, "This ingredient is not screened yet; a lawyer should read the facts for it.");
   assert.equal(c.NOT_VALIDATED_OFFENCE_NOTE, "Not on the validated list: for this offence the screening does not give a result; a lawyer decides.");
   assert.doesNotMatch(c.AGENDA_BANNER_TEXT, /\d|failed|no result|nothing found/i);
 });
 
-test("R1's block titles (#134): never the contract id; only cheating's two ways have their own title, and only the second carries the note", async () => {
+test("R1's block titles (#134): never the contract id; every way of every multi-way offence has its own title, and every way after the first carries the note", async () => {
   const o = await import("./screening/offences");
   assert.equal(o.blockTitle("ipc415_property"), "Cheating · BNS 318 · IPC 415: by delivery of property");
   assert.equal(o.blockTitle("ipc415_damaging_act"), "Cheating · BNS 318 · IPC 415: by an act or omission causing damage or harm");
-  assert.equal(o.blockTitle("ipc405_misappropriation"), "Criminal breach of trust");
+  assert.equal(o.blockTitle("ipc405_misappropriation"), "Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property");
+  assert.equal(o.blockTitle("ipc405_use_or_disposal"), "Criminal breach of trust · BNS 316 · IPC 405: by using or disposing of the property against a legal direction or a contract");
+  assert.equal(o.blockTitle("ipc405_wilfully_suffers"), "Criminal breach of trust · BNS 316 · IPC 405: by wilfully allowing another person to do either");
+  assert.equal(o.blockTitle("ipc182_misdirected_act"), "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to do or omit something they ought not to, if the true facts were known");
+  assert.equal(o.blockTitle("ipc182_abuse_of_power"), "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to use their lawful power to the injury or annoyance of any person");
+  assert.equal(o.blockTitle("bns46_instigation"), "Abetment · BNS 45, 46 · IPC 107, 108: by instigation");
+  assert.equal(o.blockTitle("bns46_conspiracy"), "Abetment · BNS 45, 46 · IPC 107, 108: by conspiracy");
+  assert.equal(o.blockTitle("bns46_intentional_aid"), "Abetment · BNS 45, 46 · IPC 107, 108: by intentionally aiding the doing of the thing");
+  // the alternate note follows the order inside each family (second and later limbs), never a hard-coded id list
+  for (const fam of o.OFFENCES.filter((x) => x.contracts.length > 1)) {
+    fam.contracts.forEach((id, i) => assert.equal(o.isAlternateLimb(id), i > 0, id));
+  }
+  // every contract of every multi-contract offence has a title of its own, so no two blocks of one offence read alike
+  for (const fam of o.OFFENCES.filter((x) => x.contracts.length > 1)) {
+    assert.equal(new Set(fam.contracts.map((id) => o.blockTitle(id))).size, fam.contracts.length, fam.id);
+  }
   assert.equal(o.blockTitle("not_a_contract"), "Offence");
   assert.equal(o.isAlternateLimb("ipc415_property"), false);
   assert.equal(o.isAlternateLimb("ipc415_damaging_act"), true);
-  assert.equal(o.isAlternateLimb("ipc405_use_or_disposal"), false);
+  assert.equal(o.isAlternateLimb("ipc405_use_or_disposal"), true);
 });
