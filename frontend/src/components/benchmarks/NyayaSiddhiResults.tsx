@@ -15,7 +15,7 @@ export function Figure({ m, measure, s }: { m: Metric | null; measure: Measure; 
   return (
     <div className="space-y-1">
       <p className="text-sm text-[var(--color-text)]"><span className="font-medium" data-testid="ns-count">{text}</span> <span className="text-[var(--color-text-dim)]" data-testid="ns-interval">({interval})</span></p>
-      <svg viewBox="0 0 100 10" className="h-3 w-full" role="img" aria-label={`${s.chartLabel}: ${s.measure[measure]}, ${text}, ${interval}`} data-testid="ns-chart">
+      <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="h-3 w-full" role="img" aria-label={`${s.chartLabel}: ${s.measure[measure]}, ${text}, ${interval}`} data-testid="ns-chart">
         <rect x="0" y="4" width="100" height="2" fill="var(--color-border)" />
         <rect x={g.low} y="2" width={Math.max(g.high - g.low, 0.6)} height="6" fill="var(--color-accent)" opacity="0.55" />
         <rect x={Math.min(Math.max(g.point - 0.4, 0), 99.2)} y="0" width="0.8" height="10" fill="var(--color-text)" />

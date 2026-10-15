@@ -1,1 +1,189 @@
-{ "rows": [] }
+{
+ "rows": [
+  {
+   "benchmark_version": "v0.2",
+   "entry_kind": "product",
+   "error_mapping": "error_counted_as_not_proof",
+   "manifest_sha256": "c898a00c7a484414588942dabc88f671513140972785a248f732108682d81093",
+   "metrics": [
+    {
+     "ci_high": 0.21802,
+     "ci_low": 0.0,
+     "group": "ALL",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 15,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.3085,
+     "ci_low": 0.0,
+     "group": "CHEAT",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 10,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.52182,
+     "ci_low": 0.0,
+     "group": "TRUST",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 5,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.02841,
+     "ci_low": 0.0,
+     "group": "ALL",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 128,
+     "name": "false_proof"
+    },
+    {
+     "ci_high": 0.07549,
+     "ci_low": 0.0,
+     "group": "CHEAT",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 47,
+     "name": "false_proof"
+    },
+    {
+     "ci_high": 0.04452,
+     "ci_low": 0.0,
+     "group": "TRUST",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 81,
+     "name": "false_proof"
+    }
+   ],
+   "n_error": 0,
+   "organiser_entry": true,
+   "row_id": "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1b_minus_cruelty-v0.2",
+   "run_date": "2026-10-08",
+   "scorer_sha": "f9e80ab506771b1aff5a5ac8c215566af87a58cd",
+   "split": "obj1b_minus_cruelty",
+   "status": "self-reported",
+   "superseded_by": null,
+   "supersedes": null,
+   "system_name": "nyaya-product",
+   "system_version": "engine-42e6ed71_cfg-c26cb086",
+   "unit": "whole_item"
+  },
+  {
+   "benchmark_version": "v0.2",
+   "entry_kind": "product",
+   "error_mapping": "error_counted_as_not_proof",
+   "manifest_sha256": "c557d30ba6bcf981c1175a29bac6fa62c89be7fedbc844c3b635408c30c0c78b",
+   "metrics": [
+    {
+     "ci_high": 0.03389,
+     "ci_low": 0.0,
+     "group": "ALL",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 107,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.40962,
+     "ci_low": 0.0,
+     "group": "CHEAT",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 7,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.03889,
+     "ci_low": 0.0,
+     "group": "NI138",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 93,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.40962,
+     "ci_low": 0.0,
+     "group": "TRUST",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 7,
+     "name": "coverage"
+    },
+    {
+     "ci_high": 0.05601,
+     "ci_low": 0.0,
+     "group": "ALL",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 64,
+     "name": "false_proof"
+    },
+    {
+     "ci_high": 0.1277,
+     "ci_low": 0.0,
+     "group": "CHEAT",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 27,
+     "name": "false_proof"
+    },
+    {
+     "ci_high": 0.7076,
+     "ci_low": 0.0,
+     "group": "NI138",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 3,
+     "name": "false_proof"
+    },
+    {
+     "ci_high": 0.10282,
+     "ci_low": 0.0,
+     "group": "TRUST",
+     "interval_level": 0.95,
+     "interval_method": "clopper-pearson-exact",
+     "k": 0,
+     "n": 34,
+     "name": "false_proof"
+    }
+   ],
+   "n_error": 1,
+   "organiser_entry": true,
+   "row_id": "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1_dev-v0.2",
+   "run_date": "2026-10-08",
+   "scorer_sha": "f9e80ab506771b1aff5a5ac8c215566af87a58cd",
+   "split": "obj1_dev",
+   "status": "self-reported",
+   "superseded_by": null,
+   "supersedes": null,
+   "system_name": "nyaya-product",
+   "system_version": "engine-42e6ed71_cfg-c26cb086",
+   "unit": "whole_item"
+  }
+ ],
+ "source": {
+  "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi",
+  "rows": 2,
+  "rows_file_sha256": "3e8aa33537cf393f1bdae76dee42ae6219bb25295de00d13c6c3a5bb8422de35"
+ }
+}
