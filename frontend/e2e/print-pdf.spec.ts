@@ -49,7 +49,7 @@ test("print: every block of a five-contract result is on the paper, with the fac
   // the limits travel with the paper: "How to read this analysis" (including the validated-list / validation paragraph) is printed, the navigation is not
   await expect(page.getByTestId("caveat-strip")).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary" })).toBeHidden();
-  for (const id of IDS) await expect(page.getByRole("heading", { name: blockTitle(id), exact: true })).toBeVisible();
+  for (const id of IDS) await expect(page.getByTestId("checklist").getByRole("heading", { name: blockTitle(id), exact: true })).toBeVisible();
 
   // nothing is clipped: no ancestor that scrolls or hides overflow ends above the bottom of any block title
   const clipped = await page.evaluate(() =>
