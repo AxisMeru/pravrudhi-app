@@ -1,0 +1,127 @@
+{
+  "title": "Pravrudhi-Nyaya for Firms",
+  "durationS": 107.5,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "cdb8ed3bc39e22b7bd6adf4ca05be5762dca00b90a5094d1c2bf382210be3d57",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "Pravrudhi-Nyaya",
+      "text": "The name and its purpose land on a case-file sheet.",
+      "startS": 0,
+      "endS": 4.5
+    },
+    {
+      "name": "Scope and names",
+      "text": "Indian law broadly with a criminal-law focus; Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.",
+      "startS": 4.5,
+      "endS": 13.5
+    },
+    {
+      "name": "The problem",
+      "text": "Fluent AI answers versus a matter that needs every ingredient shown.",
+      "startS": 13.5,
+      "endS": 19
+    },
+    {
+      "name": "Your facts",
+      "text": "The live Screening page: the complaint split into numbered facts, the offence ticked.",
+      "startS": 19,
+      "endS": 25.5
+    },
+    {
+      "name": "Each ingredient",
+      "text": "The live checklist: every ingredient with its status and what to check.",
+      "startS": 25.5,
+      "endS": 32.5
+    },
+    {
+      "name": "A review agenda",
+      "text": "The live result on a public order: what is missing for each ingredient and what to check; ends on the standing line.",
+      "startS": 32.5,
+      "endS": 43
+    },
+    {
+      "name": "Two models",
+      "text": "Our trained models read each ingredient; both must agree or the matter is referred.",
+      "startS": 43,
+      "endS": 50.5
+    },
+    {
+      "name": "Real field data",
+      "text": "Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets. Evaluation items are checked against training data. Real and constructed cases are labelled.",
+      "startS": 50.5,
+      "endS": 59.5
+    },
+    {
+      "name": "The formal check",
+      "text": "Each offence is a formal contract; the check confirms every ingredient was addressed.",
+      "startS": 59.5,
+      "endS": 65.5
+    },
+    {
+      "name": "Nyaya discipline",
+      "text": "Three Nyaya ideas that change a result: evidence you can point to, judgment withheld, testimony is checked, not trusted.",
+      "startS": 65.5,
+      "endS": 73.5
+    },
+    {
+      "name": "The pipeline",
+      "text": "The seven stages light up in order, from ingest to decide.",
+      "startS": 73.5,
+      "endS": 81
+    },
+    {
+      "name": "Managed workflows",
+      "text": "Optional managed workflows broaden the same core: the assistant proposes, the core decides.",
+      "startS": 81,
+      "endS": 88
+    },
+    {
+      "name": "What sets it apart",
+      "text": "Four differences from general-purpose legal AI.",
+      "startS": 88,
+      "endS": 95.5
+    },
+    {
+      "name": "Privacy and cost",
+      "text": "Our own models on rented GPUs; the live data-handling page; nothing is billed while idle.",
+      "startS": 95.5,
+      "endS": 103
+    },
+    {
+      "name": "End card",
+      "text": "Name, line and address.",
+      "startS": 103,
+      "endS": 107.5
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 6946832,
+      "sha256": "64d60c7db45bbecf4ea515d8bc3419e2b282d4d1ccbbafc95a17a128b3df48ed"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 90917,
+      "sha256": "a19e0e26c126f488400b899f8cbf044660c734687de0573e58edae02d63b9742"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 2114,
+      "sha256": "4f5b75b0c18753f5e606ff7c0b86a56644bb0ffe790243fc20d9702e3619720c"
+    }
+  ]
+}

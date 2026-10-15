@@ -1,0 +1,45 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:07.000
+How it works. The title and what this film covers.
+
+2
+00:00:07.000 --> 00:00:25.000
+Two names. Pravrudhi-Nyaya is the product; Prabhasa-Nyaya is our own trained models; the system is a second reader that refers when it cannot support a statement.
+
+3
+00:00:25.000 --> 00:00:51.000
+The corpus. Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.
+
+4
+00:00:51.000 --> 00:01:19.000
+Element judges. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.
+
+5
+00:01:19.000 --> 00:01:49.000
+The harness. Deterministic assembly, the quote check, the Lean structure check and refer-first decide; no model decides.
+
+6
+00:01:49.000 --> 00:02:19.000
+Nyaya grounding. Pramana, nirnaya withheld and agama, explained in plain words.
+
+7
+00:02:19.000 --> 00:02:45.000
+The assistant. The optional Claude managed-agent assistant: consent, spending limits, and the core still decides. Offered to signed-in users; optional, with a consent box each run.
+
+8
+00:02:45.000 --> 00:03:09.000
+Citations. An existence-only check against an index of judgments, and the rule that keeps a name match from passing as proof.
+
+9
+00:03:09.000 --> 00:03:35.000
+Serving and cost. Local machines plus serverless GPUs, a fallback endpoint, and what idle costs.
+
+10
+00:03:35.000 --> 00:04:03.000
+Evaluation discipline. Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.
+
+11
+00:04:03.000 --> 00:04:11.000
+End card. Name, line and where the technical report lives.

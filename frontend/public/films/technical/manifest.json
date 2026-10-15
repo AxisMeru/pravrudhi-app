@@ -1,0 +1,103 @@
+{
+  "title": "Pravrudhi-Nyaya Technical Film",
+  "durationS": 251,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "8b2a454ad67c949efc4b8fb096f0dc24b34e7964cf8f2a4bd27a2ba594820c33",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "How it works",
+      "text": "The title and what this film covers.",
+      "startS": 0,
+      "endS": 7
+    },
+    {
+      "name": "Two names",
+      "text": "Pravrudhi-Nyaya is the product; Prabhasa-Nyaya is our own trained models; the system is a second reader that refers when it cannot support a statement.",
+      "startS": 7,
+      "endS": 25
+    },
+    {
+      "name": "The corpus",
+      "text": "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
+      "startS": 25,
+      "endS": 51
+    },
+    {
+      "name": "Element judges",
+      "text": "An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.",
+      "startS": 51,
+      "endS": 79
+    },
+    {
+      "name": "The harness",
+      "text": "Deterministic assembly, the quote check, the Lean structure check and refer-first decide; no model decides.",
+      "startS": 79,
+      "endS": 109
+    },
+    {
+      "name": "Nyaya grounding",
+      "text": "Pramana, nirnaya withheld and agama, explained in plain words.",
+      "startS": 109,
+      "endS": 139
+    },
+    {
+      "name": "The assistant",
+      "text": "The optional Claude managed-agent assistant: consent, spending limits, and the core still decides. Offered to signed-in users; optional, with a consent box each run.",
+      "startS": 139,
+      "endS": 165
+    },
+    {
+      "name": "Citations",
+      "text": "An existence-only check against an index of judgments, and the rule that keeps a name match from passing as proof.",
+      "startS": 165,
+      "endS": 189
+    },
+    {
+      "name": "Serving and cost",
+      "text": "Local machines plus serverless GPUs, a fallback endpoint, and what idle costs.",
+      "startS": 189,
+      "endS": 215
+    },
+    {
+      "name": "Evaluation discipline",
+      "text": "Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.",
+      "startS": 215,
+      "endS": 243
+    },
+    {
+      "name": "End card",
+      "text": "Name, line and where the technical report lives.",
+      "startS": 243,
+      "endS": 251
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 8948834,
+      "sha256": "11e58a575e86311ef3f0f6e154f1e160260787a2ba9858629474935ce476b194"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 140962,
+      "sha256": "42358b4aa741a4f6bc283eb39481f28e206ebb39cfeeee211058be378dab1519"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 1717,
+      "sha256": "5522f81985ab17d8c8be9c6a23c10319cc82995c3c183d8964c3eb870f9623cd"
+    }
+  ]
+}

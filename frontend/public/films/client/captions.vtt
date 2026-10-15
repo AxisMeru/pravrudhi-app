@@ -1,0 +1,61 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Pravrudhi-Nyaya. The name and its purpose land on a case-file sheet.
+
+2
+00:00:04.500 --> 00:00:13.500
+Scope and names. Indian law broadly with a criminal-law focus; Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.
+
+3
+00:00:13.500 --> 00:00:19.000
+The problem. Fluent AI answers versus a matter that needs every ingredient shown.
+
+4
+00:00:19.000 --> 00:00:25.500
+Your facts. The live Screening page: the complaint split into numbered facts, the offence ticked.
+
+5
+00:00:25.500 --> 00:00:32.500
+Each ingredient. The live checklist: every ingredient with its status and what to check.
+
+6
+00:00:32.500 --> 00:00:43.000
+A review agenda. The live result on a public order: what is missing for each ingredient and what to check; ends on the standing line.
+
+7
+00:00:43.000 --> 00:00:50.500
+Two models. Our trained models read each ingredient; both must agree or the matter is referred.
+
+8
+00:00:50.500 --> 00:00:59.500
+Real field data. Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets. Evaluation items are checked against training data. Real and constructed cases are labelled.
+
+9
+00:00:59.500 --> 00:01:05.500
+The formal check. Each offence is a formal contract; the check confirms every ingredient was addressed.
+
+10
+00:01:05.500 --> 00:01:13.500
+Nyaya discipline. Three Nyaya ideas that change a result: evidence you can point to, judgment withheld, testimony is checked, not trusted.
+
+11
+00:01:13.500 --> 00:01:21.000
+The pipeline. The seven stages light up in order, from ingest to decide.
+
+12
+00:01:21.000 --> 00:01:28.000
+Managed workflows. Optional managed workflows broaden the same core: the assistant proposes, the core decides.
+
+13
+00:01:28.000 --> 00:01:35.500
+What sets it apart. Four differences from general-purpose legal AI.
+
+14
+00:01:35.500 --> 00:01:43.000
+Privacy and cost. Our own models on rented GPUs; the live data-handling page; nothing is billed while idle.
+
+15
+00:01:43.000 --> 00:01:47.500
+End card. Name, line and address.

@@ -223,4 +223,22 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "It is written here, not copied from the engine: the engine's own retention_notice still carries a training promise // the app does not enforce, so the app never displays it (CaveatStrip).",
     ],
   },
+  "public/films/client/manifest.json": {
+    reason: "the client film's own scene text (names, scene descriptions) read and confirmed by R1 by hash (client strings b19ffc12e6aaf2f6); describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.",
+      "Our trained models read each ingredient;",
+      "Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets.",
+      "Evaluation items are checked against training data.",
+    ],
+  },
+  "public/films/technical/manifest.json": {
+    reason: "the technical film's own scene text read and confirmed by R1 by hash (technical strings a94c6ef7721dfeac, then v2 311a33cea21dc2e3 and v3 b384f10c15aea3ea); describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "Prabhasa-Nyaya is our own trained models;",
+      "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
+      "Evaluation discipline",
+      "Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.",
+    ],
+  },
 };
