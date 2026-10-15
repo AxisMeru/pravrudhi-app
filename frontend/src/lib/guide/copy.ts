@@ -61,7 +61,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   memo: {
     file: "06-memo-export.png",
     // R1 (15 Oct), exact: width-independent (no "beside"/"below"); the frame shows the label, the two download buttons, then set apart the print button, and the run-record button on the next line.
-    alt: "The memo export controls under the checklist: the label \u201cDownload the memo\u201d with the buttons Markdown (.md) and Word (.docx), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).",
+    alt: "The memo export controls on the Matter workspace page once a result is shown: the label \u201cDownload the memo\u201d with the buttons Markdown (.md) and Word (.docx), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).",
   },
 };
 
@@ -139,7 +139,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Under the checklist, the group Download the memo holds Markdown (.md) and Word (.docx); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
+    text: "Once a screening result is shown, the group Download the memo holds Markdown (.md) and Word (.docx); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
     image: GUIDE_IMAGES.memo,
   },
 ];
