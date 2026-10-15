@@ -316,3 +316,17 @@ for (const [name, status, body] of [["a bare 500", 500, { detail: "Internal Serv
     expect(posts.assist).toHaveLength(0);
   });
 }
+
+// Engine 0.6.19 candidate (#504): a coded 502 assistant_session_billed (the paid session was billed, the result could not be produced): exactly ONE request (no retry, no plain fallback), R1's line, and no code, status or engine detail on the page.
+test("assisted run: a coded 502 assistant_session_billed makes one request, shows R1's line, never the code or the engine's detail", async ({ page }) => {
+  const posts = await open(page, { tier: AVAILABLE, assistStatus: 502, assistBody: { error: "assistant_session_billed", detail: "the assisted session was charged, but the result could not be produced; do not retry automatically", assistant: { used: true, outcome: "refused", reason: "core_error", cost: { used_cents: 12, budget_cents: 25 }, session_id: "s-invented" } } });
+  await page.getByTestId("assistant-consent").check();
+  await page.getByTestId("assistant-run-button").click();
+  await expect(page.getByText("The assistant run did not finish, so no result was produced.")).toBeVisible();
+  await page.waitForTimeout(800);
+  expect(posts.assist).toHaveLength(1);
+  expect(posts.plain).toBe(0);
+  const body = await page.locator("body").innerText();
+  for (const leak of ["assistant_session_billed", "HTTP 502", "was charged", "do not retry automatically", "s-invented", "core_error"]) expect(body).not.toContain(leak);
+  await expect(page.getByTestId("assistant-consent")).not.toBeChecked();
+});
