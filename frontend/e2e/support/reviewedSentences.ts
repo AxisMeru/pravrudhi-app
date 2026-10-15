@@ -2,6 +2,15 @@
 // scoring or improving a model must be listed here, EXACTLY as the scan splits it, with the reason it is not a statement about what happens to a submission.
 // Every entry is a sentence the app already ships; adding one here is a copy decision for R1. A stale entry fails the scan.
 export const REVIEWED: Readonly<Record<string, { reason: string; sentences: readonly string[] }>> = {
+  "src/data/nyayasiddhi/rows.json": {
+    reason: "R1's About-this-run lines of the reference arms (15 Oct), copied by the data build from the signed manifests: they say that the organisers did not train or tune the model they ran, and what its vendor trained it on is not known to us; none is a statement about what happens to a submission",
+    sentences: [
+      "trained_on_public_items is false because we did not train or tune this model;",
+      "what its vendor trained it on is not known to us.",
+      "public court texts may be in its pretraining;",
+      "not checked: public open-weight model used as released, no training by us;",
+    ],
+  },
   "public/demo.json": {
     reason: "recorded Studio demo data: research-ledger names, recipe titles and model-training settings; none is a statement about what happens to a submission",
     sentences: [

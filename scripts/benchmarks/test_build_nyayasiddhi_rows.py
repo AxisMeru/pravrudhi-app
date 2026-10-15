@@ -1,4 +1,4 @@
-import hashlib, json, tempfile, unittest
+import hashlib, json, os, tempfile, unittest
 from pathlib import Path
 import build_nyayasiddhi_rows as B
 from bench_tables import cp_interval
@@ -70,5 +70,118 @@ class T(unittest.TestCase):
         other = "some other stack"; sha = hashlib.sha256(manifest(other)).hexdigest()
         self.assertTrue(any("not one the page has words for" in e for e in run([row(manifest_sha256=sha)], {"invented-1": "product"}, stack=other)[1]))
         self.assertTrue(any("no manifest" in e for e in run([row()], {"invented-1": "product"}, with_manifest=False)[1]))
+    def test_several_rows_files_are_built_in_the_order_given_with_each_sha_recorded(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "x").mkdir(); (Path(d) / "y").mkdir()
+            a, b = Path(d) / "x" / "results.jsonl", Path(d) / "y" / "results.jsonl"  # same file name, different folders
+            a.write_text(json.dumps(row(row_id="first")) + "\n"); b.write_text(json.dumps(row(row_id="second")) + "\n")
+            k = Path(d) / "k.json"; k.write_text(json.dumps({"first": "product", "second": "product"}))
+            md = Path(d) / "m"; md.mkdir(); (md / "m.json").write_bytes(manifest(DEV))
+            data, errs = B.build([str(a), str(b)], str(k), None, [str(md)])
+            self.assertEqual(errs, []); self.assertEqual([r["row_id"] for r in data["rows"]], ["first", "second"])
+            self.assertEqual(set(data["source"]["rows_files_sha256"]), {"x/results.jsonl", "y/results.jsonl"})
+            b.write_text(json.dumps(row(row_id="first")) + "\n")
+            self.assertTrue(any("duplicate" in e for e in B.build([str(a), str(b)], str(k), None, [str(md)])[1]))
+
+# --- R1's About-this-run lines (15 Oct): whole sentences copied verbatim from the manifest notes, fail closed -----------------------------------------------
+FINAL_DIR = next((d for d in (Path("/home/ss/fusion-project/tmp_scratch/trackA/s7_682_rows/final8"),) if d.is_dir()), None)   # the signed package whose manifests carry the exposure sentences
+OPEN_LOCAL = "nyayasiddhi-open-O2"
+NOT_SERVED_NOTES = "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 1 of 171 scored items (aaaaaaaaaaaa 11209 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (1: 1 not served for context)."
+def notes_for(system, split="obj1_dev", extra=""):
+    """A manifest's notes assembled from the builder's own sentences (invented counts), in the manifests' own style, for the fail-closed tests."""
+    fill = lambda t: t.replace("NUM", "3").replace("itemsWILD", "items (aaaaaaaaaaaa 1 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping e; ").replace("WILD", "1: 1 not served")
+    lines = [B.SMOKE, fill(B.PREFACE), B.TRAINED] + ([B.EXPOSURE[split]] if system in B.API_SYSTEMS else []) + [fill(x) for x in B.ABOUT_BY_SYSTEM[system]]
+    lines = [x if x != B.NO_SEED else "Backend: Anthropic API lane Job, no seed (No seed: the API offers none.), max_tokens 1000; run directory out_x_v33." for x in lines]
+    lines = [NOT_SERVED_NOTES if x.startswith("Not served (context rule") else x for x in lines]
+    return ("dev stack (local); filler. One run per arm per split. " + " ".join(lines) + " Build notes: filler. " + extra).strip()
+def ref_run(system, notes, overlap="not checked: invented", split="obj1_dev", stack=API):
+    m = json.dumps({"system_name": system, "stack": stack, "notes": notes, "overlap_check": overlap}).encode()
+    r = row(manifest_sha256=hashlib.sha256(m).hexdigest(), split=split)
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d) / "r.jsonl").write_text(json.dumps(r)); (Path(d) / "k.json").write_text(json.dumps({"invented-1": "reference_arm"}))
+        md = Path(d) / "m"; md.mkdir(); (md / "m.json").write_bytes(m)
+        return B.build(str(Path(d) / "r.jsonl"), str(Path(d) / "k.json"), {}, str(md))
+
+class AboutRun(unittest.TestCase):
+    def test_each_row_type_gets_its_lines_in_order_copied_verbatim(self):
+        for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 8), ("nyayasiddhi-open-O1", 10)]:
+            api = system in B.API_SYSTEMS
+            data, errs = ref_run(system, notes_for(system), stack=API if api else DEV); self.assertEqual(errs, [], system)
+            lines = data["rows"][0]["about_run"]; self.assertEqual(len(lines), n_lines, system)
+            is_pref = lambda l: l.startswith("In 3 of 3 replies, the model wrote explanatory text") and l.endswith("Counted after the run, from the call log.")
+            for l in lines: self.assertTrue(B.balanced(l))
+            if api:   # R1: exposure, smoke, the arm's own lines, preamble count, trained flag, overlap_check, no-seed line
+                self.assertEqual(lines[0], B.EXPOSURE["obj1_dev"]); self.assertEqual(lines[1], B.SMOKE)
+                self.assertTrue(is_pref(lines[-4]), system); self.assertEqual(lines[-3], B.TRAINED); self.assertEqual(lines[-2], "not checked: invented"); self.assertEqual(lines[-1], B.NO_SEED)
+                arm = lines[2:-4]
+                self.assertEqual(arm[0], B.RERUN if system.endswith("direct") else B.HARNESS_CONTRACT.replace(B.CONTRACT_HASH, ""))
+                if system.endswith("harness"): self.assertEqual(arm[1:], [B.NOT_A_COPY, B.HARNESS_CHECK])
+                else: self.assertEqual(arm, [B.RERUN])
+            else:
+                self.assertEqual(lines[0], B.SMOKE); self.assertTrue(is_pref(lines[1])); self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], "not checked: invented")
+                self.assertFalse(any("Anthropic API" in l for l in lines), "no exposure line on the open-model rows")
+    def test_the_open_model_o1_stray_line_sentence_is_required_exactly_when_the_notes_mention_one(self):
+        base = notes_for("nyayasiddhi-open-O1"); stray = B.O1_STRAY.replace("NUM", "3")
+        self.assertIn(stray, base)
+        data, errs = ref_run("nyayasiddhi-open-O1", base.replace(stray + " ", ""), stack=DEV); self.assertEqual(errs, []); self.assertEqual(len(data["rows"][0]["about_run"]), 9, "no stray line in the notes: no such line")
+        self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(stray, stray[:-3] + "xyz."), stack=DEV)[1], "a mentioned but changed stray-line sentence fails")
+        self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(B.O1_HOURS.replace("NUM", "3") + " ", ""), stack=DEV)[1], "the hours-bound sentence is required")
+    def test_the_not_served_sentence_becomes_two_plain_lines_built_from_its_numbers(self):
+        f = B.not_served_and_errors
+        base = NOT_SERVED_NOTES
+        self.assertEqual(f(base), ["Not served: 1 of 171 scored items did not fit the served context length of 4096 tokens (aaaaaaaaaaaa 11209 tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error.", "Errors: 1 (1 item not served for context)."])
+        both = base.replace("(1: 1 not served for context)", "(2: 1 not served for context, 1 an unparsable reply, '{\"verdict\": \"NOT_PROV\"}' (bbbbbbbbbbbb))")
+        self.assertEqual(f(both)[1], "Errors: 2 (1 item not served for context, 1 reply that could not be read as an answer).")
+        zero = "Not served (context rule: x must fit the served max-model-len 4096; never truncated): 0 of 143 scored items; each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (0)."
+        self.assertEqual(f(zero), ["Not served: 0 of 143 scored items did not fit the served context length of 4096 tokens; nothing was truncated.", "Errors: 0."])
+        for bad in (base.replace("(1: 1 not served for context)", "(2: 1 not served for context)"), base.replace("max-model-len 4096", "max-model-len x"), base.replace("1 of 171", "2 of 171"), base.replace("(aaaaaaaaaaaa 11209 tokens)", ""), zero.replace("(0)", "(0: 1 not served for context)"), "unrelated"):
+            self.assertIsNone(f(bad), bad[-60:])
+        for line in f(both): self.assertNotRegex(line, r"PROOF|error_mapping|\{item_id|refer_mapping|NOT_PROV")
+    def test_the_exposure_line_follows_the_split_on_api_rows_only(self):
+        for split in B.EXPOSURE:
+            data, errs = ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", split), split=split); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["about_run"][0], B.EXPOSURE[split])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", "obj1_dev"), split="obj1b_minus_cruelty")[1], "the other split's exposure sentence is not accepted")
+    def test_the_harness_contract_sentence_is_whole_with_only_the_pinned_fragment_removed(self):
+        data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness")); self.assertEqual(errs, [])
+        line = [l for l in data["rows"][0]["about_run"] if l.startswith("Element by element")][0]
+        self.assertEqual(line, B.HARNESS_CONTRACT.replace(B.CONTRACT_HASH, "")); self.assertNotIn("contract_map", line); self.assertTrue(line.endswith("(item_id, element_index)."))
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness").replace("981218e2f961", "different-fragment"))[1], "a different fragment fails closed")
+    def test_a_row_is_not_run_for_ni138_only_when_the_notes_carry_the_exact_sentence(self):
+        sent = "A scored NI138 item is outside the harness's contracts: 96 items written {item_id, verdict NOT_PROOF} without error, not sent (refer_mapping REFER_IS_NOT_PROOF)."
+        data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness", extra=sent)); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["not_run_groups"], ["NI138"])
+        data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness")); self.assertNotIn("not_run_groups", data["rows"][0])
+        data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness", extra=sent.replace("outside", "inside"))); self.assertNotIn("not_run_groups", data["rows"][0])
+    def test_the_sentence_splitter_keeps_brackets_and_quotes_whole(self):
+        t = "One (a. B c). Two {x. Y}. Three \"p. Q\". Four. trained_on_public_items is x. Five, from the call log. Counted after the run, from the call log."
+        self.assertEqual(B.split_notes("A b. C d (e. F). G."), ["A b.", "C d (e. F).", "G."])
+        self.assertEqual(B.split_notes(t)[:4], ["One (a. B c).", "Two {x. Y}.", 'Three "p. Q".', "Four."])
+        self.assertEqual(B.split_notes("X y. Counted after the run, from the call log."), ["X y. Counted after the run, from the call log."])
+        self.assertFalse(B.balanced("a (b")); self.assertFalse(B.balanced("{a")); self.assertTrue(B.balanced("a (b) {c}"))
+    def test_a_missing_changed_or_repeated_required_sentence_fails_closed(self):
+        for system in B.ABOUT_BY_SYSTEM:
+            stack = API if system in B.API_SYSTEMS else DEV; base = notes_for(system)
+            for sentence in [B.SMOKE, B.TRAINED] + ([B.EXPOSURE["obj1_dev"]] if system in B.API_SYSTEMS else []):
+                self.assertIn(sentence, base)
+                self.assertTrue(ref_run(system, base.replace(sentence, ""), stack=stack)[1], f"{system}: removed {sentence[:40]!r}")
+                self.assertTrue(ref_run(system, base.replace(sentence, sentence[:-3] + "xyz."), stack=stack)[1], f"{system}: changed {sentence[:40]!r}")
+                self.assertTrue(ref_run(system, base + " " + sentence, stack=stack)[1], f"{system}: twice {sentence[:40]!r}")
+    def test_an_unknown_system_a_missing_overlap_check_no_notes_or_unbalanced_text_fails_closed(self):
+        self.assertTrue(ref_run("some-other-system", notes_for("nyayasiddhi-ref-S-direct"))[1])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct"), overlap="")[1])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct"), overlap="not checked (unclosed")[1])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", None)[1])
+    def test_a_product_row_carries_no_about_run(self):
+        data, errs = run([row()], {"invented-1": "product"}); self.assertEqual(errs, []); self.assertNotIn("about_run", data["rows"][0]); self.assertNotIn("not_run_groups", data["rows"][0])
+    @unittest.skipUnless(FINAL_DIR is not None, "the signed manifests with the exposure sentences (final8) are not on this machine")
+    def test_the_signed_manifests_give_whole_sentences_that_are_substrings_of_their_notes(self):
+        for f in sorted((FINAL_DIR / "manifests").glob("*.json")):
+            m = json.loads(f.read_text())
+            if m.get("system_name") not in B.ABOUT_BY_SYSTEM: continue
+            split = m["split"]; sha = hashlib.sha256(f.read_bytes()).hexdigest()
+            lines, not_run, err = B.about_run({"row_id": f.stem, "manifest_sha256": sha, "split": split}, [str(f)]); self.assertIsNone(err, f.name)
+            for l in lines: self.assertTrue(B.balanced(l), f.name)
+            for l in [x for x in lines if x != m["overlap_check"] and not x.startswith(("Not served:", "Errors:"))]: self.assertIn(l.replace("(CHEAT ->", "(" + B.CONTRACT_HASH + "CHEAT ->"), m["notes"], f"{f.name}: not verbatim: {l[:60]!r}")
+            self.assertIn(m["overlap_check"], lines)
+
 if __name__ == "__main__":
     unittest.main()

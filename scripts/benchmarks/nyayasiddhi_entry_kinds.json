@@ -1,4 +1,12 @@
 {
   "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1_dev-v0.2": "product",
-  "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1b_minus_cruelty-v0.2": "product"
+  "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1b_minus_cruelty-v0.2": "product",
+  "nyayasiddhi-ref-S-direct-claude-sonnet-5-5-cfg-1bb53647-obj1_dev-v0.2": "reference_arm",
+  "nyayasiddhi-ref-S-direct-claude-sonnet-5-5-cfg-1bb53647-obj1b_minus_cruelty-v0.2": "reference_arm",
+  "nyayasiddhi-ref-S-harness-claude-sonnet-5-5-cfg-19b19efd-obj1_dev-v0.2": "reference_arm",
+  "nyayasiddhi-ref-S-harness-claude-sonnet-5-5-cfg-19b19efd-obj1b_minus_cruelty-v0.2": "reference_arm",
+  "nyayasiddhi-open-O2-Qwen3-14B-AWQ-31c69efc-obj1_dev-v0.2": "reference_arm",
+  "nyayasiddhi-open-O2-Qwen3-14B-AWQ-31c69efc-obj1b_minus_cruelty-v0.2": "reference_arm",
+  "nyayasiddhi-open-O1-Qwen2.5-32B-base-1818d358-obj1_dev-v0.2": "reference_arm",
+  "nyayasiddhi-open-O1-Qwen2.5-32B-base-1818d358-obj1b_minus_cruelty-v0.2": "reference_arm"
 }

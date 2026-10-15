@@ -15,9 +15,14 @@ const EXEMPT_FILES = new Map<string, string>([
   ["src/lib/fixtures/engineOpenapiV1.json", "the pinned engine contract: the default text of its retention_notice field, which the app never displays; goes when the engine text changes"],
   ["src/lib/fixtures/engineOpenapiV1.source.json", "the same pinned engine contract, source form"],
   ["package-lock.json", "dependency names, not copy"],
+  ["src/lib/noTrainingPromise.spec.ts", "this scan quotes the one sentence it exempts, in its rows.json-only exemption list"],
   ["e2e/support/reviewedSentences.ts", "the reviewed list quotes the benchmark sentence that is exempt above, split as the scan splits it"],
 ]);
-const EXEMPT_SENTENCES: readonly string[] = []; // none now: the benchmark-set sentence that was exempt here left with the figures (13 Oct)
+// Exact sentences exempt in ONE named file only (R2 finding 4: never a global exemption); each with its reason:
+const EXEMPT_SENTENCES_IN = new Map<string, readonly string[]>([
+  // R1's "About this run" disclosure of the open-weight reference arms (15 Oct), copied by the data build from the signed manifest's overlap_check: it says WE did not train that model; it says nothing about what happens to a submission
+  ["src/data/nyayasiddhi/rows.json", ["not checked: public open-weight model used as released, no training by us"]],
+]);
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -40,11 +45,15 @@ test("every file that ships or runs is free of promises about how models handle 
     const rel = relative(frontend, f);
     if (EXEMPT_FILES.has(rel)) continue;
     let text = readFileSync(f, "utf8");
-    for (const s of EXEMPT_SENTENCES) text = text.split(s).join(" ");
+    for (const s of EXEMPT_SENTENCES_IN.get(rel) ?? []) text = text.split(s).join(" ");
     const h = promiseHits(text);
     if (h.length) hits.push(`${rel}: ${h.join(" | ").slice(0, 120)}`);
   }
   assert.deepEqual(hits, []);
+});
+
+test("each sentence exemption is scoped to its own file and is still in it (a stale or global exemption hides a future promise)", () => {
+  for (const [rel, sentences] of EXEMPT_SENTENCES_IN) for (const s of sentences) assert.ok(readFileSync(join(frontend, rel), "utf8").includes(s), `${rel}: exempt sentence no longer present: ${s}`);
 });
 
 test("each exemption still exists and still needs to (a stale exemption hides a future promise)", () => {

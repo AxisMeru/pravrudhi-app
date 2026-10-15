@@ -45,6 +45,10 @@ export interface ResultRow {
   nError: number;
   /** For a row with errors: for each "measure|group", how the counts change when errors are counted the other way (from the error-sensitivity file); keyed like "false_proof|ALL". */
   errorSensitivity: Record<string, { kAsProof: number; kAsNotProof: number; n: number; agree: boolean }>;
+  /** The "About this run" lines of a reference arm, copied by the data build from its manifest's notes (never typed here); a reference arm without them is not shown (fail closed); a product row has none. */
+  aboutRun: string[];
+  /** Groups the system was not given any item of (the data build sets it from the manifest's exact NI138 sentence): the page prints R1's not-run line instead of a figure. */
+  notRunGroups: string[];
 }
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -95,12 +99,25 @@ export function parseRow(x: unknown): ResultRow | null {
       errorSensitivity[key] = { kAsProof: v.k_as_proof as number, kAsNotProof: v.k_as_not_proof as number, n: v.n as number, agree: v.agree };
     }
   }
+  // a reference arm carries its run disclosures (a non-empty list of text lines); a product row carries none
+  let aboutRun: string[] = [];
+  if (x.about_run !== undefined) {
+    if (!Array.isArray(x.about_run) || x.about_run.some((l) => typeof l !== "string" || !l.trim())) return null;
+    aboutRun = x.about_run as string[];
+  }
+  if (entryKind === "reference_arm" && aboutRun.length === 0) return null;
+  if (entryKind !== "reference_arm" && aboutRun.length > 0) return null;
+  let notRunGroups: string[] = [];
+  if (x.not_run_groups !== undefined) {
+    if (!Array.isArray(x.not_run_groups) || x.not_run_groups.some((g) => typeof g !== "string" || !g)) return null;
+    notRunGroups = x.not_run_groups as string[];
+  }
   // a superseded row is never shown
   if (typeof x.superseded_by === "string" && x.superseded_by) return null;
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity,
+    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity, aboutRun, notRunGroups,
   };
 }
 
@@ -118,12 +135,18 @@ export function zeroWithZero(row: ResultRow, group: string): boolean {
   return !!fp && !!cov && fp.k === 0 && cov.k === 0 && cov.n > 0;
 }
 
-/** The errors line applies to a group when the row had errors AND counting them the other way changes the wrongly-supported figure for that group (the two mappings disagree). Returns the numbers for R1's line. */
-export function errorLineFor(row: ResultRow, group: string): { e: number; k: number; n: number } | null {
+/**
+ * The errors line applies to a group when the row had errors AND counting them the other way changes the figure of EITHER measure for that group (the two mappings disagree). Returns the numbers for R1's three-part line:
+ * `wrong` (wrongly supported would be k of n) and/or `coverage` (coverage would be c of m); a part is present only when its own figure differs, and the counts come from the error-sensitivity data for the shown group.
+ */
+export function errorLineFor(row: ResultRow, group: string): { e: number; wrong?: { k: number; n: number }; coverage?: { c: number; m: number } } | null {
   if (row.nError <= 0) return null;
-  const x = row.errorSensitivity[`false_proof|${group}`];
-  if (!x || x.kAsProof === x.kAsNotProof) return null; // recomputed from the counts, not trusted from the file's `agree`
-  return { e: row.nError, k: x.kAsProof, n: x.n };
+  const fp = row.errorSensitivity[`false_proof|${group}`], cov = row.errorSensitivity[`coverage|${group}`];
+  // recomputed from the counts, not trusted from the file's `agree`
+  const wrong = fp && fp.kAsProof !== fp.kAsNotProof ? { k: fp.kAsProof, n: fp.n } : undefined;
+  const coverage = cov && cov.kAsProof !== cov.kAsNotProof ? { c: cov.kAsProof, m: cov.n } : undefined;
+  if (!wrong && !coverage) return null;
+  return { e: row.nError, ...(wrong ? { wrong } : {}), ...(coverage ? { coverage } : {}) };
 }
 
 /** The groups that appear in the rows of one unit: ALL first, then the families in the order they first appear. */
@@ -145,3 +168,13 @@ export function intervalGeometry(m: Metric): { low: number; high: number; point:
 
 /** A proportion as a percentage with one decimal ("3.5%"); the same form the page tools' accuracy template uses. */
 export const pct = (v: number): string => `${(v * 100).toFixed(1)}%`;
+
+/** True when the system was not given the group's items (never true for ALL). */
+export const isNotRun = (row: ResultRow, group: string): boolean => group !== ALL_GROUP && row.notRunGroups.includes(group);
+
+/** The fixed order of the cards (R1, #357): by split (obj1_dev first), inside a split the product row first and then the reference arms alphabetically by system name (ties by row id); never by a figure. */
+export function orderRows(rows: readonly ResultRow[]): { split: Split; rows: ResultRow[] }[] {
+  const kindRank = (r: ResultRow) => (r.entryKind === "product" ? 0 : 1);
+  const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  return SPLITS.map((split) => ({ split, rows: rows.filter((r) => r.split === split).sort((a, b) => kindRank(a) - kindRank(b) || cmp(a.systemName, b.systemName) || cmp(a.rowId, b.rowId)) })).filter((g) => g.rows.length > 0);
+}
