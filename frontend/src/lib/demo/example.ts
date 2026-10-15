@@ -66,3 +66,12 @@ export const exampleById = (id: string | null): DemoExample | null => (id === nu
 /** The first example: the one the How it works page and the "Try it" entry open. */
 export const DEFAULT_EXAMPLE: DemoExample = EXAMPLES[0];
 export const exampleFactsText = (e: DemoExample): string => e.facts.join("\n");
+
+/**
+ * The facts the Screening page starts with for a given query string: an example link's allegations (so the example text is present at the first
+ * render, never an empty box that fills a moment later), else one empty box.
+ */
+export function initialFactsFor(search: string): string[] {
+  const found = exampleById(new URLSearchParams(search).get("example"));
+  return found === null ? [""] : [...found.facts];
+}

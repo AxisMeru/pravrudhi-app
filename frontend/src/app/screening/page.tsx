@@ -4,7 +4,7 @@
 // every new string is in lib/screening/copy.ts (R1 reviews that list). The engine's decisions are shown in plain words and never changed here.
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
@@ -27,7 +27,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff } from "@/lib/handoff";
-import { EXAMPLES, exampleById, type DemoExample } from "@/lib/demo/example";
+import { EXAMPLES, exampleById, initialFactsFor, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
@@ -52,7 +52,14 @@ function download(name: string, body: string | Uint8Array, type: string): void {
 
 export default function ScreeningPage() {
   const [paste, setPaste] = useState("");
-  const [facts, setFacts] = useState<string[]>([""]);
+  // An example link's facts are the first state (read from the URL on the client), so no empty box shows and then fills. The list itself is drawn only
+  // after hydration (the static page cannot know the URL): until then a same-height placeholder stands where the boxes will be.
+  const [facts, setFacts] = useState<string[]>(() => (typeof window === "undefined" ? [""] : initialFactsFor(window.location.search)));
+  const hydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [contracts, setContracts] = useState<string[]>([]);
   const [contractsLoaded, setContractsLoaded] = useState(false);
   const [contractsError, setContractsError] = useState<string | null>(null);
@@ -296,8 +303,9 @@ export default function ScreeningPage() {
             </button>
           </div>
           <p className="text-xs text-[var(--color-text-dim)]">{FILE_NOTE}</p>
-          <ol className="flex flex-col gap-2" aria-label="Numbered facts" data-testid="fact-list">
-            {facts.map((f, i) => (
+          {!hydrated && <div className="h-11 rounded-md border border-[var(--color-border)]" data-testid="fact-list-pending" aria-hidden="true" />}
+          <ol className="flex flex-col gap-2" aria-label="Numbered facts" data-testid="fact-list" hidden={!hydrated}>
+            {hydrated && facts.map((f, i) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="mt-2 w-8 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">F{i + 1}</span>
                 <AutoGrowTextarea

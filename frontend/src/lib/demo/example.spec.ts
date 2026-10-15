@@ -105,3 +105,14 @@ test("the Karnataka example carries R1's own label (14 Oct): the prosecution's a
   assert.doesNotMatch(k.label, /invented|made up/i);
   for (const re of DO_NOT_CLAIM) assert.doesNotMatch(k.label, re);
 });
+
+test("initialFactsFor: an example link starts with its facts (a copy), anything else with one empty box", async () => {
+  const { initialFactsFor, EXAMPLES } = await import("./example");
+  const e = EXAMPLES[0];
+  const got = initialFactsFor(`?example=${e.id}`);
+  assert.deepEqual(got, [...e.facts]);
+  assert.notStrictEqual(got, e.facts);
+  assert.deepEqual(initialFactsFor(""), [""]);
+  assert.deepEqual(initialFactsFor("?example=no-such-example"), [""]);
+  assert.deepEqual(initialFactsFor("?other=1"), [""]);
+});
