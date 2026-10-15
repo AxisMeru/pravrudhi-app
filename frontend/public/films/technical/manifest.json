@@ -6,7 +6,7 @@
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "8b2a454ad67c949efc4b8fb096f0dc24b34e7964cf8f2a4bd27a2ba594820c33",
+    "filmSha256": "cc6ea772008550faf4686d0af93afaf7eb09261575557ec41852413a41902f7f",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -35,7 +35,7 @@
     },
     {
       "name": "Element judges",
-      "text": "An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.",
+      "text": "Element judges: our trained models that read one ingredient at a time. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.",
       "startS": 51,
       "endS": 79
     },
@@ -87,7 +87,7 @@
     {
       "name": "film.mp4",
       "bytes": 8948834,
-      "sha256": "11e58a575e86311ef3f0f6e154f1e160260787a2ba9858629474935ce476b194"
+      "sha256": "edd570bf2f3a719ad2323b159cf309c2904de77aa7369df7722a4165810d8dc4"
     },
     {
       "name": "poster.png",
@@ -96,8 +96,8 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 1717,
-      "sha256": "5522f81985ab17d8c8be9c6a23c10319cc82995c3c183d8964c3eb870f9623cd"
+      "bytes": 1788,
+      "sha256": "ae05ede9f3e23414c20658196fcfc71dbe87ff06a218e37ba358c0a01d3cb9c0"
     }
   ]
 }

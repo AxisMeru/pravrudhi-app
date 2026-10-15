@@ -14,7 +14,7 @@ The corpus. Real judgments and orders are gathered, cleaned, read by two model r
 
 4
 00:00:51.000 --> 00:01:19.000
-Element judges. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.
+Element judges. Element judges: our trained models that read one ingredient at a time. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.
 
 5
 00:01:19.000 --> 00:01:49.000

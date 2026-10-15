@@ -9,7 +9,7 @@ import { REVIEWED } from "../../e2e/support/reviewedSentences";
 // The app states nothing about how the models handle submissions beyond what the code enforces (R1/Lead-2, 13 Oct). The scan covers every text file that ships or runs.
 const frontend = join(__dirname, "..", "..");
 const SKIP_DIRS = new Set(["node_modules", ".next", "out", "test-results", "playwright-report", ".git", "coverage", ".film-tools"]); // .film-tools is the local, gitignored film-rendering workspace (#255): third-party player code that is never committed
-const TEXT = /\.(ts|tsx|js|jsx|mjs|cjs|json|md|mdx|html|css|txt|svg|yml|yaml|toml)$/i;
+const TEXT = /\.(ts|tsx|js|jsx|mjs|cjs|json|md|mdx|html|css|txt|svg|yml|yaml|toml|vtt)$/i;
 // Exact exemptions, each with its reason:
 const EXEMPT_FILES = new Map<string, string>([
   ["src/lib/fixtures/engineOpenapiV1.json", "the pinned engine contract: the default text of its retention_notice field, which the app never displays; goes when the engine text changes"],

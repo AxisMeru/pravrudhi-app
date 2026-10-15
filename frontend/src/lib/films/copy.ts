@@ -1,5 +1,5 @@
 // The motion films (#251). Every word the pages add around a film is here, for R1 to read; the film's own text (scene names and descriptions) comes from its manifest, written by scripts/render-films.mjs
-// from the film itself. PROPOSED wording: R1 to confirm or replace each line. Nothing here is a claim about results.
+// from the film itself. R1 confirmed every line below byte-exact (15 Oct, #273). Nothing here is a claim about results.
 export const FILM_IDS = ["client", "technical"] as const;
 export type FilmId = (typeof FILM_IDS)[number];
 
