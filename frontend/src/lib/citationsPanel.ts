@@ -74,6 +74,15 @@ function failClosed(item: CitationLine, state: CitationCheckState): RowState {
   return state;
 }
 
+/** The engine's Retry-After on a verify_at_capacity 503 (the signed sentence says "about 5 seconds"). */
+export const AT_CAPACITY_PAUSE_MS = 5000;
+const defaultPause = (ms: number, signal?: AbortSignal): Promise<void> =>
+  new Promise((resolve) => {
+    if (signal?.aborted) return resolve();
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => { clearTimeout(t); resolve(); }, { once: true });
+  });
+
 /** Checks the items in order, one at a time; `onRow` fires after each so the screen fills as results arrive. A quote-less line is SENT as an existence-only check. */
 export async function checkCitations(
   verify: Verify,
@@ -81,6 +90,7 @@ export async function checkCitations(
   signal?: AbortSignal,
   onRow?: (rows: PanelRow[]) => void,
   existenceOnly: boolean = CITATION_EXISTENCE_ONLY,
+  pause: (ms: number, signal?: AbortSignal) => Promise<void> = defaultPause,
 ): Promise<PanelRow[]> {
   const rows: PanelRow[] = items.map((item) => ({ item, state: { phase: "idle" } as RowState }));
   for (let i = 0; i < rows.length; i += 1) {
@@ -93,6 +103,8 @@ export async function checkCitations(
     // #223 D5: with the arm ON the first 429 ends the run (the rest stay unchecked and are said so ONCE, by the view); the OFF arm goes on as before
     const st = rows[i].state;
     if (existenceOnly && st.phase === "error" && st.kind === "rate_limited") break;
+    // #239: a refused attempt (503 verify_at_capacity) still spends one of the engine's six lookups a minute, so with the arm ON the next line waits out the Retry-After instead of being sent into a busy engine (the OFF arm goes on as before)
+    if (existenceOnly && st.phase === "error" && st.kind === "at_capacity" && i < rows.length - 1) await pause(AT_CAPACITY_PAUSE_MS, signal);
   }
   return rows;
 }
