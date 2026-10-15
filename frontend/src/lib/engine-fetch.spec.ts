@@ -162,3 +162,29 @@ test("localToken: 429 and 5xx are not remembered: the next call asks again and g
     });
   }
 });
+
+// #137: an anonymous visitor of a HOSTED engine (NEXT_PUBLIC_API_BASE set, no web session) does not ask the identity probe (it would only log a 401 on every page); everyone else still does.
+test("isSignedIn and edition skip the /api/me probe for an anonymous visitor of a hosted engine, and ask it otherwise", async () => {
+  const { isSignedIn, forgetLocalToken } = await import("./api");
+  const { edition, PRODUCT } = await import("./edition");
+  forgetLocalToken();
+  await withAnonymousBrowser(async () => {
+    const originalFetch = globalThis.fetch;
+    const prev = process.env.NEXT_PUBLIC_API_BASE;
+    let meCalls = 0;
+    globalThis.fetch = (async (url: string | URL | Request) => { if (String(url).includes("/api/me")) meCalls += 1; return new Response("{}", { status: 401 }); }) as typeof fetch;
+    try {
+      process.env.NEXT_PUBLIC_API_BASE = "https://engine.example";
+      assert.equal(await isSignedIn(), false);
+      assert.deepEqual(await edition(), PRODUCT);
+      assert.equal(meCalls, 0, "hosted + no session: no probe");
+      delete process.env.NEXT_PUBLIC_API_BASE;
+      assert.equal(await isSignedIn(), false);
+      await edition();
+      assert.equal(meCalls, 2, "an engine that serves the page itself still answers the probe");
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_API_BASE; else process.env.NEXT_PUBLIC_API_BASE = prev;
+    }
+  });
+});
