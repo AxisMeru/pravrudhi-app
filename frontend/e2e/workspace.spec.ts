@@ -91,3 +91,35 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
   await built.getByTestId("workflow-open").click();
   await expect(page).toHaveURL(/\/screening\/?#step-memo$/);
 });
+
+// R1 (15 Oct): the standing line is in view ONCE in each state: once at the top of the page before a result, once above the first block with a result, never twice.
+test("the standing line appears exactly once before a result and exactly once with a result", async ({ page }) => {
+  await setup(page);
+  await page.goto("/screening");
+  const line = page.getByText("This is a screening aid, not legal advice. A lawyer decides.", { exact: true });
+  await expect(page.getByTestId("workspace-steps")).toBeVisible();
+  await expect(line).toHaveCount(1);
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  await expect(line).toHaveCount(1);
+  // above the first block: it comes before the checklist in the page
+  const before = await page.evaluate(() => {
+    const l = document.querySelector('[data-testid="screening-result"] [data-testid="standing-line"]');
+    const c = document.querySelector('[data-testid="checklist"]');
+    return !!l && !!c && (l.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+  });
+  expect(before).toBe(true);
+});
+
+// R2 (#224): the /workflows link goes through next/link, which adds the build's base path (a plain anchor would 404 on a base-path build).
+test("the /workflows link is a next/link (base-path aware)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const src = readFileSync(join(__dirname, "..", "src", "components", "WorkflowRows.tsx"), "utf8");
+  expect(src).toContain('import Link from "next/link"');
+  expect(src).toMatch(/<Link href=\{`\$\{WORKSPACE_PATH\}#/);
+  expect(src).not.toMatch(/<a href=\{`\$\{WORKSPACE_PATH\}/);
+});
