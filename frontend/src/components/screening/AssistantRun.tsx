@@ -41,7 +41,7 @@ export function AssistantRun({
   return (
     <div className={`flex flex-col gap-2 text-sm ${greyed ? "opacity-60" : ""}`} data-testid="assistant-run" data-greyed={greyed ? "true" : undefined}>
       <label className="inline-flex items-start gap-2 text-[var(--color-text)]">
-        <input type="checkbox" className="mt-1" checked={usable && consent} disabled={!usable || busy} onChange={(e) => onConsent(e.target.checked)} data-testid="assistant-consent" />
+        <input type="checkbox" className="mt-0.5 h-6 w-6 shrink-0" checked={usable && consent} disabled={!usable || busy} onChange={(e) => onConsent(e.target.checked)} data-testid="assistant-consent" />
         <span data-testid="assistant-consent-line">{assistantConsentLine(provider)}</span>
       </label>
       <Link href="/data-handling#dh-assistant" className="inline-flex min-h-6 w-fit items-center text-xs text-[var(--color-accent)] underline" data-testid="assistant-data-link">
