@@ -84,3 +84,21 @@ test("the screening memo (.md and .docx text) carries no internal token: REFER_T
   assert.ok(parts.some((t) => t.includes("A lawyer decides")), "the docx carries the new disclaimer");
   assert.match(md, /^> This memo is a screening aid, not legal advice\. A lawyer decides\./m);
 });
+
+// R3 (15 Oct): a run of a public example carries R1's label and the order's citation into BOTH memo formats; a run without an example carries neither.
+test("an example run's memo (.md and .docx) carries the example label and the order's citation under Facts; a plain run does not", async () => {
+  const { EXAMPLES } = await import("../demo/example");
+  const { buildScreeningMemoDocx } = await import("./memo");
+  const ex = EXAMPLES[0];
+  const o = { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z", example: { label: ex.label, citation: ex.citation } };
+  const md = buildScreeningMemo(RESULT, o);
+  const at = md.split("\n").indexOf("## Facts");
+  const lines = md.split("\n");
+  assert.equal(lines[at + 2], `> ${ex.label}`);
+  assert.equal(lines[at + 3], `> ${ex.citation}`);
+  const { default: mammoth } = await import("mammoth");
+  const docText = (await mammoth.extractRawText({ buffer: Buffer.from(buildScreeningMemoDocx(RESULT, o)) })).value;
+  assert.ok(docText.includes(ex.label) && docText.includes(ex.citation), "the Word memo carries both");
+  const plain = buildScreeningMemo(RESULT, { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z" });
+  assert.ok(!plain.includes(ex.citation) && !plain.includes("A public court order"), "no example, no label");
+});

@@ -4,7 +4,7 @@
 /** The three export buttons under the checklist; the guide names them with these same strings. */
 /** R1, 14 Oct (P6): the export group is labelled "Download the memo" and holds Markdown, PDF and Word; the run record is a separate action. */
 export const EXPORT_GROUP_LABEL = "Download the memo";
-export const EXPORT_LABELS = { memo: "Markdown (.md)", print: "PDF", runRecord: "Download run record (.json)" } as const;
+export const EXPORT_LABELS = { memo: "Markdown (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" } as const;
 
 /** The fourth export button (Word memo, 14 Oct; label for R1 to sign). Not in EXPORT_LABELS: the guide names those three exactly and needs R1's words (and a new screenshot) before it can say four. */
 export const MEMO_DOCX_LABEL = "Word (.docx)";
