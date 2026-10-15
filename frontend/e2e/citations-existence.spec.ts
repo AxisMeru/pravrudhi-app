@@ -114,7 +114,7 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
   await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a
-  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again."); // D1
+  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand."); // D1
   await expect(page.locator("body")).not.toContainText(/conflicting indexed cases|verify by hand|CONFLICT/);
   await page.unroute("**/api/v1/verify-citations");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN_REAL }));
