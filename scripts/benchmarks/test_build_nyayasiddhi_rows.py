@@ -103,15 +103,24 @@ def ref_run(system, notes, overlap="not checked: invented", split="obj1_dev", st
 class AboutRun(unittest.TestCase):
     def test_each_row_type_gets_its_lines_in_order_copied_verbatim(self):
         for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 7)]:
-            data, errs = ref_run(system, notes_for(system), stack=API if system in B.API_SYSTEMS else DEV); self.assertEqual(errs, [], system)
+            api = system in B.API_SYSTEMS
+            data, errs = ref_run(system, notes_for(system), stack=API if api else DEV); self.assertEqual(errs, [], system)
             lines = data["rows"][0]["about_run"]; self.assertEqual(len(lines), n_lines, system)
-            self.assertEqual(lines[0], B.SMOKE); self.assertTrue(lines[1].startswith("In 3 of 3 replies, the model wrote explanatory text") and lines[1].endswith("Counted after the run, from the call log.")); self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], "not checked: invented")
-            if system in B.API_SYSTEMS: self.assertEqual(lines[4], B.EXPOSURE["obj1_dev"])
-            else: self.assertFalse(any("Anthropic API" in l for l in lines), "no exposure line on the open-model rows")
+            is_pref = lambda l: l.startswith("In 3 of 3 replies, the model wrote explanatory text") and l.endswith("Counted after the run, from the call log.")
             for l in lines: self.assertTrue(B.balanced(l))
+            if api:   # R1: exposure, smoke, the arm's own lines, preamble count, trained flag, overlap_check, no-seed line
+                self.assertEqual(lines[0], B.EXPOSURE["obj1_dev"]); self.assertEqual(lines[1], B.SMOKE)
+                self.assertTrue(is_pref(lines[-4]), system); self.assertEqual(lines[-3], B.TRAINED); self.assertEqual(lines[-2], "not checked: invented"); self.assertEqual(lines[-1], B.NO_SEED)
+                arm = lines[2:-4]
+                self.assertEqual(arm[0], B.RERUN if system.endswith("direct") else B.HARNESS_CONTRACT.replace(B.CONTRACT_HASH, ""))
+                if system.endswith("harness"): self.assertEqual(arm[1:], [B.NOT_A_COPY, B.HARNESS_CHECK])
+                else: self.assertEqual(arm, [B.RERUN])
+            else:
+                self.assertEqual(lines[0], B.SMOKE); self.assertTrue(is_pref(lines[1])); self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], "not checked: invented")
+                self.assertFalse(any("Anthropic API" in l for l in lines), "no exposure line on the open-model rows")
     def test_the_exposure_line_follows_the_split_on_api_rows_only(self):
         for split in B.EXPOSURE:
-            data, errs = ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", split), split=split); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["about_run"][4], B.EXPOSURE[split])
+            data, errs = ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", split), split=split); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["about_run"][0], B.EXPOSURE[split])
         self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", "obj1_dev"), split="obj1b_minus_cruelty")[1], "the other split's exposure sentence is not accepted")
     def test_the_harness_contract_sentence_is_whole_with_only_the_pinned_fragment_removed(self):
         data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness")); self.assertEqual(errs, [])
@@ -152,8 +161,8 @@ class AboutRun(unittest.TestCase):
             split = m["split"]; sha = hashlib.sha256(f.read_bytes()).hexdigest()
             lines, not_run, err = B.about_run({"row_id": f.stem, "manifest_sha256": sha, "split": split}, [str(f)]); self.assertIsNone(err, f.name)
             for l in lines: self.assertTrue(B.balanced(l), f.name)
-            for l in lines[:3] + lines[4:]: self.assertIn(l.replace("(CHEAT ->", "(" + B.CONTRACT_HASH + "CHEAT ->"), m["notes"], f"{f.name}: not verbatim: {l[:60]!r}")
-            self.assertEqual(lines[3], m["overlap_check"])
+            for l in [x for x in lines if x != m["overlap_check"]]: self.assertIn(l.replace("(CHEAT ->", "(" + B.CONTRACT_HASH + "CHEAT ->"), m["notes"], f"{f.name}: not verbatim: {l[:60]!r}")
+            self.assertIn(m["overlap_check"], lines)
 
 if __name__ == "__main__":
     unittest.main()

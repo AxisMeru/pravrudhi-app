@@ -132,25 +132,31 @@ def about_run(row, manifests):
             if row.get("split") not in EXPOSURE: return None, None, f"{row['row_id']}: split {row.get('split')!r} has no exposure sentence"
             exposure = [EXPOSURE[row["split"]]]
         want = ABOUT_ALL + [TRAINED] + exposure + ABOUT_BY_SYSTEM[system]
-        lines, errs = [], []
+        got, errs = {}, []
         for sentence in want:
             if sentence == NO_SEED:
-                hits = notes.count(NO_SEED); found = [NO_SEED] if hits == 1 else []
+                hits = notes.count(NO_SEED); found = NO_SEED if hits == 1 else None
                 if hits != 1: errs.append(f"{row['row_id']}: {NO_SEED!r} found {hits} times (needs exactly 1)")
             else:
                 pinned = sentence == HARNESS_CONTRACT
                 pat = _pat(sentence.replace(CONTRACT_HASH, "") if pinned else sentence)
                 if pinned and notes.count(CONTRACT_HASH) != 1: errs.append(f"{row['row_id']}: the pinned contract_map fragment is not in the notes exactly once"); continue
-                found = [x for x in sentences if pat.fullmatch(x.replace(CONTRACT_HASH, "") if pinned else x)]
-                if len(found) != 1: errs.append(f"{row['row_id']}: required whole sentence found {len(found)} times (needs exactly 1): {sentence[:70]!r}"); continue
-                if pinned: found = [found[0].replace(CONTRACT_HASH, "")]
-            if found and not balanced(found[0]): errs.append(f"{row['row_id']}: printed line has unbalanced brackets: {found[0][:70]!r}")
-            lines += found
+                hits = [x for x in sentences if pat.fullmatch(x.replace(CONTRACT_HASH, "") if pinned else x)]
+                if len(hits) != 1: errs.append(f"{row['row_id']}: required whole sentence found {len(hits)} times (needs exactly 1): {sentence[:70]!r}"); continue
+                found = hits[0].replace(CONTRACT_HASH, "") if pinned else hits[0]
+            if found is not None:
+                if not balanced(found): errs.append(f"{row['row_id']}: printed line has unbalanced brackets: {found[:70]!r}")
+                got[sentence] = found
         ov = m.get('overlap_check')
         if not isinstance(ov, str) or not ov.strip() or not balanced(ov): errs.append(f"{row['row_id']}: manifest overlap_check missing or unbalanced")
         if errs: return None, None, "; ".join(errs)
-        # order: smoke, preface, trained + overlap, then (API rows) the exposure line, then the arm's own lines
-        ordered = lines[:2] + [lines[2], ov] + lines[3:]
+        arm = [got[x] for x in ABOUT_BY_SYSTEM[system] if x != NO_SEED]
+        seed = [got[NO_SEED]] if NO_SEED in ABOUT_BY_SYSTEM[system] else []
+        if system in API_SYSTEMS:
+            # R1 (15 Oct): exposure, smoke, the arm's own lines (rerun / contract limits), preamble count, trained flag + overlap_check, then the no-seed line
+            ordered = [got[exposure[0]], got[SMOKE]] + arm + [got[PREFACE], got[TRAINED], ov] + seed
+        else:
+            ordered = [got[SMOKE], got[PREFACE], got[TRAINED], ov] + arm + seed
         not_run = ["NI138"] if NOT_RUN_SENTENCE in notes else []
         return ordered, not_run, None
     return None, None, f"{row['row_id']}: no manifest in the manifests dir has sha256 {row['manifest_sha256'][:12]}"
