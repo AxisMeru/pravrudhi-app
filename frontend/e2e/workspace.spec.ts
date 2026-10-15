@@ -140,3 +140,24 @@ test("the example banner is shown while the facts are the example's, gone once a
   await f1.fill(original);
   await expect(page.getByTestId("example-banner")).toBeVisible();
 });
+
+// #232: a /workflows link to Memo or Hearing preparation lands on a line that says why there is nothing yet; once there is a result the real section takes the anchor (one element per id).
+test("the Memo and Hearing preparation anchors carry a note before a result and give way to the real sections after", async ({ page }) => {
+  await setup(page);
+  for (const [id, key] of [["step-memo", "locked-memo"], ["step-hearing", "locked-hearing"]] as const) {
+    await page.goto(`/screening#${id}`);
+    const note = page.getByTestId(key);
+    await expect(note).toBeVisible();
+    await expect(note).toHaveAttribute("id", id);
+    await expect(note).toContainText("Available after a screening result.");
+  }
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  await expect(page.getByTestId("locked-steps")).toHaveCount(0);
+  await expect(page.locator("#step-memo")).toHaveCount(1);
+  await expect(page.locator("#step-hearing")).toHaveCount(1);
+});
