@@ -146,10 +146,12 @@
     "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
   },
   "sources": {
-    "filmSha256": "62a26d02bbadf833ae4ad8412ca285f1209cde7f70774dc91d27d365b4ee2356",
+    "filmSha256": "f9f2f4b834b6acbffe31edc936ffc836f8368b62d27fbd669d17a5954cd8ee05",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
-    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
-    "gateTokenReplaced": 1
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
   },
   "encoders": {
     "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
@@ -250,8 +252,8 @@
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 9749943,
-      "sha256": "04ad87ff08c5bc8968eb725d93d53c61b456ee59f660de1aa08f22ff10dfe858"
+      "bytes": 9760155,
+      "sha256": "254437c58773ca5f2646d0f51f05865d4fa78b0af7dcc5584264a2a43305ca85"
     },
     {
       "name": "poster.png",
