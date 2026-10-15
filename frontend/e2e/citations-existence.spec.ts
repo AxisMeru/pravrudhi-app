@@ -238,17 +238,17 @@ test("#509 the Screening Citations panel: the sentence shows under the named fou
 });
 
 // pravrudhi#509 NAME_MISMATCH (R1, 16 Oct, byte-exact): matched, mismatch and an unknown status on /citations and in the panel.
-const MM_TEXT = "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
+const MM_TEXT = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
 const NEUTRAL = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
 const NAMED_LINE = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
-test("#509 /citations: matched drops the not-compared sentence; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
+test("#509 /citations: matched reads R1's compared-except-common-words sentence; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
   let answer: Record<string, unknown> = { ...IN, name_compared: true };
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
   await page.goto("/citations");
   const check = async () => { await page.getByRole("textbox").fill(NAMED_LINE); await page.getByRole("button", { name: "Check citations" }).click(); };
   await check();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index");
-  await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+  await expect(page.getByTestId("citation-check-name-note")).toHaveText("The case name you typed was compared with the index, except a party named only by common words (such as a State or the Union of India), which is not compared.");
   answer = { result: "NAME_MISMATCH", note: "engine note", status: "name_mismatch", label: "Case name did not match", verified: false, preview: true, name_compared: true };
   await check();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Case name did not match");

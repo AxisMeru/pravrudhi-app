@@ -15,8 +15,10 @@ export const NOT_IN_INDEX_NOTE = "We could not match this citation to exactly on
 export const IN_INDEX_LABEL = "Found in our index";
 /** pravrudhi#509 NAME_MISMATCH (R1, 16 Oct, byte-exact): the engine compared the typed case name with the case the citation belongs to and they differ. Same heading on /citations, the panel and Intake's citation line. */
 export const NAME_MISMATCH_HEADING = "Case name did not match";
-export const NAME_MISMATCH_TEXT = "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
-/** PROPOSED for R1 (not yet signed): a status this build does not know was still looked up, so it reads neither "Not checked." nor the raw token; the heading and the one sentence below are shown instead. */
+export const NAME_MISMATCH_TEXT = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
+/** R1 (16 Oct, byte-exact): shown INSTEAD of the "not compared" sentence when the engine says it compared the name (name_compared true) on a found line that carries a name: a party named only by common words is not compared. ONE constant behind one predicate (caseNameNote): remove it with that branch when the engine closes the gap. */
+export const NAME_COMPARED_EXCEPT_COMMON = "The case name you typed was compared with the index, except a party named only by common words (such as a State or the Union of India), which is not compared.";
+/** A status this build does not know (R1 accepted "Result not shown", 16 Oct): was looked up was still looked up, so it reads neither "Not checked." nor the raw token; the heading and the one sentence below are shown instead. */
 export const UNKNOWN_STATUS_HEADING = "Result not shown";
 export const UNKNOWN_STATUS_TEXT = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
 /** pravrudhi#509 (R1, 15 Oct, byte-exact): an ADDITION after the IN_INDEX note (never a replacement), shown on every surface that says "Found in our index" only when the checked line carries a case name (citationHasCaseName): the engine looks the citation up and does not compare the typed name with the index. */

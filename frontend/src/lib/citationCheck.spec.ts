@@ -22,7 +22,7 @@ test("the preview label is exactly the decided wording", () => {
   assert.equal(PREVIEW_LABEL, "preview: existence check only");
 });
 
-const MISMATCH_NOTE = "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
+const MISMATCH_NOTE = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
 test("the seven statuses the engine can answer (0.6.19 adds NAME_MISMATCH) are known; NAME_MISMATCH shows R1's note, the others the engine's", () => {
   assert.deepEqual([...VERIFY_STATUSES], ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT", "NAME_MISMATCH"]);
   for (const s of VERIFY_STATUSES) {
