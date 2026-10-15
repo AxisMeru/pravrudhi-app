@@ -6,11 +6,12 @@ import { PREVIEW_LABEL, statusLabel } from "@/lib/citationCheck";
 import type { CitationCheckState } from "@/lib/citationCheckRun";
 
 /** What a finished (or failed) check shows: the engine's status verbatim with its note, or the honest refusal / invalid-input text. */
-export function CitationCheckResult({ state }: { state: CitationCheckState }) {
+/** announce=false inside a panel whose results area is already a live region (role=status): a nested role=alert would make a screen reader say the same sentence twice (#279). */
+export function CitationCheckResult({ state, announce = true }: { state: CitationCheckState; announce?: boolean }) {
   return (
     <>
     {(state.phase === "error" || state.phase === "invalid") && (
-      <p className="text-[var(--color-danger)]" role="alert" data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
+      <p className="text-[var(--color-danger)]" role={announce ? "alert" : undefined} data-testid="citation-check-error" data-kind={state.phase === "error" ? state.kind : "invalid"}>
         {state.message}
       </p>
     )}

@@ -32,13 +32,13 @@ export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
 
 // Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
 // hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
-const FRAME_05_RETAKEN = true; // retaken by Track A at #209 72a74cb1 on a build with both citation flags on (528x246, 14,178 bytes, invented matter only; placeholder (2099) 1 SCC 1)
+const FRAME_05_RETAKEN = true; // retaken by Web on a citations-ON build at the D9 batch (#281: label "Citations, one per line"; #280: placeholder (2014) 8 SCC 273); 528x366, 28,522 bytes, invented matter only
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
   input: {
     file: "01-screening-input.png",
-    alt: "The top of the Screening page with an invented plot-sale matter: the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, and the facts form with the matter pasted in.",
+    alt: "The top of the Matter workspace with an invented plot-sale matter: the four steps (Facts done, Screen available, Memo and Hearing preparation not yet), the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, the retention note, and the box with the matter pasted in.",
   },
   checklist: {
     file: "02-ingredient-checklist.png",
@@ -55,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel: a preview label, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
+    alt: "The Case citations panel: a preview label, a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
@@ -102,7 +102,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "paste",
     heading: "1. Paste the facts and pick the offence",
-    text: "Paste the FIR, complaint or narrative on the Screening page and choose Split into numbered facts. Each fact becomes F1, F2 and so on, and you can edit any of them. Then pick the offence or offences to screen for. To see how it reads, choose Try an example from a public court order. Do not submit real names or case details unless your organisation allows it: the page shows the retention notice before you send.",
+    text: "Open Matter in the menu. In the Facts step, paste the FIR, complaint or narrative and choose Split into numbered facts. Each fact becomes F1, F2 and so on, and you can edit any of them. Then pick the offence or offences to screen for. To see how it reads, choose Try an example from a public court order. Do not submit real names or case details unless your organisation allows it: the page shows the retention notice before you send.",
     image: GUIDE_IMAGES.input,
   },
   {

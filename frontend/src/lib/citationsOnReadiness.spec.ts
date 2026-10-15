@@ -20,7 +20,7 @@ test("R1's strings are exact (D1, D2a, D3, D4, D5, D7)", () => {
   assert.equal(CONFLICT_HEADING, "Could not match one case");
   assert.doesNotMatch(CONFLICT_TEXT + CONFLICT_HEADING, /more than one/i, "Lead-2: the cause may be one case under a spelling variant; the conflict wording never says more than one case");
   assert.equal(MALFORMED_HEADING, "Not looked up");
-  assert.equal(MALFORMED_TEXT, "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.");
+  assert.equal(MALFORMED_TEXT, "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2014) 8 SCC 273. That does not show whether a citation is real.");
   assert.equal(COVERAGE_LIMITS_TEXT, "Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as “Not found in our index”.");
   assert.equal(SIGNED_OUT_BEFORE_TEXT, "Citation checks need you to be signed in.");
   assert.equal(SIGNED_OUT_401_TEXT, "Sign in to check citations. Nothing was looked up.");

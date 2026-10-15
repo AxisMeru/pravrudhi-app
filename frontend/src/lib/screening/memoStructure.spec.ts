@@ -35,13 +35,14 @@ const count = (hay: string, needle: string): number => hay.split(needle).length 
 const NONE = ["not_established", "not_established", "not_established"]; // nothing supported
 const SOME = ["established", "not_established", "not_confirmed"]; // one supported, one no-fact, one review
 
-test("the standing line appears exactly once in the memo, under the disclaimer, for one block and for five (.md and .docx text)", () => {
-  for (const r of [result([block("ipc415_property", SOME)]), result(["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"].map((id) => block(id, SOME)))]) {
+test("\"A lawyer decides.\" appears exactly once in the memo, in the signed disclaimer, and the screen's standing line is not repeated under it (.md and .docx text; R1, #262)", () => {
+  for (const r of [result([block("ipc415_property", SOME)]), result(["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "ipc415_property", "ipc415_damaging_act"].map((id) => block(id, SOME))), result([block("ipc415_property", NONE)])]) {
     const md = buildScreeningMemo(r, OPTS);
-    assert.equal(count(md, BANNER_STANDING_LINE), 1, "md");
-    const lines = md.split("\n");
-    assert.equal(lines[lines.indexOf(`> ${BANNER_STANDING_LINE}`) - 2].startsWith("> This memo is a screening aid"), true, "directly under the disclaimer");
-    assert.equal(count(docxText(r), BANNER_STANDING_LINE), 1, "docx");
+    assert.equal(count(md, "A lawyer decides."), 1, "md: exactly once");
+    assert.equal(count(md, BANNER_STANDING_LINE), 0, "md: the standing line is not repeated");
+    assert.equal(md.split("\n")[2].startsWith("> This memo is a screening aid, not legal advice. A lawyer decides."), true, "the memo opens with the disclaimer");
+    assert.equal(count(docxText(r), "A lawyer decides."), 1, "docx: exactly once");
+    assert.equal(count(docxText(r), BANNER_STANDING_LINE), 0, "docx: the standing line is not repeated");
   }
 });
 

@@ -26,15 +26,15 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
     return r.fulfill({ json: NOT_IN });
   });
   await page.goto("/citations");
-  await expect(page.getByText("Look up one citation and see whether the case is in our index.")).toBeVisible();
+  await expect(page.getByText("Look up citations, up to 5 at a time, and see whether each case is in our index.")).toBeVisible();
   await expect(page.getByTestId("citation-limits")).toHaveText("The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/word for word/i);
   await expect(page.getByTestId("citation-preview-label")).toBeVisible();
-  await page.getByLabel("Citation (one)").fill(CITATION);
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Not found in our index");
-  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Not found in our index");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
   expect(body).toEqual({ citation: CITATION });
   await expect(page.locator("body")).not.toContainText(/NOT_IN_INDEX|\bfake\b/);
 });
@@ -42,9 +42,9 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
 test("/citations: a conflict reads as R1's heading; the coded refusals read in plain words and never print a code", async ({ page }) => {
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "CONFLICT", note: "n", status: "conflict", label: "conflict: the citation matches more than one indexed case", verified: false, preview: true } }));
   await page.goto("/citations");
-  await page.getByLabel("Citation (one)").fill(CITATION);
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a (R1's 15 Oct heading; the sentence under it is pinned in the next test)
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Could not match one case"); // #223 D2a (R1's 15 Oct heading; the sentence under it is pinned in the next test)
   const cases: Array<[number, Record<string, unknown>, Record<string, string>, string]> = [
     [422, { error: "quote_not_served" }, {}, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index."],
     [422, { detail: [{ msg: "x" }] }, {}, "Enter one citation, and leave the quote empty."],
@@ -55,8 +55,8 @@ test("/citations: a conflict reads as R1's heading; the coded refusals read in p
   for (const [status, json, headers, text] of cases) {
     await page.unroute("**/api/v1/verify-citations");
     await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status, json, headers }));
-    await page.getByRole("button", { name: "Check" }).click();
-    await expect(page.getByTestId("citation-error")).toHaveText(text);
+    await page.getByRole("button", { name: "Check citations" }).click();
+    await expect(page.getByTestId("citation-check-error")).toHaveText(text);
     await expect(page.locator("body")).not.toContainText(/quote_not_served|citation_index_unavailable|verify_timeout|verify_at_capacity/);
   }
 });
@@ -94,9 +94,9 @@ test("/citations anonymous (the Worker answers 401): the signed sign-in sentence
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
   await page.goto("/citations");
   await expect(page.getByTestId("citation-signed-out")).toHaveText("Citation checks need you to be signed in."); // #223 D4: said before typing, signed out only
-  await page.getByLabel("Citation (one)").fill(CITATION);
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-error")).toHaveText("Sign in to check citations. Nothing was looked up.");
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-error")).toHaveText("Sign in to check citations. Nothing was looked up.");
   await expect(page.locator("body")).not.toContainText(/Nothing was scored|session has ended/);
   await expect(page.locator("body")).not.toContainText(/\b401\b|unauthorized/i);
   expect(new URL(page.url()).pathname).toMatch(/^\/citations\/?$/);
@@ -111,16 +111,16 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   await expect(page.getByTestId("citation-limits")).not.toContainText(/not yet served|hosted deployment/);
   await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
-  await page.getByLabel("Citation (one)").fill(CITATION);
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a
-  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand."); // D1
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Could not match one case"); // #223 D2a
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand."); // D1
   await expect(page.locator("body")).not.toContainText(/conflicting indexed cases|verify by hand|CONFLICT/);
   await page.unroute("**/api/v1/verify-citations");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN_REAL }));
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Found in our index");
-  await expect(page.getByTestId("citation-note")).toHaveText("Found in the index (existence only): no quote was checked, so this is not a verification.");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("Found in the index (existence only): no quote was checked, so this is not a verification.");
   await expect(page.locator("body")).not.toContainText(/\bIN_INDEX\b/);
 });
 
@@ -128,10 +128,10 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
 test("/citations (arm ON): a line the engine cannot read as one citation is 'Not looked up' with R1's sentence, never the raw token or 'Exactly one parseable citation is required.'", async ({ page }) => {
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "MALFORMED", note: "Exactly one parseable citation is required.", status: "malformed", label: "malformed", verified: false, preview: true } }));
   await page.goto("/citations");
-  await page.getByLabel("Citation (one)").fill("1992 Supp (1) SCC 335");
-  await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Not looked up");
-  await expect(page.getByTestId("citation-note")).toHaveText("We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.");
+  await page.getByRole("textbox").fill("1992 Supp (1) SCC 335");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Not looked up");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2014) 8 SCC 273. That does not show whether a citation is real.");
   await expect(page.locator("body")).not.toContainText(/MALFORMED|Exactly one parseable/);
 });
 
@@ -141,10 +141,10 @@ test("/citations (arm ON): what the index covers is said BEFORE typing, under th
   await expect(page.getByTestId("citation-coverage-limits")).toHaveText("Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as \u201CNot found in our index\u201D.");
   await expect(page.getByTestId("citation-retention")).toHaveText("The citation check does not save the citation you enter."); // D7
   await expect(page.getByTestId("citation-signed-out")).toHaveCount(0); // D4: signed in, no note
-  await expect(page.getByTestId("citation-live")).toHaveAttribute("role", "status"); // D6: present before any result
+  await expect(page.getByTestId("citations-panel-live")).toHaveAttribute("role", "status"); // D6: present before any result
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: NOT_IN }));
-  await page.getByLabel("Citation (one)").fill(CITATION);
-  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
   await expect(page.getByRole("status").filter({ hasText: "Not found in our index" })).toBeVisible();
 });
 

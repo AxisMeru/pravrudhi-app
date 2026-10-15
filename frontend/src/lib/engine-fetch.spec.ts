@@ -206,3 +206,36 @@ test("isSignedIn and edition skip the /api/me probe for an anonymous visitor of 
     }
   });
 });
+
+// #259: signed out on a HOSTED engine, Check sends NOTHING (no app-token request, no verify request carrying the citation); a signed-in visitor of a hosted engine and anyone on an engine that serves the page itself still send the check.
+test("verifyCitation: an anonymous visitor of a hosted engine sends no request at all; signed in, or a self-serving engine, still sends it", async () => {
+  const { verifyCitation, ApiError, forgetLocalToken } = await import("./api");
+  forgetLocalToken();
+  await withAnonymousBrowser(async () => {
+    const originalFetch = globalThis.fetch;
+    const prev = process.env.NEXT_PUBLIC_API_BASE;
+    const seen: string[] = [];
+    const sentTo = (path: string, body?: string): boolean => seen.some((r) => r.includes(path) && (body === undefined || r.includes(body)));
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => { seen.push(`${String(url)} ${String(init?.body ?? "")}`); return new Response(JSON.stringify({ result: "NOT_IN_INDEX", note: "n" }), { status: 200 }); }) as typeof fetch;
+    try {
+      process.env.NEXT_PUBLIC_API_BASE = "https://engine.example";
+      await assert.rejects(() => verifyCitation("(2099) 1 SCC 1", null), (e: unknown) => e instanceof ApiError && e.status === 401);
+      assert.deepEqual(seen, [], "hosted + no session: no request of any kind, so the citation never left the browser");
+      // a hosted engine with a signed-in session: the check is sent
+      const { setSession, clearSession } = await import("./auth");
+      setSession("invented-token", { id: "u-invented", email: "invented@example.test" });
+      try {
+        await verifyCitation("(2099) 1 SCC 1", null);
+        assert.ok(sentTo("/api/v1/verify-citations", "(2099) 1 SCC 1"), "signed in: the verify request is sent");
+      } finally { clearSession(); }
+      // an engine that serves the page itself (no API base): the check is sent
+      delete process.env.NEXT_PUBLIC_API_BASE;
+      seen.length = 0;
+      await verifyCitation("(2099) 1 SCC 1", null);
+      assert.ok(sentTo("/api/v1/verify-citations"), "a self-serving engine: sent");
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_API_BASE; else process.env.NEXT_PUBLIC_API_BASE = prev;
+    }
+  });
+});

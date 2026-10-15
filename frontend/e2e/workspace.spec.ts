@@ -179,3 +179,18 @@ test("a #step-memo / #step-hearing link ends with the locked line in view, even 
     await expect.poll(async () => page.getByTestId(key).evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; }), { message: `${key} is in view`, timeout: 5000 }).toBe(true);
   }
 });
+
+// #275 (Track A's rehearsal: the #249 scroll landed 6 px short 4/30 times): content that arrives ABOVE the target after the scroll must not leave it out of view. The test lets the page settle on the locked line, then adds 160 px of
+// content above it (as a late identity read or provider line does); the line must be back in view without the visitor doing anything. It fails without the settle-follow.
+test("a #step-memo / #step-hearing link keeps the locked line in view when content grows above it after the scroll", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  for (const [id, key] of [["step-memo", "locked-memo"], ["step-hearing", "locked-hearing"]] as const) {
+    await page.goto("/workflows");
+    await page.locator(`a[href="/screening#${id}"]`).click();
+    const inView = () => page.getByTestId(key).evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; });
+    await expect.poll(inView, { message: `${key} in view first`, timeout: 5000 }).toBe(true);
+    await page.evaluate(() => { const d = document.createElement("div"); d.style.height = "160px"; d.setAttribute("data-testid", "late-content"); document.getElementById("step-facts")!.prepend(d); });
+    await expect.poll(inView, { message: `${key} back in view after late content`, timeout: 5000 }).toBe(true);
+  }
+});

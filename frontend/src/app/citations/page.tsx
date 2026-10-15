@@ -4,6 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
@@ -93,6 +94,10 @@ export default function CitationsPage() {
         {CITATION_EXISTENCE_ONLY && signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="citation-signed-out">{SIGNED_OUT_BEFORE_TEXT}</p>
         )}
+        {CITATION_EXISTENCE_ONLY ? (
+          /* #263: a pasted LIST, like the Screening panel (same component, same limit text, the line count under the box); nothing is cut without being said. */
+          <CitationsPanel embedded />
+        ) : (
         <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
@@ -118,9 +123,9 @@ export default function CitationsPage() {
         )}
         <button
           type="button"
-          onClick={submit}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
+          onClick={() => { if (!loading) void submit(); }}
+          aria-disabled={loading} /* #260: keeps keyboard focus on the button while the check runs */
+          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <SearchCheck size={14} />}
           {loading ? "Checking…" : "Check"}
@@ -163,6 +168,7 @@ export default function CitationsPage() {
         )}
         </div>
         </>
+        )}
       </div>
     </div>
   );
