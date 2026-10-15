@@ -1618,8 +1618,10 @@ export async function analyseFacts(
   }
   const wire = (await res.json()) as AnalyseFactsWire;
   const result = await withFactText(wire, facts);
-  if (!opts.assisted) return result;
   const raw = wire as unknown as Record<string, unknown>;
+  // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
+  if (!Array.isArray(raw.contracts) || !Array.isArray(raw.facts)) throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null);
+  if (!opts.assisted) return result;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   const appendix = parseAppendix(raw.appendix);
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable), ...(appendix ? { appendix } : {}) };

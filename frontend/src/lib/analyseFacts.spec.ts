@@ -677,3 +677,16 @@ test("analyseFacts (assisted): the top-level appendix is kept, a malformed one i
     assert.equal(r.appendix, undefined, "a plain run never carries an appendix");
   } finally { m3.restore(); }
 });
+
+test("#360: an object answer without contracts or without facts is unreadable (InvalidEngineAnswerError with the run id); a valid answer is unchanged; an empty contracts list is still an answer", async () => {
+  const { analyseFacts, InvalidEngineAnswerError } = await import("./api");
+  const run = async (body: unknown) => { const { restore } = mockFetch(() => ok(body)); try { return await analyseFacts(["fact"], ["bns69"]); } finally { restore(); } };
+  const { contracts: _c, ...noContracts } = FAKE_RESULT; void _c;
+  const { facts: _f, ...noFacts } = FAKE_RESULT; void _f;
+  for (const body of [noContracts, noFacts, { run_id: "r1" }, {}]) {
+    await assert.rejects(() => run(body), (e: unknown) => e instanceof InvalidEngineAnswerError, JSON.stringify(Object.keys(body)));
+  }
+  await assert.rejects(() => run(noContracts), (e: unknown) => e instanceof InvalidEngineAnswerError && (e as InstanceType<typeof InvalidEngineAnswerError>).runId === "nyaya-agent-abc123");
+  assert.equal((await run(FAKE_RESULT)).contracts.length, 1);
+  assert.deepEqual((await run({ ...FAKE_RESULT, contracts: [] })).contracts, []);
+});

@@ -30,6 +30,10 @@ const WRONG: Array<[string, (w: W) => void]> = [
   ["assertions has a free-text key", (w) => { c0(w).assertions = { [MARKER]: true }; }],
   ["standard is a string", (w) => { w.standard = MARKER; }],
   ["facts is an object", (w) => { w.facts = { a: MARKER } as never; }],
+  // #360: an object answer that lacks a required list is off the contract too (it used to blank the page with a TypeError)
+  ["contracts is missing", (w) => { delete (w as Record<string, unknown>).contracts; }],
+  ["facts is missing", (w) => { delete (w as Record<string, unknown>).facts; }],
+  ["the answer is an empty object", (w) => { for (const k of Object.keys(w)) if (k !== "run_id") delete (w as Record<string, unknown>)[k]; }],
 ];
 const route = (page: import("@playwright/test").Page, answer: unknown) => Promise.all([
   page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } })),
@@ -85,4 +89,17 @@ test("both arms: the same answer without the wrong type renders the checklist an
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   await expect(page.getByTestId("invalid-run-record")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(TEXT);
+});
+
+test("#360: an answer without contracts keeps the typed facts on the page and shows the one signed line, not the framework error screen", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const w = valid() as W;
+  delete (w as Record<string, unknown>).contracts;
+  await route(page, w);
+  await screen(page);
+  await expect(page.getByTestId("screening-error")).toHaveText(TEXT);
+  await expect(page.getByLabel("Paste the FIR, complaint or narrative")).toHaveValue(FACT);
+  await expect(page.locator("body")).not.toContainText("This page couldn't load");
+  expect(errors).toEqual([]);
 });
