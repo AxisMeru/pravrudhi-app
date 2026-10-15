@@ -89,6 +89,7 @@ export function Sidebar() {
 
   const [navOpen, setNavOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
 
   // D2 (explorer review of the live alias): an open drawer is a modal dialog on a phone. Escape closes it and returns focus to its button; the page behind it is inert while it is open
   // (not focusable, not clickable, not read), so keyboard and screen-reader users stay inside the drawer until they close it.
@@ -103,8 +104,19 @@ export function Sidebar() {
       toggleRef.current?.focus();
     };
     document.addEventListener("keydown", onKey);
+    // From md up the sidebar is a normal column, not a drawer: if the window grows (tablet rotation, a widened window) while the drawer is open, close it, so the page behind is not left inert
+    // and the sidebar does not keep a dialog role (R2, #211).
+    const wide = window.matchMedia("(min-width: 768px)");
+    const onWide = () => {
+      if (wide.matches) setNavOpen(false);
+    };
+    wide.addEventListener("change", onWide);
+    onWide();
+    // focus moves into the dialog when it opens
+    drawerRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
+      wide.removeEventListener("change", onWide);
       main?.removeAttribute("inert");
     };
   }, [navOpen]);
@@ -147,6 +159,8 @@ export function Sidebar() {
       {/* D1: below `md` a CLOSED drawer is off-screen but its links, the account control and the theme buttons stayed in the tab order (13 stops at x<0). `max-md:invisible` takes it out of
           the focus order and the accessibility tree; from `md` up the sidebar is a normal column and is never hidden. Open, it is a modal dialog (D2). */}
       <aside
+        ref={drawerRef}
+        tabIndex={-1}
         id="primary-navigation"
         role={navOpen ? "dialog" : undefined}
         aria-modal={navOpen ? true : undefined}

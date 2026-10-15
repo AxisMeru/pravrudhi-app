@@ -39,6 +39,25 @@ test.describe("phone drawer", () => {
     await expect(page.locator("#main")).not.toHaveAttribute("inert", "");
     await expect(page.getByRole("button", { name: "Open navigation" })).toBeFocused();
   });
+
+  test("open at a phone width, then the window grows to desktop: the drawer closes, the page is not left inert, the sidebar has no dialog role (R2, #211)", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.goto("/screening");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(page.locator("#main")).toHaveAttribute("inert", "");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(page.locator("#main")).not.toHaveAttribute("inert", "");
+    await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
+    await expect(page.locator("#primary-navigation")).toBeVisible();
+    await page.getByRole("heading", { level: 1 }).first().click(); // the page behind answers clicks again
+  });
+
+  test("opening moves focus into the dialog", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.goto("/screening");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(page.locator("#primary-navigation")).toBeFocused();
+  });
 });
 
 test("desktop: the sidebar is a normal column: visible, its links focusable, no dialog role", async ({ page }) => {
