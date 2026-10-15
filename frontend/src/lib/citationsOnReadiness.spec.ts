@@ -16,7 +16,7 @@ import { SESSION_401_TEXT } from "./signedStrings";
 // Citations-ON readiness (#223, explorer's pre-flip review D1-D7; R1's exact strings, 15 Oct). Both arms: the ON arm (existence-only) shows the new wording; the OFF arm is unchanged.
 
 test("R1's strings are exact (D1, D2a, D3, D4, D5, D7)", () => {
-  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again.");
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
   assert.equal(CONFLICT_HEADING, "Could not match one case");
   assert.doesNotMatch(CONFLICT_TEXT + CONFLICT_HEADING, /more than one/i, "Lead-2: the cause may be one case under a spelling variant; the conflict wording never says more than one case");
   assert.equal(MALFORMED_HEADING, "Not looked up");
