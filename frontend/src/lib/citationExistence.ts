@@ -30,3 +30,10 @@ export const RETENTION_EXISTENCE = "The citation check does not save the citatio
 export const QUOTE_NOT_SERVED_TEXT = "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index.";
 /** HTTP 422 with a validation `detail` (blank citation, over length): the form has no quote field. */
 export const DETAIL_422_TEXT = "Enter one citation, and leave the quote empty.";
+
+/**
+ * #263 (Interim lead, 15 Oct): the line under the citation box that says how many lines are in it and, past the cap, how many will be checked. PROPOSED wording, R1 to confirm or replace.
+ * It is shown while typing or pasting, so nothing is cut without being said.
+ */
+export const lineCountText = (lines: number, cap: number): string =>
+  lines > cap ? `${lines} lines entered; the first ${cap} will be checked.` : `${lines} of ${cap} lines.`;

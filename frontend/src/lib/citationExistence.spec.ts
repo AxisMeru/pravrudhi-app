@@ -86,3 +86,13 @@ test("CONFLICT: R1's heading and sentence while existence-only (the engine's not
   assert.equal(off.note, reply.note);
   assert.equal(statusLabel("CONFLICT", false), "CONFLICT");
 });
+
+// R1 (#263, 15 Oct): the line-count sentences, exact: "{n} of 5 lines." up to the cap, "{n} lines entered; the first 5 will be checked." past it; the 5 is the cap constant.
+test("#263: lineCountText is R1's exact pair, built from the cap", async () => {
+  const { lineCountText } = await import("./citationExistence");
+  const { MAX_CITATIONS_EXISTENCE } = await import("./citationsPanel");
+  assert.equal(MAX_CITATIONS_EXISTENCE, 5);
+  assert.equal(lineCountText(1, MAX_CITATIONS_EXISTENCE), "1 of 5 lines.");
+  assert.equal(lineCountText(5, MAX_CITATIONS_EXISTENCE), "5 of 5 lines.");
+  assert.equal(lineCountText(6, MAX_CITATIONS_EXISTENCE), "6 lines entered; the first 5 will be checked.");
+});
