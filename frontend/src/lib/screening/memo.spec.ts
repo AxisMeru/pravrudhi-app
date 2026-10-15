@@ -102,3 +102,34 @@ test("an example run's memo (.md and .docx) carries the example label and the or
   const plain = buildScreeningMemo(RESULT, { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z" });
   assert.ok(!plain.includes(ex.citation) && !plain.includes("A public court order"), "no example, no label");
 });
+
+// #214 (a): the Matters page ships this same memo (buildScreeningMemo), so the token scan covers what Matters can hand over: EVERY outcome the engine sends (and one it does not), every reason the engine uses
+// (including the ones with no sentence of their own), and contract ids the app's OFFENCES table does not know, in the .md and in the .docx text.
+test("the Matters memo (.md and .docx text): no internal token for any outcome, reason or contract id", async () => {
+  const { OFFENCES } = await import("./offences");
+  const UNKNOWN = ["bns316_misappropriation", "ipc999_future_offence", "ni138_cheque_dishonour", "bnss187"];
+  const ids = [...OFFENCES.flatMap((o) => [...o.contracts]), ...UNKNOWN];
+  const OUTCOMES = ["PROOF", "DENIAL", "ABSTAIN", "REFER_TO_LAWYER", "SOMETHING_NEW"];
+  const REASONS = ["", "judge_error", "missing_element", "second_judge_not_confirmed", "uncertain", "contract_not_validated", "no_training_statute_text", "a_reason_from_a_newer_engine", "all_elements_supported"];
+  const el = { element: "an invented ingredient", is_denial: false, status: "not_established", p_established: 0.1, claimed: false, fact_id: null, quote: null, quote_source: null, quote_check: null, binding_leg: "primary", screening_signal: null, citation_note: null, error: null };
+  const contracts = ids.map((id, i) => ({ ...(RESULT.contracts[0] as object), contract_id: id, outcome: OUTCOMES[i % OUTCOMES.length], reason: REASONS[i % REASONS.length], elements: [el] }));
+  const r = { ...RESULT, contracts } as unknown as AnalyseFactsResult;
+  const o = { engineVersion: "0.6.11", generatedAt: "2026-10-15T00:00:00Z" };
+  const md = buildScreeningMemo(r, o);
+  const { buildScreeningMemoDocx } = await import("./memo");
+  const { inflateRawSync } = await import("node:zlib");
+  const zip = Buffer.from(buildScreeningMemoDocx(r, o));
+  const parts: string[] = [];
+  for (let at = 0; at + 30 < zip.length && zip.readUInt32LE(at) === 0x04034b50; ) {
+    const method = zip.readUInt16LE(at + 8), csize = zip.readUInt32LE(at + 18), nlen = zip.readUInt16LE(at + 26), xlen = zip.readUInt16LE(at + 28);
+    const start = at + 30 + nlen + xlen, data = zip.subarray(start, start + csize);
+    parts.push(method === 8 ? inflateRawSync(data).toString("utf8") : data.toString("utf8"));
+    at = start + csize;
+  }
+  const TOKENS = /Engine reason code|REFER_TO_LAWYER|\bPROOF\b|\bDENIAL\b|\bABSTAIN\b|SOMETHING_NEW|\bipc\d+_|\bbns\d+_|\bbnss\d+|\bni\d+|judge_error|missing_element|second_judge_not_confirmed|contract_not_validated|no_training_statute_text|a_reason_from_a_newer_engine|all_elements_supported|\(reason: /i;
+  assert.doesNotMatch(md, TOKENS);
+  for (const id of UNKNOWN) assert.ok(!md.includes(id), `${id} reached the memo`);
+  assert.equal(md.split("\n").filter((l) => l === "## Offence").length, UNKNOWN.length, "each unknown contract is headed by the neutral 'Offence'");
+  for (const t of parts) assert.doesNotMatch(t, TOKENS);
+  assert.match(md, /^> This memo is a screening aid, not legal advice\. A lawyer decides\./m);
+});
