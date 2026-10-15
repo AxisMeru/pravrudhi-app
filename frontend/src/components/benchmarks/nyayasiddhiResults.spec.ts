@@ -7,7 +7,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { NYAYASIDDHI_STRINGS, resolveStrings } from "@/lib/nyayasiddhi";
-import { STATUSES, errorLineFor, parseRows } from "@/lib/nyayasiddhiRows";
+import { STATUSES, errorLineFor, isNotRun, parseRows } from "@/lib/nyayasiddhiRows";
 import { NyayaSiddhiResultsView } from "./NyayaSiddhiResults";
 
 // R1's words, byte-exact (15 Oct 2026): the test holds its own copy, so a changed constant fails here.
@@ -167,7 +167,8 @@ const RERUN = "This arm was run again after a first 20-item run was stopped beca
 const HARNESS_CONTRACT = "Element by element against ONE pinned contract per family (CHEAT -> ipc415_damaging_act, TRUST -> ipc405_use_or_disposal; closed five-IPC candidate set); element replies are {decision, fact_id} with no element_id, and the runner joins each reply to its request by its own record (item_id, element_index).";
 const HARNESS_CHECK = "ESTABLISHED counts only with an integer fact_id from 1 to the item's sentence count (sentence_split.py 76c145ace3a7); otherwise NOT_ESTABLISHED, no repair, no second call; NOT_ESTABLISHED without a fact_id key is an ERROR; the check shows that the cited sentence exists, not that it supports the element.";
 const RUNON = /^In \d+ of \d+ replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer\.$/;
-const NOT_SERVED = /^Not served \(context rule: prompt tokens counted by the served model's own tokenizer \+ max_tokens 400 must fit the served max-model-len 4096; never truncated\): \d+ of \d+ scored items.*; each is written \{item_id, verdict NOT_PROOF, error true\}; error_mapping error_counted_as_not_proof; n_error = rows with error true \(.+\)\.$/;
+const NOT_SERVED = /^Not served: \d+ of \d+ scored items did not fit the served context length of 4096 tokens(?: \([0-9a-z]{12} \d+ tokens\); an item that is not served is never truncated, and is counted as not supported and marked as an error\.|; nothing was truncated\.)$/;
+const ERRORS = /^Errors: \d+(?: \(.+\))?\.$/;
 const SEED_DEV = "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.";
 const HOURS = "Hours bound that applied to this arm: 2.5 hours per split; the 60 percent run-on stop rule did not fire (13 of 170 and 7 of 143 replies ran on).";
 const STRAY = /^In 1 of 170 replies, the model added a stray line after its answer object and then stopped; the first answer object was counted as its answer\.$/;
@@ -180,6 +181,8 @@ test("About this run: every reference row carries R1's lines, whole sentences, i
   const of = (system: string) => refs.filter((r) => r.row_id.includes(system));
   const balanced = (l: string) => (["()", "{}", "[]"] as const).every(([a, b]) => l.split(a).length === l.split(b).length);
   for (const r of refs) for (const l of r.about_run) { assert.ok(balanced(l), `unbalanced: ${l}`); assert.doesNotMatch(l, /USD|spend|run directory|out_S-/i, l); }
+  // R1 (15 Oct): schema values never appear in a row's text (the brace shapes of the field names in the harness sentence stay)
+  for (const r of refs) for (const l of r.about_run) for (const bad of ["PROOF", "error_mapping", "{item_id", "refer_mapping", "NOT_PROV"]) assert.ok(!l.includes(bad), `${bad} in: ${l}`);
   assert.equal(of("S-direct").length, 2); assert.equal(of("S-harness").length, 2); assert.equal(of("-O2-").length, 2); assert.equal(of("-O1-").length, 2);
   // API rows: exposure, smoke, the arm's own lines, preamble count, trained flag, overlap_check, no-seed line
   for (const r of [...of("S-direct"), ...of("S-harness")]) {
@@ -196,17 +199,21 @@ test("About this run: every reference row carries R1's lines, whole sentences, i
   // open-model rows: smoke, preamble count, trained flag, overlap_check, then the run's own lines; no exposure line, no API seed line
   for (const r of [...of("-O2-"), ...of("-O1-")]) {
     const l = r.about_run;
-    assert.equal(l[0], SMOKE); assert.match(l[1], PREFACE); assert.equal(l[2], TRAINED); assert.equal(l[3], "not checked: public open-weight model used as released, no training by us; no item-overlap check was run");
+    assert.equal(l[0], SMOKE); assert.match(l[1], PREFACE); assert.equal(l[2], TRAINED); assert.ok(l[3].startsWith("not checked: public open-weight model used as released") && l[3].endsWith("no item-overlap check was run"), l[3]);
     assert.match(l[4], RUNON); assert.equal(r.not_run_groups, undefined);
     assert.ok(!l.includes(NO_SEED) && !l.some((x) => x.includes("Anthropic API")));
   }
-  for (const r of of("-O2-")) { assert.equal(r.about_run.length, 7); assert.match(r.about_run[5], NOT_SERVED); assert.equal(r.about_run[6], SEED_DEV); }
+  for (const r of of("-O2-")) { assert.equal(r.about_run.length, 8); assert.match(r.about_run[5], NOT_SERVED); assert.match(r.about_run[6], ERRORS); assert.equal(r.about_run[7], SEED_DEV); }
   const o1dev = of("-O1-").find((r) => r.split === "obj1_dev") as Shipped, o1b = of("-O1-").find((r) => r.split !== "obj1_dev") as Shipped;
-  assert.match(o1dev.about_run[5], STRAY); assert.match(o1dev.about_run[6], NOT_SERVED); assert.deepEqual(o1dev.about_run.slice(7), [SEED_DEV, HOURS]);
-  assert.match(o1b.about_run[5], NOT_SERVED); assert.deepEqual(o1b.about_run.slice(6), [SEED_DEV, HOURS]); assert.equal(o1b.about_run.length, 8);
-  // the open-model row with errors carries the n_error explanation whole, in the not-served sentence
-  const o2dev = of("-O2-").find((r) => r.split === "obj1_dev") as Shipped;
-  assert.match(o2dev.about_run[5], /n_error = rows with error true \(2: 1 not served for context, 1 an unparsable reply, .+\)\.$/);
+  assert.match(o1dev.about_run[5], STRAY); assert.match(o1dev.about_run[6], NOT_SERVED); assert.match(o1dev.about_run[7], ERRORS); assert.deepEqual(o1dev.about_run.slice(8), [SEED_DEV, HOURS]);
+  assert.match(o1b.about_run[5], NOT_SERVED); assert.match(o1b.about_run[6], ERRORS); assert.deepEqual(o1b.about_run.slice(7), [SEED_DEV, HOURS]); assert.equal(o1b.about_run.length, 9);
+  // R1's pinned wording from the numbers in the manifest sentence (the signed manifests keep the raw sentence)
+  const o2dev = of("-O2-").find((r) => r.split === "obj1_dev") as Shipped, o2b = of("-O2-").find((r) => r.split !== "obj1_dev") as Shipped;
+  assert.equal(o2dev.about_run[5], "Not served: 1 of 171 scored items did not fit the served context length of 4096 tokens (fccbecb0a863 11209 tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error.");
+  assert.equal(o2dev.about_run[6], "Errors: 2 (1 item not served for context, 1 reply that could not be read as an answer).");
+  assert.equal(o1dev.about_run[7], "Errors: 1 (1 item not served for context).");
+  assert.equal(o2b.about_run[5], "Not served: 0 of 143 scored items did not fit the served context length of 4096 tokens; nothing was truncated.");
+  assert.equal(o2b.about_run[6], "Errors: 0.");
 });
 
 test("About this run renders as a closed details block headed by R1's constant, one per reference row, lines in order; none for a product row; a reference arm without lines is not shown", () => {
@@ -262,4 +269,18 @@ test("the Dishonoured cheque note shows under that group's figures on every row 
   const NOTE = "Dishonoured cheque is not a product contract; a result of 'supported' here is not a product result.";
   assert.ok(R1.ni138Note === NOTE);
   assert.ok(renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ROWS, strings: resolveStrings() })).replace(/&#x27;/g, "'").includes(NOTE) === false, "not shown for the default group");
+});
+
+test("NOT RUN is rendered from the row's data: for the not-run group R1's line replaces the figures, the zero-with-zero line and the Dishonoured cheque note; the About block still shows; a row that was given the group shows its figures and the note (R2 finding 2, R1 finding 3)", () => {
+  const metrics = [m("false_proof", "ALL", 0, 40, 0, 0.1), m("coverage", "ALL", 0, 40, 0, 0.1), m("false_proof", "NI138", 0, 5, 0, 0.5), m("coverage", "NI138", 0, 5, 0, 0.5)];
+  const rows = parseRows({ rows: [row("h", "self-reported", { system_name: "aa-harness", entry_kind: "reference_arm", about_run: ["An About line."], not_run_groups: ["NI138"], metrics }), row("g", "self-reported", { system_name: "zz-given", entry_kind: "reference_arm", about_run: ["An About line."], metrics })] });
+  assert.equal(isNotRun(rows[0], "NI138"), true); assert.equal(isNotRun(rows[0], "ALL"), false); assert.equal(isNotRun(rows[0], "CHEAT"), false); assert.equal(isNotRun(rows[1], "NI138"), false);
+  const h = renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows, strings: resolveStrings(), initialGroup: "NI138" })).replace(/&#x27;/g, "'");
+  const cards = h.split('data-testid="ns-row"').slice(1);
+  assert.equal(cards.length, 2);
+  const [notRun, given] = cards;   // fixed order: by system name
+  assert.ok(notRun.includes('data-testid="ns-not-run"') && notRun.includes("Not run: this system was not given dishonoured-cheque items, which are outside its contracts."));
+  for (const gone of ['data-testid="ns-chart"', 'data-testid="ns-count"', 'data-testid="ns-zero-with-zero"', 'data-testid="ns-ni138-note"', 'data-testid="ns-measure-']) assert.ok(!notRun.includes(gone), gone);
+  assert.ok(notRun.includes('data-testid="ns-about-run"'), "the About block shows for the not-run group too");
+  assert.ok(!given.includes('data-testid="ns-not-run"') && given.includes('data-testid="ns-chart"') && given.includes('data-testid="ns-ni138-note"') && given.includes('data-testid="ns-about-run"'));
 });

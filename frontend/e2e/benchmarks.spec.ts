@@ -69,6 +69,9 @@ test("the NyayaSiddhi results: R1's heading and intro, the signed cards in a fix
   await expect(o2.locator("summary")).toHaveText("About this run");
   await o2.locator("summary").click();
   await expect(o2.locator("li").first()).toHaveText("The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.");
+  await expect(o2.locator("li").filter({ hasText: /^Errors:/ })).toHaveText("Errors: 2 (1 item not served for context, 1 reply that could not be read as an answer).");
+  await expect(o2.locator("li").filter({ hasText: /^Not served:/ })).toContainText("did not fit the served context length of 4096 tokens");
+  await expect(o2).not.toContainText(/PROOF|error_mapping|\{item_id/);
   // the API rows open with the exposure sentence, by split
   const apiFirst = (split: "dev" | "second") => cardOf(box, "direct", split).getByTestId("ns-about-run").locator("li").first();
   await cardOf(box, "direct", "dev").getByTestId("ns-about-run").locator("summary").click();
@@ -129,6 +132,7 @@ test("the NyayaSiddhi results: the group chooser shows a family's figures; the u
   await expect(box.getByTestId("ns-ni138-note")).toHaveCount(0);
   await expect(box.getByTestId("ns-chart")).toHaveCount(0);
   await expect(box.getByTestId("ns-zero-with-zero")).toHaveCount(0);
+  await expect(box.getByTestId("ns-about-run")).toHaveCount(2); // the About block stays for a not-run group
 });
 
 test("the NyayaSiddhi results work at phone width: no horizontal scroll and the choosers are phone-size targets", async ({ page }) => {

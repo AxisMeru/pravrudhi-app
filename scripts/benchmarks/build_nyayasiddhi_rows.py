@@ -121,6 +121,32 @@ def split_notes(notes):
 def balanced(line):
     return all(line.count(a) == line.count(b) for a, b in ("()", "{}", "[]"))
 
+SERVED_ID = re.compile(r"scored items \((\w{12}) (\d+) tokens\);")
+ERR_CLAUSE = re.compile(r"n_error = rows with error true \((\d+)(?:: (.+))?\)\.$", re.S)
+MAXLEN = re.compile(r"served max-model-len (\d+);")
+SCORED = re.compile(r"\): (\d+) of (\d+) scored items")
+def plural(n, one, many): return f"{n} {one if n == 1 else many}"
+
+def not_served_and_errors(sentence):
+    """R1's pinned replacement (15 Oct) for the manifest's 'Not served (context rule: ...)' sentence: two plain lines built from the numbers parsed out of it (schema values never printed); None when the pattern or the numbers do not parse (the build then fails)."""
+    m, c, e, ln = SCORED.search(sentence), MAXLEN.search(sentence), ERR_CLAUSE.search(sentence), None
+    if not (m and c and e): return None
+    a, b, L, n = int(m.group(1)), int(m.group(2)), int(c.group(1)), int(e.group(1))
+    if a == 0: served = f"Not served: 0 of {b} scored items did not fit the served context length of {L} tokens; nothing was truncated."
+    else:
+        sid = SERVED_ID.search(sentence)
+        if a != 1 or not sid or len(SERVED_ID.findall(sentence)) != 1: return None
+        served = f"Not served: {a} of {b} scored items did not fit the served context length of {L} tokens ({sid.group(1)} {sid.group(2)} tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error."
+    parts = []
+    detail = e.group(2) or ""
+    ns = re.search(r"(\d+) not served for context", detail); un = re.search(r"(\d+) an unparsable reply", detail)
+    if ns: parts.append(f"{plural(int(ns.group(1)), 'item', 'items')} not served for context")
+    if un: parts.append(f"{plural(int(un.group(1)), 'reply', 'replies')} that could not be read as an answer" if int(un.group(1)) == 1 else f"{un.group(1)} replies that could not be read as an answer")
+    if (int(ns.group(1)) if ns else 0) + (int(un.group(1)) if un else 0) != n or (n == 0 and detail): return None
+    if n > 0 and not parts: return None
+    errors = f"Errors: {n}" + (f" ({', '.join(parts)})" if parts else "") + "."
+    return [served, errors]
+
 def about_run(row, manifests):
     """The row's About-this-run lines and not-run groups from its manifest's notes: whole sentences copied verbatim, each required one exactly once, in R1's order; (lines, not_run, error)."""
     for path in manifests:
@@ -148,13 +174,17 @@ def about_run(row, manifests):
                 hits = [x for x in sentences if pat.fullmatch(x.replace(CONTRACT_HASH, "") if pinned else x)]
                 if len(hits) != 1: errs.append(f"{row['row_id']}: required whole sentence found {len(hits)} times (needs exactly 1): {sentence[:70]!r}"); continue
                 found = hits[0].replace(CONTRACT_HASH, "") if pinned else hits[0]
+            if found is not None and sentence == OPEN_NOT_SERVED:
+                pair = not_served_and_errors(found)
+                if pair is None: errs.append(f"{row['row_id']}: the Not-served sentence did not parse into numbers (pinned replacement fails closed)"); continue
+                got[sentence] = pair; continue
             if found is not None:
                 if not balanced(found): errs.append(f"{row['row_id']}: printed line has unbalanced brackets: {found[:70]!r}")
                 got[sentence] = found
         ov = m.get('overlap_check')
         if not isinstance(ov, str) or not ov.strip() or not balanced(ov): errs.append(f"{row['row_id']}: manifest overlap_check missing or unbalanced")
         if errs: return None, None, "; ".join(errs)
-        arm = [got[x] for x in spec if x != NO_SEED]
+        arm = [y for x in spec if x != NO_SEED for y in (got[x] if isinstance(got[x], list) else [got[x]])]
         seed = [got[NO_SEED]] if NO_SEED in spec else []
         if system in API_SYSTEMS:
             # R1 (15 Oct): exposure, smoke, the arm's own lines (rerun / contract limits), preamble count, trained flag + overlap_check, then the no-seed line

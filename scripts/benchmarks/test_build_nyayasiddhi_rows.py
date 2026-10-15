@@ -86,11 +86,13 @@ class T(unittest.TestCase):
 # --- R1's About-this-run lines (15 Oct): whole sentences copied verbatim from the manifest notes, fail closed -----------------------------------------------
 FINAL_DIR = next((d for d in (Path("/home/ss/fusion-project/tmp_scratch/trackA/s7_682_rows/final8"),) if d.is_dir()), None)   # the signed package whose manifests carry the exposure sentences
 OPEN_LOCAL = "nyayasiddhi-open-O2"
+NOT_SERVED_NOTES = "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 1 of 171 scored items (aaaaaaaaaaaa 11209 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (1: 1 not served for context)."
 def notes_for(system, split="obj1_dev", extra=""):
     """A manifest's notes assembled from the builder's own sentences (invented counts), in the manifests' own style, for the fail-closed tests."""
     fill = lambda t: t.replace("NUM", "3").replace("itemsWILD", "items (aaaaaaaaaaaa 1 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping e; ").replace("WILD", "1: 1 not served")
     lines = [B.SMOKE, fill(B.PREFACE), B.TRAINED] + ([B.EXPOSURE[split]] if system in B.API_SYSTEMS else []) + [fill(x) for x in B.ABOUT_BY_SYSTEM[system]]
     lines = [x if x != B.NO_SEED else "Backend: Anthropic API lane Job, no seed (No seed: the API offers none.), max_tokens 1000; run directory out_x_v33." for x in lines]
+    lines = [NOT_SERVED_NOTES if x.startswith("Not served (context rule") else x for x in lines]
     return ("dev stack (local); filler. One run per arm per split. " + " ".join(lines) + " Build notes: filler. " + extra).strip()
 def ref_run(system, notes, overlap="not checked: invented", split="obj1_dev", stack=API):
     m = json.dumps({"system_name": system, "stack": stack, "notes": notes, "overlap_check": overlap}).encode()
@@ -102,7 +104,7 @@ def ref_run(system, notes, overlap="not checked: invented", split="obj1_dev", st
 
 class AboutRun(unittest.TestCase):
     def test_each_row_type_gets_its_lines_in_order_copied_verbatim(self):
-        for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 7), ("nyayasiddhi-open-O1", 9)]:
+        for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 8), ("nyayasiddhi-open-O1", 10)]:
             api = system in B.API_SYSTEMS
             data, errs = ref_run(system, notes_for(system), stack=API if api else DEV); self.assertEqual(errs, [], system)
             lines = data["rows"][0]["about_run"]; self.assertEqual(len(lines), n_lines, system)
@@ -121,9 +123,20 @@ class AboutRun(unittest.TestCase):
     def test_the_open_model_o1_stray_line_sentence_is_required_exactly_when_the_notes_mention_one(self):
         base = notes_for("nyayasiddhi-open-O1"); stray = B.O1_STRAY.replace("NUM", "3")
         self.assertIn(stray, base)
-        data, errs = ref_run("nyayasiddhi-open-O1", base.replace(stray + " ", ""), stack=DEV); self.assertEqual(errs, []); self.assertEqual(len(data["rows"][0]["about_run"]), 8, "no stray line in the notes: no such line")
+        data, errs = ref_run("nyayasiddhi-open-O1", base.replace(stray + " ", ""), stack=DEV); self.assertEqual(errs, []); self.assertEqual(len(data["rows"][0]["about_run"]), 9, "no stray line in the notes: no such line")
         self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(stray, stray[:-3] + "xyz."), stack=DEV)[1], "a mentioned but changed stray-line sentence fails")
         self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(B.O1_HOURS.replace("NUM", "3") + " ", ""), stack=DEV)[1], "the hours-bound sentence is required")
+    def test_the_not_served_sentence_becomes_two_plain_lines_built_from_its_numbers(self):
+        f = B.not_served_and_errors
+        base = NOT_SERVED_NOTES
+        self.assertEqual(f(base), ["Not served: 1 of 171 scored items did not fit the served context length of 4096 tokens (aaaaaaaaaaaa 11209 tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error.", "Errors: 1 (1 item not served for context)."])
+        both = base.replace("(1: 1 not served for context)", "(2: 1 not served for context, 1 an unparsable reply, '{\"verdict\": \"NOT_PROV\"}' (bbbbbbbbbbbb))")
+        self.assertEqual(f(both)[1], "Errors: 2 (1 item not served for context, 1 reply that could not be read as an answer).")
+        zero = "Not served (context rule: x must fit the served max-model-len 4096; never truncated): 0 of 143 scored items; each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (0)."
+        self.assertEqual(f(zero), ["Not served: 0 of 143 scored items did not fit the served context length of 4096 tokens; nothing was truncated.", "Errors: 0."])
+        for bad in (base.replace("(1: 1 not served for context)", "(2: 1 not served for context)"), base.replace("max-model-len 4096", "max-model-len x"), base.replace("1 of 171", "2 of 171"), base.replace("(aaaaaaaaaaaa 11209 tokens)", ""), zero.replace("(0)", "(0: 1 not served for context)"), "unrelated"):
+            self.assertIsNone(f(bad), bad[-60:])
+        for line in f(both): self.assertNotRegex(line, r"PROOF|error_mapping|\{item_id|refer_mapping|NOT_PROV")
     def test_the_exposure_line_follows_the_split_on_api_rows_only(self):
         for split in B.EXPOSURE:
             data, errs = ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", split), split=split); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["about_run"][0], B.EXPOSURE[split])
@@ -167,7 +180,7 @@ class AboutRun(unittest.TestCase):
             split = m["split"]; sha = hashlib.sha256(f.read_bytes()).hexdigest()
             lines, not_run, err = B.about_run({"row_id": f.stem, "manifest_sha256": sha, "split": split}, [str(f)]); self.assertIsNone(err, f.name)
             for l in lines: self.assertTrue(B.balanced(l), f.name)
-            for l in [x for x in lines if x != m["overlap_check"]]: self.assertIn(l.replace("(CHEAT ->", "(" + B.CONTRACT_HASH + "CHEAT ->"), m["notes"], f"{f.name}: not verbatim: {l[:60]!r}")
+            for l in [x for x in lines if x != m["overlap_check"] and not x.startswith(("Not served:", "Errors:"))]: self.assertIn(l.replace("(CHEAT ->", "(" + B.CONTRACT_HASH + "CHEAT ->"), m["notes"], f"{f.name}: not verbatim: {l[:60]!r}")
             self.assertIn(m["overlap_check"], lines)
 
 if __name__ == "__main__":

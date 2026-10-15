@@ -649,7 +649,8 @@
     "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
     "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
     "In 0 of 170 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
-    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 1 of 171 scored items (fccbecb0a863 11209 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (2: 1 not served for context, 1 an unparsable reply, '{\"verdict\": \"NOT_PROV\"}' (71c6a9a286dd)).",
+    "Not served: 1 of 171 scored items did not fit the served context length of 4096 tokens (fccbecb0a863 11209 tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error.",
+    "Errors: 2 (1 item not served for context, 1 reply that could not be read as an answer).",
     "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0."
    ],
    "benchmark_version": "v0.2",
@@ -809,7 +810,8 @@
     "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
     "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
     "In 0 of 143 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
-    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 0 of 143 scored items; each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (0).",
+    "Not served: 0 of 143 scored items did not fit the served context length of 4096 tokens; nothing was truncated.",
+    "Errors: 0.",
     "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0."
    ],
    "benchmark_version": "v0.2",
@@ -900,7 +902,8 @@
     "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
     "In 13 of 170 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
     "In 1 of 170 replies, the model added a stray line after its answer object and then stopped; the first answer object was counted as its answer.",
-    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 1 of 171 scored items (fccbecb0a863 11205 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (1: 1 not served for context).",
+    "Not served: 1 of 171 scored items did not fit the served context length of 4096 tokens (fccbecb0a863 11205 tokens); an item that is not served is never truncated, and is counted as not supported and marked as an error.",
+    "Errors: 1 (1 item not served for context).",
     "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.",
     "Hours bound that applied to this arm: 2.5 hours per split; the 60 percent run-on stop rule did not fire (13 of 170 and 7 of 143 replies ran on)."
    ],
@@ -1061,7 +1064,8 @@
     "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
     "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
     "In 7 of 143 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
-    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 0 of 143 scored items; each is written {item_id, verdict NOT_PROOF, error true}; error_mapping error_counted_as_not_proof; n_error = rows with error true (0).",
+    "Not served: 0 of 143 scored items did not fit the served context length of 4096 tokens; nothing was truncated.",
+    "Errors: 0.",
     "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.",
     "Hours bound that applied to this arm: 2.5 hours per split; the 60 percent run-on stop rule did not fire (13 of 170 and 7 of 143 replies ran on)."
    ],

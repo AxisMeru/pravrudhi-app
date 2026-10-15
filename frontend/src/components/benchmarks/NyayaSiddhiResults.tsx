@@ -34,13 +34,13 @@ function Radio({ name, value, checked, onChange, label }: { name: string; value:
 }
 
 /** The signed rows, with the unit and the group chosen by the reader; a row is a card with its two measures. No ranking, no sentence comparing rows. Shows nothing until R1's words are all set and there is at least one signed row. */
-export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly ResultRow[]; strings: NyayaSiddhiStrings | null }) {
+export function NyayaSiddhiResultsView({ rows, strings, initialGroup = ALL_GROUP }: { rows: readonly ResultRow[]; strings: NyayaSiddhiStrings | null; initialGroup?: string }) {
   // a row is shown only for a stack the words cover (fail closed: never a guessed label)
   const known = strings ? rows.filter((r) => Object.hasOwn(strings.stackLabel, r.stack)) : [];
   rows = known;
   const units = unitsOf(rows);
   const [unit, setUnit] = useState<Unit | null>(null);
-  const [group, setGroup] = useState<string>(ALL_GROUP);
+  const [group, setGroup] = useState<string>(initialGroup);
   if (!strings || rows.length === 0) return null;
   const s = strings;
   const activeUnit = unit ?? units[0];
@@ -100,16 +100,16 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               ];
               return <p className="text-sm text-[var(--color-text)]" data-testid="ns-error-line">{s.errorLeadIn.replace("{e}", String(el.e)) + parts.join(s.errorJoin) + s.errorEnd}</p>;
             })()}
+            {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
+            {activeGroup === ALL_GROUP && r.notRunGroups.length > 0 && <p className="text-sm text-[var(--color-text)]" data-testid="ns-not-run-all">{s.notRunAll}</p>}
+            {activeGroup === "NI138" && (metricOf(r, "false_proof", "NI138") || metricOf(r, "coverage", "NI138")) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-ni138-note">{s.ni138Note}</p>}
+            </>}
             {r.aboutRun.length > 0 && (
               <details className="text-sm text-[var(--color-text)]" data-testid="ns-about-run">
                 <summary className="flex min-h-[44px] cursor-pointer items-center font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">{s.aboutRun}</summary>
                 <ul className="mt-2 list-disc space-y-1 pl-5">{r.aboutRun.map((line, i) => <li key={i}>{line}</li>)}</ul>
               </details>
             )}
-            {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
-            {activeGroup === ALL_GROUP && r.notRunGroups.length > 0 && <p className="text-sm text-[var(--color-text)]" data-testid="ns-not-run-all">{s.notRunAll}</p>}
-            {activeGroup === "NI138" && (metricOf(r, "false_proof", "NI138") || metricOf(r, "coverage", "NI138")) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-ni138-note">{s.ni138Note}</p>}
-            </>}
           </li>
         ))}
         </ul>
