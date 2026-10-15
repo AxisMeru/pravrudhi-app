@@ -1,5 +1,6 @@
 // Renders the motion films to video, LOCALLY (#255). Usage:
-//   node scripts/render-films.mjs <export-folder> [--film client|technical] [--workers 4] [--force] [--poster-only]
+//   node scripts/render-films.mjs <export-folder> [--film client|technical] [--workers 4] [--force]
+//   node scripts/render-films.mjs <export-folder> --film client --stills 27.5,34.5 --stills-out <dir> [--film-dir <folder>] [--assets-dir <folder>]   (a few stills only, for looking; nothing is encoded or written under public/)
 // <export-folder> is a dated export laid out as: player/{index.html,app.js,app.css}, <film>/film/{meta,script}.json, <film>/modules/*.json, <film>/assets/*.json.
 // The player is third-party code and is NEVER committed: it is copied into frontend/.film-tools/ (gitignored), one token is changed so its headless entry works over http, and it is
 // run in a local Chromium that is allowed no network. Only these go under public/films/<film>/ (and into git): film.mp4 (H.264), poster.png, captions.vtt and manifest.json (source hashes, sizes,
@@ -53,7 +54,7 @@ for (const el of ["openh264enc", "vp8enc", "mp4mux", "webmmux", "pngdec", "multi
 
 // --- film documents -> one load() payload
 function loadFilm(name) {
-  const dir = join(src, name);
+  const dir = opt("--film-dir", null) ? resolve(opt("--film-dir", null)) : join(src, name);
   const meta = JSON.parse(readFileSync(join(dir, "film/meta.json"), "utf8"));
   const script = JSON.parse(readFileSync(join(dir, "film/script.json"), "utf8")).code;
   const KIND = { ".css": "css", ".html": "html", ".js": "js", ".json": "json", ".txt": "text" };
@@ -67,7 +68,7 @@ function loadFilm(name) {
   const MIME = { ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg" };
   if (existsSync(join(dir, "assets"))) for (const fn of readdirSync(join(dir, "assets")).sort()) {
     const n = fn.replace(/\.json$/, "");
-    const p = join(OUT_ROOT, name, "assets", n);
+    const p = join(opt("--assets-dir", null) ? resolve(opt("--assets-dir", null)) : join(OUT_ROOT, name, "assets"), n);
     if (existsSync(p)) assets.push({ name: n, mime: MIME[extname(n).toLowerCase()], base64: readFileSync(p).toString("base64") }); else missing.push(n);
   }
   const scenes = JSON.parse(modules.find((m) => m.name === "scenes.json").text).scenes;
@@ -117,6 +118,19 @@ const encoders = {
   webm: (dir, out, bps) => [...src_(dir), "!", "vp8enc", `target-bitrate=${bps}`, "end-usage=vbr", `keyframe-max-dist=${FPS * 2}`, "cpu-used=2", "!", "webmmux", "!", "filesink", `location=${out}`],
 };
 
+async function stills(name, browser, base) {
+  const out = opt("--stills-out", null); if (!out) stop("--stills needs --stills-out <dir>");
+  const { files, missing } = loadFilm(name);
+  if (missing.length) console.log(`  (no image bytes for ${missing.join(", ")})`);
+  const { page } = await openPage(browser, base, files);
+  mkdirSync(resolve(out), { recursive: true });
+  for (const t of opt("--stills", "").split(",").map(Number)) {
+    const url = await page.evaluate(([tt, sc]) => window.__animation.frame(tt, { scale: sc }), [t, SCALE]);
+    const f = join(resolve(out), `t_${t.toFixed(2)}.png`); writeFileSync(f, Buffer.from(url.split(",")[1], "base64")); console.log("  " + f.split("/").pop());
+  }
+  for (const l of await page.evaluate(() => window.__animation.consoleLog())) if (l.level === "error") console.log("  runner error: " + String(l.text).slice(0, 160));
+}
+
 async function renderFilm(name, browser, base) {
   const { files, scenes, missing, title } = loadFilm(name);
   const filmSha = sha(JSON.stringify({ files, scenes }));
@@ -140,13 +154,13 @@ async function renderFilm(name, browser, base) {
   let done = 0; const t0 = Date.now();
   await Promise.all(pages.map(async ({ page }, k) => {
     for (let i = k; i < total; i += workers) {
-      const url = await page.evaluate((t) => window.__animation.frame(t, { scale: SCALE }), i / FPS);
+      const url = await page.evaluate(([t, sc]) => window.__animation.frame(t, { scale: sc }), [i / FPS, SCALE]);
       writeFileSync(join(tmp, `f${String(i).padStart(6, "0")}.png`), Buffer.from(url.split(",")[1], "base64"));
       if (++done % 1000 === 0) console.log(`  ${done}/${total} frames, ${Math.round((Date.now() - t0) / 1000)} s`);
     }
   }));
   const posterT = Number(opt("--poster-at", Math.min(3, duration / 4)));
-  const posterUrl = await first.page.evaluate((t) => window.__animation.frame(t, { scale: SCALE }), posterT);
+  const posterUrl = await first.page.evaluate(([t, sc]) => window.__animation.frame(t, { scale: sc }), [posterT, SCALE]);
   writeFileSync(join(outDir, "poster.png"), Buffer.from(posterUrl.split(",")[1], "base64"));
   for (const { page } of pages) await page.context().close();
 
@@ -178,4 +192,4 @@ async function renderFilm(name, browser, base) {
 
 const { s, base } = await serve();
 const browser = await chromium.launch({ args: ["--font-render-hinting=none", "--force-color-profile=srgb", "--disable-lcd-text"] });
-try { for (const f of only ? [only] : FILMS) await renderFilm(f, browser, base); } finally { await browser.close(); s.close(); }
+try { if (opt("--stills", null)) { if (!only) stop("--stills needs --film"); await stills(only, browser, base); } else for (const f of only ? [only] : FILMS) await renderFilm(f, browser, base); } finally { await browser.close(); s.close(); }
