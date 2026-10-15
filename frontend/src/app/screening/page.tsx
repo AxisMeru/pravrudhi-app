@@ -6,6 +6,7 @@ import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { RetentionBefore } from "@/components/RetentionBefore";
@@ -30,7 +31,7 @@ import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff, takeHandoffCitations } from "@/lib/handoff";
 import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
-import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, WORKSPACE_ANCHORS, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
+import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, initialFactsFor, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -277,6 +278,12 @@ export default function ScreeningPage() {
           </div>
         )}
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts" id="step-facts">
+          {intakeLineShown(INTAKE_ENABLED, signedIn) && (
+            <p className="text-sm text-[var(--color-text)]" data-testid="intake-link-line">
+              {INTAKE_START_SENTENCE}{" "}
+              <Link href={INTAKE_PATH} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="intake-link">{INTAKE_OPEN_LABEL}</Link>
+            </p>
+          )}
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea

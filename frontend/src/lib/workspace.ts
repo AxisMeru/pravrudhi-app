@@ -25,6 +25,9 @@ export const WORKFLOW_OPEN_LABEL = `Open in ${WORKSPACE_TITLE}`;
 /** The link on the Built Intake row: Intake is its own page (/intake), not a step of the workspace (R1 to confirm the label). */
 export const INTAKE_PATH = "/intake";
 export const INTAKE_OPEN_LABEL = "Open Intake";
+/** R1 (15 Oct, #247): the one line under the Facts step on the Matter workspace, beside the "Open Intake" link. Shown only in a build with the Intake flag AND to a signed-in user; a signed-out visitor sees nothing there. No nav entry. */
+export const INTAKE_START_SENTENCE = "To start from pasted text, use Intake.";
+export const intakeLineShown = (intakeOn: boolean, signedIn: boolean | null): boolean => intakeOn && signedIn === true;
 /** The link on /citations when the check is not offered. */
 export const CITATIONS_GO_LABEL = `Go to ${WORKSPACE_TITLE}`;
 
