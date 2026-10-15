@@ -34,7 +34,7 @@ export function StartPanel({ onExample, onOwn, onClose }: { onExample: () => voi
         <button type="button" onClick={onOwn} className="inline-flex min-h-11 items-center rounded-md border border-[var(--color-on-hero)] px-4 text-sm text-[var(--color-on-hero)]" data-testid="start-panel-own">
           {START_PANEL_OWN_BUTTON}
         </button>
-        <Link href="/data-handling" className="inline-flex min-h-6 items-center text-sm text-[var(--color-on-hero)] underline" data-testid="start-panel-data-link">{START_PANEL_DATA_LINK}</Link>
+        <Link href="/data-handling" className="inline-flex min-h-6 items-center text-sm text-[var(--color-on-hero)] underline max-md:min-h-11" data-testid="start-panel-data-link">{START_PANEL_DATA_LINK}</Link>
       </div>
     </section>
   );
