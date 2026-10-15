@@ -100,6 +100,12 @@ test("the stack label is per row, keyed on the manifest's stack: the API stack r
   const unknown = parseRows({ rows: [row("u", "self-reported", { stack: "some other stack" })] });
   assert.equal(unknown.length, 1, "the parser keeps it");
   assert.equal(html1(unknown), "", "but the view shows nothing for a stack it has no words for");
+  // inherited object keys are not stacks: the view must show no row and must not throw (R2, #351)
+  for (const bad of ["constructor", "toString", "hasOwnProperty", "__proto__", "valueOf"]) {
+    const rowsBad = parseRows({ rows: [row("p", "self-reported", { stack: bad })] });
+    assert.equal(rowsBad.length, 1, `${bad}: the parser keeps it`);
+    assert.equal(html1(rowsBad), "", `${bad}: the view shows nothing`);
+  }
   const mixed = html1(parseRows({ rows: [row("dev", "self-reported"), row("u", "self-reported", { stack: "some other stack" })] }));
   assert.equal((mixed.match(/data-testid="ns-row"/g) ?? []).length, 1);
 });

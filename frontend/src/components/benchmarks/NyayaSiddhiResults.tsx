@@ -36,7 +36,7 @@ function Radio({ name, value, checked, onChange, label }: { name: string; value:
 /** The signed rows, with the unit and the group chosen by the reader; a row is a card with its two measures. No ranking, no sentence comparing rows. Shows nothing until R1's words are all set and there is at least one signed row. */
 export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly ResultRow[]; strings: NyayaSiddhiStrings | null }) {
   // a row is shown only for a stack the words cover (fail closed: never a guessed label)
-  const known = strings ? rows.filter((r) => r.stack in strings.stackLabel) : [];
+  const known = strings ? rows.filter((r) => Object.hasOwn(strings.stackLabel, r.stack)) : [];
   rows = known;
   const units = unitsOf(rows);
   const [unit, setUnit] = useState<Unit | null>(null);
