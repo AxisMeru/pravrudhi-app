@@ -15,6 +15,9 @@ export const PAGE_TITLES = {
   citations: "Case citations",
   technicalFilm: "Technical film",
   matters: "Offence rules",
+  safety: "Safety record",
+  benchmarks: "Benchmarks",
+  intake: "Intake",
 } as const;
 
 export type PageTitleKey = keyof typeof PAGE_TITLES;

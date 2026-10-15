@@ -19,5 +19,5 @@ test("the standalone Data handling links carry a 24 px minimum", () => {
 
 test("the Create an account switch and the fact-row Remove button carry a 24 px minimum", () => {
   assert.match(src("app/signin/page.tsx"), /className="min-h-6 py-1 font-medium/);
-  assert.match(src("app/screening/page.tsx"), /className="mt-1 inline-flex min-h-6 min-w-6 /);
+  assert.match(src("app/screening/page.tsx"), /className="inline-flex min-h-8 min-w-6 /);
 });

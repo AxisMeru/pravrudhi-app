@@ -354,7 +354,7 @@ export default function ScreeningPage() {
             />
             <button
               type="button"
-              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm"
+              className="inline-flex min-h-8 items-center rounded-md border border-[var(--color-control-border)] px-3 py-1.5 text-sm max-md:min-h-11"
               data-testid="split-facts"
               onClick={() => {
                 const parts = splitIntoFacts(paste);
@@ -368,17 +368,17 @@ export default function ScreeningPage() {
           {!hydrated && <div className="h-11 rounded-md border border-[var(--color-border)]" data-testid="fact-list-pending" aria-hidden="true" />}
           <ol className="flex flex-col gap-2" aria-label="Numbered facts" data-testid="fact-list" hidden={!hydrated}>
             {hydrated && facts.map((f, i) => (
-              <li key={i} className="flex items-start gap-2">
+              <li key={i} className="flex items-start gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
                 <span className="mt-2 w-8 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">F{i + 1}</span>
                 <AutoGrowTextarea
                   aria-label={`Fact F${i + 1}`}
-                  className="min-h-[44px] flex-1 rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]"
+                  className="min-h-[44px] flex-1 rounded-md border border-[var(--color-control-border)] bg-[var(--color-surface)] p-2 text-sm text-[var(--color-text)]"
                   value={f}
                   onChange={(e) => setFacts((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))}
                 />
                 <button
                   type="button"
-                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11"
+                  className="inline-flex min-h-8 min-w-6 items-center justify-center rounded-md border border-[var(--color-danger-border)] px-3 text-xs text-[var(--color-danger)] max-md:min-h-11 max-md:min-w-11"
                   aria-label={`Remove fact F${i + 1}`}
                   onClick={() => setFacts((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : [""]))}
                 >
@@ -387,7 +387,7 @@ export default function ScreeningPage() {
               </li>
             ))}
           </ol>
-          <button type="button" className="inline-flex w-fit items-center text-sm text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11" onClick={() => setFacts((p) => [...p, ""])}>
+          <button type="button" className="inline-flex min-h-8 w-fit items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)] max-md:min-h-11 max-md:min-w-11" onClick={() => setFacts((p) => [...p, ""])}>
             Add a fact
           </button>
 
@@ -468,7 +468,7 @@ export default function ScreeningPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
+            className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
             {checking ? CHECKING_SIGN_IN_LABEL : loading ? "Screening…" : "Screen these facts"}
