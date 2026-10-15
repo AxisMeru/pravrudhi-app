@@ -42,6 +42,9 @@ test("R1's plain sentences, exactly, and an unknown status reads Not checked.", 
   assert.equal(citationLine("IN_INDEX"), "Found in our index");
   assert.equal(citationLine("NOT_IN_INDEX"), "Not found in our index: this does not show whether the citation is real");
   assert.equal(citationLine("CHECK_UNAVAILABLE"), "The citation check was unavailable for this citation.");
+  assert.equal(citationLine("CONFLICT"), "Could not match one case", "#358: a looked-up citation is never 'Not checked.'");
+  assert.equal(citationLine("MALFORMED"), "Not looked up");
+  assert.equal(citationLine("EXISTS_QUOTE_NOT_FOUND"), "Not checked.", "intake sends no quote; an unexpected status stays unclaimed");
   assert.equal(citationLine("NOT_CHECKED"), "Not checked.");
   assert.equal(citationLine("something_new"), "Not checked.");
 });
