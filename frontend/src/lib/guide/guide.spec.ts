@@ -150,3 +150,14 @@ test("frame 05 alt: the batch size is the cap constant", async () => {
   const { MAX_CITATIONS_EXISTENCE } = await import("./../citationsPanel");
   assert.match(GUIDE_IMAGES.citations.alt, new RegExp(`at most ${MAX_CITATIONS_EXISTENCE} at a time`));
 });
+
+// R1 (#261, 15 Oct): the guide names the Matter workspace. Step 1's first sentence is candidate B, byte-exact; frame 01 is Studio's retake from the live Matter workspace (1180x900, 157,730 bytes, sha256 f370fed2798a…)
+// with R1's exact alt; no step-count claim in the guide text (Hearing preparation is build-gated).
+test("#261: guide step 1 and frame 01 describe the Matter workspace, as R1 worded them", () => {
+  const step1 = GUIDE_STEPS.find((s) => s.id === "paste")!;
+  assert.ok(step1.text.startsWith("Open Matter in the menu. In the Facts step, paste the FIR, complaint or narrative and choose Split into numbered facts. Each fact becomes F1"));
+  assert.doesNotMatch(step1.text, /Screening page/);
+  assert.equal(statSync(join(root, "public", "guide", "01-screening-input.png")).size, 157730, "Studio's retake from the live Matter workspace (sha256 f370fed2798a…)");
+  assert.equal(GUIDE_IMAGES.input.alt, "The top of the Matter workspace with an invented plot-sale matter: the four steps (Facts done, Screen available, Memo and Hearing preparation not yet), the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, the retention note, and the box with the matter pasted in.");
+  assert.doesNotMatch(GUIDE_STEPS.map((x) => `${x.heading} ${x.text}`).join(" "), /four steps|step bar/i, "no step-count claim in the guide text (R1); the picture's alt may name the steps");
+});
