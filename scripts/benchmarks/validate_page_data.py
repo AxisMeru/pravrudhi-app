@@ -5,7 +5,7 @@ a numbers_file whose sha256 is recomputed and must equal numbers_sha256; every t
 block, a protocol; every bound has n; every paired test has p, label and family, and the label must agree with the Holm-adjusted p (or the raw p when no family);
 a leaderboard entry needs the Space's own URL and a date and a reviewed block; EVERY string value in a block (except ids, urls, shas, dates, review refs) passes lint_copy,
 unless it is a substring of a signed source file whose sha256 matches (signed_source).
-Usage: validate_page_data.py benchmark_results.json [--root DIR]   (DIR holds numbers_file and signed source files; default: the JSON's directory)"""
+Usage: validate_page_data.py benchmark_results.json [--root DIR] [--fixture]   (--fixture validates a separate layout-fixture file; the page build must refuse any production file with a fixture block)   (DIR holds numbers_file and signed source files; default: the JSON's directory)"""
 import hashlib, json, sys
 from pathlib import Path
 import re
@@ -64,8 +64,28 @@ def strings(o, key=None):
     elif isinstance(o, str):
         yield key, o
 
+def validate_fixture(doc, root="."):
+    """Layout-fixture mode (a SEPARATE file, never production data): every block must be marked fixture 'illustrative' and review_status 'pending'; toy arm names and
+    illustrative numbers are allowed; no reviews, leaderboard or rank; nothing here may be rendered as a result. Formats and copy lint still apply."""
+    errs = []
+    if doc.get("fixture_file") is not True: errs.append("a layout fixture file must carry \"fixture_file\": true")
+    for b in doc.get("blocks", []):
+        bid = b.get("id")
+        def e(msg): errs.append(f"{bid}: {msg}")
+        if b.get("fixture") != "illustrative": e("every block in a fixture file must have fixture 'illustrative'")
+        if b.get("kind_chip") not in KINDS: e(f"kind_chip not in the fixed vocabulary: {b.get('kind_chip')!r}")
+        if b.get("data_chip") not in DATA: e(f"data_chip not in the fixed vocabulary: {b.get('data_chip')!r}")
+        if b.get("review_status") != "pending": e("a fixture block must have review_status 'pending'")
+        if b.get("reviews") or b.get("leaderboard"): e("a fixture block carries no reviews and no leaderboard")
+        for fe in format_errors(b, f"{bid}"): e(fe)
+        items = [{"id": k, "text": v} for k, v in strings({kk: vv for kk, vv in b.items() if kk != "copy"})]
+        items += [{"id": c.get("id"), "text": c.get("text", ""), "signed_source": c.get("signed_source")} for c in b.get("copy", [])]
+        for it in lint_copy.lint_items(items, root): e(f"banned term {it['term']!r} in {it['id']!r}: ...{it['context']}...")
+    return errs
+
 def validate(doc, root="."):
     errs = []
+    if doc.get("fixture_file"): errs.append("production data must not be a fixture file (use --fixture for layout fixtures)")
     for b in doc.get("blocks", []):
         bid = b.get("id")
         def e(msg): errs.append(f"{bid}: {msg}")
@@ -75,8 +95,9 @@ def validate(doc, root="."):
         rs, oc = b.get("review_status"), b.get("outcome")
         if rs not in REVIEW: e(f"review_status must be one of {sorted(REVIEW)}")
         if oc not in OUTCOME: e(f"outcome must be one of {sorted(OUTCOME)}")
-        # placeholder arm names ("arm A", "arm B") are allowed only in a fixture marked illustrative, and a reviewed block can never be a fixture
+        # production data contains NO fixture block at all; placeholder arm names never validate here
         fixture = b.get("fixture")
+        if fixture: e("production data must not contain a fixture block (layout fixtures live in a separate file validated with --fixture)")
         if fixture not in (None, "illustrative"): e("fixture, when present, must be 'illustrative'")
         if fixture and rs == "reviewed": e("a reviewed block can never be a fixture")
         names = [row.get("arm") for t in b.get("tables", []) for row in t.get("rows", [])] + [x for p in b.get("paired", []) for x in str(p.get("pair", "")).split(" vs ")]
@@ -154,6 +175,6 @@ def validate(doc, root="."):
 if __name__ == "__main__":
     args = sys.argv[1:]
     root = args[args.index("--root") + 1] if "--root" in args else str(Path(args[0]).parent)
-    errs = validate(json.load(open(args[0])), root)
+    errs = (validate_fixture if "--fixture" in args else validate)(json.load(open(args[0])), root)
     for x in errs: print(x)
     sys.exit(1 if errs else 0)

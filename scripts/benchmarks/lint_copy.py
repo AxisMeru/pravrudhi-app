@@ -14,7 +14,7 @@ DIRECTION = ["higher", "lower", "stronger", "weaker", "greater", "ahead", "above
 PHRASES = DIRECTION + ["state of the art", "sota", "best in class", "on par", "as good as", "matches", "first", "lift"]
 SPECIAL = {"#1": re.compile(r"(?<!\w)#\s*1(?!\d)")}
 NAMED_TEST = re.compile(r"mcnemar", re.I)
-EXACT_ONLY = {"win", "wins", "winner", "winners", "won", "top", "first", "lift", "leading", "leader", "leaders", "leads", "tends"}   # whole word only: "leaderboard(s)" is a noun we need and stays allowed   # whole word only (avoid window, topic, lifting ...)
+EXACT_ONLY = {"proven", "win", "wins", "winner", "winners", "won", "top", "first", "lift", "leading", "leader", "leaders", "leads", "tends"}   # whole word only: "leaderboard(s)" is a noun we need and stays allowed   # whole word only (avoid window, topic, lifting ...)
 
 def norm(t):
     return re.sub(r"\s+", " ", t.lower().replace("-", " ").replace("‑", " ").replace("–", " ").replace("_", " "))

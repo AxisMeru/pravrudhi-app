@@ -143,19 +143,28 @@ class Validate(unittest.TestCase):
             self.assertTrue(any("bad format" in e for e in self.v(b2, d)))
             b3 = block(copy=[{"id": "x", "text": "ok", "signed_source": {"file": "we beat everyone", "sha256": "0" * 64}}])
             self.assertTrue(any("bad format" in e for e in self.v(b3, d)))
-    def test_placeholder_arm_names_only_in_illustrative_fixtures(self):
+    def test_placeholder_arm_names_never_validate_in_production(self):
         with tempfile.TemporaryDirectory() as d:
-            row_a = dict(ROW, arm="arm A"); row_b = dict(ROW, arm="Arm-B")
-            pending = block(tables=[{"title": "t", "rows": [row_a]}])
-            self.assertTrue(any("pending block carries numbers" in e for e in self.v(pending, d)))   # pending blocks carry no numbers anyway
-            rev = reviewed(d, tables=[{"title": "t", "rows": [row_a, row_b]}])
+            rev = reviewed(d, tables=[{"title": "t", "rows": [dict(ROW, arm="arm A"), dict(ROW, arm="Arm-B")]}])
             self.assertTrue(any("placeholder arm names" in e for e in self.v(rev, d)))
-            fx = reviewed(d, tables=[{"title": "t", "rows": [row_a]}]); fx["fixture"] = "illustrative"
-            self.assertTrue(any("reviewed block can never be a fixture" in e for e in self.v(fx, d)))
-            only_fx = block(fixture="illustrative")
-            self.assertEqual(self.v(only_fx, d), [])
             pair = reviewed(d, paired=[dict(PAIR, pair="arm A vs arm B")])
             self.assertTrue(any("placeholder arm names" in e for e in self.v(pair, d)))
+    def test_production_refuses_any_fixture_block_or_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertTrue(any("must not contain a fixture block" in e for e in self.v(block(fixture="illustrative"), d)))
+            self.assertTrue(any("must not contain a fixture block" in e for e in self.v(reviewed(d, fixture="illustrative"), d)))
+            self.assertTrue(any("not be a fixture file" in e for e in V.validate({"fixture_file": True, "blocks": []}, d)))
+    def test_fixture_mode_allows_toy_arms_but_nothing_renderable(self):
+        with tempfile.TemporaryDirectory() as d:
+            fx = block(fixture="illustrative", tables=[{"title": "layout", "rows": [dict(ROW, arm="arm A"), dict(ROW, arm="arm B")]}], paired=[dict(PAIR, pair="arm A vs arm B")])
+            self.assertEqual(V.validate_fixture({"fixture_file": True, "blocks": [fx]}, d), [])
+            self.assertTrue(any("fixture_file" in e for e in V.validate_fixture({"blocks": [fx]}, d)))
+            self.assertTrue(any("fixture 'illustrative'" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, fixture=None)]}, d)))
+            self.assertTrue(any("review_status 'pending'" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, review_status="reviewed")]}, d)))
+            self.assertTrue(any("no reviews and no leaderboard" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, leaderboard={"name": "x"})]}, d)))
+            self.assertTrue(any("banned term" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, what_it_is="our best arm")]}, d)))
+            self.assertTrue(any("kind_chip" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, kind_chip="Best harness ever")]}, d)))
+            self.assertTrue(any("data_chip" in e for e in V.validate_fixture({"fixture_file": True, "blocks": [dict(fx, data_chip="Unsigned chip")]}, d)))
     def test_market_leader_still_fails(self):
         self.assertTrue(L.lint("a market leader")); self.assertFalse(L.lint("the BhashaBench leaderboards"))
     def test_inconclusive_shows_numbers(self):

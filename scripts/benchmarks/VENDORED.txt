@@ -1,10 +1,10 @@
 Vendored from the research notes repository (explorer's benchmark page guard tools, cleared by R1), source commit 2dbb7b4c
 (research/explorations/benchmarks/). Copied unchanged; do not edit here. To update, copy the files from a newer cleared commit and record
-the new sha256 values and the commit below. (Previous: 8813449f.)
+the new sha256 values and the commit below. (Previous: 8813449f.) 15 Oct 2026 (app#344, Interim lead's ruling): validate_page_data.py and lint_copy.py are byte copies from the research notes repository's main (research/benchmarks/nyayasiddhi; validate_page_data adds --fixture mode and refuses fixture blocks in production); test_page_tools.py and test_bench_tables.py are copies of tests/test_nyayasiddhi_page_tools.py and tests/test_nyayasiddhi_bench_tables.py there with only the two import-path lines (sys import and sys.path.insert) removed, because these tests run from this directory; bench_tables.py and page_templates.py are unchanged.
 
 5b04aa567fc885379976e558f42768e1dda5e6b13a73e75735822c27eec7bfe4  bench_tables.py
-7b3342190693a3558f535bd82344099bc05aa80cf1b8a3eff4a88ab07422df9d  lint_copy.py
+0e60ed2c5ed10defeb846cd1e6b65231898271ab27aa708d8f1c2b0e7b2340ef  lint_copy.py
 a89acbc0289e089815a3bb80bbec30d9a2930a7fad1dec1e04eb16586ac26ac0  page_templates.py
 d834847b0150c3d89426ba0a1140094e93b4f1dc0bf695f2a165c31773e5a2b9  test_bench_tables.py
-af3574fb56cfc603edec6699c9ae99be7fe2d0c9543ab993fce32404360cdd42  test_page_tools.py
-e1a673edef576152a8d1a5d717119b32d7546725af3ccb87775ebf69105abbc3  validate_page_data.py
+1665af47351b9de7d33dbf5128e14f416411f8a0101697a5c3364442e2b3ab03  test_page_tools.py
+33f6f5b7c8b21c4daa930c0569e08344212326a00fb02aad3af4315266201bea  validate_page_data.py
