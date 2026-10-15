@@ -24,6 +24,12 @@ export interface NyayaSiddhiStrings {
   errorJoin: string;
   errorEnd: string;
   aboutRun: string;
+  /** R1's rulings on the explorer's gap review (15 Oct): one line under the unit chooser; the not-run group lines (#353); the Dishonoured cheque note (#356); the fixed-order line under the intro (#357). */
+  unitNote: string;
+  notRunGroup: string;
+  notRunAll: string;
+  ni138Note: string;
+  orderLine: string;
   /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
   zeroWithZero: string;
   unitHeading: string;
@@ -68,10 +74,15 @@ export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   errorJoin: " and ",
   errorEnd: ".",
   aboutRun: "About this run",
+  unitNote: "Every figure on this page counts items, however the system decides them.",
+  notRunGroup: "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.",
+  notRunAll: "Dishonoured-cheque items were not given to this system; the figures for All groups count them as not supported.",
+  ni138Note: "Dishonoured cheque is not a product contract; a result of 'supported' here is not a product result.",
+  orderLine: "Rows are listed in a fixed order, by split and system name, never by a figure.",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
-  unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
+  unitHeading: "How the system decides each item", groupHeading: "Offence group", groupAll: "All groups",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },
-  unit: { whole_item: "Whole item", element: "Each ingredient" },
+  unit: { whole_item: "Whole item at once", element: "Ingredient by ingredient" },
   split: { obj1_dev: "Development items; used to design fixes, so seen by us", obj1b_minus_cruelty: "Second development set, cruelty items left out; exposed to Anthropic in an earlier study" },
   status: { "self-reported": "Reported by the entrant", "re-scored": "Re-scored by the organisers", reproduced: "Reproduced by the organisers", "third-party verified": "Checked by an outside party" },
   measure: { false_proof: "Wrongly supported", coverage: "Coverage" },

@@ -47,6 +47,8 @@ export interface ResultRow {
   errorSensitivity: Record<string, { kAsProof: number; kAsNotProof: number; n: number; agree: boolean }>;
   /** The "About this run" lines of a reference arm, copied by the data build from its manifest's notes (never typed here); a reference arm without them is not shown (fail closed); a product row has none. */
   aboutRun: string[];
+  /** Groups the system was not given any item of (the data build sets it from the manifest's exact NI138 sentence): the page prints R1's not-run line instead of a figure. */
+  notRunGroups: string[];
 }
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -105,12 +107,17 @@ export function parseRow(x: unknown): ResultRow | null {
   }
   if (entryKind === "reference_arm" && aboutRun.length === 0) return null;
   if (entryKind !== "reference_arm" && aboutRun.length > 0) return null;
+  let notRunGroups: string[] = [];
+  if (x.not_run_groups !== undefined) {
+    if (!Array.isArray(x.not_run_groups) || x.not_run_groups.some((g) => typeof g !== "string" || !g)) return null;
+    notRunGroups = x.not_run_groups as string[];
+  }
   // a superseded row is never shown
   if (typeof x.superseded_by === "string" && x.superseded_by) return null;
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity, aboutRun,
+    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity, aboutRun, notRunGroups,
   };
 }
 
@@ -161,3 +168,13 @@ export function intervalGeometry(m: Metric): { low: number; high: number; point:
 
 /** A proportion as a percentage with one decimal ("3.5%"); the same form the page tools' accuracy template uses. */
 export const pct = (v: number): string => `${(v * 100).toFixed(1)}%`;
+
+/** True when the system was not given the group's items (never true for ALL). */
+export const isNotRun = (row: ResultRow, group: string): boolean => group !== ALL_GROUP && row.notRunGroups.includes(group);
+
+/** The fixed order of the cards (R1, #357): by split (obj1_dev first), inside a split the product row first and then the reference arms alphabetically by system name (ties by row id); never by a figure. */
+export function orderRows(rows: readonly ResultRow[]): { split: Split; rows: ResultRow[] }[] {
+  const kindRank = (r: ResultRow) => (r.entryKind === "product" ? 0 : 1);
+  const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  return SPLITS.map((split) => ({ split, rows: rows.filter((r) => r.split === split).sort((a, b) => kindRank(a) - kindRank(b) || cmp(a.systemName, b.systemName) || cmp(a.rowId, b.rowId)) })).filter((g) => g.rows.length > 0);
+}

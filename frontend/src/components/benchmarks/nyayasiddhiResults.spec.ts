@@ -16,7 +16,7 @@ const R1 = {
   intro: "NyayaSiddhi is our benchmark for screening under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
   benchmarksSupplyLine: "For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.",
   tableCaption: "NyayaSiddhi runs, one card for each run",
-  unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
+  unitHeading: "How the system decides each item", groupHeading: "Offence group", groupAll: "All groups",
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",
   stackLabel: { "dev stack (local)": "dev stack (local)", "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)": "Anthropic API; not our dev stack or production stack" },
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
@@ -26,10 +26,15 @@ const R1 = {
   errorJoin: " and ",
   errorEnd: ".",
   aboutRun: "About this run",
+  unitNote: "Every figure on this page counts items, however the system decides them.",
+  notRunGroup: "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.",
+  notRunAll: "Dishonoured-cheque items were not given to this system; the figures for All groups count them as not supported.",
+  ni138Note: "Dishonoured cheque is not a product contract; a result of 'supported' here is not a product result.",
+  orderLine: "Rows are listed in a fixed order, by split and system name, never by a figure.",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   noItems: "No items in this group.", noFigure: "No figure for this group.", chartLabel: "Interval for", of: "of", intervalLabel: "exact 95% interval", to: "to",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },
-  unit: { whole_item: "Whole item", element: "Each ingredient" },
+  unit: { whole_item: "Whole item at once", element: "Ingredient by ingredient" },
   split: { obj1_dev: "Development items; used to design fixes, so seen by us", obj1b_minus_cruelty: "Second development set, cruelty items left out; exposed to Anthropic in an earlier study" },
   status: { "self-reported": "Reported by the entrant", "re-scored": "Re-scored by the organisers", reproduced: "Reproduced by the organisers", "third-party verified": "Checked by an outside party" },
   measure: { false_proof: "Wrongly supported", coverage: "Coverage" },
@@ -59,7 +64,7 @@ test("the page shows R1's words: heading, intro, labels, status words, material 
 test("the supply line is shown once, directly under the intro, and nothing about a hidden split, a Space, a leaderboard or 'coming soon' is on the page", () => {
   const h = html();
   assert.equal((h.match(/For now the board holds only our own rows\./g) ?? []).length, 1);
-  assert.ok(h.indexOf("NyayaSiddhi is our benchmark") < h.indexOf("For now the board holds") && h.indexOf("For now the board holds") < h.indexOf("Counted per"));
+  assert.ok(h.indexOf("NyayaSiddhi is our benchmark") < h.indexOf("For now the board holds") && h.indexOf("For now the board holds") < h.indexOf("How the system decides each item"));
   const text = h.replace(/<[^>]+>/g, " ").replace("A larger hidden set depends on the supply of suitable court items, and we promise no date.", "");
   assert.doesNotMatch(text, /hidden|leaderboard|\bSpace\b|coming soon|\bsoon\b/i);
 });
@@ -201,4 +206,47 @@ test("About this run renders as a closed details block headed by R1's constant, 
   assert.ok(h.indexOf("First line.") < h.indexOf("Second line."));
   assert.equal(parseRows({ rows: [row("a", "self-reported", { entry_kind: "reference_arm" })] }).length, 0, "no lines, no row");
   assert.equal(parseRows({ rows: [row("b", "self-reported", { about_run: lines })] }).length, 0, "a product row has none");
+});
+
+// R1's rulings on the explorer's gap review (15 Oct): #353 not-run groups, #354 unit words, #356 note, #357 fixed order.
+const render = (rows: ReturnType<typeof parseRows>) => {
+  const h = renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows, strings: resolveStrings() }));
+  return h.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+};
+test("the unit words and the one line under the chooser are R1's (#354); the fixed-order line sits under the intro (#357)", () => {
+  const h = render(ROWS);
+  for (const t of ["How the system decides each item", "Whole item at once", "Every figure on this page counts items, however the system decides them.", "Rows are listed in a fixed order, by split and system name, never by a figure."]) assert.ok(h.includes(t), t);
+  assert.ok(!h.includes("Counted per") && !h.includes("Each ingredient"));
+  assert.ok(h.indexOf(R1.intro.slice(0, 20)) < h.indexOf(R1.orderLine));
+});
+
+test("cards sit under the two split subheadings, obj1_dev first; inside each the product row first, then the reference arms by system name, never by a figure (#357)", () => {
+  const mk = (id: string, split: string, name: string, kind: string, k: number) => row(id, "self-reported", { split, system_name: name, entry_kind: kind, ...(kind === "reference_arm" ? { about_run: ["A line."] } : {}), metrics: [m("false_proof", "ALL", k, 40, 0, 1), m("coverage", "ALL", 30 - k, 40, 0, 1)] });
+  const rows = parseRows({ rows: [mk("b2", "obj1b_minus_cruelty", "zz-arm", "reference_arm", 1), mk("d3", "obj1_dev", "mm-arm", "reference_arm", 0), mk("d1", "obj1_dev", "aa-arm", "reference_arm", 30), mk("d0", "obj1_dev", "zz-product", "product", 9), mk("b1", "obj1b_minus_cruelty", "aa-product", "product", 5)] });
+  const h = render(rows);
+  const order = (re: RegExp) => [...h.matchAll(re)].map((x) => x[1]);
+  assert.deepEqual(order(/data-testid="ns-split-heading">([^<]+)</g), [R1.split.obj1_dev, R1.split.obj1b_minus_cruelty]);
+  const cards = [...h.matchAll(/<dd class="[^"]*">(zz-product|aa-product|aa-arm|mm-arm|zz-arm) 1<\/dd>/g)].map((x) => x[1]);
+  assert.deepEqual(cards, ["zz-product", "aa-arm", "mm-arm", "aa-product", "zz-arm"]);
+  assert.equal((h.match(/data-testid="ns-split-section"/g) ?? []).length, 2);
+});
+
+test("a group the system was not given is NOT RUN: R1's line replaces the figures and the zero-with-zero line; All groups carries R1's no-numbers line; other groups are normal (#353)", () => {
+  const metrics = [m("false_proof", "ALL", 0, 40, 0, 0.1), m("coverage", "ALL", 0, 40, 0, 0.1), m("false_proof", "NI138", 0, 5, 0, 0.5), m("coverage", "NI138", 0, 5, 0, 0.5), m("false_proof", "CHEAT", 1, 5, 0, 0.7), m("coverage", "CHEAT", 2, 5, 0, 0.8)];
+  const rows = parseRows({ rows: [row("h", "self-reported", { entry_kind: "reference_arm", about_run: ["A line."], not_run_groups: ["NI138"], metrics }), row("p", "self-reported", { metrics })] });
+  assert.deepEqual(rows[0].notRunGroups, ["NI138"]);
+  const NOT_RUN = "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.";
+  const ALL_LINE = "Dishonoured-cheque items were not given to this system; the figures for All groups count them as not supported.";
+  const all = render(rows);
+  assert.equal((all.match(new RegExp(ALL_LINE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []).length, 1, "All groups: once, on the not-run row only");
+  assert.ok(!all.includes(NOT_RUN));
+  assert.ok(!/\d/.test(ALL_LINE), "no numbers in the All groups line");
+  assert.ok(all.includes("data-testid=\"ns-zero-with-zero\""), "the zero-with-zero line still shows for All groups");
+  assert.equal(parseRows({ rows: [row("bad", "self-reported", { not_run_groups: [1] })] }).length, 0);
+});
+
+test("the Dishonoured cheque note shows under that group's figures on every row where the group is shown, never on a not-run group (#356)", () => {
+  const NOTE = "Dishonoured cheque is not a product contract; a result of 'supported' here is not a product result.";
+  assert.ok(R1.ni138Note === NOTE);
+  assert.ok(renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ROWS, strings: resolveStrings() })).replace(/&#x27;/g, "'").includes(NOTE) === false, "not shown for the default group");
 });

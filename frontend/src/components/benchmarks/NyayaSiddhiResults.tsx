@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, errorLineFor, metricOf, pct, unitsOf, zeroWithZero, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
+import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, errorLineFor, isNotRun, metricOf, orderRows, pct, unitsOf, zeroWithZero, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
 import { resolveStrings, type NyayaSiddhiStrings } from "@/lib/nyayasiddhi";
 
 /** One figure: the count with its n, the exact interval printed, and the interval drawn on a 0 to 1 scale. The numbers are always in the text; the drawing only repeats them. */
@@ -51,12 +51,14 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
     <section className="space-y-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="nyayasiddhi-results">
       <h2 className="text-base font-medium text-[var(--color-text)]">{s.heading}</h2>
       <p className="text-sm text-[var(--color-text)]">{s.intro}</p>
+      <p className="text-sm text-[var(--color-text)]" data-testid="ns-order-line">{s.orderLine}</p>
       <p className="text-sm text-[var(--color-text)]" data-testid="ns-supply-line">{s.benchmarksSupplyLine}</p>
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-[var(--color-text)]">{s.unitHeading}</legend>
         <div className="flex flex-wrap gap-2" data-testid="ns-units">
           {units.map((u) => <Radio key={u} name="ns-unit" value={u} checked={u === activeUnit} onChange={() => setUnit(u)} label={s.unit[u]} />)}
         </div>
+        <p className="text-sm text-[var(--color-text-dim)]" data-testid="ns-unit-note">{s.unitNote}</p>
       </fieldset>
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-[var(--color-text)]">{s.groupHeading}</legend>
@@ -64,8 +66,12 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
           {groups.map((g) => <Radio key={g} name="ns-group" value={g} checked={g === activeGroup} onChange={() => setGroup(g)} label={g === ALL_GROUP ? s.groupAll : s.family[g]} />)}
         </div>
       </fieldset>
-      <ul className="space-y-3" aria-label={s.tableCaption} data-testid="ns-rows">
-        {shown.map((r) => (
+      <div className="space-y-5" data-testid="ns-rows">
+      {orderRows(shown).map((g) => (
+      <div key={g.split} className="space-y-3" data-testid="ns-split-section">
+        <h3 className="text-sm font-medium text-[var(--color-text)]" data-testid="ns-split-heading">{s.split[g.split]}</h3>
+        <ul className="space-y-3" aria-label={`${s.tableCaption}: ${s.split[g.split]}`}>
+        {g.rows.map((r) => (
           <li key={r.rowId} className="space-y-3 rounded-md border border-[var(--color-border)] p-3" data-testid="ns-row">
             <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colSystem}</dt><dd className="text-[var(--color-text)]">{r.systemName} {r.systemVersion}</dd></div>
@@ -75,10 +81,11 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               <div><dd className="text-[var(--color-text)]" data-testid="ns-stack">{s.stackLabel[r.stack]}</dd></div>
               {r.organiserEntry && r.entryKind && <div><dd className="text-[var(--color-text)]" data-testid="ns-organiser">{s.organiserEntry[r.entryKind]}</dd></div>}
             </dl>
+            {isNotRun(r, activeGroup) ? <p className="text-sm text-[var(--color-text)]" data-testid="ns-not-run">{s.notRunGroup}</p> : <>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {MEASURES.map((name) => (
                 <div key={name} className="space-y-1" data-testid={`ns-measure-${name === "coverage" ? "coverage" : "wrongly-supported"}`}>
-                  <h3 className="text-sm font-medium text-[var(--color-text)]">{s.measure[name]}</h3>
+                  <h4 className="text-sm font-medium text-[var(--color-text)]">{s.measure[name]}</h4>
                   <p className="text-xs text-[var(--color-text-dim)]">{s.measureNote[name]}</p>
                   <Figure m={metricOf(r, name, activeGroup)} measure={name} s={s} />
                 </div>
@@ -100,9 +107,15 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               </details>
             )}
             {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
+            {activeGroup === ALL_GROUP && r.notRunGroups.length > 0 && <p className="text-sm text-[var(--color-text)]" data-testid="ns-not-run-all">{s.notRunAll}</p>}
+            {activeGroup === "NI138" && <p className="text-sm text-[var(--color-text)]" data-testid="ns-ni138-note">{s.ni138Note}</p>}
+            </>}
           </li>
         ))}
-      </ul>
+        </ul>
+      </div>
+      ))}
+      </div>
     </section>
   );
 }
