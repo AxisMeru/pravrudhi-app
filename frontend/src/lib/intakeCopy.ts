@@ -6,6 +6,9 @@ export const INTAKE_RUN_BUTTON = "Run intake";
 export const INTAKE_UNREADABLE = "Intake could not run just now. Try again.";
 // #297 (R1, byte-exact): the engine stopped an intake that ran too long (503, code intake_timeout). No model is named, nothing is said about what was or was not kept, no time figure; the code itself is never shown.
 export const INTAKE_TIMEOUT = "This text took too long to read, so the intake was stopped. Try a shorter text.";
+// CANDIDATES for R1 to word (not signed; app#342, Track C's contract check). 422: the engine refused the text itself (nothing readable, or over its size limit), so "try again" with the same text cannot succeed; the engine's reason is never shown. 429: the first two sentences of the signed rate-limited line (the third, "Nothing was scored.", does not fit Intake), followed by the seconds the engine asked for (Retry-After), as on Screening and the citation check.
+export const INTAKE_REFUSED = "Intake could not read this text. Check the text, change it if needed, and run it again.";
+export const INTAKE_RATE_LIMITED = "Too many requests. Wait the number of seconds shown before trying again.";
 export const INTAKE_CITATIONS_HEADING = "Citations in your text";
 
 // R1's FINAL caveat set for the paste box (14 Oct; replaces the earlier per-fact notes). (1) is the privacy one and sits with the paste box before Run intake.
