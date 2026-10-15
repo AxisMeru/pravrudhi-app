@@ -2,7 +2,7 @@
 // (NEXT_PUBLIC_CITATION_EXISTENCE_ONLY=1). Flag off: today's signed pages are unchanged. Flag on: the app sends NO quote, shows no quote field, and says what the check can tell.
 export const CITATION_EXISTENCE_ONLY = process.env.NEXT_PUBLIC_CITATION_EXISTENCE_ONLY === "1";
 
-export const EXISTENCE_SUBTITLE = "Look up one citation and see whether the case is in our index.";
+export const EXISTENCE_SUBTITLE = "Look up citations, up to 5 at a time, and see whether each case is in our index.";
 export const EXISTENCE_LIMITS =
   "The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.";
 // R1 (14 Oct, #181): with the existence-only arm ON the check IS served, so the limits text no longer ends with "This check is not yet served in the hosted deployment." (the flag-OFF text keeps it).
@@ -32,7 +32,7 @@ export const QUOTE_NOT_SERVED_TEXT = "This check cannot look at quotes. It can o
 export const DETAIL_422_TEXT = "Enter one citation, and leave the quote empty.";
 
 /**
- * #263 (Interim lead, 15 Oct): the line under the citation box that says how many lines are in it and, past the cap, how many will be checked. PROPOSED wording, R1 to confirm or replace.
+ * #263 (Interim lead, 15 Oct): the line under the citation box that says how many lines are in it and, past the cap, how many will be checked. R1's exact words (15 Oct).
  * It is shown while typing or pasting, so nothing is cut without being said.
  */
 export const lineCountText = (lines: number, cap: number): string =>

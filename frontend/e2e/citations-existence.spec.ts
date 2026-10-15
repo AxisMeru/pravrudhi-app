@@ -26,7 +26,7 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
     return r.fulfill({ json: NOT_IN });
   });
   await page.goto("/citations");
-  await expect(page.getByText("Look up one citation and see whether the case is in our index.")).toBeVisible();
+  await expect(page.getByText("Look up citations, up to 5 at a time, and see whether each case is in our index.")).toBeVisible();
   await expect(page.getByTestId("citation-limits")).toHaveText("The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/word for word/i);

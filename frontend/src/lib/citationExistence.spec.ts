@@ -10,7 +10,7 @@ import { parseCitationLines } from "./citationsPanel";
 import { CITATION_ERROR_TEXT } from "./signedStrings";
 
 test("R1's existence-only strings are exact (14 Oct)", () => {
-  assert.equal(EXISTENCE_SUBTITLE, "Look up one citation and see whether the case is in our index.");
+  assert.equal(EXISTENCE_SUBTITLE, "Look up citations, up to 5 at a time, and see whether each case is in our index.");
   assert.equal(EXISTENCE_LIMITS, "The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   assert.equal(EXISTENCE_PANEL_LINE, "The citation is looked up in our index; quotes are not checked.");
   assert.equal(QUOTE_NOT_CHECKED_TEXT, "Only the citation was looked up; the quote was not checked.");
@@ -108,4 +108,11 @@ test("#258: CONFLICT_TEXT is R1's reworded sentence and the old advice appears n
   const old = "Put the case name " + "before the citation and check again"; // split so this file does not contain the old advice
   const hits = [...walk(join(root, "src")), ...walk(join(root, "e2e"))].filter((f) => !f.endsWith("citationExistence.spec.ts") && readFileSync(f, "utf8").includes(old));
   assert.deepEqual(hits, []);
+});
+
+// R1 (#266, 15 Oct): the /citations subtitle names the batch size, and the "5" in that literal is the panel's cap constant.
+test("#266: EXISTENCE_SUBTITLE says up to 5 at a time, equal to the cap constant", async () => {
+  const { MAX_CITATIONS_EXISTENCE } = await import("./citationsPanel");
+  assert.equal(EXISTENCE_SUBTITLE, "Look up citations, up to 5 at a time, and see whether each case is in our index.");
+  assert.match(EXISTENCE_SUBTITLE, new RegExp(`up to ${MAX_CITATIONS_EXISTENCE} at a time`));
 });
