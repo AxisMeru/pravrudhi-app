@@ -62,26 +62,51 @@ export interface TierPollerDeps {
   setTimer?: (fn: () => void, ms: number) => unknown;
   clearTimer?: (t: unknown) => void;
   random?: () => number;
+  /** True while the tab is hidden (default: document.hidden). A hidden tab makes no health read (#323, as the connection banner does for #312). */
+  isHidden?: () => boolean;
+  /** Calls the callback whenever the tab's visibility changes; returns the unsubscribe (default: the document's visibilitychange event). */
+  onVisibilityChange?: (cb: () => void) => () => void;
 }
+
+const documentHidden = (): boolean => typeof document !== "undefined" && document.hidden;
+const documentVisibility = (cb: () => void): (() => void) => {
+  if (typeof document === "undefined") return () => {};
+  document.addEventListener("visibilitychange", cb);
+  return () => document.removeEventListener("visibilitychange", cb);
+};
 
 /**
  * The polling loop behind useAssistantState, written without React so it can be tested (R2, #311): one read, then the next after nextTierPollDelay(answer, consecutive failures, jitter); the failure
- * count starts over on a read that answers; stop() cancels the pending timer and ignores a read still in flight. Returns stop.
+ * count starts over on a read that answers; stop() cancels the pending timer and ignores a read still in flight. A read that falls due while the tab is hidden is not made: it is made once, at the moment the tab
+ * is shown again (#323). Returns stop.
  */
-export function startTierPoller({ read, onState, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t as ReturnType<typeof setTimeout>), random = Math.random }: TierPollerDeps): () => void {
+export function startTierPoller({ read, onState, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t as ReturnType<typeof setTimeout>), random = Math.random, isHidden = documentHidden, onVisibilityChange = documentVisibility }: TierPollerDeps): () => void {
   let off = false;
   let timer: unknown;
   let failures = 0;
-  const poll = () =>
+  let waiting = false; // a read is due but the tab is hidden: it is made when the tab is shown
+  const poll = () => {
+    timer = undefined;
+    if (off) return;
+    if (isHidden()) {
+      waiting = true;
+      return;
+    }
+    waiting = false;
     read().then((s) => {
       if (off) return;
       onState(s);
       failures = s === "unreachable" ? failures + 1 : 0;
       timer = setTimer(poll, nextTierPollDelay(s, failures, random()));
     });
+  };
+  const unsubscribe = onVisibilityChange(() => {
+    if (waiting && !isHidden()) poll();
+  });
   poll();
   return () => {
     off = true;
+    unsubscribe();
     if (timer !== undefined) clearTimer(timer);
   };
 }

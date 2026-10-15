@@ -114,3 +114,20 @@ for (const [name, answer] of [...PAUSED_STATES, ["unreachable", { status: 503 }]
     await expect(page.getByTestId("workflow-status").first()).toHaveText("Building");
   });
 }
+
+// #323: a hidden tab makes no /api/health read (the tier poller and the connection banner both wait); showing the tab reads again.
+test("a hidden tab makes no health read; showing it reads again", async ({ page }) => {
+  let calls = 0;
+  await page.route("**/api/health", (r) => { calls++; return r.fulfill({ json: health({}) }); });
+  await page.addInitScript(() => {
+    let hidden = true;
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
+    (window as unknown as { __show: () => void }).__show = () => { hidden = false; document.dispatchEvent(new Event("visibilitychange")); };
+  });
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-row").first()).toBeVisible();
+  await page.waitForTimeout(1500);
+  expect(calls, "no health read while the tab is hidden").toBe(0);
+  await page.evaluate(() => (window as unknown as { __show: () => void }).__show());
+  await expect.poll(() => calls, { message: "a read when the tab is shown" }).toBeGreaterThanOrEqual(1);
+});
