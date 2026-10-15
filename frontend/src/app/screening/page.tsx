@@ -5,6 +5,7 @@
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
@@ -12,6 +13,7 @@ import { CaveatStrip } from "@/components/CaveatStrip";
 import { StartPanel } from "@/components/screening/StartPanel";
 import { FactFilter } from "@/components/screening/FactFilter";
 import { MemoMenu } from "@/components/screening/MemoMenu";
+import { activeFactFilter, resultKey, type FactFilterState } from "@/lib/screening/factFilter";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { CITATIONS_PANEL_ENABLED } from "@/lib/citationNav";
@@ -60,7 +62,7 @@ function download(name: string, body: string | Uint8Array, type: string): void {
 
 export default function ScreeningPage() {
   const [paste, setPaste] = useState("");
-  const [factFilterState, setFactFilterState] = useState<{ runId: string; factId: string } | null>(null); // per result: it applies only to the run it was chosen on, and nothing is stored
+  const [factFilterState, setFactFilterState] = useState<FactFilterState | null>(null); // per result: it applies only to the run it was chosen on, and nothing is stored
   const [startPanelClosed, setStartPanelClosed] = useState(false); // closed for this visit only: the browser keeps nothing for it (the data-handling page names the only three keys the app stores)
   // What Intake handed over: its chosen facts together with the citations it found. The citations are listed in Hearing preparation only while the screened facts are still those facts.
   const [intakeHand, setIntakeHand] = useState<{ facts: string[]; citations: Array<{ text: string }> } | null>(null);
@@ -103,6 +105,15 @@ export default function ScreeningPage() {
   const abortRef = useRef<AbortController | null>(null);
   // Leaving the page cancels the run in flight (#176): the request and its ticker no longer run on until the engine answers or the 320 s timeout.
   useEffect(() => () => abortRef.current?.abort(), []);
+  // A printed result is ALL of it (globals.css): the fact filter is a screen aid, so printing clears it first (flushSync, so the paper is drawn from the full list) and puts it back afterwards.
+  const filterBeforePrint = useRef<FactFilterState | null>(null);
+  useEffect(() => {
+    const before = () => flushSync(() => setFactFilterState((cur) => { filterBeforePrint.current = cur; return null; }));
+    const after = () => { if (filterBeforePrint.current) setFactFilterState(filterBeforePrint.current); filterBeforePrint.current = null; };
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
+  }, []);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
   const resultRef = useRef<HTMLDivElement>(null);
@@ -598,11 +609,11 @@ export default function ScreeningPage() {
             <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
             <FactFilter
               facts={result.facts}
-              selected={factFilterState && factFilterState.runId === result.run_id ? factFilterState.factId : null}
-              onSelect={(id) => setFactFilterState(id === null ? null : { runId: result.run_id, factId: id })}
+              selected={activeFactFilter(factFilterState, result)}
+              onSelect={(id) => setFactFilterState(id === null ? null : { key: resultKey(result), factId: id })}
             />
             {result.contracts.map((c, i) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={factFilterState && factFilterState.runId === result.run_id ? factFilterState.factId : null} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={activeFactFilter(factFilterState, result)} />
             ))}
             {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
