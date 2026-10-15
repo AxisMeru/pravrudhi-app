@@ -122,7 +122,7 @@ for (let run = 1; run <= REPEATS; run++) {
     await page.goto("/");
     await page.waitForURL(/\/screening/, { timeout: 20_000 });
     await page.goto("/screening");
-    await page.locator("main").getByRole("heading", { name: "Screening", exact: true }).waitFor();
+    await page.locator("main").getByRole("heading", { name: "Matter workspace", exact: true }).waitFor();
     const offline = page.getByTestId("screening-offline");
     // Lazily: innerText() on an element that is not there waits for the whole test timeout, so only read it when the notice is visible.
     const closed = await offline.isVisible().catch(() => false);
@@ -159,8 +159,8 @@ for (let run = 1; run <= REPEATS; run++) {
       const summary = summarize(c, rows);
       await expect(section.getByTestId("ingredient-row")).toHaveCount(rows.ingredients.length + rows.defences.length);
       await expect(section.getByTestId("summary-text")).toHaveText(summary.text);
-      // directly above the standing line
-      await expect(section.getByTestId("summary-banner")).toHaveText(new RegExp(`${summary.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*This is a screening aid, not legal advice\\. A lawyer decides\\.`));
+      // R1 (15 Oct): the standing line is once per result (above the first block), not under each block's banner sentence
+      await expect(section.getByTestId("summary-banner")).not.toContainText("A lawyer decides.");
       const chips = await section.getByTestId("ingredient-chip").allInnerTexts();
       for (const t of chips) expect(Object.values(CHIP_LABEL), `an unknown chip "${t}"`).toContain(t);
       // every row names what to check, and a cited fact is shown in full from the submitted facts

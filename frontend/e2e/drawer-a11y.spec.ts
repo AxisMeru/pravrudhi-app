@@ -66,8 +66,8 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await page.goto("/screening");
   await expect(page.locator("#primary-navigation")).toBeVisible();
   await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
-  await page.getByRole("link", { name: "Screening", exact: true }).first().focus();
-  await expect(page.getByRole("link", { name: "Screening", exact: true }).first()).toBeFocused();
+  await page.getByRole("link", { name: "Matter", exact: true }).first().focus();
+  await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeFocused();
 });
 
 // Deploy 3 #203 (explorer review of the live alias: D3, D7, D8). At a phone width the close button must not cover the product name, every control a thumb has to hit is at least 44 px

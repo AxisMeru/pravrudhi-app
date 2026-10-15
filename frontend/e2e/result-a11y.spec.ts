@@ -37,7 +37,8 @@ test("R6: one live region for the whole result, not one per block", async ({ pag
   await result(page);
   const statuses = page.getByTestId("screening-result").locator('[role="status"]');
   await expect(statuses).toHaveCount(1);
-  await expect(page.getByTestId("screening-result").getByText("This is a screening aid, not legal advice. A lawyer decides.")).toHaveCount(5);
+  // R1 (15 Oct): and the standing line is on the page once per result (above the first block), not once per block
+  await expect(page.getByText("This is a screening aid, not legal advice. A lawyer decides.", { exact: true })).toHaveCount(1);
 });
 
 test("R7: each offence checkbox is named 'title — sections' (a separator), never run together", async ({ page }) => {

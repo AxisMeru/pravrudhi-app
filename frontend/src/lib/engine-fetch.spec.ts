@@ -82,7 +82,8 @@ test("engineFetch: an anonymous 401 without authOptional still redirects to /sig
 // token"). This is what actually bounced an anonymous /matters visit to /signin mid-request, after the
 // edition()/notifications() fixes alone weren't enough to stop it.
 test("localToken: a 401 from the local-token probe (a hosted engine, no local write-guard) does not redirect", async () => {
-  const { localToken } = await import("./api");
+  const { localToken, forgetLocalToken } = await import("./api");
+  forgetLocalToken();
   await withAnonymousBrowser(async (assignCalls) => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () => new Response(JSON.stringify({ detail: "not found" }), { status: 401 })) as typeof fetch;
@@ -94,4 +95,70 @@ test("localToken: a 401 from the local-token probe (a hosted engine, no local wr
     }
     assert.deepEqual(assignCalls, [], "a failed local-token probe must never redirect to /signin");
   });
+});
+
+// Lead-2, 15 Oct: the probe's "no local token" answer (401/403/404) is remembered for the visit: one request, however many writes follow; a network failure is not remembered.
+test("localToken: a refused probe (403) is asked once; a network failure is asked again", async () => {
+  const { localToken, forgetLocalToken } = await import("./api");
+  await withAnonymousBrowser(async () => {
+    const originalFetch = globalThis.fetch;
+    let calls = 0;
+    try {
+      forgetLocalToken();
+      globalThis.fetch = (async () => { calls += 1; return new Response(JSON.stringify({ detail: "forbidden" }), { status: 403 }); }) as typeof fetch;
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(calls, 1, "the refused probe is not repeated on every write");
+      forgetLocalToken();
+      calls = 0;
+      globalThis.fetch = (async () => { calls += 1; throw new TypeError("network down"); }) as typeof fetch;
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(calls, 2, "a network failure is not remembered");
+    } finally {
+      globalThis.fetch = originalFetch;
+      forgetLocalToken();
+    }
+  });
+});
+
+// R2 (#212): a transient answer (429, 5xx) on the first write must not make a local desktop engine lose its token for the whole visit: only 401/403/404 are remembered.
+test("localToken: 429 and 5xx are not remembered: the next call asks again and gets the token", async () => {
+  const { localToken, forgetLocalToken } = await import("./api");
+  for (const status of [503, 502, 500, 429]) {
+    await withAnonymousBrowser(async () => {
+      const originalFetch = globalThis.fetch;
+      let calls = 0;
+      try {
+        forgetLocalToken();
+        globalThis.fetch = (async () => {
+          calls += 1;
+          return calls === 1 ? new Response(JSON.stringify({ detail: "busy" }), { status }) : new Response(JSON.stringify({ token: "local-token" }), { status: 200 });
+        }) as typeof fetch;
+        assert.equal(await localToken(), null, `${status}: no token this time`);
+        assert.equal(await localToken(), "local-token", `${status}: asked again, token received`);
+        assert.equal(calls, 2);
+      } finally {
+        globalThis.fetch = originalFetch;
+        forgetLocalToken();
+      }
+    });
+  }
+  for (const status of [401, 403, 404]) {
+    await withAnonymousBrowser(async () => {
+      const originalFetch = globalThis.fetch;
+      let calls = 0;
+      try {
+        forgetLocalToken();
+        globalThis.fetch = (async () => { calls += 1; return new Response(JSON.stringify({ detail: "no" }), { status }); }) as typeof fetch;
+        await localToken();
+        await localToken();
+        assert.equal(calls, 1, `${status} is remembered`);
+      } finally {
+        globalThis.fetch = originalFetch;
+        forgetLocalToken();
+      }
+    });
+  }
 });

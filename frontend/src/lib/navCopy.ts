@@ -1,3 +1,4 @@
+import { WORKSPACE_NAV_LABEL } from "./workspace";
 // Navigation and appearance labels of Pravrudhi-Nyaya (13 Oct 2026). Labels only: every route path stays as it was. R1 reads this file once; the wording audit scans it.
 export const THEME_LABELS = {
   heading: "Appearance",
@@ -12,7 +13,7 @@ export const NAV_GROUP_LABELS = { work: "Work", reference: "Reference", account:
 
 /** Item labels of the firm surface; the paths do not change. R1 reads this list once (13 Oct 2026: "Offence rules" for /matters). */
 export const NAV_LABELS = {
-  screening: "Screening",
+  screening: WORKSPACE_NAV_LABEL,
   matters: "Offence rules",
   citations: "Citation check",
   workflows: "Workflows",

@@ -7,7 +7,7 @@ const LINE_START = "Element-by-element screening under Indian law, starting with
 test("the name and the line: the title, the sidebar name, and the line on the Screening page", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
-  await expect(page).toHaveTitle("Pravrudhi-Nyaya");
+  await expect(page).toHaveTitle("Matter workspace · Pravrudhi-Nyaya"); // R1, 15 Oct (D4): every page has its own title
   await expect(page.locator("aside").getByText("Pravrudhi-Nyaya", { exact: true })).toBeVisible();
   await expect(page.getByTestId("product-line")).toContainText(LINE_START);
   await expect(page.getByTestId("product-line")).not.toContainText(/proof|proved|established|verbatim/i);
@@ -18,7 +18,7 @@ test("the grouped navigation: Work, Reference and Account, labels changed and pa
   const nav = page.getByRole("navigation", { name: "Primary" });
   for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
   await expect(nav.getByTestId("nav-group-studio")).toHaveCount(0);
-  const hrefs: Record<string, string> = { Screening: "/screening", Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
+  const hrefs: Record<string, string> = { Matter: "/screening", Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
   for (const [name, href] of Object.entries(hrefs)) await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", new RegExp(`${href}/?$`));
   await expect(nav.getByRole("link", { name: "User guide", exact: true })).toHaveAttribute("aria-current", "page");
   for (const studio of ["Objectives", "Progress", "Memory", "Catalogue", "Chat", "Runs", "Models", "Install"]) await expect(nav.getByRole("link", { name: studio, exact: true })).toHaveCount(0);
