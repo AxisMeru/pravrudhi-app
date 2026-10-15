@@ -427,7 +427,7 @@ function SurfaceSettings() {
         {canSeeApiKeys(access) && (
           <div>
             <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">API access</h2>
-            <Link href="/partner-keys" className="text-sm underline">
+            <Link href="/partner-keys" className="inline-flex min-h-6 items-center text-sm underline">
               API keys and usage
             </Link>
           </div>

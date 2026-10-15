@@ -18,7 +18,8 @@ for (const width of [1280, 390]) {
           if (r.width === 0 || r.height === 0 || cs.visibility === "hidden" || cs.display === "none" || e.closest("[aria-hidden=true]")) continue;
           if (r.width >= 24 && r.height >= 24) continue;
           if (r.width <= 2 && r.height <= 2) continue; // visually hidden (the skip link until focused, sr-only inputs)
-          if (e.tagName === "A") { const par = e.parentElement; if (par && (par.textContent ?? "").trim().length > (e.textContent ?? "").trim().length + 3 && getComputedStyle(par).display !== "flex") continue; } // inline in running text
+          // exempt ONLY an inline link inside a sentence: the link itself is display:inline AND its parent holds running text of its own (a direct text node), not just a sibling block such as a blurb
+          if (e.tagName === "A" && cs.display === "inline" && e.parentElement && Array.from(e.parentElement.childNodes).some((n) => n.nodeType === 3 && (n.textContent ?? "").trim().length > 0)) continue;
           out.push(`${e.tagName.toLowerCase()} "${(e.getAttribute("aria-label") ?? e.textContent ?? "").trim().slice(0, 40)}" ${Math.round(r.width)}x${Math.round(r.height)}`);
         }
         return out;
