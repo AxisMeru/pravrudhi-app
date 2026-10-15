@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -88,6 +88,38 @@ export function Sidebar() {
   }, []);
 
   const [navOpen, setNavOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLElement>(null);
+
+  // D2 (explorer review of the live alias): an open drawer is a modal dialog on a phone. Escape closes it and returns focus to its button; the page behind it is inert while it is open
+  // (not focusable, not clickable, not read), so keyboard and screen-reader users stay inside the drawer until they close it.
+  useEffect(() => {
+    if (!navOpen) return;
+    const main = document.getElementById("main");
+    main?.setAttribute("inert", "");
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      setNavOpen(false);
+      toggleRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    // From md up the sidebar is a normal column, not a drawer: if the window grows (tablet rotation, a widened window) while the drawer is open, close it, so the page behind is not left inert
+    // and the sidebar does not keep a dialog role (R2, #211).
+    const wide = window.matchMedia("(min-width: 768px)");
+    const onWide = () => {
+      if (wide.matches) setNavOpen(false);
+    };
+    wide.addEventListener("change", onWide);
+    onWide();
+    // focus moves into the dialog when it opens
+    drawerRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      wide.removeEventListener("change", onWide);
+      main?.removeAttribute("inert");
+    };
+  }, [navOpen]);
 
   // A drawer that survives a route change hides the page the reader just asked for. Closing it here, during
   // render, rather than in an effect after the fact: React's own pattern for resetting state when a prop
@@ -107,12 +139,13 @@ export function Sidebar() {
           390px phone took 62% of the screen permanently and left 150px for the content — no overflow, so
           nothing caught it, just an app that could not be read on the device the operator actually carries. */}
       <button
+        ref={toggleRef}
         type="button"
         onClick={() => setNavOpen((open) => !open)}
         aria-label={navOpen ? "Close navigation" : "Open navigation"}
         aria-expanded={navOpen}
         aria-controls="primary-navigation"
-        className="fixed left-3 top-3 z-[60] rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-[var(--color-text)] shadow-lg md:hidden"
+        className="fixed left-3 top-3 z-[60] rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-[var(--color-text)] shadow-lg md:hidden print:hidden"
       >
         {navOpen ? <X size={18} aria-hidden /> : <Menu size={18} aria-hidden />}
       </button>
@@ -123,10 +156,17 @@ export function Sidebar() {
           className="fixed inset-0 z-40 bg-black/60 md:hidden"
         />
       ) : null}
+      {/* D1: below `md` a CLOSED drawer is off-screen but its links, the account control and the theme buttons stayed in the tab order (13 stops at x<0). `max-md:invisible` takes it out of
+          the focus order and the accessibility tree; from `md` up the sidebar is a normal column and is never hidden. Open, it is a modal dialog (D2). */}
       <aside
+        ref={drawerRef}
+        tabIndex={-1}
         id="primary-navigation"
+        role={navOpen ? "dialog" : undefined}
+        aria-modal={navOpen ? true : undefined}
+        aria-label={navOpen ? "Navigation" : undefined}
         className={`fixed inset-y-0 left-0 z-50 flex h-full w-60 shrink-0 transform flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] transition-transform duration-200 md:static md:translate-x-0 ${
-          navOpen ? "translate-x-0" : "-translate-x-full"
+          navOpen ? "translate-x-0" : "-translate-x-full max-md:invisible"
         }`}
       >
       <div className="border-b border-[var(--color-border)] px-5 py-5">
