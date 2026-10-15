@@ -48,6 +48,13 @@ test("the NyayaSiddhi results: R1's heading and intro, the signed cards with the
   // "Counted per": whole item shows six cards (file order: the product rows, then the API reference arm, then the open-model reference arm)
   const rows = box.getByTestId("ns-row");
   await expect(rows).toHaveCount(6);
+  // About this run: one closed block on each of the four reference rows in this view (none on the two product rows); opening it shows R1's first line
+  const about = box.getByTestId("ns-about-run");
+  await expect(about).toHaveCount(4);
+  await expect(about.first()).not.toHaveAttribute("open", "");
+  await expect(about.first().locator("summary")).toHaveText("About this run");
+  await about.first().locator("summary").click();
+  await expect(about.first().locator("li").first()).toHaveText("The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.");
   await expect(rows.first()).toContainText("Reported by the entrant");
   await expect(rows.first()).toContainText("Second development set, cruelty items left out; exposed to Anthropic in an earlier study");
   await expect(rows.nth(1)).toContainText("Development items; used to design fixes, so seen by us");
@@ -75,6 +82,7 @@ test("the NyayaSiddhi results: R1's heading and intro, the signed cards with the
   // "Each ingredient": the API harness arm's two rows
   await box.getByTestId("ns-units").getByText("Each ingredient", { exact: true }).click();
   await expect(rows).toHaveCount(2);
+  await expect(box.getByTestId("ns-about-run")).toHaveCount(2);
   for (const i of [0, 1]) await expect(rows.nth(i)).toContainText("Anthropic API; not our dev stack or production stack");
   expect(await box.innerText()).toContain("8 of 64 (exact 95% interval 5.6% to 23.2%)");
 });

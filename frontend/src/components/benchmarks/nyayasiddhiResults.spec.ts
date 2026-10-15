@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import { createElement } from "react";
@@ -23,6 +25,7 @@ const R1 = {
   errorPartCoverage: "coverage would be {c} of {m}",
   errorJoin: " and ",
   errorEnd: ".",
+  aboutRun: "About this run",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   noItems: "No items in this group.", noFigure: "No figure for this group.", chartLabel: "Interval for", of: "of", intervalLabel: "exact 95% interval", to: "to",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },
@@ -70,7 +73,7 @@ test("the figures: count, n, the exact interval printed, the chart repeats them;
 });
 
 test("the two organiser variants are chosen by the row's entry kind, never by a name; a row without a kind is not shown; an outside entry carries none", () => {
-  const ref = parseRows({ rows: [row("ref", "self-reported", { system_name: "nyaya-product", entry_kind: "reference_arm" })] });
+  const ref = parseRows({ rows: [row("ref", "self-reported", { system_name: "nyaya-product", entry_kind: "reference_arm", about_run: ["A line."] })] });
   const hr = renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ref, strings: resolveStrings() }));
   assert.ok(hr.includes(R1.organiserEntry.reference_arm.replace("; ", "; ")) && !hr.includes(R1.organiserEntry.product), "a reference arm named nyaya-product still reads the reference-arm line");
   assert.equal(parseRows({ rows: [row("x", "self-reported", { entry_kind: undefined })] }).length, 0);
@@ -95,7 +98,7 @@ test("the errors line: only when the row had errors AND counting them the other 
 const API_STACK = "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)";
 test("the stack label is per row, keyed on the manifest's stack: the API stack reads R1's API label and never 'dev stack (local)'; an unknown stack shows no row (fail closed)", () => {
   const html1 = (rows: ReturnType<typeof parseRows>) => renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows, strings: resolveStrings() }));
-  const api = parseRows({ rows: [row("api", "self-reported", { stack: API_STACK, organiser_entry: true, entry_kind: "reference_arm" })] });
+  const api = parseRows({ rows: [row("api", "self-reported", { stack: API_STACK, organiser_entry: true, entry_kind: "reference_arm", about_run: ["A line."] })] });
   const h = html1(api);
   assert.ok(h.includes("Anthropic API; not our dev stack or production stack"));
   assert.ok(!h.includes("dev stack (local)"), "an API row never says dev stack (local)");
@@ -145,4 +148,57 @@ test("a row with nothing supported and nothing wrongly supported carries R1's ne
 
 test("no rows, no view: the page keeps its current text", () => {
   assert.equal(renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: [], strings: resolveStrings() })), "");
+});
+
+// R1's "About this run" lines (15 Oct): the shipped data carries them per reference row, copied by the data build from each signed manifest's notes (the builder's tests read the manifests); here the page data is pinned sentence by sentence per row type.
+const SMOKE = "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.";
+const TRAINED = "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.";
+const PREFACE = /^In \d+ of \d+ replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer\. Counted after the run, from the call log\.$/;
+const NO_SEED = "No seed: the API offers none.";
+const SHIPPED = (JSON.parse(readFileSync(join(__dirname, "..", "..", "data", "nyayasiddhi", "rows.json"), "utf8")) as { rows: Record<string, unknown>[] }).rows;
+const aboutOf = (kind: string, system: string) => SHIPPED.filter((r) => r.entry_kind === kind && String(r.system_name).includes(system)).map((r) => r.about_run as string[]);
+
+test("About this run: every reference row carries R1's lines, in order, per row type; a product row carries none", () => {
+  assert.equal(SHIPPED.filter((r) => r.entry_kind === "reference_arm").length, 6);
+  for (const r of SHIPPED.filter((x) => x.entry_kind === "product")) assert.equal(r.about_run, undefined);
+  const common = (l: string[]) => { assert.equal(l[0], SMOKE); assert.match(l[1], PREFACE); assert.equal(l[2], TRAINED); assert.match(l[3], /^not checked: /); };
+  const direct = aboutOf("reference_arm", "S-direct"), harness = aboutOf("reference_arm", "S-harness"), open = aboutOf("reference_arm", "O2");
+  assert.equal(direct.length, 2); assert.equal(harness.length, 2); assert.equal(open.length, 2);
+  for (const l of direct) {
+    common(l);
+    assert.equal(l[4], "This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.");
+    assert.equal(l[5], NO_SEED); assert.equal(l.length, 6);
+  }
+  for (const l of harness) {
+    common(l);
+    assert.equal(l[4], "Element by element against ONE pinned contract per family");
+    assert.equal(l[5], "Not a copy of the product's contract selection; never read beside the product row as the same task.");
+    assert.equal(l[6], "the check shows that the cited sentence exists, not that it supports the element");
+    assert.equal(l[7], NO_SEED); assert.equal(l.length, 8);
+  }
+  for (const l of open) {
+    common(l);
+    assert.match(l[4], /^In \d+ of \d+ replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer\.$/);
+    assert.match(l[5], /^Not served \(context rule: prompt tokens counted by the served model's own tokenizer \+ max_tokens 400 must fit the served max-model-len 4096; never truncated\): \d+ of \d+ scored items$/);
+    assert.equal(l[6], "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.");
+    assert.ok(!l.includes(NO_SEED), "the open-model rows ran locally and say nothing about an API seed");
+  }
+  // the obj1_dev open-model row had errors: it alone carries the n_error explanation
+  const dev = SHIPPED.find((r) => r.split === "obj1_dev" && String(r.system_name).includes("O2")) as { about_run: string[] };
+  assert.match(dev.about_run[7], /^n_error = rows with error true \(2: 1 not served for context, 1 an unparsable reply$/);
+  assert.equal(open.filter((l) => l.length === 8).length, 1);
+  // never printed: hashes, paths, spend, run directories
+  for (const r of SHIPPED) for (const l of r.about_run as string[] ?? []) { assert.doesNotMatch(l, /[0-9a-f]{12}|\/|USD|spend|run directory|\.jsonl?\b/i, l); }
+});
+
+test("About this run renders as a closed details block headed by R1's constant, one per reference row, lines in order; none for a product row; a reference arm without lines is not shown", () => {
+  const lines = ["First line.", "Second line."];
+  const ref = parseRows({ rows: [row("ref", "self-reported", { entry_kind: "reference_arm", about_run: lines }), row("prod", "self-reported")] });
+  const h = renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ref, strings: resolveStrings() }));
+  assert.equal((h.match(/data-testid="ns-about-run"/g) ?? []).length, 1);
+  assert.ok(!/<details[^>]*\sopen/.test(h), "closed by default");
+  assert.ok(h.includes(">About this run</summary>"));
+  assert.ok(h.indexOf("First line.") < h.indexOf("Second line."));
+  assert.equal(parseRows({ rows: [row("a", "self-reported", { entry_kind: "reference_arm" })] }).length, 0, "no lines, no row");
+  assert.equal(parseRows({ rows: [row("b", "self-reported", { about_run: lines })] }).length, 0, "a product row has none");
 });

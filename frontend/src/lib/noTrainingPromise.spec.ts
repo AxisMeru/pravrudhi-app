@@ -17,7 +17,10 @@ const EXEMPT_FILES = new Map<string, string>([
   ["package-lock.json", "dependency names, not copy"],
   ["e2e/support/reviewedSentences.ts", "the reviewed list quotes the benchmark sentence that is exempt above, split as the scan splits it"],
 ]);
-const EXEMPT_SENTENCES: readonly string[] = []; // none now: the benchmark-set sentence that was exempt here left with the figures (13 Oct)
+const EXEMPT_SENTENCES: readonly string[] = [
+  // R1's "About this run" disclosure of the open-weight reference arm (15 Oct), copied by the data build from the signed manifest's overlap_check: it says WE did not train that model; it says nothing about what happens to a submission
+  "not checked: public open-weight model used as released, no training by us",
+];
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

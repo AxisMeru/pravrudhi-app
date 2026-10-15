@@ -23,6 +23,7 @@ export interface NyayaSiddhiStrings {
   errorPartCoverage: string;
   errorJoin: string;
   errorEnd: string;
+  aboutRun: string;
   /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
   zeroWithZero: string;
   unitHeading: string;
@@ -66,6 +67,7 @@ export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   errorPartCoverage: "coverage would be {c} of {m}",
   errorJoin: " and ",
   errorEnd: ".",
+  aboutRun: "About this run",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },

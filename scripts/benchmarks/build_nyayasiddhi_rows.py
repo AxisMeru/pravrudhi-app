@@ -5,7 +5,7 @@ Checks, and exits 1 with every violation: each line is a JSON object with the re
 interval that this script RECOMPUTES (bench_tables.cp_interval, 5 decimals) and must equal; a row carries BOTH measures (false_proof, coverage); an organiser entry has an entry kind in the kinds file
 (row_id -> "product" | "reference_arm"), set by hand by the organisers and never inferred from a name; an outside entry has none. Nothing is edited or added except entry_kind and, for a row with --sensitivity, its error_sensitivity block (how each figure changes when errors are counted the other way); that file's n_error must equal the row's, and for every "measure|group" its n and k_as_not_proof must equal the row's own n and k (the rows count errors as not-proof). The source file's sha256 is recorded.
 Stdlib only."""
-import argparse, hashlib, json, sys
+import argparse, hashlib, json, re, sys
 from pathlib import Path
 from bench_tables import cp_interval
 
@@ -68,6 +68,43 @@ def stack_of(row, manifests):
             return None, f"{row['row_id']}: manifest stack {stack!r} is not one the page has words for {sorted(ALLOWED_STACKS)}"
     return None, f"{row['row_id']}: no manifest in the manifests dir has sha256 {row['manifest_sha256'][:12]}"
 
+# R1's "About this run" lines (15 Oct): copied VERBATIM from the signed manifest's notes by exact match; NUM stands for a count. A missing or altered sentence fails the build. Never printed: hashes, paths, spend, run directories.
+SMOKE = "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test."
+PREFACE = "In NUM of NUM replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log."
+TRAINED = "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us."
+ABOUT_ALL = [SMOKE, PREFACE, TRAINED]
+ABOUT_BY_SYSTEM = {
+    "nyayasiddhi-ref-S-direct": ["This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.", "No seed: the API offers none."],
+    "nyayasiddhi-ref-S-harness": ["Element by element against ONE pinned contract per family", "Not a copy of the product's contract selection; never read beside the product row as the same task.", "the check shows that the cited sentence exists, not that it supports the element", "No seed: the API offers none."],
+    "nyayasiddhi-open-O2": ["In NUM of NUM replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.", "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): NUM of NUM scored items", "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0."],
+}
+ABOUT_IF_ERRORS = {"nyayasiddhi-open-O2": "n_error = rows with error true (NUM: 1 not served for context, 1 an unparsable reply"}  # cut before the item id; used when the row has errors
+
+def _pat(sentence): return re.compile(re.escape(sentence).replace("NUM", r"\d+"))
+
+def about_run(row, manifests):
+    """The row's About-this-run lines from its manifest's notes (exact match, each exactly once, in R1's order), or (None, error)."""
+    for path in manifests:
+        raw = Path(path).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != row['manifest_sha256']: continue
+        m = json.loads(raw); notes = m.get('notes'); system = m.get('system_name')
+        if system not in ABOUT_BY_SYSTEM: return None, f"{row['row_id']}: reference arm with system_name {system!r}: no About-this-run list for it"
+        if not isinstance(notes, str): return None, f"{row['row_id']}: manifest has no notes"
+        want = ABOUT_ALL[:2] + ABOUT_BY_SYSTEM[system] + ([ABOUT_IF_ERRORS[system]] if row.get("n_error", 0) > 0 and system in ABOUT_IF_ERRORS else [])
+        lines, errs = [], []
+        for sentence in want:
+            hits = _pat(sentence).findall(notes)
+            if len(hits) != 1: errs.append(f"{row['row_id']}: required notes sentence found {len(hits)} times (needs exactly 1): {sentence[:70]!r}")
+            else: lines.append(hits[0])
+        ov = m.get('overlap_check')
+        if not isinstance(ov, str) or not ov.strip(): errs.append(f"{row['row_id']}: manifest overlap_check missing")
+        if len(_pat(TRAINED).findall(notes)) != 1: errs.append(f"{row['row_id']}: trained_on_public_items sentence not found exactly once")
+        if errs: return None, "; ".join(errs)
+        # order: smoke, preface, trained + overlap, then the arm's own lines (the seed line last)
+        head = lines[:2] + [TRAINED, ov]
+        return head + lines[2:], None
+    return None, f"{row['row_id']}: no manifest in the manifests dir has sha256 {row['manifest_sha256'][:12]}"
+
 def build(rows_path, kinds_path, sens_paths=None, manifests_dir=None):
     rows_paths = [rows_path] if isinstance(rows_path, (str, Path)) else list(rows_path)
     mdirs = [] if not manifests_dir else ([manifests_dir] if isinstance(manifests_dir, (str, Path)) else list(manifests_dir))
@@ -91,6 +128,10 @@ def build(rows_path, kinds_path, sens_paths=None, manifests_dir=None):
             if serr: errs.append(f"{label} ({serr})"); continue
             r = dict(r, stack=stack)
             if r.get("organiser_entry") is True: r = dict(r, entry_kind=kinds[r["row_id"]])
+            if r.get("entry_kind") == "reference_arm":
+                about, aerr = about_run(r, manifests)
+                if aerr: errs.append(f"{label} ({aerr})"); continue
+                r = dict(r, about_run=about)
             if r.get("n_error", 0) > 0 and r["row_id"] not in sens_all:
                 errs.append(f"{label} ({r['row_id']}): n_error {r['n_error']} > 0 needs an error-sensitivity file (--sensitivity ROW_ID=file); the page must not print a bare count")
                 continue

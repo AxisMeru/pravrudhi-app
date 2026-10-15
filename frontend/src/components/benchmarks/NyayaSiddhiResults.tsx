@@ -93,6 +93,12 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               ];
               return <p className="text-sm text-[var(--color-text)]" data-testid="ns-error-line">{s.errorLeadIn.replace("{e}", String(el.e)) + parts.join(s.errorJoin) + s.errorEnd}</p>;
             })()}
+            {r.aboutRun.length > 0 && (
+              <details className="text-sm text-[var(--color-text)]" data-testid="ns-about-run">
+                <summary className="flex min-h-[44px] cursor-pointer items-center font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">{s.aboutRun}</summary>
+                <ul className="mt-2 list-disc space-y-1 pl-5">{r.aboutRun.map((line, i) => <li key={i}>{line}</li>)}</ul>
+              </details>
+            )}
             {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
           </li>
         ))}

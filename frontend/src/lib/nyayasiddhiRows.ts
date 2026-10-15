@@ -45,6 +45,8 @@ export interface ResultRow {
   nError: number;
   /** For a row with errors: for each "measure|group", how the counts change when errors are counted the other way (from the error-sensitivity file); keyed like "false_proof|ALL". */
   errorSensitivity: Record<string, { kAsProof: number; kAsNotProof: number; n: number; agree: boolean }>;
+  /** The "About this run" lines of a reference arm, copied by the data build from its manifest's notes (never typed here); a reference arm without them is not shown (fail closed); a product row has none. */
+  aboutRun: string[];
 }
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -95,12 +97,20 @@ export function parseRow(x: unknown): ResultRow | null {
       errorSensitivity[key] = { kAsProof: v.k_as_proof as number, kAsNotProof: v.k_as_not_proof as number, n: v.n as number, agree: v.agree };
     }
   }
+  // a reference arm carries its run disclosures (a non-empty list of text lines); a product row carries none
+  let aboutRun: string[] = [];
+  if (x.about_run !== undefined) {
+    if (!Array.isArray(x.about_run) || x.about_run.some((l) => typeof l !== "string" || !l.trim())) return null;
+    aboutRun = x.about_run as string[];
+  }
+  if (entryKind === "reference_arm" && aboutRun.length === 0) return null;
+  if (entryKind !== "reference_arm" && aboutRun.length > 0) return null;
   // a superseded row is never shown
   if (typeof x.superseded_by === "string" && x.superseded_by) return null;
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity,
+    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity, aboutRun,
   };
 }
 

@@ -1,4 +1,4 @@
-import hashlib, json, tempfile, unittest
+import hashlib, json, os, tempfile, unittest
 from pathlib import Path
 import build_nyayasiddhi_rows as B
 from bench_tables import cp_interval
@@ -75,12 +75,69 @@ class T(unittest.TestCase):
             (Path(d) / "x").mkdir(); (Path(d) / "y").mkdir()
             a, b = Path(d) / "x" / "results.jsonl", Path(d) / "y" / "results.jsonl"  # same file name, different folders
             a.write_text(json.dumps(row(row_id="first")) + "\n"); b.write_text(json.dumps(row(row_id="second")) + "\n")
-            k = Path(d) / "k.json"; k.write_text(json.dumps({"first": "product", "second": "reference_arm"}))
+            k = Path(d) / "k.json"; k.write_text(json.dumps({"first": "product", "second": "product"}))
             md = Path(d) / "m"; md.mkdir(); (md / "m.json").write_bytes(manifest(DEV))
             data, errs = B.build([str(a), str(b)], str(k), None, [str(md)])
             self.assertEqual(errs, []); self.assertEqual([r["row_id"] for r in data["rows"]], ["first", "second"])
             self.assertEqual(set(data["source"]["rows_files_sha256"]), {"x/results.jsonl", "y/results.jsonl"})
             b.write_text(json.dumps(row(row_id="first")) + "\n")
             self.assertTrue(any("duplicate" in e for e in B.build([str(a), str(b)], str(k), None, [str(md)])[1]))
+
+# --- R1's About-this-run lines (15 Oct): copied verbatim from the manifest notes, fail closed -------------------------------------------------------------
+FINAL4 = Path("/home/ss/fusion-project/tmp_scratch/trackA/s7_682_rows/final4")
+def notes_for(system, n_error=False):
+    """A manifest's notes assembled from the builder's own sentences (invented counts), for the fail-closed tests."""
+    fill = lambda t: t.replace("NUM", "3")
+    parts = ["dev stack (local); filler.", B.SMOKE, fill(B.PREFACE), B.TRAINED] + [fill(x) for x in B.ABOUT_BY_SYSTEM[system]]
+    if n_error and system in B.ABOUT_IF_ERRORS: parts.append(fill(B.ABOUT_IF_ERRORS[system]) + ", '{}' (abc)).")
+    return " ".join(parts)
+def ref_run(system, notes, overlap="not checked: invented", n_error=0, stack=API):
+    m = json.dumps({"system_name": system, "stack": stack, "notes": notes, "overlap_check": overlap}).encode()
+    r = row(manifest_sha256=hashlib.sha256(m).hexdigest(), n_error=n_error, **({"error_mapping": "error_counted_as_not_proof"} if n_error else {}))
+    with tempfile.TemporaryDirectory() as d:
+        (Path(d) / "r.jsonl").write_text(json.dumps(r)); (Path(d) / "k.json").write_text(json.dumps({"invented-1": "reference_arm"}))
+        md = Path(d) / "m"; md.mkdir(); (md / "m.json").write_bytes(m)
+        sp = {}
+        if n_error:
+            (Path(d) / "s.json").write_text(json.dumps({"n_error": n_error, "metrics": {"false_proof|ALL": {"k_as_proof": 3, "k_as_not_proof": 2, "n": 40, "agree": False}}})); sp = {"invented-1": str(Path(d) / "s.json")}
+        return B.build(str(Path(d) / "r.jsonl"), str(Path(d) / "k.json"), sp, str(md))
+
+class AboutRun(unittest.TestCase):
+    def test_each_row_type_gets_its_lines_in_order_copied_verbatim(self):
+        for system, n_lines in [("nyayasiddhi-ref-S-direct", 6), ("nyayasiddhi-ref-S-harness", 8), ("nyayasiddhi-open-O2", 7)]:
+            data, errs = ref_run(system, notes_for(system)); self.assertEqual(errs, [], system)
+            lines = data["rows"][0]["about_run"]; self.assertEqual(len(lines), n_lines, system)
+            self.assertEqual(lines[0], B.SMOKE); self.assertTrue(lines[1].startswith("In 3 of 3 replies, the model wrote explanatory text")); self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], "not checked: invented")
+            for l in lines[:3]: self.assertIn(l, notes_for(system))
+    def test_the_open_model_row_with_errors_adds_the_n_error_explanation_and_only_then(self):
+        data, errs = ref_run("nyayasiddhi-open-O2", notes_for("nyayasiddhi-open-O2", n_error=True), stack=DEV, n_error=2); self.assertEqual(errs, [])
+        self.assertEqual(data["rows"][0]["about_run"][-1], "n_error = rows with error true (3: 1 not served for context, 1 an unparsable reply")
+        self.assertEqual(len(ref_run("nyayasiddhi-open-O2", notes_for("nyayasiddhi-open-O2"), stack=DEV)[0]["rows"][0]["about_run"]), 7)
+        self.assertTrue(ref_run("nyayasiddhi-open-O2", notes_for("nyayasiddhi-open-O2"), stack=DEV, n_error=2)[1], "errors without the explanation sentence fail")
+    def test_a_missing_or_changed_sentence_fails_closed_for_every_required_line(self):
+        for system in B.ABOUT_BY_SYSTEM:
+            base = notes_for(system)
+            for sentence in [B.SMOKE, B.PREFACE.replace("NUM", "3"), B.TRAINED] + [x.replace("NUM", "3") for x in B.ABOUT_BY_SYSTEM[system]]:
+                self.assertIn(sentence, base)
+                self.assertTrue(ref_run(system, base.replace(sentence, ""))[1], f"{system}: removed {sentence[:40]!r}")
+                self.assertTrue(ref_run(system, base.replace(sentence, sentence[:-3] + "xyz"))[1], f"{system}: changed {sentence[:40]!r}")
+                self.assertTrue(ref_run(system, base + " " + sentence)[1], f"{system}: twice {sentence[:40]!r}")
+    def test_an_unknown_system_a_missing_overlap_check_or_no_notes_fails_closed(self):
+        self.assertTrue(ref_run("some-other-system", notes_for("nyayasiddhi-ref-S-direct"))[1])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct"), overlap="")[1])
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", None)[1])
+    def test_a_product_row_carries_no_about_run(self):
+        data, errs = run([row()], {"invented-1": "product"}); self.assertEqual(errs, []); self.assertNotIn("about_run", data["rows"][0])
+    @unittest.skipUnless(FINAL4.is_dir(), "the signed final4 manifests are not on this machine")
+    def test_the_signed_final4_manifests_give_the_exact_lines(self):
+        for f in sorted((FINAL4 / "manifests").glob("*.json")):
+            m = json.loads(f.read_text()); sha = hashlib.sha256(f.read_bytes()).hexdigest()
+            lines, err = B.about_run({"row_id": f.stem, "manifest_sha256": sha, "n_error": 2 if m["system_name"].endswith("O2") and "obj1_dev" in f.name else 0}, [str(f)])
+            self.assertIsNone(err, f.name)
+            for l in lines: self.assertIn(l, m["notes"] + " " + m["overlap_check"], f"{f.name}: line is not a substring of the manifest: {l[:60]!r}")
+            self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], m["overlap_check"])
+            self.assertEqual(len(lines), {"nyayasiddhi-ref-S-direct": 6, "nyayasiddhi-ref-S-harness": 8, "nyayasiddhi-open-O2": 8 if "obj1_dev" in f.name else 7}[m["system_name"]], f.name)
+            for l in lines: self.assertNotRegex(l, r"[0-9a-f]{12}|/|USD|spend|run directory|\.jsonl?\b")
+
 if __name__ == "__main__":
     unittest.main()

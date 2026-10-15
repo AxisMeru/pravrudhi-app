@@ -233,6 +233,14 @@
    "unit": "whole_item"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 16 of 171 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: closed model used as released; public court texts may be in its pretraining; no item-overlap check was run",
+    "This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.",
+    "No seed: the API offers none."
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
@@ -334,6 +342,14 @@
    "unit": "whole_item"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 0 of 143 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: closed model used as released; public court texts may be in its pretraining; no item-overlap check was run",
+    "This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.",
+    "No seed: the API offers none."
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
@@ -415,6 +431,16 @@
    "unit": "whole_item"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 0 of 225 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: closed model used as released; public court texts may be in its pretraining; no item-overlap check was run",
+    "Element by element against ONE pinned contract per family",
+    "Not a copy of the product's contract selection; never read beside the product row as the same task.",
+    "the check shows that the cited sentence exists, not that it supports the element",
+    "No seed: the API offers none."
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
@@ -516,6 +542,16 @@
    "unit": "element"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 0 of 429 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: closed model used as released; public court texts may be in its pretraining; no item-overlap check was run",
+    "Element by element against ONE pinned contract per family",
+    "Not a copy of the product's contract selection; never read beside the product row as the same task.",
+    "the check shows that the cited sentence exists, not that it supports the element",
+    "No seed: the API offers none."
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
@@ -597,6 +633,16 @@
    "unit": "element"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 0 of 170 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
+    "In 0 of 170 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
+    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 1 of 171 scored items",
+    "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.",
+    "n_error = rows with error true (2: 1 not served for context, 1 an unparsable reply"
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
@@ -748,6 +794,15 @@
    "unit": "whole_item"
   },
   {
+   "about_run": [
+    "The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.",
+    "In 0 of 143 replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer. Counted after the run, from the call log.",
+    "trained_on_public_items is false because we did not train or tune this model; what its vendor trained it on is not known to us.",
+    "not checked: public open-weight model used as released, no training by us; no item-overlap check was run",
+    "In 0 of 143 replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer.",
+    "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): 0 of 143 scored items",
+    "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0."
+   ],
    "benchmark_version": "v0.2",
    "entry_kind": "reference_arm",
    "error_mapping": "error_counted_as_not_proof",
