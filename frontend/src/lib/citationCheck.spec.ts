@@ -161,7 +161,7 @@ test("checkInputs: a null quote is an existence-only check and passes; an empty 
   assert.equal(checkInputs("C".repeat(500), null).ok, true);
 });
 
-test("the example citation in the citation boxes is R1's invented one, with a future year (15 Oct)", async () => {
+test("the example citation in the citation boxes is the real public one, (2014) 8 SCC 273 (Interim lead decision, #280)", async () => {
   const { CITATION_PLACEHOLDER } = await import("./citationCheck");
-  assert.equal(CITATION_PLACEHOLDER, "(2099) 1 SCC 1");
+  assert.equal(CITATION_PLACEHOLDER, "(2014) 8 SCC 273");
 });

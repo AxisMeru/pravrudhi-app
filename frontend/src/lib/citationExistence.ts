@@ -18,7 +18,7 @@ export const CONFLICT_TEXT = "We could not match this citation to exactly one ca
 /** #223 D2a (R1): plain headings for the two statuses that had none (CONFLICT) or a raw token (MALFORMED) while the index is existence-only. */
 export const CONFLICT_HEADING = "Could not match one case";
 export const MALFORMED_HEADING = "Not looked up";
-export const MALFORMED_TEXT = "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.";
+export const MALFORMED_TEXT = "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2014) 8 SCC 273. That does not show whether a citation is real.";
 /** #223 D3 (R1): the coverage limit BEFORE the user types, under the existing limits (on /citations and in the panel). */
 export const COVERAGE_LIMITS_TEXT = "Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as \u201CNot found in our index\u201D.";
 /** #223 D4 (R1): signed-out visitors are told before typing, and a 401 reads as a citation-check sentence (not the screening session wording). */

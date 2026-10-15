@@ -131,7 +131,7 @@ test("/citations (arm ON): a line the engine cannot read as one citation is 'Not
   await page.getByRole("textbox").fill("1992 Supp (1) SCC 335");
   await page.getByRole("button", { name: "Check citations" }).click();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Not looked up");
-  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2014) 8 SCC 273. That does not show whether a citation is real.");
   await expect(page.locator("body")).not.toContainText(/MALFORMED|Exactly one parseable/);
 });
 
