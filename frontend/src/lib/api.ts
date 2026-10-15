@@ -1592,7 +1592,7 @@ export async function analyseFacts(
   opts.onRequestStart?.();
   const body = JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", ...(opts.assisted ? { consent: true } : {}) });
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
-  // uncoded 5xx is retried once; a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
+  // uncoded 5xx is retried once (plain route only, #338); a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
   let res: Response;
   try {
     res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
@@ -1604,7 +1604,8 @@ export async function analyseFacts(
   }
   if (!res.ok) {
     let err = await apiErrorFrom(res, path);
-    if (res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
+    // #338: the assisted route (paid, consent per run) is never retried on a 5xx, coded or not: an unhandled exception can come after paid work, and a retry would start a second paid session on one consent tick.
+    if (!opts.assisted && res.status >= 500 && (!err.code || RETRY_ONCE_CODES.has(err.code))) {
       res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
       if (!res.ok) err = await apiErrorFrom(res, path);
     }
