@@ -39,7 +39,7 @@ export function FilmPlayer({ id }: { id: FilmId }) {
         {showVideo ? (
           <video
             ref={video}
-            className="block aspect-video w-full text-[var(--color-on-hero)]"
+            className="block aspect-video w-full text-white"
             controls
             muted
             playsInline
