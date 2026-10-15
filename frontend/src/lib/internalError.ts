@@ -6,8 +6,8 @@ import { ApiError } from "./api";
  */
 export const INTERNAL_ERROR_CODE = "internal_error";
 
-/** R1's sentence goes here, as this one constant (one line). null = not worded yet: every surface keeps its own existing generic line, so nothing changes until R1 rules. */
-export const INTERNAL_ERROR_LINE: string | null = null;
+/** R1's sentence (15 Oct, byte-exact): shown for an internal error on every surface, replacing the whole generic line. (null would keep each surface's own generic line.) */
+export const INTERNAL_ERROR_LINE: string | null = "Something went wrong on our side, so this request was not completed. Try again in a moment.";
 
 /** An unhandled engine exception: HTTP 500 with the code internal_error, or the old bare 500. */
 export function isInternalError(e: unknown): boolean {

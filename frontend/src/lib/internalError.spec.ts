@@ -21,14 +21,17 @@ test("an internal error is HTTP 500, coded or bare, and nothing else", () => {
   assert.equal(isInternalError(new Error("x")), false);
 });
 
-test("not worded yet (INTERNAL_ERROR_LINE is null): every surface keeps its own existing generic line, unchanged", () => {
-  assert.equal(INTERNAL_ERROR_LINE, null);
+test("R1's sentence is set, byte-exact, and replaces the whole line on every surface for the coded and the bare 500 (including \"Nothing was scored.\" and \"No result was returned.\")", () => {
+  assert.equal(INTERNAL_ERROR_LINE, "Something went wrong on our side, so this request was not completed. Try again in a moment.");
   for (const e of [CODED, BARE]) {
-    assert.equal(classifyAnalyseError(e).message, "The engine answered with an error (HTTP 500). Nothing was scored.");
-    assert.equal(classifyVerifyError(e).message, "The engine answered with an error (HTTP 500). No result was returned.");
-    assert.equal(intakeErrorLine(e), INTAKE_UNREADABLE);
+    assert.equal(classifyAnalyseError(e).message, INTERNAL_ERROR_LINE);
+    assert.equal(classifyVerifyError(e).message, INTERNAL_ERROR_LINE);
+    assert.equal(classifyVerifyError(e, false).message, INTERNAL_ERROR_LINE);
+    assert.equal(intakeErrorLine(e), INTERNAL_ERROR_LINE);
+    for (const m of [classifyAnalyseError(e).message, classifyVerifyError(e).message, intakeErrorLine(e)]) assert.doesNotMatch(m, LEAKS);
   }
-  assert.equal(internalErrorLine("fallback"), "fallback");
+  assert.equal(internalErrorLine("fallback"), INTERNAL_ERROR_LINE);
+  assert.equal(internalErrorLine("fallback", null), "fallback");
 });
 
 test("once R1's sentence is set, it is the only text on every surface: no code, no 500, no HTTP, no engine detail, for the coded and the bare 500", () => {
