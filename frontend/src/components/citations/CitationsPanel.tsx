@@ -11,11 +11,12 @@ import { CitationCheckResult } from "./CitationCheck";
 import { useSignedOut } from "./useSignedOut";
 
 /** The coverage line for a finished run: the engine's own field from the first reply that carried one, else the plain fallback. */
-export function panelCoverage(rows: readonly PanelRow[]): string {
+export function panelCoverage(rows: readonly PanelRow[]): string | null {
   for (const r of rows) {
     if (r.state.phase === "result" && r.state.coverage !== undefined) return coverageLine(r.state.coverage);
   }
-  return COVERAGE_NOT_REPORTED;
+  // #279: the fallback line is only about an engine that ANSWERED; when nothing was looked up (signed out, refused, malformed) it would read as the opposite of "Nothing was looked up".
+  return rows.some((r) => r.state.phase === "result") ? COVERAGE_NOT_REPORTED : null;
 }
 
 /**
@@ -35,7 +36,7 @@ export function CitationsPanelView({ rows, skipped, coverage, existenceOnly = CI
         <div key={r.item.line} className="rounded-md border border-[var(--color-border)] p-2 text-sm" data-testid="citations-panel-row">
           <div className="font-mono text-xs text-[var(--color-text)]">{r.item.citation}</div>
           {r.state.phase === "idle" && <p className="mt-1 text-xs text-[var(--color-text-dim)]">Not checked.</p>}
-          {r.state.phase !== "idle" && <CitationCheckResult state={r.state} />}
+          {r.state.phase !== "idle" && <CitationCheckResult state={r.state} announce={false} />}
           {r.item.quoteIgnored && r.state.phase !== "idle" && <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-quote-note">{QUOTE_NOT_CHECKED_TEXT}</p>}
         </div>
       ))}
@@ -112,16 +113,21 @@ export function CitationsPanel({ initial, embedded = false }: { initial?: string
           {SIGNED_OUT_BEFORE_TEXT}
         </p>
       )}
-      <label className="block text-sm text-[var(--color-text)]">
+      <label htmlFor="citations-panel-input" className="block text-sm font-medium text-[var(--color-text)]">Citations, one per line</label>
+      <p id="citations-panel-help" className="text-sm text-[var(--color-text)]">
         {CITATION_EXISTENCE_ONLY ? `One citation per line, at most ${MAX_CITATIONS_EXISTENCE} at a time. ${EXISTENCE_PANEL_LINE}` : "One citation per line. To check that words appear in the case, add them after a | on the same line; without them only the citation is looked up."}
+      </p>
+      <div className="block text-sm text-[var(--color-text)]">
         <textarea
+          id="citations-panel-input"
+          aria-describedby="citations-panel-help"
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={CITATION_EXISTENCE_ONLY ? MAX_CITATIONS_EXISTENCE : 4}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
           placeholder={CITATION_EXISTENCE_ONLY ? CITATION_PLACEHOLDER : `${CITATION_PLACEHOLDER} | the words to look for`}
         />
-      </label>
+      </div>
       {CITATION_EXISTENCE_ONLY && lineCount > 0 && (
         <p className="text-xs text-[var(--color-text-dim)]" aria-live="polite" data-testid="citations-panel-count">{lineCountText(lineCount, MAX_CITATIONS_EXISTENCE)}</p>
       )}

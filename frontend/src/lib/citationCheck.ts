@@ -164,4 +164,4 @@ export function checkInputs(citation: string, quote: string | null): { ok: true 
 }
 
 /** The example citation in the citation boxes (R1, 15 Oct): invented, with a future year so it cannot be a real entry. */
-export const CITATION_PLACEHOLDER = "(2099) 1 SCC 1";
+export const CITATION_PLACEHOLDER = "(2014) 8 SCC 273";

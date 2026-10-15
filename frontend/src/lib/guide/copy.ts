@@ -32,7 +32,7 @@ export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
 
 // Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
 // hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
-const FRAME_05_RETAKEN = true; // retaken by Track A at #209 72a74cb1 on a build with both citation flags on (528x246, 14,178 bytes, invented matter only; placeholder (2099) 1 SCC 1)
+const FRAME_05_RETAKEN = true; // retaken by Web on a citations-ON build at the D9 batch (#281: label "Citations, one per line"; #280: placeholder (2014) 8 SCC 273); 528x366, 28,522 bytes, invented matter only
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
@@ -55,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel: a preview label, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
+    alt: "The Case citations panel: a preview label, a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
