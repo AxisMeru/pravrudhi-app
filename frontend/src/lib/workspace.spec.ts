@@ -6,7 +6,7 @@ import { NAV_LABELS } from "./navCopy";
 import { PAGE_TITLES, pageTitle } from "./pageTitles";
 import { PALETTE_PAGES } from "./palette";
 import { SCREENING_TITLE } from "./screening/copy";
-import { HEARING_NOT_OFFERED_TEXT, WORKFLOW_OPEN_LABEL, WORKSPACE_ANCHORS, WORKSPACE_LOCKED_TEXT, WORKSPACE_NAV_LABEL, WORKSPACE_STATE_WORDS, WORKSPACE_STEP_LABELS, WORKSPACE_TITLE, workspaceSteps } from "./workspace";
+import { INTAKE_START_SENTENCE, intakeLineShown, HEARING_NOT_OFFERED_TEXT, WORKFLOW_OPEN_LABEL, WORKSPACE_ANCHORS, WORKSPACE_LOCKED_TEXT, WORKSPACE_NAV_LABEL, WORKSPACE_STATE_WORDS, WORKSPACE_STEP_LABELS, WORKSPACE_TITLE, workspaceSteps } from "./workspace";
 import { WORKFLOWS, workflowLink, workflowStepAnchor } from "./workflowsCopy";
 
 // R1's exact strings (15 Oct).
@@ -78,4 +78,12 @@ test("Hearing preparation: the row status, step 4 and the flag agree; the sectio
   assert.ok(src.includes(`id={WORKSPACE_ANCHORS.hearing}`), "the section carries the step-hearing anchor");
   // the row note stays exactly as signed
   assert.equal(row.note, "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law.");
+});
+
+// R1 (15 Oct, #247): the Intake line on the Matter workspace is present only with the flag on AND a signed-in user; every other combination shows nothing.
+test("the Intake line: R1's sentence, shown only when the flag is on and the user is signed in", () => {
+  assert.equal(INTAKE_START_SENTENCE, "To start from pasted text, use Intake.");
+  for (const on of [true, false]) for (const signedIn of [true, false, null] as const) {
+    assert.equal(intakeLineShown(on, signedIn), on && signedIn === true, `flag ${on}, signed in ${signedIn}`);
+  }
 });
