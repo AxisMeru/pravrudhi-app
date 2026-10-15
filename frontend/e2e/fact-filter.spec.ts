@@ -75,6 +75,17 @@ test("printing shows ALL the rows by construction (no event needed): the filter 
   await expect(page.getByTestId("fact-filter-F1")).toHaveAttribute("aria-pressed", "true");
 });
 
+test("printing with a fact that no row cites selected: the screen-only empty line is not on the paper, all rows are", async ({ page }) => {
+  await screened(page);
+  await page.getByTestId("fact-filter-F3").click();
+  await expect(page.getByTestId("fact-filter-empty")).toBeVisible();
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByTestId("fact-filter-empty")).not.toBeVisible();
+  await expect(page.locator('[data-testid="ingredient-row"]:visible')).toHaveCount(3);
+  await page.emulateMedia({ media: "screen" });
+  await expect(page.getByTestId("fact-filter-empty")).toBeVisible();
+});
+
 test("Show all rows by keyboard leaves focus on the fact that was selected, not on the page", async ({ page }) => {
   await screened(page);
   await page.getByTestId("fact-filter-F2").focus();

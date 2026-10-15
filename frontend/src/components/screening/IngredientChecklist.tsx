@@ -68,7 +68,7 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
         )}
       </header>
       <SummaryBanner summary={summary} agenda={agenda} live={live} />
-      {filteredOut && <p className="text-sm text-[var(--color-text-dim)]" data-testid="fact-filter-empty">{FACT_FILTER_EMPTY}</p>}
+      {filteredOut && <p className="text-sm text-[var(--color-text-dim)] print:hidden" data-testid="fact-filter-empty">{FACT_FILTER_EMPTY}</p>}
       {referral && (
         <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>

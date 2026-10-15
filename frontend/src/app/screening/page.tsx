@@ -473,13 +473,13 @@ export default function ScreeningPage() {
                               // unticking a pinned row the search does not match removes it from the list under the focus: the focus goes to the search box, not to the page
                               if (on && offenceQ !== "" && !offenceHit({ o, ids })) requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-testid="offence-search"]')?.focus());
                               setPicked((prev) => {
-                              const next = new Set(prev);
-                              for (const i of ids) {
-                                if (on) next.delete(i);
-                                else next.add(i);
-                              }
-                              return next;
-                            });
+                                const next = new Set(prev);
+                                for (const i of ids) {
+                                  if (on) next.delete(i);
+                                  else next.add(i);
+                                }
+                                return next;
+                              });
                             }}
                           />
                           <span className="flex flex-1 flex-col gap-0.5">
