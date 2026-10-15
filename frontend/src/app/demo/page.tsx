@@ -37,7 +37,7 @@ export default function DemoPage() {
           >
             Open Screening with the example loaded
           </Link>
-          <Link href="/safety" className="text-sm underline">
+          <Link href="/safety" className="inline-flex min-h-6 items-center text-sm underline">
             Safety record
           </Link>
           <Link href="/technical-film" className="inline-flex min-h-6 items-center text-sm underline" data-testid="demo-technical-film">{DEMO_FILM_LINK}</Link>
@@ -49,7 +49,7 @@ export default function DemoPage() {
             <ul className="space-y-1 text-sm">
               {EXAMPLES.slice(1).map((e) => (
                 <li key={e.id}>
-                  <Link href={`/screening?example=${e.id}`} className="underline" data-testid={`load-example-${e.id}`}>{e.citation}</Link>
+                  <Link href={`/screening?example=${e.id}`} className="inline-flex min-h-6 items-center underline" data-testid={`load-example-${e.id}`}>{e.citation}</Link>
                 </li>
               ))}
             </ul>
