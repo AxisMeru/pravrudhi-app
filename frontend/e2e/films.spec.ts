@@ -118,3 +118,25 @@ test("/how-it-was-built carries the technical film under the signed title and su
   await page.goto("/technical-film");
   await expect(page.getByTestId("film-technical").getByTestId("film-video")).toBeVisible();
 });
+
+// #330: the video fills its overflow:hidden frame, so its own focus outline is clipped. The frame draws the ring outside itself (it is the frame's own outline, which its overflow does not clip).
+test("#330: a focused film shows a focus ring that is not clipped (drawn by the frame, no clipping ancestor)", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/technical-film");
+  await page.getByTestId("film-play").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("film-video")).toBeFocused();
+  const r = await page.getByTestId("film-frame").evaluate((frame) => {
+    const cs = getComputedStyle(frame);
+    let clipped = false;
+    for (let el = frame.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+      const o = getComputedStyle(el);
+      if (o.overflowX !== "visible" || o.overflowY !== "visible") { const fb = frame.getBoundingClientRect(), eb = el.getBoundingClientRect(); if (fb.left - 4 < eb.left || fb.right + 4 > eb.right || fb.top - 4 < eb.top || fb.bottom + 4 > eb.bottom) clipped = true; }
+    }
+    return { style: cs.outlineStyle, width: cs.outlineWidth, offset: cs.outlineOffset, clipped };
+  });
+  expect(r.style).toBe("solid");
+  expect(r.width).toBe("2px");
+  expect(r.offset).toBe("2px");
+  expect(r.clipped, "no ancestor clips the ring").toBe(false);
+});
