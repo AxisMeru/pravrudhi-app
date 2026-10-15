@@ -82,6 +82,8 @@ test.describe("phone touch targets and drawer header", () => {
     await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
     await page.goto("/screening");
     await page.getByRole("button", { name: "Open navigation" }).click();
+    // the drawer slides in (200 ms): measure once it has stopped at the left edge, not mid-slide
+    await expect.poll(async () => (await page.getByRole("dialog", { name: "Navigation" }).boundingBox())?.x).toBe(0);
     const toggle = await page.getByRole("button", { name: "Close navigation" }).boundingBox();
     const brand = await page.getByTestId("drawer-brand").boundingBox();
     expect(toggle && brand).toBeTruthy();
