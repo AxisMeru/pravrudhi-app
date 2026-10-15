@@ -72,3 +72,18 @@ export function bannerText(supported: number, total: number, suggested: number, 
 
 export const CONTRACT_REVIEW_HEADING = "Needs your review";
 export const REASON_CODE_LABEL = "Reason code";
+
+// P5 slice 2 (#144): the first-run panel, the section headings and the drop zone. R1's exact words (15 Oct, Start.dc.html read): panel heading "Start a screening"; one-liner; three ordered texts with no "Step N"
+// kickers (the workspace step bar already numbers Facts and Screen); two buttons; the stand-alone data-handling link; headings without numbers; the drop-zone sentence and type line (the file input's accept list is exactly
+// .txt, .pdf and .docx); the close button's accessible name is screen-reader only.
+export const START_PANEL_HEADING = "Start a screening";
+export const START_PANEL_LINE = "See which ingredients of an offence your facts support, which they do not, and what to check before you rely on it.";
+export const START_PANEL_STEPS: readonly string[] = ["Paste or upload the facts", "Pick the offence", "Read the checklist and export the memo"];
+export const START_PANEL_EXAMPLE_BUTTON = "Try an example from a public court order";
+export const START_PANEL_OWN_BUTTON = "Paste your own facts";
+export const START_PANEL_DATA_LINK = "What is kept and what is sent (Data handling)";
+export const START_PANEL_CLOSE_LABEL = "Close this panel";
+export const FACTS_HEADING = "The facts";
+export const OFFENCE_HEADING = "The offence";
+export const DROP_ZONE_LINE = "Drop a file here, or paste the text below";
+export const DROP_ZONE_TYPES = ".txt, .pdf or .docx";
