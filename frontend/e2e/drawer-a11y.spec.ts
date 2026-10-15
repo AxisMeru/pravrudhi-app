@@ -66,6 +66,6 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await page.goto("/screening");
   await expect(page.locator("#primary-navigation")).toBeVisible();
   await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
-  await page.getByRole("link", { name: "Screening", exact: true }).first().focus();
-  await expect(page.getByRole("link", { name: "Screening", exact: true }).first()).toBeFocused();
+  await page.getByRole("link", { name: "Matter", exact: true }).first().focus();
+  await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeFocused();
 });

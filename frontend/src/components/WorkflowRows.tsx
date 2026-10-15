@@ -1,7 +1,8 @@
 "use client";
 
 import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
-import { WORKFLOWS, WORKFLOWS_CLOSING } from "@/lib/workflowsCopy";
+import { WORKFLOWS, WORKFLOWS_CLOSING, workflowStepAnchor } from "@/lib/workflowsCopy";
+import { WORKFLOW_OPEN_LABEL, WORKSPACE_PATH } from "@/lib/workspace";
 import { useAssistantState } from "@/components/useAssistantTier";
 import { pausedTreatment } from "@/lib/assistantTier";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
@@ -24,6 +25,9 @@ export function WorkflowRows() {
                 <div className="text-sm font-medium text-[var(--color-text)]">{w.name}</div>
                 {w.note && <div className="mt-0.5 text-xs text-[var(--color-text-dim)]">{w.note}</div>}
               </div>
+              {w.status === "Built" && workflowStepAnchor(w.name) && (
+                <a href={`${WORKSPACE_PATH}#${workflowStepAnchor(w.name)}`} className="text-xs text-[var(--color-accent)] underline" data-testid="workflow-open">{WORKFLOW_OPEN_LABEL}</a>
+              )}
               <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${w.status === "Building" ? "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]" : "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]"}`} data-testid="workflow-status">
                 {w.status}
               </span>

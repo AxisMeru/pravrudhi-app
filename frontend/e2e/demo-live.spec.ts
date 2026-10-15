@@ -86,7 +86,7 @@ for (const fixture of FIXTURES) {
         }
         await signIn(page);
         await page.goto("/screening");
-        await page.locator("main").getByRole("heading", { name: "Screening", exact: true }).waitFor();
+        await page.locator("main").getByRole("heading", { name: "Matter workspace", exact: true }).waitFor();
         // Outside the service window the hosted demo says so and refuses to send: skipped, with the reason, not failed.
         const offline = page.getByTestId("screening-offline");
         const closed = await offline.isVisible().catch(() => false);

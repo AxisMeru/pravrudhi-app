@@ -28,6 +28,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff } from "@/lib/handoff";
+import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { EXAMPLES, exampleById, initialFactsFor, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -238,6 +239,7 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
+        <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />
         <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
         <CaveatStrip warming={warming} />
         <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
@@ -267,7 +269,7 @@ export default function ScreeningPage() {
             </ul>
           </div>
         )}
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts">
+        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts" id="step-facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea
@@ -342,7 +344,7 @@ export default function ScreeningPage() {
             Add a fact
           </button>
 
-          <fieldset className="mt-2 flex flex-col gap-2">
+          <fieldset className="mt-2 flex flex-col gap-2" id="step-screen">
             <legend className="text-sm font-medium text-[var(--color-text)]">What to screen for</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
@@ -468,7 +470,7 @@ export default function ScreeningPage() {
 
         {result && request && (
           <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions" id="step-memo">
               <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
                 <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
                 <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>

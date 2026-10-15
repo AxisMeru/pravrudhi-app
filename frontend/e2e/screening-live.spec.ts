@@ -122,7 +122,7 @@ for (let run = 1; run <= REPEATS; run++) {
     await page.goto("/");
     await page.waitForURL(/\/screening/, { timeout: 20_000 });
     await page.goto("/screening");
-    await page.locator("main").getByRole("heading", { name: "Screening", exact: true }).waitFor();
+    await page.locator("main").getByRole("heading", { name: "Matter workspace", exact: true }).waitFor();
     const offline = page.getByTestId("screening-offline");
     // Lazily: innerText() on an element that is not there waits for the whole test timeout, so only read it when the notice is visible.
     const closed = await offline.isVisible().catch(() => false);
