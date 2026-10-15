@@ -19,6 +19,9 @@
   --color-danger: #f2909a;
   --color-ok: #8fe0b5;
   --color-info: #a9c6f0;
+  --color-hero: #0b2a4a;
+  --color-on-hero: #f3f1ea;
+  --color-on-hero-dim: #c9d9ee;
   --color-note: #b9a2ff;
 }
 
@@ -38,6 +41,9 @@
   --color-danger: #8a2e22;
   --color-ok: #1c5a3b;
   --color-info: #23487a;
+  --color-hero: #13233a;
+  --color-on-hero: #f3f1ea;
+  --color-on-hero-dim: #d6e2f2;
   --color-note: #5b3f9a;
   color-scheme: light;
 }
@@ -58,6 +64,9 @@
     --color-danger: #8a2e22;
     --color-ok: #1c5a3b;
     --color-info: #23487a;
+    --color-hero: #13233a;
+    --color-on-hero: #f3f1ea;
+    --color-on-hero-dim: #d6e2f2;
     --color-note: #5b3f9a;
     color-scheme: light;
   }

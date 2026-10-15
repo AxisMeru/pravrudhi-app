@@ -1,4 +1,4 @@
-import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, NO_FACT_GROUP_HEADING, WHAT_TO_CHECK_LABEL, REASON_CODE_LABEL, CONTRACT_REVIEW_HEADING, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
+import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, NO_FACT_GROUP_HEADING, WHAT_TO_CHECK_LABEL, REASON_CODE_LABEL, CONTRACT_REVIEW_HEADING, DEFENCE_PROMPT_NOTE, FACT_FILTER_EMPTY } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { contractListLabel, isAlternateLimb, offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
@@ -6,15 +6,15 @@ import { CHIP_TONE, SummaryBanner } from "./SummaryBanner";
 
 function Row({ row }: { row: ScreeningRow }) {
   return (
-    <li className="space-y-2 rounded-md border border-[var(--color-border)] p-3" data-testid="ingredient-row" data-chip={row.chip}>
+    <li className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="ingredient-row" data-chip={row.chip}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
-        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[11px] font-normal ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
+        <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[13px] font-semibold ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
           {CHIP_LABEL[row.chip]}
         </span>
       </div>
       {row.reason && (
-        <p className="text-xs text-[var(--color-text-dim)]" data-testid="ingredient-reason">
+        <p className="text-sm text-[var(--color-text-dim)]" data-testid="ingredient-reason">
           {row.reason}
         </p>
       )}
@@ -35,23 +35,27 @@ function Row({ row }: { row: ScreeningRow }) {
           {row.quote.check && <span className="ml-1.5 text-[11px] not-italic text-[var(--color-text-dim)]">{row.quote.check}</span>}
         </p>
       )}
-      <p className="border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-text-dim)]" data-testid="what-to-check">
-        <span className="font-medium text-[var(--color-text-dim)]">{WHAT_TO_CHECK_LABEL}: </span>
+      <p className="border-t border-[var(--color-border)] pt-2 text-sm text-[var(--color-text-dim)]" data-testid="what-to-check">
+        <span className="font-semibold text-[var(--color-text)]">{WHAT_TO_CHECK_LABEL}: </span>
         {row.whatToCheck ?? NO_CHECK_NOTE}
       </p>
     </li>
   );
 }
 
-export function IngredientChecklist({ contract, facts, agenda = false, live = true }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"]; agenda?: boolean; live?: boolean }) {
-  const rows = rowsFor(contract, facts);
-  const summary = summarize(contract, rows);
+export function IngredientChecklist({ contract, facts, agenda = false, live = true, factFilter = null }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"]; agenda?: boolean; live?: boolean; factFilter?: string | null }) {
+  const all = rowsFor(contract, facts);
+  // the fact filter (M2a): only the rows that cite the selected fact; rows that cite no fact (and the group of them) are not among them
+  const keep = (r: ScreeningRow) => factFilter === null || r.factId === factFilter;
+  const rows = factFilter === null ? all : { ...all, ingredients: all.ingredients.filter(keep), defences: all.defences.filter(keep) };
+  const filteredOut = factFilter !== null && rows.ingredients.length === 0 && rows.defences.length === 0;
+  const summary = summarize(contract, all); // the counts always describe the whole block, never the filtered view
   const referral = contractReferral(contract);
   const offence = offenceOf(contract.contract_id);
   return (
     <section className="space-y-3" data-testid="checklist" aria-label={`Ingredients: ${contractListLabel(contract.contract_id)}`}>
       <header>
-        <h2 className="text-base font-semibold text-[var(--color-text)]">{contractListLabel(contract.contract_id)}</h2>
+        <h2 className="font-serif text-lg font-semibold text-[var(--color-text)]">{contractListLabel(contract.contract_id)}</h2>
         {/* #206 R9: a way's title already ends in the sections, and an offence shown by its reference has none: the line appears only when it adds something. */}
         {offence?.sections && !contractListLabel(contract.contract_id).includes(offence.sections) && (
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="offence-sections">{offence.sections}</p>
@@ -62,6 +66,7 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
         )}
       </header>
       <SummaryBanner summary={summary} agenda={agenda} live={live} />
+      {filteredOut && <p className="text-sm text-[var(--color-text-dim)]" data-testid="fact-filter-empty">{FACT_FILTER_EMPTY}</p>}
       {referral && (
         <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>

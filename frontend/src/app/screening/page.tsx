@@ -5,10 +5,14 @@
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { flushSync } from "react-dom";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
+import { StartPanel } from "@/components/screening/StartPanel";
+import { FactFilter } from "@/components/screening/FactFilter";
+import { activeFactFilter, resultKey, type FactFilterState } from "@/lib/screening/factFilter";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { CITATIONS_PANEL_ENABLED } from "@/lib/citationNav";
@@ -33,7 +37,7 @@ import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
-import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
+import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, DROP_ZONE_LINE, DROP_ZONE_TYPES, EXAMPLE_ENTRY_LABEL, FACTS_HEADING, OFFENCE_HEADING, OFFENCE_SEARCH_EMPTY, OFFENCE_SEARCH_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
@@ -42,7 +46,7 @@ import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
-import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, offenceMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -57,6 +61,8 @@ function download(name: string, body: string | Uint8Array, type: string): void {
 
 export default function ScreeningPage() {
   const [paste, setPaste] = useState("");
+  const [factFilterState, setFactFilterState] = useState<FactFilterState | null>(null); // per result: it applies only to the run it was chosen on, and nothing is stored
+  const [startPanelClosed, setStartPanelClosed] = useState(false); // closed for this visit only: the browser keeps nothing for it (the data-handling page names the only three keys the app stores)
   // What Intake handed over: its chosen facts together with the citations it found. The citations are listed in Hearing preparation only while the screened facts are still those facts.
   const [intakeHand, setIntakeHand] = useState<{ facts: string[]; citations: Array<{ text: string }> } | null>(null);
   // An example link's facts are the first state (read from the URL on the client), so no empty box shows and then fills. The list itself is drawn only
@@ -98,6 +104,15 @@ export default function ScreeningPage() {
   const abortRef = useRef<AbortController | null>(null);
   // Leaving the page cancels the run in flight (#176): the request and its ticker no longer run on until the engine answers or the 320 s timeout.
   useEffect(() => () => abortRef.current?.abort(), []);
+  // A printed result is ALL of it (globals.css): the fact filter is a screen aid, so printing clears it first (flushSync, so the paper is drawn from the full list) and puts it back afterwards.
+  const filterBeforePrint = useRef<FactFilterState | null>(null);
+  useEffect(() => {
+    const before = () => flushSync(() => setFactFilterState((cur) => { filterBeforePrint.current = cur; return null; }));
+    const after = () => { if (filterBeforePrint.current) setFactFilterState(filterBeforePrint.current); filterBeforePrint.current = null; };
+    window.addEventListener("beforeprint", before);
+    window.addEventListener("afterprint", after);
+    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
+  }, []);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
   const resultRef = useRef<HTMLDivElement>(null);
@@ -188,6 +203,12 @@ export default function ScreeningPage() {
   }, [contractsTry]);
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
+  const [offenceQuery, setOffenceQuery] = useState("");
+  // a ticked offence is submitted, so it never disappears behind a search: ticked rows the search does not match stay visible, pinned above the matches (R2, #290)
+  const offenceQ = offenceQuery.trim().toLowerCase();
+  const offenceHit = (x: (typeof offered)[number]) => `${x.o.title} ${x.o.sections}`.toLowerCase().includes(offenceQ);
+  const matchingOffences = offenceQ === "" ? offered : offered.filter(offenceHit);
+  const shownOffences = offenceQ === "" ? offered : [...offered.filter((x) => x.ids.every((i) => picked.has(i)) && !offenceHit(x)), ...matchingOffences];
 
   // #248/#275: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the page has finished growing: the offence list, and then late reads (identity, the assistant's provider line)
   // add content ABOVE it, so the visitor lands short of it (#275: 6 px short, intermittently, when the late content arrived after the one scroll #248 made). Once the registry has answered, the page keeps the named
@@ -273,6 +294,22 @@ export default function ScreeningPage() {
     }
   }
 
+  async function loadFile(file: File) {
+    let parsers = {};
+    if (fileKind(file.name) !== "txt") {
+      try {
+        parsers = (await import("@/lib/docParsers")).browserParsers;
+      } catch {
+        return setError(UNREADABLE_MESSAGE);
+      }
+    }
+    const r = await extractText(file, parsers);
+    if (r.ok) {
+      setPaste(r.text);
+      setError(null);
+    } else setError(r.message);
+  }
+
   const version = svc?.kind === "ok" ? svc.status.engine_version : null;
   const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: memoExample(request?.facts ?? [], example) });
 
@@ -281,6 +318,13 @@ export default function ScreeningPage() {
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
         <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />
+        {hydrated && !startPanelClosed && !result && facts.every((f) => f.trim() === "") && paste.trim() === "" && !example && (
+          <StartPanel
+            onExample={() => { const t = document.getElementById("example-entry"); t?.scrollIntoView({ block: "center" }); t?.querySelector<HTMLElement>("a")?.focus(); }}
+            onOwn={() => { const t = document.getElementById("screening-paste"); t?.scrollIntoView({ block: "center" }); t?.focus(); }}
+            onClose={() => setStartPanelClosed(true)}
+          />
+        )}
         {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         <CaveatStrip warming={warming} />
         <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
@@ -295,7 +339,7 @@ export default function ScreeningPage() {
         {exampleMissing && <ExampleNotFound page="/screening" />}
         {example && isUnchangedExample(facts, example) && <ExampleBanner example={example} />}
         {!example && (
-          <div className="flex flex-col gap-1 print:hidden" data-testid="example-entry">
+          <div className="flex flex-col gap-1 print:hidden" id="example-entry" data-testid="example-entry">
             <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
             <ul className="flex flex-col gap-1 text-sm">
               {EXAMPLES.map((e) => (
@@ -317,6 +361,7 @@ export default function ScreeningPage() {
               <Link href={INTAKE_PATH} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="intake-link">{INTAKE_OPEN_LABEL}</Link>
             </p>
           )}
+          <h2 className="font-serif text-lg font-semibold text-[var(--color-text)]">{FACTS_HEADING}</h2>
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea
@@ -326,32 +371,28 @@ export default function ScreeningPage() {
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
           />
-          <div className="flex flex-wrap items-center gap-3">
+          <div
+            className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[var(--color-control-border)] p-4 text-center"
+            data-testid="facts-dropzone"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void loadFile(f); }}
+          >
+            <p className="text-sm font-medium text-[var(--color-text)]">{DROP_ZONE_LINE}</p>
+            <p className="text-xs text-[var(--color-text-dim)]">{DROP_ZONE_TYPES}</p>
             <input
               type="file"
               accept=".txt,.pdf,.docx"
               aria-label="Load facts from a file"
               data-testid="facts-file"
               className="min-h-6 text-sm max-md:min-h-11"
-              onChange={async (e) => {
+              onChange={(e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
-                if (!file) return;
-                let parsers = {};
-                if (fileKind(file.name) !== "txt") {
-                  try {
-                    parsers = (await import("@/lib/docParsers")).browserParsers;
-                  } catch {
-                    return setError(UNREADABLE_MESSAGE);
-                  }
-                }
-                const r = await extractText(file, parsers);
-                if (r.ok) {
-                  setPaste(r.text);
-                  setError(null);
-                } else setError(r.message);
+                if (file) void loadFile(file);
               }}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               className="inline-flex min-h-8 items-center rounded-md border border-[var(--color-control-border)] px-3 py-1.5 text-sm max-md:min-h-11"
@@ -392,7 +433,7 @@ export default function ScreeningPage() {
           </button>
 
           <fieldset className="mt-2 flex flex-col gap-2" id="step-screen">
-            <legend className="text-sm font-medium text-[var(--color-text)]">What to screen for</legend>
+            <legend className="font-serif text-lg font-semibold text-[var(--color-text)]">{OFFENCE_HEADING}</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="contracts-error">{contractsError}</p>
@@ -405,45 +446,60 @@ export default function ScreeningPage() {
             ) : picker === "loading" ? (
               <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
-              <ul className="flex flex-col gap-2" data-testid="offence-list">
-                {offered.map(({ o, ids }) => {
-                  const on = ids.every((i) => picked.has(i));
-                  return (
-                    <li key={o.id}>
-                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
-                        <input
-                          type="checkbox"
-                          className="mt-1 h-6 w-6 shrink-0"
-                          aria-label={offenceCheckboxName(o)}
-                          aria-describedby={offenceNoteIds(o).join(" ") || undefined}
-                          checked={on}
-                          onChange={() => setPicked((prev) => {
-                            const next = new Set(prev);
-                            for (const i of ids) {
-                              if (on) next.delete(i);
-                              else next.add(i);
-                            }
-                            return next;
-                          })}
-                        />
-                        <span>
-                          <span className="text-[var(--color-text)]">{o.title}</span>
-                          {o.sections && <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>}
-                          {o.notValidated && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-not-validated`} data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
-                          )}
-                          {o.ipcChecked && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-ipc`} data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
-                          )}
-                          {ids.some((i) => validationLabel(validationMark(validated, i))) && (
-                            <span className="ml-2 text-xs text-[var(--color-warn)]">({validationLabel(validationMark(validated, ids[0]))})</span>
-                          )}
-                        </span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
+              <>
+                <label className="flex flex-col gap-1 text-sm text-[var(--color-text)]">
+                  {OFFENCE_SEARCH_LABEL}
+                  <input
+                    type="search"
+                    value={offenceQuery}
+                    onChange={(e) => setOffenceQuery(e.target.value)}
+                    className="min-h-11 rounded-md border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)]"
+                    data-testid="offence-search"
+                  />
+                </label>
+                {matchingOffences.length === 0 && <p className="text-sm text-[var(--color-text-dim)]" role="status" data-testid="offence-search-empty">{OFFENCE_SEARCH_EMPTY}</p>}
+                <ul className="flex flex-col gap-2" data-testid="offence-list">
+                  {shownOffences.map(({ o, ids }) => {
+                    const on = ids.every((i) => picked.has(i));
+                    return (
+                      <li key={o.id}>
+                        <label className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)] bg-[var(--color-accent-dim)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}>
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-6 w-6 shrink-0"
+                            aria-label={offenceCheckboxName(o)}
+                            aria-describedby={offenceNoteIds(o).join(" ") || undefined}
+                            checked={on}
+                            onChange={() => setPicked((prev) => {
+                              const next = new Set(prev);
+                              for (const i of ids) {
+                                if (on) next.delete(i);
+                                else next.add(i);
+                              }
+                              return next;
+                            })}
+                          />
+                          <span className="flex flex-1 flex-col gap-0.5">
+                            <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                              <span className="font-medium text-[var(--color-text)]">{o.title}</span>
+                              <span className="text-xs text-[var(--color-text-dim)]">
+                                {o.sections && <>{o.sections} · </>}
+                                <span className={offenceMark(validated, ids, o.notValidated === true) === "validated" ? "" : "text-[var(--color-warn)]"} data-testid="offence-mark">{offenceMark(validated, ids, o.notValidated === true)}</span>
+                              </span>
+                            </span>
+                            {o.notValidated && (
+                              <span className="block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-not-validated`} data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
+                            )}
+                            {o.ipcChecked && (
+                              <span className="block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-ipc`} data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
+                            )}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
             )}
           </fieldset>
 
@@ -485,21 +541,21 @@ export default function ScreeningPage() {
           )}
           {checking && signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
           {inflight && (
-            <>
-              <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="w-fit text-sm text-[var(--color-text-dim)] underline">
+            <div className="flex flex-col gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="running-card">
+              <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="inline-flex min-h-8 w-fit items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)] max-md:min-h-11">
                 Cancel
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
               {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
-              <p className="text-sm text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
-              <p className="font-mono text-sm text-[var(--color-text-dim)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
+              <p className="text-base font-medium text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
+              <p className="font-mono text-lg text-[var(--color-text)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
               {runAssisted && <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-assisted">{ASSISTED_RUNNING_NOTE}</p>}
               {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">{WARM_UP_NOTE}</p>}
               <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-leave">{LEAVE_AND_RETURN_TEXT}</p>
-            </>
+            </div>
           )}
           {inflight && elapsed >= SLOW_START_SECONDS && (
-            <p className="text-sm text-[var(--color-warn)]" role="status">
+            <p className="rounded-lg border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
@@ -555,8 +611,13 @@ export default function ScreeningPage() {
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {/* R1 (15 Oct): the standing line appears once per result, above the first block, not in every block's banner (before a result it stands at the top of the page). */}
             <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
+            <FactFilter
+              facts={result.facts}
+              selected={activeFactFilter(factFilterState, result)}
+              onSelect={(id) => setFactFilterState(id === null ? null : { key: resultKey(result), factId: id })}
+            />
             {result.contracts.map((c, i) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={activeFactFilter(factFilterState, result)} />
             ))}
             {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
