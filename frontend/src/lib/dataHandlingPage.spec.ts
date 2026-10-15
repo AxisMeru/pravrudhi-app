@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { firstSentence } from "./dataHandling";
 import { BANNED } from "./wordingAudit";
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import {
@@ -15,13 +16,14 @@ const ON_DELETE = dataHandlingPage(true, true);
 
 test("the glance: R1's heading, line and link label exactly; three blocks = the first signed paragraph of sent / where / kept, verbatim, each linking to its section", () => {
   assert.equal(DH_GLANCE_HEADING, "At a glance");
-  assert.equal(DH_GLANCE_LINE, "These are the first lines of the sections below; read the full section for the rest.");
+  assert.equal(DH_GLANCE_LINE, "A short version of the sections below; the sections hold the full text.");
   assert.equal(DH_GLANCE_LINK, "See the full section");
   assert.deepEqual(OFF.glance.blocks.map((b) => b.id), ["sent", "where", "kept"]);
   const secs = dataHandlingSections(false, false);
   for (const b of OFF.glance.blocks) {
     const s = secs.find((x) => x.id === b.id)!;
-    assert.equal(b.texts[0], s.paragraphs[0], `${b.id}: the first paragraph, verbatim`);
+    assert.equal(b.texts[0], firstSentence(s.paragraphs[0]), `${b.id}: the first SENTENCE of the first paragraph, verbatim (R1, #300)`);
+    assert.ok(s.paragraphs[0].startsWith(b.texts[0]), `${b.id}: the glance sentence is the start of the section's own text`);
     assert.equal(b.heading, s.heading);
     assert.equal(b.href, `#dh-${b.id}`);
   }
@@ -78,7 +80,7 @@ test("R1: the 'where' glance block shows the first signed paragraph AND the fall
   for (const p of [OFF, ON]) {
     const where = p.glance.blocks.find((b) => b.id === "where")!;
     assert.equal(where.texts.length, 2);
-    assert.equal(where.texts[0], dataHandlingSections(false, false).find((s) => s.id === "where")!.paragraphs[0]);
+    assert.equal(where.texts[0], "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre).");
     assert.equal(where.texts[1], DH_WHERE_FALLBACK);
     assert.match(where.texts[1], /North American data centre for that request, and your facts are sent there/);
     assert.deepEqual(p.glance.blocks.filter((b) => b.id !== "where").map((b) => b.texts.length), [1, 1]);

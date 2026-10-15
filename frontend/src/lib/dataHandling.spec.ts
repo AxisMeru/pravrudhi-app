@@ -1,3 +1,4 @@
+import { CITATION_EXISTENCE_ONLY } from "./citationExistence";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -22,10 +23,11 @@ test("the data-handling text is R1's exact words, and it answers all three quest
   );
   assert.equal(
     text("where"),
-    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs. If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.",
+    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase. The hosting providers may keep their own logs. If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.",
   );
   assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps your notification preferences.");
-  assert.equal(text("citations"), "The citation check does not save the citation or the quote you enter.");
+  // R1 (15 Oct, #300): the existence-only check sends a citation and nothing else, so the sentence names only the citation; the quote-box arm keeps its own
+  assert.equal(text("citations"), CITATION_EXISTENCE_ONLY ? "The citation check does not save the citation you enter." : "The citation check does not save the citation or the quote you enter.");
 });
 
 test("what must NOT be said is not said: no region for the smaller model, no 'no fact text', no training promise", () => {

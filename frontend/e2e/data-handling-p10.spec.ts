@@ -9,7 +9,7 @@ test("the glance: heading, R1's line, three blocks quoting the first signed para
   await page.goto("/data-handling");
   const glance = page.getByTestId("dh-glance");
   await expect(glance.getByRole("heading", { name: "At a glance", level: 2 })).toBeVisible();
-  await expect(page.getByTestId("dh-glance-line")).toHaveText("These are the first lines of the sections below; read the full section for the rest.");
+  await expect(page.getByTestId("dh-glance-line")).toHaveText("A short version of the sections below; the sections hold the full text.");
   await expect(glance.getByRole("link", { name: /^See the full section/ })).toHaveCount(3);
   await expect(page.getByTestId("dh-glance-sent")).toContainText("When you press Screen these facts, the facts you enter and the offences you select are sent to the Pravrudhi engine.");
   await expect(page.getByTestId("dh-glance-where")).toContainText("The screening runs on the Pravrudhi engine, hosted on RunPod");
