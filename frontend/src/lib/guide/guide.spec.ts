@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -59,8 +59,10 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.equal(GUIDE_LIMITS[2], CITATIONS_PANEL_ENABLED ? GUIDE_LIMIT_CITATIONS_ON : GUIDE_LIMIT_CITATIONS_OFF);
   const step6 = GUIDE_STEPS.find((s) => s.id === "citations")!;
   assert.equal(step6.text, CITATIONS_PANEL_ENABLED ? GUIDE_CITATIONS_ON_TEXT : GUIDE_CITATIONS_OFF_TEXT);
-  // no frame 05 on either arm until it is retaken on a build with both flags on (R1: never the old hosted-build frame)
-  assert.equal(step6.image, undefined);
+  // frame 05 is shown only on the build with the panel (retaken on such a build); a build without it shows no image and no caption (R1: never the old hosted-build frame)
+  assert.equal(step6.image, CITATIONS_PANEL_ENABLED ? GUIDE_IMAGES.citations : undefined);
+  assert.equal(GUIDE_IMAGES.citations.file, "05-citations-panel.png");
+  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 14543, "the retaken frame (Track A, 15 Oct)");
   assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only/i);
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");

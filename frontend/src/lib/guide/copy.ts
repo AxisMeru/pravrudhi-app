@@ -32,7 +32,7 @@ export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
 
 // Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
 // hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
-const FRAME_05_RETAKEN = false;
+const FRAME_05_RETAKEN = true; // retaken by Track A at #207 424e7d46 on a build with both citation flags on (528x246, 14,543 bytes, invented matter only)
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
