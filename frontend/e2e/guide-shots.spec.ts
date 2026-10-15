@@ -117,6 +117,7 @@ test("02/03 the checklist and a row from a real example run (live engine)", asyn
 // 05: the Case citations panel as the hosted build serves it today: no citation index, so the engine refuses and the panel says so (the product's own refusal; the citation is the
 // neutral citation of the Karnataka public order the first example uses, not an invented case).
 test("05 the citations panel with the index not available (hosted state)", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1" || process.env.CITATION_EXISTENCE_BUILD !== "1", "the Screening panel is rendered only on a build with both citation flags");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status: 503, json: { error: "citation_index_unavailable", code: "citation_index_unavailable" } }));
   await openWith(page, full); // the panel sits under a result
   await page.getByRole("button", { name: "Screen these facts" }).click();

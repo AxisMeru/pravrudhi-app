@@ -7,19 +7,21 @@ import { BANNED, scanSource } from "../wordingAudit";
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 import { OFFENCES, offenceLabel } from "../screening/offences";
-import { GUIDE_ABOUT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
+import { CITATIONS_PANEL_ENABLED } from "../citationNav";
+import { GUIDE_ABOUT, GUIDE_CITATIONS_OFF_TEXT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
 const root = join(__dirname, "..", "..", "..");
 const copySource = readFileSync(join(__dirname, "copy.ts"), "utf8");
 
 test("the guide's own words carry no wording-audit hit: no proof, established or verbatim on the house path; the stale frontier sentences are gone (the frontier reader was removed in #129)", () => {
-  assert.deepEqual(scanSource("src/lib/guide/copy.ts", copySource), []);
+  // R1 (15 Oct) signed one sentence that says the check "will not look at quotes": the word is negated and about the citation check, not the house path's judging, so that one line is allowed.
+  assert.deepEqual(scanSource("src/lib/guide/copy.ts", copySource).filter((h) => !h.text.startsWith("A citation check is not offered in this version of the app.")), []);
   assert.deepEqual(scanSource("src/app/guide/page.tsx", readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8")), []);
 });
 
 test("every string the page shows, rendered from the copy, is free of the banned words", () => {
   const shown = [...GUIDE_STEPS.flatMap((s) => [s.heading, s.text, s.image?.alt ?? ""]), ...GUIDE_STATUSES.flatMap((s) => [s.label, s.meaning]), ...GUIDE_LIMITS];
-  for (const t of shown) assert.doesNotMatch(t, BANNED, t);
+  for (const t of shown) if (t !== GUIDE_CITATIONS_OFF_TEXT) assert.doesNotMatch(t, BANNED, t); // the one R1-signed sentence above says the check will not look at quotes
 });
 
 test("the six screenshots are the files the guide names, each with plain alt text, and the files exist with invented-matter names only", () => {
@@ -37,7 +39,14 @@ test("the six screenshots are the files the guide names, each with plain alt tex
 test("the guide states each limit it was asked to: not legal advice, the citation check not served in the hosted deployment, and the cold start; the frontier route is no longer described", () => {
   const text = GUIDE_LIMITS.join(" ");
   assert.match(text, /not legal advice/);
-  assert.match(text, /dev stack only; it is not served in the hosted deployment/);
+  if (CITATIONS_PANEL_ENABLED) assert.match(text, /dev stack only; it is not served in the hosted deployment/);
+  else {
+    // R1, 15 Oct: a build with no citations panel says the check is not offered, in R1's exact words (no dev-stack line, no frame 05)
+    assert.equal(GUIDE_LIMITS[2], "The citation check is not offered in this version of the app. When it is offered, \u201cFound in our index\u201d will mean existence only, not that the case says what you cite it for, and \u201cNot found in our index\u201d will not show that a citation is not real.");
+    assert.equal(GUIDE_STEPS.find((s) => s.id === "citations")!.text, "A citation check is not offered in this version of the app. When it is offered, it will tell you whether we can match a citation to exactly one case in our index; it will not look at quotes, and it will not tell you whether a citation is real.");
+    assert.equal(GUIDE_STEPS.find((s) => s.id === "citations")!.image, undefined);
+    assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only|Dev stack only/i);
+  }
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
