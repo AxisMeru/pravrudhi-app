@@ -72,3 +72,33 @@ test("/demo links to the technical film page and to the film in the guide", asyn
   await expect(page.getByTestId("demo-technical-film")).toHaveAttribute("href", /\/technical-film\/?$/);
   await expect(page.getByTestId("demo-guide-film")).toHaveAttribute("href", /\/guide\/?#film$/);
 });
+
+// #307/#308 (R1): the unsupported-browser text is readable on the black frame (it inherited the page's dark text: 1.32:1); the sound and captions buttons say their state in their label only (no aria-pressed, which would say it twice); under reduced motion the focus stays at the film.
+test("#307: the video's fallback text has at least 4.5:1 contrast against the black frame", async ({ page }) => {
+  await page.goto("/technical-film");
+  const colour = await page.getByTestId("film-video").evaluate((v) => getComputedStyle(v).color);
+  const [r, g, b] = colour.match(/\d+/g)!.map(Number);
+  const lin = (c: number) => { const x = c / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+  const L = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  expect((L + 0.05) / 0.05, `fallback text ${colour} on black`).toBeGreaterThanOrEqual(4.5);
+});
+
+test("#308: the sound and captions buttons flip their label and carry no aria-pressed", async ({ page }) => {
+  await page.goto("/technical-film");
+  const fig = page.getByTestId("film-technical");
+  for (const id of ["film-sound", "film-captions"]) {
+    await expect(fig.getByTestId(id)).not.toHaveAttribute("aria-pressed", /.*/);
+    const before = await fig.getByTestId(id).innerText();
+    await fig.getByTestId(id).click();
+    await expect(fig.getByTestId(id)).not.toHaveAttribute("aria-pressed", /.*/);
+    expect(await fig.getByTestId(id).innerText()).not.toBe(before);
+  }
+});
+
+test("#308: under reduced motion, after Play the film the focus is on the film", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/technical-film");
+  await page.getByTestId("film-play").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("film-video")).toBeFocused();
+});
