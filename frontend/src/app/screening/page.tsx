@@ -143,12 +143,12 @@ export default function ScreeningPage() {
   useLayoutEffect(() => {
     const asked = new URLSearchParams(window.location.search).get("example");
     const found = exampleById(asked);
-    if (asked !== null && found === null) void Promise.resolve().then(() => setExampleMissing(true));
+    // State is set synchronously here on purpose: a layout effect's updates are flushed before the browser paints, a deferred (microtask) update is not, and one frame could then show an empty Fact F1 box (#241, R2).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the URL is only readable in the browser; the update must land before the first paint
+    if (asked !== null && found === null) setExampleMissing(true);
     if (found === null) return;
-    void Promise.resolve().then(() => {
-      setFacts([...found.facts]);
-      setExample(found);
-    });
+    setFacts([...found.facts]);
+    setExample(found);
   }, []);
 
   useEffect(() => {
