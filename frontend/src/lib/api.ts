@@ -1464,7 +1464,8 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
 
 // The engine's coded 503s (pravrudhi #319) for a busy or briefly unavailable agent. Before the codes existed these were uncoded 503s, which
 // were retried once; they keep that behaviour. Every other coded refusal (judges_offline, judge_unavailable, outside_service_window, ...) is final.
-const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable"]);
+// internal_error (engine 0.6.18, #499): before the code existed an unhandled exception was a bare 500, which was retried once; the coded 500 keeps that behaviour.
+const RETRY_ONCE_CODES = new Set(["agent_at_capacity", "agent_unavailable", "internal_error"]);
 
 async function sha256Hex(text: string): Promise<string> {
   const d = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
