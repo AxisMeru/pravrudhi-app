@@ -162,3 +162,47 @@ test("localToken: 429 and 5xx are not remembered: the next call asks again and g
     });
   }
 });
+
+// #137: an anonymous visitor of a HOSTED engine (NEXT_PUBLIC_API_BASE set, no web session) does not ask the identity probe (it would only log a 401 on every page); everyone else still does.
+test("isSignedIn and edition skip the /api/me probe for an anonymous visitor of a hosted engine, and ask it otherwise", async () => {
+  const { isSignedIn, forgetLocalToken } = await import("./api");
+  const { edition, PRODUCT } = await import("./edition");
+  forgetLocalToken();
+  await withAnonymousBrowser(async () => {
+    const originalFetch = globalThis.fetch;
+    const prev = process.env.NEXT_PUBLIC_API_BASE;
+    let meCalls = 0;
+    globalThis.fetch = (async (url: string | URL | Request) => { if (String(url).includes("/api/me")) meCalls += 1; return new Response("{}", { status: 401 }); }) as typeof fetch;
+    try {
+      process.env.NEXT_PUBLIC_API_BASE = "https://engine.example";
+      assert.equal(await isSignedIn(), false);
+      assert.deepEqual(await edition(), PRODUCT);
+      assert.equal(meCalls, 0, "hosted + no session: no probe");
+      delete process.env.NEXT_PUBLIC_API_BASE;
+      assert.equal(await isSignedIn(), false);
+      await edition();
+      assert.equal(meCalls, 2, "an engine that serves the page itself still answers the probe");
+      // third arm (R2, #230): a HOSTED engine with a SIGNED-IN session is still asked, and the answer is believed (the guard must not read as "signed out" for a signed-in visitor)
+      const { setSession, clearSession } = await import("./auth");
+      setSession("invented-token", { id: "u-invented", email: "invented@example.test" });
+      try {
+        process.env.NEXT_PUBLIC_API_BASE = "https://engine.example";
+        meCalls = 0;
+        globalThis.fetch = (async (url: string | URL | Request) => {
+          if (String(url).includes("/api/me")) meCalls += 1;
+          return new Response(JSON.stringify({ edition: "Pravrudhi", access: "member" }), { status: 200 });
+        }) as typeof fetch;
+        assert.equal(await isSignedIn(), true, "hosted + signed in: the stubbed 200 reads as signed in");
+        assert.equal(meCalls, 1, "the probe is asked for isSignedIn");
+        const e = await edition();
+        assert.equal(e.edition, PRODUCT.edition);
+        assert.equal(meCalls, 2, "and for edition");
+      } finally {
+        clearSession();
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+      if (prev === undefined) delete process.env.NEXT_PUBLIC_API_BASE; else process.env.NEXT_PUBLIC_API_BASE = prev;
+    }
+  });
+});

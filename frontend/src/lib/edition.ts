@@ -5,7 +5,7 @@
 //
 // The recorded demo is the public site, which nobody is signed in to, so it shows the product.
 
-import { IS_DEMO, apiBase, engineFetch } from "@/lib/api";
+import { IS_DEMO, apiBase, engineFetch, hasWebSession, isHostedEngine } from "@/lib/api";
 import { PRODUCT_LINE, PRODUCT_NAME } from "@/lib/productCopy";
 
 export interface Edition {
@@ -28,6 +28,8 @@ export const PRODUCT: Edition = {
 
 export async function edition(): Promise<Edition> {
   if (IS_DEMO) return PRODUCT;
+  // No web session on a hosted engine: an anonymous visitor, who is the product edition by definition; the identity probe would only log a 401 on every page (#137).
+  if (isHostedEngine() && !(await hasWebSession())) return PRODUCT;
   try {
     // authOptional: true (2026-09-24) -- /api/me is an identity probe, not itself something a visitor asked
     // for. A genuinely anonymous visitor gets a 401 here on every page load; that must read as "anonymous,

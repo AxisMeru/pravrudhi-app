@@ -1503,6 +1503,9 @@ type SessionState = "signed_in" | "signed_out" | "no_endpoint" | "unverified";
  * reason to block. Anything else (403, 5xx, a dropped connection, a timeout) is UNVERIFIED: the check did not give an answer, so it is never treated as signed in.
  */
 async function sessionState(signal?: AbortSignal): Promise<SessionState> {
+  // A visitor with no web session on a HOSTED engine is signed out by definition: the identity probe would only come back 401 and log a red error on every page (#137). The probe is still asked
+  // wherever it can answer something: a signed-in visitor, and an engine that serves the page itself (local, desktop).
+  if (isHostedEngine() && !(await hasWebSession())) return "signed_out";
   try {
     const res = await engineFetch(`${detectBase()}/api/me`, { cache: "no-store", authOptional: true, signal });
     if (res.status === 401) return "signed_out";
@@ -1519,7 +1522,7 @@ async function sessionState(signal?: AbortSignal): Promise<SessionState> {
  * SignInUnverifiedError (no answer). Facts are never sent before this resolves, and an unverified check never falls back to the anonymous demo.
  *
  * KNOWN LIMIT (R2, 12 Oct): this checks the session BEFORE the request. If the credential expires between a 200 here and the POST, the engine can still serve the call
- * anonymously (the production call D of 12 Oct). The check cannot close that; the fix is the engine answering 401 to a failing identity header (Track C, pravrudhi 0.6.1).
+ * anonymously (the production call D of 12 Oct). The check cannot close that; the fix belongs to the engine: answering 401 to a failing identity header.
  */
 export async function requireSession(opts: { onSigningIn?: () => void; signal?: AbortSignal; attempts?: number; pauseMs?: number } = {}): Promise<void> {
   const attempts = opts.attempts ?? signInPolicy.attempts;
