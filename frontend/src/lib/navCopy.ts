@@ -23,4 +23,5 @@ export const NAV_LABELS = {
   benchmarks: "Benchmarks",
   demo: "How it works",
   howBuilt: "How it was built",
+  technicalFilm: "Technical film", // R1 (15 Oct): the signed page title, one entry in the Reference group right after "How it was built"
 } as const;

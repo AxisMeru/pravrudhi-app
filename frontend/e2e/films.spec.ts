@@ -72,3 +72,39 @@ test("/demo links to the technical film page and to the film in the guide", asyn
   await expect(page.getByTestId("demo-technical-film")).toHaveAttribute("href", /\/technical-film\/?$/);
   await expect(page.getByTestId("demo-guide-film")).toHaveAttribute("href", /\/guide\/?#film$/);
 });
+
+test("the guide's film section also points to the technical film, with the signed link text, and the link reaches its player", async ({ page }) => {
+  await page.goto("/guide");
+  const link = page.getByTestId("guide-film").getByTestId("guide-technical-film-link");
+  await expect(link).toHaveText("Watch the technical film");
+  await expect(link).toHaveAttribute("href", /\/technical-film\/?$/);
+  const box = await link.boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(24);
+  await link.click();
+  await expect(page).toHaveURL(/\/technical-film\/?$/);
+  await expect(page.getByTestId("film-technical").getByTestId("film-video")).toBeVisible();
+});
+
+// R1 (15 Oct): ONE nav entry "Technical film" in the Reference group, right after "How it was built"; it reaches the technical film page; at a phone width it is in the drawer.
+for (const [width, phone] of [[1280, false], [390, true]] as const) {
+  test(`the nav has "Technical film" right after "How it was built" at ${width} px, at least 24 px high, and it reaches the player`, async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/screening");
+    if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
+    const nav = page.locator("#primary-navigation");
+    const labels = await nav.locator("a").allInnerTexts();
+    const i = labels.findIndex((t) => t.trim() === "How it was built");
+    expect(i).toBeGreaterThanOrEqual(0);
+    expect(labels[i + 1].trim(), "right after How it was built").toBe("Technical film");
+    expect(labels.filter((t) => t.trim() === "Technical film")).toHaveLength(1);
+    const entry = nav.getByRole("link", { name: "Technical film", exact: true });
+    expect((await entry.boundingBox())!.height).toBeGreaterThanOrEqual(24);
+    // tab order: the entry comes after How it was built and before the User guide
+    const hrefs = await nav.locator("a").evaluateAll((els) => els.map((e) => (e as HTMLAnchorElement).getAttribute("href")));
+    expect(hrefs.indexOf("/technical-film")).toBe(hrefs.indexOf("/how-it-was-built") + 1);
+    await entry.click();
+    await expect(page).toHaveURL(/\/technical-film\/?$/);
+    await expect(page.getByTestId("film-technical").getByTestId("film-video")).toBeVisible();
+  });
+}
