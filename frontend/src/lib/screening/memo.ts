@@ -6,7 +6,7 @@ import { buildDocx } from "../docxWriter";
 import { MEMO_DISCLAIMER } from "../memo";
 import { AGENDA_BANNER_TEXT, ALTERNATE_LIMB_NOTE, CHIP_LABEL, NO_FACT_GROUP_HEADING, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL } from "./copy";
 import { agendaContractId, contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
-import { CONTRACT_BLOCK_TITLES, blockTitle, isAlternateLimb, offenceLabel, offenceOf } from "./offences";
+import { CONTRACT_BLOCK_TITLES, contractListLabel, isAlternateLimb, offenceOf } from "./offences";
 import { STEP_LABELS, STEP_TRACE_HEADING, stepCheckText } from "../assistantRun";
 
 const line = (s: string): string => s.replace(/\r?\n/g, " ");
@@ -30,8 +30,7 @@ export interface ScreeningMemoOptions {
 
 /** The memo's heading for a block: a way of a multi-way offence carries its own title, any other known offence its label with sections, and a contract the app does not know the neutral "Offence", NEVER the contract id (R2, #210). */
 export function memoBlockHeading(contractId: string): string {
-  const off = offenceOf(contractId);
-  return CONTRACT_BLOCK_TITLES[contractId] ?? (off ? offenceLabel(off) : blockTitle(contractId));
+  return contractListLabel(contractId);
 }
 
 export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {

@@ -18,15 +18,15 @@ export interface Offence {
 const sections = (bns: string | null, ipc: string | null): string =>
   [bns ? `BNS ${bns}` : null, ipc ? `IPC ${ipc}` : "no IPC counterpart"].filter(Boolean).join(" · ");
 
-/** The offence as one line: its title, then its sections in brackets when it has any (an offence shown by its reference alone has none). */
-export const offenceLabel = (o: { title: string; sections: string }): string => (o.sections ? `${o.title} (${o.sections})` : o.title);
+/** R1 (15 Oct, #302): ONE label rule for every offence list (/matters, the guide, the memo's block title): "<title> · <sections>" from the offence's own row (an offence with no sections shows its title alone). */
+export const offenceLabel = (o: { title: string; sections: string }): string => (o.sections ? `${o.title} · ${o.sections}` : o.title);
 
 export const OFFENCES: readonly Offence[] = [
   { id: "breach-of-trust", title: "Criminal breach of trust", bns: "316", ipc: "405", sections: sections("316", "405"), contracts: ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers"], ipcChecked: "405" },
   { id: "cheating", title: "Cheating", bns: "318", ipc: "415", sections: sections("318", "415"), contracts: ["ipc415_property", "ipc415_damaging_act"], ipcChecked: "415" },
   { id: "cheating-personation", title: "Cheating by personation", bns: "319", ipc: "416", sections: sections("319", "416"), contracts: ["ipc416"], ipcChecked: "416" },
   { id: "false-information", title: "False information to a public servant", bns: "217", ipc: "182", sections: sections("217", "182"), contracts: ["ipc182_misdirected_act", "ipc182_abuse_of_power"], ipcChecked: "182" },
-  { id: "bns-69", title: "BNS 69", bns: "69", ipc: null, sections: "", contracts: ["bns69"], ipcChecked: null }, // shown by its reference only (reference.ts)
+  { id: "bns-69", title: "BNS 69", bns: "69", ipc: null, sections: "", contracts: ["bns69"], ipcChecked: null }, // shown by its reference only (reference.ts; operator 13 Oct: the MVP app does not spell out explicit offences). R1 proposed naming it in lists (#302): HELD for the operator rule, see the PR.
   { id: "cruelty", title: "Cruelty by the husband or his relatives", bns: "85", ipc: "498A", sections: sections("85, 86", "498A"), contracts: ["bns85"], ipcChecked: null },
   { id: "abetment", title: "Abetment", bns: "45, 46", ipc: "107, 108", sections: sections("45, 46", "107, 108"), contracts: ["bns46_instigation", "bns46_conspiracy", "bns46_intentional_aid"], ipcChecked: null },
   { id: "abetment-outside-india", title: "Abetment in India of an offence outside India", bns: "47", ipc: "108A", sections: sections("47", "108A"), contracts: ["bns47"], ipcChecked: null },
@@ -73,12 +73,18 @@ export function offenceOf(contractId: string): Offence | null {
   return OFFENCES.find((o) => o.contracts.includes(contractId)) ?? null;
 }
 
-/** The accessible name of an offence's checkbox (R7, 15 Oct): the title, a separator, then the sections ("Criminal breach of trust \u2014 BNS 316 \u00b7 IPC 405"), never the two run together. */
+/** The accessible name of an offence's checkbox (R7, 15 Oct): the title, the same " \u00b7 " separator every offence label uses (R1, #310 F2), then the sections ("Criminal breach of trust \u00b7 BNS 316 \u00b7 IPC 405"), never the two run together. */
 export function offenceCheckboxName(o: { title: string; sections: string }): string {
-  return o.sections ? `${o.title} \u2014 ${o.sections}` : o.title;
+  return o.sections ? `${o.title} \u00b7 ${o.sections}` : o.title;
 }
 
 /** The ids of the notes under an offence's checkbox that describe it (read after the name, not joined into it). */
 export function offenceNoteIds(o: { id: string; notValidated?: true; ipcChecked: string | null }): string[] {
   return [...(o.notValidated ? [`offence-${o.id}-not-validated`] : []), ...(o.ipcChecked ? [`offence-${o.id}-ipc`] : [])];
+}
+
+/** The list label of one contract (R1, #302): the block title when the contract has its own way-of-being-made-out title, else the offence's own "<title> · <sections>" (the same rule everywhere). */
+export function contractListLabel(contractId: string): string {
+  const off = offenceOf(contractId);
+  return CONTRACT_BLOCK_TITLES[contractId] ?? (off ? offenceLabel(off) : blockTitle(contractId));
 }
