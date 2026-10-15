@@ -154,14 +154,15 @@ test("R1 (8 Oct): the IPC-text disclosure is on exactly the four IPC-family offe
   assert.equal(ipcDisclosure("405"), "Checked against the IPC text (s.405); the BNS counterpart is not validated.");
 });
 
-test("R1 (8 Oct, amended 15 Oct #206 R12): the memo carries the standing line ONCE under the disclaimer, never under a block's banner sentence, and says 'may' for a defeater", () => {
+test("R1 (8 Oct, amended 15 Oct #206 R12): the memo says A lawyer decides. ONCE (in the disclaimer; R1 #262), never under a block's banner sentence, and says 'may' for a defeater", () => {
   const c = contract([el(0), el(1, { status: "not_established" }), el(2, { status: "not_confirmed" }), el(0, { is_denial: true, element: "a defence", status: "established" })], { outcome: "ABSTAIN" });
   const memo = buildScreeningMemo({ run_id: "r1", judge: "j", score_sha256: "a".repeat(64), provenance: "p", facts: FACTS, contracts: [c] } as AnalyseFactsResult, { engineVersion: "0", generatedAt: "t" });
   const lines = memo.split("\n");
   const i = lines.findIndex((l) => /ingredients supported by a fact/.test(l));
   assert.ok(i > 0);
   assert.notEqual(lines[i + 1], "This is a screening aid, not legal advice. A lawyer decides.", "the standing line is not repeated under the block's banner sentence");
-  assert.equal(memo.split("This is a screening aid, not legal advice. A lawyer decides.").length - 1, 1, "once in the whole memo");
+  assert.equal(memo.split("A lawyer decides.").length - 1, 1, "once in the whole memo, in the disclaimer");
+  assert.equal(memo.split("This is a screening aid, not legal advice. A lawyer decides.").length - 1, 0, "the standing line is not repeated under the disclaimer");
   assert.match(memo, /### A fact that may defeat the claim/);
   assert.match(memo, /Checked against the IPC text \(s\.415\); the BNS counterpart is not validated\./);
   // a defeater row is not an ingredient: the total stays 3, and the defence row is counted apart

@@ -62,7 +62,7 @@ test("the screening memo as .docx says exactly what the .md memo says, line for 
   const back = (await text(docx)).split("\n").filter((l) => l.trim());
   assert.deepEqual(back, plain(md));
   assert.ok(back.some((l) => l.includes("Invented: Ravi told Meena the toy lorry was his & sold it to her for <500>.")), "fact text kept whole, markup characters intact");
-  assert.ok(back.some((l) => /ingredients supported by a fact/.test(l)) && back.some((l) => l.includes("This is a screening aid, not legal advice")), "banner and the standing line");
+  assert.ok(back.some((l) => /ingredients supported by a fact/.test(l)) && back.some((l) => l.includes("This memo is a screening aid, not legal advice. A lawyer decides.")), "banner and the disclaimer (the standing line is not repeated, #262)");
 });
 
 const RESULT_WITH_STARS = {
