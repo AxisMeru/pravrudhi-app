@@ -15,7 +15,7 @@ test("R1's existence-only strings are exact (14 Oct)", () => {
   assert.equal(EXISTENCE_PANEL_LINE, "The citation is looked up in our index; quotes are not checked.");
   assert.equal(QUOTE_NOT_CHECKED_TEXT, "Only the citation was looked up; the quote was not checked.");
   assert.equal(NOT_IN_INDEX_NOTE, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
-  assert.equal(CONFLICT_TEXT, "The index lists this citation under more than one entry, so we cannot tell which case you mean. Put the case name before the citation and check again."); // #223 D1 (R1, 15 Oct), replaces the 14 Oct sentence
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again."); // #223 D1 (R1, 15 Oct), replaces the 14 Oct sentence
   assert.equal(QUOTE_NOT_SERVED_TEXT, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index.");
   assert.equal(DETAIL_422_TEXT, "Enter one citation, and leave the quote empty.");
   assert.doesNotMatch([EXISTENCE_LIMITS, QUOTE_NOT_SERVED_TEXT, NOT_IN_INDEX_NOTE].join(" "), /\b(fake|false|invalid|verified|yet)\b(?! served)/i);

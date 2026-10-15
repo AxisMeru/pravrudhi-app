@@ -15,8 +15,9 @@ import { SESSION_401_TEXT } from "./signedStrings";
 // Citations-ON readiness (#223, explorer's pre-flip review D1-D7; R1's exact strings, 15 Oct). Both arms: the ON arm (existence-only) shows the new wording; the OFF arm is unchanged.
 
 test("R1's strings are exact (D1, D2a, D3, D4, D5, D7)", () => {
-  assert.equal(CONFLICT_TEXT, "The index lists this citation under more than one entry, so we cannot tell which case you mean. Put the case name before the citation and check again.");
-  assert.equal(CONFLICT_HEADING, "Matches more than one entry");
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again.");
+  assert.equal(CONFLICT_HEADING, "Could not match one case");
+  assert.doesNotMatch(CONFLICT_TEXT + CONFLICT_HEADING, /more than one/i, "Lead-2: the cause may be one case under a spelling variant; the conflict wording never says more than one case");
   assert.equal(MALFORMED_HEADING, "Not looked up");
   assert.equal(MALFORMED_TEXT, "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.");
   assert.equal(COVERAGE_LIMITS_TEXT, "Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as “Not found in our index”.");

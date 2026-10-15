@@ -15,6 +15,12 @@ export const batchStopText = (checked: number, total: number, wait?: number): st
 /** #223 D5 (R1): said when the pasted text had more lines than one try takes; the number is the one cap constant. */
 export const overCapText = (cap: number = MAX_CITATIONS_EXISTENCE): string => `Only the first ${cap} lines were checked. Check the rest in a second try.`;
 
+/** Shown instead of a result when the engine answers VERIFIED to a line sent WITHOUT a quote: that cannot be true (nothing was looked up in the text), so nothing is shown as verified. */
+export const VERIFIED_WITHOUT_QUOTE_TEXT = "The engine answered verified to a citation sent without a quote, which cannot be right, so no result is shown for it.";
+
+/** Shown when the engine's reply carries no recognised coverage. Never a typed-in claim about what the index holds. */
+export const COVERAGE_NOT_REPORTED = "Coverage not reported by the engine.";
+
 export interface CitationLine {
   /** 1-based line number in the pasted text, so a row can be matched to the line the user typed. */
   line: number;

@@ -13,10 +13,10 @@ export const QUOTE_NOT_CHECKED_TEXT = "Only the citation was looked up; the quot
 export const NOT_IN_INDEX_NOTE = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.";
 /** R1 (14 Oct, #181): the IN_INDEX heading while the index is existence-only: plain words, never the raw token. The engine's own note ("Found in the index (existence only): no quote was checked, so this is not a verification.") stays under it. */
 export const IN_INDEX_LABEL = "Found in our index";
-/** #223 D1 (R1, 15 Oct): until the engine collapses spelling variants of one case, a CONFLICT is explained in words that are true: one case may sit under more than one index entry. */
-export const CONFLICT_TEXT = "The index lists this citation under more than one entry, so we cannot tell which case you mean. Put the case name before the citation and check again.";
+/** #223 D1 (R1, 15 Oct; Lead-2): a CONFLICT is worded neutrally: the cause may be one case under a spelling variant, so it never says "more than one case" and never claims the citation is not real. */
+export const CONFLICT_TEXT = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again.";
 /** #223 D2a (R1): plain headings for the two statuses that had none (CONFLICT) or a raw token (MALFORMED) while the index is existence-only. */
-export const CONFLICT_HEADING = "Matches more than one entry";
+export const CONFLICT_HEADING = "Could not match one case";
 export const MALFORMED_HEADING = "Not looked up";
 export const MALFORMED_TEXT = "We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.";
 /** #223 D3 (R1): the coverage limit BEFORE the user types, under the existing limits (on /citations and in the panel). */

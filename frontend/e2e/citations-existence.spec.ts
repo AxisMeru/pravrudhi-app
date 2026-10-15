@@ -44,7 +44,7 @@ test("/citations: a conflict reads as R1's heading; the coded refusals read in p
   await page.goto("/citations");
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Matches more than one entry"); // #223 D2a (R1's 15 Oct heading; the sentence under it is pinned in the next test)
+  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a (R1's 15 Oct heading; the sentence under it is pinned in the next test)
   const cases: Array<[number, Record<string, unknown>, Record<string, string>, string]> = [
     [422, { error: "quote_not_served" }, {}, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index."],
     [422, { detail: [{ msg: "x" }] }, {}, "Enter one citation, and leave the quote empty."],
@@ -113,8 +113,8 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("Matches more than one entry"); // #223 D2a
-  await expect(page.getByTestId("citation-note")).toHaveText("The index lists this citation under more than one entry, so we cannot tell which case you mean. Put the case name before the citation and check again."); // D1
+  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a
+  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again."); // D1
   await expect(page.locator("body")).not.toContainText(/conflicting indexed cases|verify by hand|CONFLICT/);
   await page.unroute("**/api/v1/verify-citations");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN_REAL }));
