@@ -11,7 +11,7 @@ export interface WorkflowRow {
 
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { INTAKE_ENABLED } from "./intakeFlag";
-import { WORKSPACE_ANCHORS } from "./workspace";
+import { HEARING_PREP_BUILT, WORKSPACE_ANCHORS } from "./workspace";
 
 /** R1 (14 Oct): the Screening orchestration row reads "Built" with the live note only when this build offers the assistant (NEXT_PUBLIC_ASSISTANT_ENTRY=1); the Intake row reads "Built" only when it carries NEXT_PUBLIC_INTAKE=1. Otherwise both stay "Building". */
 export const SCREENING_ASSISTANT_LIVE_NOTE = "An optional step-by-step screening assistant, offered to signed-in users, with a consent box you tick for each run. You see the engine's own decision result, never the assistant's wording of it.";
@@ -23,7 +23,7 @@ export function workflowRows(on: { assistantOn: boolean; intakeOn: boolean }): r
       : { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
     { name: "Intake", status: on.intakeOn ? "Built" : "Building", note: "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only." },
     { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or Word (.docx), or print / save as PDF." },
-    { name: "Hearing preparation", status: "Building", note: "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law." },
+    { name: "Hearing preparation", status: HEARING_PREP_BUILT ? "Built" : "Building", note: "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law." },
   ];
 }
 

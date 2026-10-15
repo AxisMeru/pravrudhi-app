@@ -144,10 +144,10 @@ test("the Citations panel is below the checklist and nothing about the frontier 
   // The panel is rendered only on a build with both citation flags (#190); on any other build there is no Citations heading at all.
   if (process.env.CITATION_NAV_BUILD === "1" && process.env.CITATION_EXISTENCE_BUILD === "1") {
     const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
-    await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
-    expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
+    await expect(page.getByRole("heading", { name: "Case citations", exact: true })).toBeVisible();
+    expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: "Case citations", exact: true }).boundingBox())!.y);
   } else {
-    await expect(page.getByRole("heading", { name: /citation/i })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Case citations", exact: true })).toHaveCount(0); // the panel heading (Hearing preparation has its own "Citations to check")
   }
 });
 

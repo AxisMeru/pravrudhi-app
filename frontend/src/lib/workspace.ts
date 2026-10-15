@@ -13,8 +13,8 @@ export const WORKSPACE_STATE_WORDS = { done: "Done", available: "Available", not
 export const WORKSPACE_LOCKED_TEXT = "Available after a screening result.";
 /** Under Hearing preparation while this version of the app does not offer it. */
 export const HEARING_NOT_OFFERED_TEXT = "Not offered in this version of the app.";
-/** Hearing preparation is built (a deterministic checklist from the screening result) and wired in a later change; until then the step says so. */
-export const HEARING_PREP_BUILT = false;
+/** Hearing preparation is built (a deterministic checklist from the screening result, lib/screening/hearingPrep.ts) and rendered as step 4; with this false the step says it is not offered. */
+export const HEARING_PREP_BUILT = true;
 
 /** The anchors of the steps on /screening: the /workflows page links its Built rows to them. */
 export const WORKSPACE_ANCHORS = { facts: "step-facts", screen: "step-screen", memo: "step-memo", hearing: "step-hearing" } as const;

@@ -74,3 +74,48 @@ for (const [name, notCitable, cleaned, expectNote, expectDigits] of [
     if (expectNote) await expect(page.getByTestId("intake-left-out")).toContainText("1 passage was left out: the heading, repeated lines or lines with no words.");
   });
 }
+
+
+// R2 (#227): the citations Intake found are listed in Hearing preparation ("Found in the text you pasted") only while the screened facts are the facts Intake handed over.
+test("Hearing preparation lists Intake's citations only while the facts are the handed-over ones", async ({ page }) => {
+  const CID = "ipc415_property";
+  const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ json: ANSWER }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => {
+    const sent = (r.request().postDataJSON() as { facts: Array<string | { text?: string }> }).facts.map((f) => (typeof f === "string" ? f : (f.text ?? "")));
+    return r.fulfill({ json: {
+      run_id: "r-invented-intake-hp", judge: "invented", score_sha256: "a".repeat(64), provenance: "invented", retention_notice: "invented retention notice",
+      facts: sent.map((t, i) => ({ id: `F${i + 1}`, sha256: String(i + 1).repeat(64).slice(0, 64) })),
+      contracts: [{ contract_id: CID, outcome: "ABSTAIN", reason: "missing_element", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null,
+        elements: [{ ...base, element: "deceives another person, whether by affirmative misrepresentation or by dishonest concealment of facts", status: "not_established", p_established: 0.2, p_established_second: 0.2, fact_id: null, quote_source: null }] }],
+    } });
+  });
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill(FACTS.map((f) => f.text).join("\n\n"));
+  await page.getByTestId("intake-run").click();
+  for (let i = 0; i < 2; i++) await page.getByTestId(`pick-${i}`).check();
+  await page.getByTestId("selector-screen").click();
+  await expect(page).toHaveURL(/\/screening\/?$/);
+  await page.getByText("Cheating", { exact: false }).first().click();
+  const run = async () => {
+    await page.getByRole("button", { name: "Screen these facts" }).click();
+    await expect(page.getByTestId("hearing-prep")).toBeVisible();
+  };
+  await run();
+  const rows = page.getByTestId("hearing-citation");
+  await expect(rows).toHaveCount(1);
+  await expect(rows.first()).toContainText("Invented v. Sample (2000) 1 SCC 1");
+  await expect(rows.first()).toContainText("Found in the text you pasted");
+  // another matter's fact replaces one of them: the first matter's citations are not listed beside the new checklist
+  const f1 = page.getByRole("textbox", { name: "Fact F1", exact: true });
+  const original = await f1.inputValue();
+  await f1.fill("My own client's fact about a loan.");
+  await run();
+  await expect(page.getByTestId("hearing-citation")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("Found in the text you pasted");
+  // restored: they come back
+  await f1.fill(original);
+  await run();
+  await expect(page.getByTestId("hearing-citation")).toHaveCount(1);
+});
