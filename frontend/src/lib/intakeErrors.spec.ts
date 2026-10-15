@@ -1,10 +1,12 @@
 import { INTERNAL_ERROR_LINE } from "./internalError";
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import { ApiError, apiErrorFrom } from "./api";
 import { intakeErrorLine } from "./intakeErrors";
-import { INTAKE_TIMEOUT, INTAKE_UNREADABLE } from "./intakeCopy";
+import { INTAKE_LIMIT_LINE, INTAKE_MAX_CHARS, INTAKE_TIMEOUT, INTAKE_TOO_LONG, INTAKE_UNREADABLE } from "./intakeCopy";
 import { INTAKE_SIGNED_IN_ONLY } from "./intake";
 
 // #297 (R1): the sentence is exact, and the engine's 503 intake_timeout reads it; every other failure keeps its signed line.
@@ -53,4 +55,31 @@ test("through the app's own error reader: a 429 with a Retry-After header gives 
   const r422 = await apiErrorFrom(new Response(JSON.stringify({ detail: "nothing readable in this text" }), { status: 422, headers: { "content-type": "application/json" } }), "/api/v1/intake");
   assert.equal(intakeErrorLine(r422), INTAKE_REFUSED);
   assert.doesNotMatch(intakeErrorLine(r422), /nothing readable/);
+});
+
+// #359 (R1, 15 Oct, byte-exact). The limit is one constant; the line under the paste box and the too-long sentence both come from it; no counter.
+test("the limit line and the too-long sentence are R1's exact words, built from ONE constant", () => {
+  assert.equal(INTAKE_MAX_CHARS, 200000);
+  assert.equal(INTAKE_LIMIT_LINE, "Intake reads up to 200,000 characters.");
+  assert.equal(INTAKE_TOO_LONG, "This text is longer than 200,000 characters, so intake did not read it. Shorten it and run it again.");
+});
+
+// The page must never state a limit the engine does not hold: the engine's own text-length limit (pravrudhi api/partner.py IntakeRequest.text max_length, engine 0.6.18; application/a0_assist/intake.py MAX_CHARS) is compared when an engine source tree is given.
+const ENGINE_SRC = process.env.PRAVRUDHI_ENGINE_SRC ?? "";
+test("the constant equals the engine's own limit (runs when PRAVRUDHI_ENGINE_SRC points at an engine source tree)", { skip: !ENGINE_SRC || !existsSync(join(ENGINE_SRC, "pravrudhi/api/partner.py")) }, () => {
+  const model = readFileSync(join(ENGINE_SRC, "pravrudhi/api/partner.py"), "utf8");
+  const m = /class IntakeRequest[\s\S]*?text: str = Field\(min_length=1, max_length=([\d_]+)\)/.exec(model);
+  assert.ok(m, "IntakeRequest.text max_length not found");
+  assert.equal(Number(m[1].replace(/_/g, "")), INTAKE_MAX_CHARS);
+});
+
+test("a 422 whose detail type is string_too_long reads the too-long sentence; any other 422 keeps the refused line; the engine's words never reach the line", async () => {
+  const body = (detail: unknown) => apiErrorFrom(new Response(JSON.stringify({ detail }), { status: 422, headers: { "content-type": "application/json" } }), "/api/v1/intake");
+  const tooLong = await body([{ type: "string_too_long", loc: ["body", "text"], msg: "String should have at most 200000 characters", ctx: { max_length: 200000 } }]);
+  assert.deepEqual(tooLong.validationTypes, ["string_too_long"]);
+  assert.equal(intakeErrorLine(tooLong), INTAKE_TOO_LONG);
+  assert.doesNotMatch(intakeErrorLine(tooLong), /String should/);
+  for (const other of [[{ type: "string_too_short", msg: "x" }], [{ type: "missing" }], "nothing readable", [], [{ msg: "no type" }], [{ type: 5 }]]) assert.equal(intakeErrorLine(await body(other)), INTAKE_REFUSED, JSON.stringify(other));
+  assert.equal(intakeErrorLine(new ApiError(422, "/api/v1/intake", {})), INTAKE_REFUSED);
+  assert.equal(intakeErrorLine(new ApiError(500, "/api/v1/intake", { validationTypes: ["string_too_long"] })) === INTAKE_TOO_LONG, false, "only a 422");
 });

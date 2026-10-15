@@ -8,6 +8,11 @@ export const INTAKE_UNREADABLE = "Intake could not run just now. Try again.";
 export const INTAKE_TIMEOUT = "This text took too long to read, so the intake was stopped. Try a shorter text.";
 // CANDIDATES for R1 to word (not signed; app#342, Track C's contract check). 422: the engine refused the text itself (nothing readable, or over its size limit), so "try again" with the same text cannot succeed; the engine's reason is never shown. 429: the first two sentences of the signed rate-limited line (the third, "Nothing was scored.", does not fit Intake), followed by the seconds the engine asked for (Retry-After), as on Screening and the citation check.
 export const INTAKE_REFUSED = "Intake could not read this text. Check the text, change it if needed, and run it again.";
+// #359 (R1, 15 Oct, byte-exact): the engine refuses an intake text over its character limit (422, detail type string_too_long). The limit is ONE constant, pinned in a test to the engine's own (pravrudhi api/partner.py IntakeRequest.text max_length), so the page never states a limit the engine does not hold. No counter.
+export const INTAKE_MAX_CHARS = 200_000;
+const withCommas = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+export const INTAKE_LIMIT_LINE = `Intake reads up to ${withCommas(INTAKE_MAX_CHARS)} characters.`;
+export const INTAKE_TOO_LONG = `This text is longer than ${withCommas(INTAKE_MAX_CHARS)} characters, so intake did not read it. Shorten it and run it again.`;
 export const INTAKE_RATE_LIMITED = "Too many requests. Wait the number of seconds shown before trying again.";
 export const INTAKE_CITATIONS_HEADING = "Citations in your text";
 
