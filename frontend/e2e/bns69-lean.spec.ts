@@ -16,7 +16,7 @@ async function analyse(page: import("@playwright/test").Page, id: string, tag: s
   await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: answer(id, tag) }));
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText(id).click();
+  await page.locator(`label[data-contract-id="${id}"]`).click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
 }

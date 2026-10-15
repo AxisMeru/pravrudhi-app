@@ -33,7 +33,7 @@ async function analyse(page: import("@playwright/test").Page, elements: object[]
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(`${F1}\n${F2}`);
-  await page.getByRole("group", { name: "Contracts to check against" }).getByText("bns69").click();
+  await page.getByRole("group", { name: "Contracts to check against" }).locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
 }
 
@@ -136,7 +136,7 @@ test("REFER_TO_LAWYER with lean null shows the signed line; with a structural ch
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(F1);
-  await page.getByRole("group", { name: "Contracts to check against" }).getByText("bns69").click();
+  await page.getByRole("group", { name: "Contracts to check against" }).locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("no-structural-check")).toHaveText("No structural check was run for this referral.");
   await expect(page.getByTestId("lean-attestation")).toHaveCount(0);

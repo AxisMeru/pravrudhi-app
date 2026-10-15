@@ -35,7 +35,7 @@ async function matters(page: import("@playwright/test").Page, answer: unknown) {
   await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ json: answer }));
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText(CID).click();
+  await page.locator(`label[data-contract-id="${CID}"]`).click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
 }

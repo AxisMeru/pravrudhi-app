@@ -67,7 +67,7 @@ test("signed out (/api/me 401): the Matters page also sends nothing and offers t
   await page.route("**/api/v1/analyse-facts**", (r) => { posts.push(r.request().url()); return r.fulfill({ status: 500, json: {} }); });
   await page.goto("/matters");
   const group = page.getByRole("group", { name: "Contracts to check against" });
-  await group.locator("label").filter({ hasText: "bns69" }).first().click({ force: true });
+  await group.locator("label").filter({ hasText: "BNS 69" }).first().click({ force: true });
   await page.getByLabel("Facts (one per line)").fill(F1);
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("not-signed-in")).toBeVisible({ timeout: 15_000 });

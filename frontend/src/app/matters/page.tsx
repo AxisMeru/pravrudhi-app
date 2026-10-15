@@ -32,6 +32,7 @@ import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { displayElementName, referenceOf } from "@/lib/screening/reference";
+import { blockTitle } from "@/lib/screening/offences";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { exampleById, exampleFactsText, type DemoExample } from "@/lib/demo/example";
 import Link from "next/link";
@@ -146,7 +147,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
     return (
       <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
         <header className="flex items-center justify-between gap-2">
-          <div className="text-sm font-medium text-[var(--color-text)]">{c.contract_id}</div>
+          <div className="text-sm font-medium text-[var(--color-text)]" data-testid="contract-name">{blockTitle(c.contract_id)}</div>
           <span className="rounded-md border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]">not yet covered</span>
         </header>
         <p className="mt-2 text-sm text-[var(--color-text-dim)]">
@@ -160,8 +161,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-medium text-[var(--color-text)]">
-          {c.contract_id}
+        <div className="text-sm font-medium text-[var(--color-text)]" data-testid="contract-name">
+          {blockTitle(c.contract_id)}
           {mark && validationLabel(mark) && (
             <span className="ml-2 rounded border border-[var(--color-warn-border)] px-1.5 py-0.5 text-[11px] font-normal text-[var(--color-warn)]" data-testid="not-validated-badge">
               {validationLabel(mark)}
@@ -188,7 +189,7 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
       {c.elements.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
-            <caption className="sr-only">Elements of {c.contract_id}: status and the cited fact</caption>
+            <caption className="sr-only">Elements of {blockTitle(c.contract_id)}: status and the cited fact</caption>
             <thead>
               <tr className="text-xs text-[var(--color-text-dim)]">
                 <th scope="col" className="pb-1 pr-3 font-medium">element</th>
@@ -477,12 +478,13 @@ export default function MattersPage() {
                 {contracts.map((id) => (
                   <label
                     key={id}
+                    data-contract-id={id}
                     className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${
                       selected.has(id) ? "border-[var(--color-accent)] text-[var(--color-text)]" : "border-[var(--color-border)] text-[var(--color-text-dim)]"
                     }`}
                   >
                     <input type="checkbox" className="sr-only" checked={selected.has(id)} onChange={() => toggleContract(id)} />
-                    {id}
+                    {blockTitle(id)}
                     {validationLabel(validationMark(validated, id)) && (
                       <span className="text-[var(--color-warn)]">({validationLabel(validationMark(validated, id))})</span>
                     )}

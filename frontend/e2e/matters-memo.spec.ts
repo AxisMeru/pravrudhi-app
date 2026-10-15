@@ -28,8 +28,8 @@ test("/matters still renders, and its memo is the screening memo: R1's disclaime
   await page.goto("/matters");
   await expect(page.locator("main").getByRole("heading", { name: "Offence rules", exact: true })).toBeVisible();
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText(KNOWN).click();
-  await page.getByText(OUTSIDE).click();
+  await page.locator(`label[data-contract-id="${KNOWN}"]`).click();
+  await page.locator(`label[data-contract-id="${OUTSIDE}"]`).click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);

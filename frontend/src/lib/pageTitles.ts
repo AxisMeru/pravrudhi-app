@@ -13,6 +13,7 @@ export const PAGE_TITLES = {
   settings: "Settings",
   partnerKeys: "API access",
   citations: "Case citations",
+  matters: "Offence rules",
 } as const;
 
 export type PageTitleKey = keyof typeof PAGE_TITLES;
