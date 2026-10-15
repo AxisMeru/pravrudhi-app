@@ -301,7 +301,7 @@ for (const [name, status, body] of FIVE_XX) {
     const posts = await open(page, { tier: AVAILABLE, assistStatus: status, assistBody: body });
     await page.getByTestId("assistant-consent").check();
     await page.getByTestId("assistant-run-button").click();
-    await expect(page.getByText(/The engine answered with an error|The analysis service is (busy|not available)/i).first()).toBeVisible();
+    await expect(page.getByText(/The engine answered with an error|Something went wrong on our side|The analysis service is (busy|not available)/i).first()).toBeVisible();
     await page.waitForTimeout(800); // an immediate retry would already have been sent
     expect(posts.assist).toHaveLength(1);
   });
@@ -311,7 +311,7 @@ for (const [name, status, body] of [["a bare 500", 500, { detail: "Internal Serv
   test(`plain screening: ${name} still makes exactly two requests (one retry)`, async ({ page }) => {
     const posts = await open(page, { tier: AVAILABLE, plainStatus: status, plainBody: body });
     await page.getByRole("button", { name: "Screen these facts" }).click();
-    await expect(page.getByText("The engine answered with an error")).toBeVisible();
+    await expect(page.getByText("Something went wrong on our side, so this request was not completed. Try again in a moment.")).toBeVisible();
     expect(posts.plain).toBe(2);
     expect(posts.assist).toHaveLength(0);
   });
