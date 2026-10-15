@@ -127,11 +127,17 @@ test("flag off (the hosted build): /citations is a notice and a way back to Scre
   await expect(page).toHaveURL(/\/screening\/?$/);
 });
 
-// #223 (R2, 15 Oct): the signed-out probe belongs to the existence-only page; with it off, /citations makes no identity request (a signed-out 401 in the console is the noise #212 removed).
-test("with the existence-only flag off, /citations makes no /api/me request", async ({ page }) => {
-  const calls: string[] = [];
-  page.on("request", (r) => { if (new URL(r.url()).pathname === "/api/me") calls.push(r.url()); });
-  await page.goto("/citations");
-  await page.waitForLoadState("networkidle");
-  expect(calls).toEqual([]);
+// #223 (R2, 15 Oct): the signed-out probe belongs to the existence-only page. With that flag off, /citations makes no identity request of its own: the site-wide callers (edition, notifications) hit /api/me on every page, so the pin compares it with a page that has no citation code.
+test("with the existence-only flag off, /citations makes no /api/me request beyond the site-wide ones", async ({ page }) => {
+  const count = async (path: string) => {
+    let n = 0;
+    const on = (r: import("@playwright/test").Request) => { if (new URL(r.url()).pathname === "/api/me") n += 1; };
+    page.on("request", on);
+    await page.goto(path);
+    await page.waitForLoadState("networkidle");
+    page.off("request", on);
+    return n;
+  };
+  const baseline = await count("/data-handling");
+  expect(await count("/citations")).toBeLessThanOrEqual(baseline);
 });
