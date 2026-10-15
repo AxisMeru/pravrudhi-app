@@ -5,6 +5,7 @@
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { BANNER_STANDING_LINE } from "./screening/copy";
+import { CITATION_EXISTENCE_ONLY, RETENTION_EXISTENCE } from "./citationExistence";
 import { CITATION_RETENTION } from "./surfaceCopy";
 
 export const DATA_HANDLING_TITLE = "Data handling";
@@ -74,7 +75,8 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
   {
     id: "citations",
     heading: "Citation check",
-    paragraphs: [CITATION_RETENTION],
+    // R1 (15 Oct, #300): "The citation check does not save the citation you enter." (true only because the check sends a citation and nothing else); the quote-box arm keeps its own sentence
+    paragraphs: [CITATION_EXISTENCE_ONLY ? RETENTION_EXISTENCE : CITATION_RETENTION],
   },
   {
     id: "kept",
@@ -90,7 +92,7 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     heading: "Where it is processed",
     paragraphs: [
       "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. " +
-        "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase; we do not state where it is located. The hosting providers may keep their own logs.",
+        "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase. The hosting providers may keep their own logs.",
       DH_WHERE_FALLBACK,
     ],
   },
@@ -116,7 +118,7 @@ export const DATA_HANDLING_SECTIONS: readonly DataHandlingSection[] = dataHandli
 // P10 (R1, 14 Oct): a summary at the top and, with the assistant on, the two routes as labelled groups. Signed text only: the glance shows the FIRST signed paragraph of three sections
 // verbatim with a link to each, the groups use the signed assistant lines, and the group "Without the assistant" sits BELOW the standard sections so "described above" (DH_NOASSIST) stays true.
 export const DH_GLANCE_HEADING = "At a glance";
-export const DH_GLANCE_LINE = "These are the first lines of the sections below; read the full section for the rest.";
+export const DH_GLANCE_LINE = "A short version of the sections below; the sections hold the full text.";
 export const DH_GLANCE_LINK = "See the full section";
 // R1 (14 Oct): with the assistant on, ONE line after the three blocks pointing at route B; no other words, nothing about Anthropic. The link label is the quoted group title.
 export const DH_GLANCE_ASSIST_BEFORE = "The optional assistant changes this: see \u201c";
@@ -140,13 +142,31 @@ export interface DataHandlingPage {
   assistant?: { section: DataHandlingSection; groups: { label: string; paragraphs: string[] }[] };
 }
 
+/** The first sentence of a paragraph: up to the first full stop, question or exclamation mark followed by a space or the end. */
+export function firstSentence(paragraph: string): string {
+  const m = /^[\s\S]*?[.!?](?=\s|$)/.exec(paragraph.trim());
+  return m ? m[0] : paragraph.trim();
+}
+
+/** A paragraph cut into its sentences (each up to a full stop, question or exclamation mark followed by a space or the end). */
+export function splitSentences(paragraph: string): string[] {
+  return paragraph.trim().match(/[\s\S]*?[.!?](?=\s|$)/g)?.map((x) => x.trim()) ?? [paragraph.trim()];
+}
+
 export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): DataHandlingPage {
   const sections = dataHandlingSections(assist, deleteConfirmed);
   const standard = sections.filter((s) => s.id !== "assistant");
   const blocks = DH_GLANCE_IDS.map((id) => {
     const s = standard.find((x) => x.id === id)!;
-    // R1 (14 Oct): the "where" glance shows the first signed paragraph AND the fallback-region sentence, each verbatim as its own paragraph, so a skimmer sees every location fact.
-    const texts = id === "where" ? [s.paragraphs[0], DH_WHERE_FALLBACK] : [s.paragraphs[0]];
+    // R1 (15 Oct, #300): the glance texts are set per block, as sentences of the section's own text (the full sections stay as they are):
+    //  sent  = the first sentence;
+    //  where = the first TWO sentences of the first paragraph, then, as its own paragraph, only the first sentence of the fallback (its tail "Retention is as described above..." would point "above" at the wrong block here);
+    //  kept  = the first sentence and the sentence that tells a reader what a run record can include.
+    const sents = splitSentences(s.paragraphs[0]);
+    const texts =
+      id === "where" ? [`${sents[0]} ${sents[1]}`, firstSentence(DH_WHERE_FALLBACK)]
+      : id === "kept" ? [`${sents[0]} ${sents.find((x) => x.startsWith("A run record can include")) ?? ""}`.trim()]
+      : [sents[0]];
     return { id, heading: s.heading, texts, href: `#dh-${id}` };
   });
   const out: DataHandlingPage = { glance: { heading: DH_GLANCE_HEADING, line: DH_GLANCE_LINE, linkText: DH_GLANCE_LINK, blocks }, standard };
