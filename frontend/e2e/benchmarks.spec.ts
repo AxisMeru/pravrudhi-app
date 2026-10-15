@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 
-// The benchmarks page is short and static (R1's strings, 13 Oct): what we check, how we test, what the checks do and do not show. No figure.
+// The benchmarks page is short (R1's strings, 13 Oct): what we check, how we test, what the checks do and do not show. No figure outside the NyayaSiddhi results view: Interim lead's explicit exception (15 Oct) allows figures there only (the signed NyayaSiddhi rows, each with its n and exact 95% interval).
 test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure", async ({ page }) => {
   await page.goto("/benchmarks");
   await expect(page.getByRole("heading", { name: "Benchmarks", level: 1 })).toBeVisible();
@@ -13,7 +13,8 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   await expect(items.nth(3)).toContainText("Legal-knowledge test: how our models do");
   await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second, independent model reviewer.");
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
-  const text = await page.locator("main").innerText();
+  // everything outside the NyayaSiddhi results view
+  const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"]').forEach((n) => n.remove()); return c.innerText; });
   expect(text).not.toMatch(/%|interval|upper bound|Result pending|Registered bar|Inconclusive/i);
   expect(text.replace(/NyayaSiddhi v0\.2/, "")).not.toMatch(/\d/);
 });
@@ -30,9 +31,80 @@ test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and
   for (const path of ["/benchmarks", "/demo"]) {
     await page.goto(path);
     const link = page.getByTestId("nyayasiddhi-link");
-    await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)");
+    await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-by-element development benchmark (data + scorer)");
     await expect(link).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
     await expect(page.getByTestId("nyayasiddhi-blurb")).toHaveText("development benchmark; descriptive; no ranking");
     await expect(page.getByTestId("nyayasiddhi")).not.toContainText(/\d+(\.\d+)?%/);
   }
+});
+
+// Interim lead's exception (15 Oct): the NyayaSiddhi results from the signed rows (src/data/nyayasiddhi/rows.json), R1's words, each figure with its n and exact 95% interval; no ranking, no "proof".
+test("the NyayaSiddhi results: R1's heading and intro, two signed cards with their labels, and each figure with n and its exact interval", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const box = page.getByTestId("nyayasiddhi-results");
+  await expect(box.getByRole("heading", { name: "NyayaSiddhi results", level: 2 })).toBeVisible();
+  await expect(box).toContainText("Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.");
+  await expect(box.getByTestId("ns-supply-line")).toHaveText("For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.");
+  const rows = box.getByTestId("ns-row");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.first()).toContainText("Reported by the entrant");
+  await expect(rows.first()).toContainText("dev stack (local)");
+  await expect(rows.first()).toContainText("Entered by the NyayaSiddhi organisers, who also built this system");
+  await expect(rows.first()).toContainText("Wrongly supported");
+  const text = await box.innerText();
+  expect(text).toContain("0 of 64 (exact 95% interval 0.0% to 5.6%)");
+  expect(text).toContain("0 of 128 (exact 95% interval 0.0% to 2.8%)");
+  expect(text).toContain("0 of 107 (exact 95% interval 0.0% to 3.4%)");
+  expect(text).toContain("The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.");
+  expect(text).not.toMatch(/proof|verified|\bbest\b|better|\bbeat\b|rank/i);
+  await expect(box.getByTestId("ns-chart")).toHaveCount(4);
+  // R1's split labels (the HF card's words win) and the errors line: only the obj1_dev row had an error (errors counted as not supported gives 0 of 64; counted as supported, 1 of 64)
+  await expect(rows.first()).toContainText("Second development set, cruelty items left out; exposed to Anthropic in an earlier study");
+  await expect(rows.nth(1)).toContainText("Development items; used to design fixes, so seen by us");
+  await expect(rows.first().getByTestId("ns-error-line")).toHaveCount(0);
+  await expect(rows.nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 64.");
+});
+
+test("the NyayaSiddhi results: the group chooser shows a family's figures; the unit chooser offers only the units the rows carry", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const box = page.getByTestId("nyayasiddhi-results");
+  await expect(box.getByTestId("ns-units").locator("label")).toHaveText(["Whole item"]);
+  await expect(box.getByTestId("ns-groups").locator("label")).toHaveText(["All groups", "Cheating", "Criminal breach of trust", "Dishonoured cheque"]);
+  await box.getByTestId("ns-groups").getByText("Cheating", { exact: true }).click();
+  const text = await box.innerText();
+  expect(text).toContain("0 of 27 (exact 95% interval 0.0% to 12.8%)");
+  expect(text).toContain("0 of 47 (exact 95% interval 0.0% to 7.5%)");
+  // for the Cheating group the two error mappings also disagree on the obj1_dev row (1 of 27), so its errors line names that figure
+  await expect(box.getByTestId("ns-row").nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 27.");
+  // Dishonoured cheque: the mappings agree there, so no errors line
+  await box.getByTestId("ns-groups").getByText("Dishonoured cheque", { exact: true }).click();
+  await expect(box.getByTestId("ns-error-line")).toHaveCount(0);
+});
+
+test("the NyayaSiddhi results work at phone width: no horizontal scroll and the choosers are phone-size targets", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/benchmarks");
+  await expect(page.getByTestId("nyayasiddhi-results")).toBeVisible();
+  const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+  expect(sw).toBeLessThanOrEqual(iw);
+  for (const l of await page.getByTestId("ns-groups").locator("label").all()) expect((await l.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+});
+
+// WCAG 2.4.7: the unit and group choosers are radios hidden from view (sr-only inputs in labels): keyboard focus must show on the label.
+test("the NyayaSiddhi choosers show keyboard focus: tabbing to a radio draws an outline on its label", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const box = page.getByTestId("nyayasiddhi-results");
+  await expect(box).toBeVisible();
+  await box.getByTestId("ns-units").locator("input").focus();
+  let o = await box.getByTestId("ns-units").locator("label").first().evaluate((l) => ({ style: getComputedStyle(l).outlineStyle, width: getComputedStyle(l).outlineWidth }));
+  expect(o).toEqual({ style: "solid", width: "2px" });
+  // by keyboard: tab from the unit radio to the group radio group, and the focused label is outlined
+  await page.keyboard.press("Tab");
+  const focusedLabel = page.locator("label:focus-within");
+  await expect(focusedLabel).toHaveCount(1);
+  o = await focusedLabel.evaluate((l) => ({ style: getComputedStyle(l).outlineStyle, width: getComputedStyle(l).outlineWidth }));
+  expect(o).toEqual({ style: "solid", width: "2px" });
+  expect(await focusedLabel.evaluate((l) => !!l.closest('[data-testid="ns-groups"]'))).toBe(true);
+  // an unfocused label has no outline
+  await expect(box.getByTestId("ns-units").locator("label").first()).toHaveCSS("outline-style", "none");
 });

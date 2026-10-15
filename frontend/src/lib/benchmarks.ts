@@ -18,7 +18,7 @@ export const HOW_WE_TEST =
 
 /** NyayaSiddhi (the open development benchmark, #638): a link and a short blurb under it, no figure. Strings unchanged. */
 export const NYAYASIDDHI_URL = "https://huggingface.co/datasets/AxisMeru/nyayasiddhi";
-export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)";
+export const NYAYASIDDHI_LINK_TEXT = "NyayaSiddhi v0.2: open Indian element-by-element development benchmark (data + scorer)";
 export const NYAYASIDDHI_BLURB = "development benchmark; descriptive; no ranking";
 
 export const FOOTER_TEXT = "Research results, not legal advice.";
