@@ -22,7 +22,7 @@ export function workflowRows(on: { assistantOn: boolean; intakeOn: boolean }): r
       ? { name: "Screening orchestration", status: "Built", note: SCREENING_ASSISTANT_LIVE_NOTE }
       : { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
     { name: "Intake", status: on.intakeOn ? "Built" : "Building", note: "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only." },
-    { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx)." },
+    { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or Word (.docx), or print / save as PDF." },
     { name: "Hearing preparation", status: "Building", note: "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law." },
   ];
 }
