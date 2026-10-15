@@ -195,9 +195,9 @@ for (let run = 1; run <= REPEATS; run++) {
       expect(memo, `the memo has no section for ${c.contract_id}`).toContain(`## ${memoBlockHeading(c.contract_id)}`);
       expect(memo, `the memo lacks ${c.contract_id}'s banner`).toContain(summarize(c, rowsFor(c, result.facts)).text);
     }
-    // #206 R12 (R1, 15 Oct): the standing line appears once in the memo, under the disclaimer, and not under each block's summary line.
-    const lines = memo.split("\n");
-    expect(lines.filter((l) => l === "This is a screening aid, not legal advice. A lawyer decides." || l === "> This is a screening aid, not legal advice. A lawyer decides.")).toHaveLength(1);
+    // #262 (R1, 15 Oct, candidate A): "A lawyer decides." appears once in the memo, in the signed disclaimer; the standing line is not repeated under it or under any block's summary line.
+    expect(memo.split("A lawyer decides.").length - 1).toBe(1);
+    expect(memo).not.toContain("This is a screening aid, not legal advice. A lawyer decides.");
     const [auditDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download run record (.json)" }).click()]);
     const audit = JSON.parse(readFileSync(await auditDl.path(), "utf8"));
     expect(audit.response.run_id).toBe(result.run_id);

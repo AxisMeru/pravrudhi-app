@@ -4,7 +4,7 @@ import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
 import { buildDocx } from "../docxWriter";
 import { MEMO_DISCLAIMER } from "../memo";
-import { AGENDA_BANNER_TEXT, ALTERNATE_LIMB_NOTE, CHIP_LABEL, NO_FACT_GROUP_HEADING, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
+import { AGENDA_BANNER_TEXT, ALTERNATE_LIMB_NOTE, CHIP_LABEL, NO_FACT_GROUP_HEADING, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL } from "./copy";
 import { agendaContractId, contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { CONTRACT_BLOCK_TITLES, blockTitle, isAlternateLimb, offenceLabel, offenceOf } from "./offences";
 import { STEP_LABELS, STEP_TRACE_HEADING, stepCheckText } from "../assistantRun";
@@ -35,8 +35,8 @@ export function memoBlockHeading(contractId: string): string {
 }
 
 export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {
-  // R1 (15 Oct, #206 R12): the standing line appears ONCE, here under the disclaimer, never inside a block.
-  const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, "", `> ${BANNER_STANDING_LINE}`, ""];
+  // R1 (15 Oct, #262, candidate A): the memo opens with the signed disclaimer ONLY. Its first sentence already says "A lawyer decides.", so the screen's standing line is not repeated under it: "A lawyer decides." appears once in the memo, in the Markdown and in the Word file (built from it) alike.
+  const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, ""];
   out.push(`- Run id: ${result.run_id}`, `- Engine version: ${opts.engineVersion ?? "unknown"}`, `- Score sha256: ${result.score_sha256}`);
   out.push(`- Contract checker pin (sha256): ${contractElements._binary_sha256}`, `- Generated: ${opts.generatedAt}`, "", "## Facts", "");
   if (opts.example) out.push(`> ${line(opts.example.label)}`, `> ${line(opts.example.citation)}`, "");
