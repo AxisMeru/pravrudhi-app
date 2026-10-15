@@ -11,7 +11,7 @@ export interface WorkflowRow {
 
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { INTAKE_ENABLED } from "./intakeFlag";
-import { HEARING_PREP_BUILT, WORKSPACE_ANCHORS } from "./workspace";
+import { HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, WORKFLOW_OPEN_LABEL, WORKSPACE_ANCHORS, WORKSPACE_PATH } from "./workspace";
 
 /** R1 (14 Oct): the Screening orchestration row reads "Built" with the live note only when this build offers the assistant (NEXT_PUBLIC_ASSISTANT_ENTRY=1); the Intake row reads "Built" only when it carries NEXT_PUBLIC_INTAKE=1. Otherwise both stay "Building". */
 export const SCREENING_ASSISTANT_LIVE_NOTE = "An optional step-by-step screening assistant, offered to signed-in users, with a consent box you tick for each run. You see the engine's own decision result, never the assistant's wording of it.";
@@ -33,11 +33,17 @@ export const WORKFLOWS: readonly WorkflowRow[] = workflowRows({ assistantOn: ASS
 export function workflowStepAnchor(name: string): string | null {
   switch (name) {
     case "Screening orchestration": return WORKSPACE_ANCHORS.screen;
-    case "Intake": return WORKSPACE_ANCHORS.facts;
     case "Memo preparation": return WORKSPACE_ANCHORS.memo;
     case "Hearing preparation": return WORKSPACE_ANCHORS.hearing;
     default: return null;
   }
+}
+
+/** Where a Built row's link goes and what it says: Intake has its own page; the others open their step of the workspace. */
+export function workflowLink(name: string): { href: string; label: string } | null {
+  if (name === "Intake") return { href: INTAKE_PATH, label: INTAKE_OPEN_LABEL };
+  const a = workflowStepAnchor(name);
+  return a ? { href: `${WORKSPACE_PATH}#${a}`, label: WORKFLOW_OPEN_LABEL } : null;
 }
 
 export const WORKFLOWS_CLOSING = "A workflow runs only when you start it, and only on the matter you give it.";
