@@ -17,6 +17,10 @@ test("the glance: heading, R1's line, three blocks quoting the first signed para
   await expect(page.getByTestId("dh-glance-where").locator("p")).toHaveCount(2);
   await expect(page.getByTestId("dh-glance-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there.");
   await expect(page.getByTestId("dh-glance-kept")).toContainText("Run records are kept for up to 7 days.");
+  // R1 (15 Oct, #300): the glance carries the sentence about what a run record can include, and never the fallback's tail that points "above" at another section
+  await expect(page.getByTestId("dh-glance-kept")).toContainText("A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it.");
+  await expect(page.getByTestId("dh-glance-where")).toContainText("Parts of the screening run in EU data centres; for some parts the region is not fixed.");
+  await expect(page.getByTestId("dh-glance")).not.toContainText("described above");
   for (const id of ["sent", "where", "kept"]) {
     await expect(page.getByTestId(`dh-glance-link-${id}`)).toHaveAttribute("href", `#dh-${id}`);
     await page.getByTestId(`dh-glance-link-${id}`).click();

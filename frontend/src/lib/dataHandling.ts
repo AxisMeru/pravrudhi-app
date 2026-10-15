@@ -148,15 +148,25 @@ export function firstSentence(paragraph: string): string {
   return m ? m[0] : paragraph.trim();
 }
 
+/** A paragraph cut into its sentences (each up to a full stop, question or exclamation mark followed by a space or the end). */
+export function splitSentences(paragraph: string): string[] {
+  return paragraph.trim().match(/[\s\S]*?[.!?](?=\s|$)/g)?.map((x) => x.trim()) ?? [paragraph.trim()];
+}
+
 export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): DataHandlingPage {
   const sections = dataHandlingSections(assist, deleteConfirmed);
   const standard = sections.filter((s) => s.id !== "assistant");
   const blocks = DH_GLANCE_IDS.map((id) => {
     const s = standard.find((x) => x.id === id)!;
-    // R1 (14 Oct): the "where" glance shows the first signed paragraph AND the fallback-region sentence, each verbatim as its own paragraph, so a skimmer sees every location fact.
-    // R1 (15 Oct, #300): the glance shows only the FIRST SENTENCE of each section (the full text is in the section), plus the fallback-region sentence for "where" so a skimmer is never told "EU data centre" without "for some parts the region is not fixed".
-    const first = firstSentence(s.paragraphs[0]);
-    const texts = id === "where" ? [first, DH_WHERE_FALLBACK] : [first];
+    // R1 (15 Oct, #300): the glance texts are set per block, as sentences of the section's own text (the full sections stay as they are):
+    //  sent  = the first sentence;
+    //  where = the first TWO sentences of the first paragraph, then, as its own paragraph, only the first sentence of the fallback (its tail "Retention is as described above..." would point "above" at the wrong block here);
+    //  kept  = the first sentence and the sentence that tells a reader what a run record can include.
+    const sents = splitSentences(s.paragraphs[0]);
+    const texts =
+      id === "where" ? [`${sents[0]} ${sents[1]}`, firstSentence(DH_WHERE_FALLBACK)]
+      : id === "kept" ? [`${sents[0]} ${sents.find((x) => x.startsWith("A run record can include")) ?? ""}`.trim()]
+      : [sents[0]];
     return { id, heading: s.heading, texts, href: `#dh-${id}` };
   });
   const out: DataHandlingPage = { glance: { heading: DH_GLANCE_HEADING, line: DH_GLANCE_LINE, linkText: DH_GLANCE_LINK, blocks }, standard };
