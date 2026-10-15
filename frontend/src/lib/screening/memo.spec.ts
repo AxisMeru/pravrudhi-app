@@ -35,3 +35,21 @@ test("referral line with a reason that is undefined or null (a malformed-but-acc
   const rest = Object.fromEntries(Object.entries(RESULT.contracts[0] as unknown as Record<string, unknown>).filter(([k]) => k !== "reason"));
   assert.equal(referralLine({ ...RESULT, contracts: [rest] } as unknown as AnalyseFactsResult), EMPTY);
 });
+
+// R1, 15 Oct: the memo heading of a way of a multi-way offence is the SAME string as the screen's block title, with the alternate-way note under every way after the first.
+test("the memo heading of each way equals the screen's block title; the alternate note follows every way after the first; a single-way offence keeps its plain heading", async () => {
+  const { OFFENCES, blockTitle } = await import("./offences");
+  const { ALTERNATE_LIMB_NOTE } = await import("./copy");
+  const ids = OFFENCES.filter((o) => o.contracts.length > 1).flatMap((o) => [...o.contracts]);
+  const one = (id: string) => ({ ...(RESULT.contracts[0] as object), contract_id: id, outcome: "ABSTAIN", reason: "missing_element" });
+  const r = { ...RESULT, contracts: [...ids.map(one), one("ni138")] } as unknown as AnalyseFactsResult;
+  const lines = buildScreeningMemo(r, { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z" }).split("\n");
+  for (const o of OFFENCES.filter((x) => x.contracts.length > 1)) {
+    o.contracts.forEach((id, i) => {
+      const at = lines.indexOf(`## ${blockTitle(id)}`);
+      assert.ok(at >= 0, `${id}: no heading equal to its screen title`);
+      assert.equal(lines[at + 2] === ALTERNATE_LIMB_NOTE, i > 0, `${id}: alternate note ${i > 0 ? "missing" : "present on the first way"}`);
+    });
+  }
+  assert.ok(lines.some((l) => l.startsWith("## Dishonour of a cheque")));
+});

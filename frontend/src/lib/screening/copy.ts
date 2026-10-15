@@ -46,7 +46,7 @@ export const AGENDA_BANNER_TEXT = "Review agenda: what each ingredient needs, an
 /** R1, 14 Oct (#134): the group of ingredients for which no fact is cited. */
 export const NO_FACT_GROUP_HEADING = "To look for in your papers";
 /** R1, 14 Oct (#134): shown under the second block of an offence that has two ways of being made out. */
-export const ALTERNATE_LIMB_NOTE = "This is a second way the same offence can be made out. Each way is screened separately.";
+export const ALTERNATE_LIMB_NOTE = "This is another way the same offence can be made out. Each way is screened separately.";
 /** For the four offences the engine judges through their IPC-family contracts: the BNS counterpart is not on the validated list (R1, 8 Oct; #825). */
 export function ipcDisclosure(ipcSection: string): string {
   return `Checked against the IPC text (s.${ipcSection}); the BNS counterpart is not validated.`;
