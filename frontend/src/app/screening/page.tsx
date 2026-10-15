@@ -460,7 +460,7 @@ export default function ScreeningPage() {
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
-          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
+          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} exampleFacts={isUnchangedExample(facts, example)} />}
           {limitNotice && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="facts-limit-notice">{limitNotice}</p>}
           {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
           {invalidRunId !== undefined && (
