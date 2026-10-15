@@ -52,9 +52,10 @@ export function IngredientChecklist({ contract, facts, agenda = false }: { contr
     <section className="space-y-3" data-testid="checklist" aria-label={`Ingredients: ${blockTitle(contract.contract_id)}`}>
       <header>
         <h2 className="text-base font-semibold text-[var(--color-text)]">{blockTitle(contract.contract_id)}</h2>
-        <p className="text-xs text-[var(--color-text-dim)]">
-          {offence?.sections ?? ""}
-        </p>
+        {/* #206 R9: a way's title already ends in the sections, and an offence shown by its reference has none: the line appears only when it adds something. */}
+        {offence?.sections && !blockTitle(contract.contract_id).includes(offence.sections) && (
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="offence-sections">{offence.sections}</p>
+        )}
         {isAlternateLimb(contract.contract_id) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="alternate-limb-note">{ALTERNATE_LIMB_NOTE}</p>}
         {offence?.ipcChecked && (
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(offence.ipcChecked)}</p>
@@ -68,11 +69,14 @@ export function IngredientChecklist({ contract, facts, agenda = false }: { contr
           {referral.unknown && <p className="mt-1 text-xs text-[var(--color-warn)]" data-testid="contract-review-code">{REASON_CODE_LABEL}: {referral.code}</p>}
         </div>
       )}
-      <ul className="space-y-2" aria-label="Ingredients">
-        {rows.ingredients.filter((r) => r.chip !== "not_supported").map((r, i) => (
-          <Row key={`${r.element}-${i}`} row={r} />
-        ))}
-      </ul>
+      {/* #206 R8: no empty list for a screen reader to announce (a block whose ingredients are all in the group below, or that has none). */}
+      {rows.ingredients.some((r) => r.chip !== "not_supported") && (
+        <ul className="space-y-2" aria-label="Ingredients">
+          {rows.ingredients.filter((r) => r.chip !== "not_supported").map((r, i) => (
+            <Row key={`${r.element}-${i}`} row={r} />
+          ))}
+        </ul>
+      )}
       {rows.ingredients.some((r) => r.chip === "not_supported") && (
         <div className="space-y-2" data-testid="no-fact-group">
           <h3 className="text-sm font-medium text-[var(--color-text)]">{NO_FACT_GROUP_HEADING}</h3>
