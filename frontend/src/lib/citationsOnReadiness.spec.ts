@@ -10,7 +10,7 @@ import { classifyVerifyError, statusLabel, verifyView } from "./citationCheck";
 import {
   CONFLICT_HEADING, CONFLICT_TEXT, COVERAGE_LIMITS_TEXT, MALFORMED_HEADING, MALFORMED_TEXT, RETENTION_EXISTENCE, SIGNED_OUT_401_TEXT, SIGNED_OUT_BEFORE_TEXT,
 } from "./citationExistence";
-import { MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, overCapText, parseCitationLines } from "./citationsPanel";
+import { AT_CAPACITY_PAUSE_MS, MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, overCapText, parseCitationLines } from "./citationsPanel";
 import { SESSION_401_TEXT } from "./signedStrings";
 
 // Citations-ON readiness (#223, explorer's pre-flip review D1-D7; R1's exact strings, 15 Oct). Both arms: the ON arm (existence-only) shows the new wording; the OFF arm is unchanged.
@@ -108,4 +108,33 @@ test("useSignedOut sends no identity request unless enabled, and both callers pa
   assert.match(page, /useSignedOut\(served && CITATION_EXISTENCE_ONLY\)/);
   const panel = readFileSync("src/components/citations/CitationsPanel.tsx", "utf8");
   assert.match(panel, /useSignedOut\(CITATION_EXISTENCE_ONLY\)/);
+});
+
+// #239 (Track C contract check): admission runs before the concurrency gate, so a verify_at_capacity 503 still spends one of the six lookups a minute; with the arm ON the batch waits the 5 s Retry-After before the next line, never sends it straight into a busy engine.
+test("#239: after a verify_at_capacity refusal the ON arm waits the Retry-After before the next line; the OFF arm does not; no wait after the last line; an abort ends the wait", async () => {
+  const items = parseCitationLines("(2099) 1 SCC 1\n(2099) 2 SCC 1\n(2099) 3 SCC 1", true).items;
+  const events: string[] = [];
+  let calls = 0;
+  const verify = async () => { calls += 1; events.push(`call${calls}`); if (calls === 1) throw new ApiError(503, "/x", { code: "verify_at_capacity" }); return { result: "NOT_IN_INDEX", note: "n" }; };
+  const pause = async (ms: number) => { events.push(`pause${ms}`); };
+  const rows = await checkCitations(verify, items, undefined, undefined, true, pause);
+  assert.equal(AT_CAPACITY_PAUSE_MS, 5000);
+  assert.deepEqual(events, ["call1", "pause5000", "call2", "call3"], "one pause, between the refused line and the next, none before the first or after a good answer");
+  assert.deepEqual(rows.map((r) => r.state.phase), ["error", "result", "result"]);
+  // OFF arm: no pause
+  events.length = 0; calls = 0;
+  await checkCitations(verify, items, undefined, undefined, false, pause);
+  assert.deepEqual(events, ["call1", "call2", "call3"]);
+  // a refusal on the LAST line has nothing to wait for
+  events.length = 0;
+  await checkCitations(async () => { events.push("call"); throw new ApiError(503, "/x", { code: "verify_at_capacity" }); }, items.slice(0, 1), undefined, undefined, true, pause);
+  assert.deepEqual(events, ["call"]);
+  // the real wait ends at once when the batch is aborted
+  const ac = new AbortController();
+  const started = Date.now();
+  const calls2: number[] = [];
+  const out = await checkCitations(async () => { calls2.push(1); if (calls2.length === 1) { setTimeout(() => ac.abort(), 20); throw new ApiError(503, "/x", { code: "verify_at_capacity" }); } return { result: "NOT_IN_INDEX", note: "n" }; }, items, ac.signal, undefined, true);
+  assert.ok(Date.now() - started < 2000, "the 5 s wait is cut short by the abort");
+  assert.equal(calls2.length, 1, "no further call after the abort");
+  assert.equal(out[1].state.phase, "idle");
 });
