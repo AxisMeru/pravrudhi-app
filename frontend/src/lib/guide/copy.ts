@@ -55,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel: a preview label, a line saying that each line takes one citation and that quotes are not checked, an empty box with an example citation as its placeholder, and a Check citations button.",
+    alt: "The Case citations panel: a preview label, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {

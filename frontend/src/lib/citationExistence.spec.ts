@@ -15,7 +15,7 @@ test("R1's existence-only strings are exact (14 Oct)", () => {
   assert.equal(EXISTENCE_PANEL_LINE, "The citation is looked up in our index; quotes are not checked.");
   assert.equal(QUOTE_NOT_CHECKED_TEXT, "Only the citation was looked up; the quote was not checked.");
   assert.equal(NOT_IN_INDEX_NOTE, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
-  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again."); // #223 D1 (R1, 15 Oct), replaces the 14 Oct sentence
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand."); // #223 D1 (R1, 15 Oct), replaces the 14 Oct sentence
   assert.equal(QUOTE_NOT_SERVED_TEXT, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index.");
   assert.equal(DETAIL_422_TEXT, "Enter one citation, and leave the quote empty.");
   assert.doesNotMatch([EXISTENCE_LIMITS, QUOTE_NOT_SERVED_TEXT, NOT_IN_INDEX_NOTE].join(" "), /\b(fake|false|invalid|verified|yet)\b(?! served)/i);
@@ -95,4 +95,17 @@ test("#263: lineCountText is R1's exact pair, built from the cap", async () => {
   assert.equal(lineCountText(1, MAX_CITATIONS_EXISTENCE), "1 of 5 lines.");
   assert.equal(lineCountText(5, MAX_CITATIONS_EXISTENCE), "5 of 5 lines.");
   assert.equal(lineCountText(6, MAX_CITATIONS_EXISTENCE), "6 lines entered; the first 5 will be checked.");
+});
+
+// R1 (#258, 15 Oct): the whole CONFLICT_TEXT sentence, exact, and the old advice is gone from the shipped sources and the specs.
+test("#258: CONFLICT_TEXT is R1's reworded sentence and the old advice appears nowhere in src or e2e", async () => {
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
+  assert.equal(CONFLICT_HEADING, "Could not match one case");
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join, resolve } = await import("node:path");
+  const root = resolve(__dirname, "..", "..");
+  const walk = (d: string): string[] => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? walk(p) : /\.(ts|tsx)$/.test(n) ? [p] : []; });
+  const old = "Put the case name " + "before the citation and check again"; // split so this file does not contain the old advice
+  const hits = [...walk(join(root, "src")), ...walk(join(root, "e2e"))].filter((f) => !f.endsWith("citationExistence.spec.ts") && readFileSync(f, "utf8").includes(old));
+  assert.deepEqual(hits, []);
 });

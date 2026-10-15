@@ -14,7 +14,7 @@ export const NOT_IN_INDEX_NOTE = "We could not match this citation to exactly on
 /** R1 (14 Oct, #181): the IN_INDEX heading while the index is existence-only: plain words, never the raw token. The engine's own note ("Found in the index (existence only): no quote was checked, so this is not a verification.") stays under it. */
 export const IN_INDEX_LABEL = "Found in our index";
 /** #223 D1 (R1, 15 Oct; Lead-2): a CONFLICT is worded neutrally: the cause may be one case under a spelling variant, so it never says "more than one case" and never claims the citation is not real. */
-export const CONFLICT_TEXT = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again.";
+export const CONFLICT_TEXT = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.";
 /** #223 D2a (R1): plain headings for the two statuses that had none (CONFLICT) or a raw token (MALFORMED) while the index is existence-only. */
 export const CONFLICT_HEADING = "Could not match one case";
 export const MALFORMED_HEADING = "Not looked up";
