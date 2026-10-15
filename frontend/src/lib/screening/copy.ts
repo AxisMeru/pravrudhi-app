@@ -85,5 +85,9 @@ export const START_PANEL_DATA_LINK = "What is kept and what is sent (Data handli
 export const START_PANEL_CLOSE_LABEL = "Close this panel";
 export const FACTS_HEADING = "The facts";
 export const OFFENCE_HEADING = "The offence";
-export const DROP_ZONE_LINE = "Drop a file here, or paste the text below";
+export const DROP_ZONE_LINE = "Drop a file here, or paste the text into the box.";
 export const DROP_ZONE_TYPES = ".txt, .pdf or .docx";
+
+// P5 slice 3 (#144): the offence search. "Search by name or section" is R1's; the empty line is proposed by Web for R1's read at the head.
+export const OFFENCE_SEARCH_LABEL = "Search by name or section";
+export const OFFENCE_SEARCH_EMPTY = "No offence matches that search.";

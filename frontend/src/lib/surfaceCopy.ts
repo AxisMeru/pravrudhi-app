@@ -60,6 +60,15 @@ export function validationLabel(mark: ValidationMark): string | null {
   return mark === "not-validated" ? NOT_VALIDATED_LABEL : mark === "unavailable" ? VALIDATION_UNAVAILABLE_LABEL : null;
 }
 
+/** P5 slice 3 (R1, 15 Oct): the offence rows of the Matter workspace carry a mark on EVERY row, the app's own words: "validated", "not validated, verify", or "validation status unavailable, verify" when the list cannot be read. */
+export const VALIDATED_LABEL = "validated";
+export function offenceMark(validated: ReadonlyMap<string, boolean> | null, contractIds: readonly string[]): string {
+  const marks = contractIds.map((i) => validationMark(validated, i));
+  // an offence is "validated" only when every one of its contracts is; the status the visitor most needs to see wins otherwise
+  const mark: ValidationMark = marks.includes("unavailable") ? "unavailable" : marks.includes("not-validated") ? "not-validated" : "none";
+  return validationLabel(mark) ?? VALIDATED_LABEL;
+}
+
 export interface CitationRef {
   act: string;
   section: string | null;

@@ -34,7 +34,7 @@ import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
-import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, DROP_ZONE_LINE, DROP_ZONE_TYPES, EXAMPLE_ENTRY_LABEL, FACTS_HEADING, OFFENCE_HEADING } from "@/lib/screening/copy";
+import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, DROP_ZONE_LINE, DROP_ZONE_TYPES, EXAMPLE_ENTRY_LABEL, FACTS_HEADING, OFFENCE_HEADING, OFFENCE_SEARCH_EMPTY, OFFENCE_SEARCH_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
@@ -43,7 +43,7 @@ import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
-import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, offenceMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -190,6 +190,8 @@ export default function ScreeningPage() {
   }, [contractsTry]);
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
+  const [offenceQuery, setOffenceQuery] = useState("");
+  const shownOffences = offered.filter(({ o }) => { const q = offenceQuery.trim().toLowerCase(); return q === "" || `${o.title} ${o.sections}`.toLowerCase().includes(q); });
 
   // #248/#275: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the page has finished growing: the offence list, and then late reads (identity, the assistant's provider line)
   // add content ABOVE it, so the visitor lands short of it (#275: 6 px short, intermittently, when the late content arrived after the one scroll #248 made). Once the registry has answered, the page keeps the named
@@ -427,45 +429,60 @@ export default function ScreeningPage() {
             ) : picker === "loading" ? (
               <p className="text-sm text-[var(--color-text-dim)]" role="status">Loading…</p>
             ) : (
-              <ul className="flex flex-col gap-2" data-testid="offence-list">
-                {offered.map(({ o, ids }) => {
-                  const on = ids.every((i) => picked.has(i));
-                  return (
-                    <li key={o.id}>
-                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
-                        <input
-                          type="checkbox"
-                          className="mt-1 h-6 w-6 shrink-0"
-                          aria-label={offenceCheckboxName(o)}
-                          aria-describedby={offenceNoteIds(o).join(" ") || undefined}
-                          checked={on}
-                          onChange={() => setPicked((prev) => {
-                            const next = new Set(prev);
-                            for (const i of ids) {
-                              if (on) next.delete(i);
-                              else next.add(i);
-                            }
-                            return next;
-                          })}
-                        />
-                        <span>
-                          <span className="text-[var(--color-text)]">{o.title}</span>
-                          {o.sections && <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>}
-                          {o.notValidated && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-not-validated`} data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
-                          )}
-                          {o.ipcChecked && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-ipc`} data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
-                          )}
-                          {ids.some((i) => validationLabel(validationMark(validated, i))) && (
-                            <span className="ml-2 text-xs text-[var(--color-warn)]">({validationLabel(validationMark(validated, ids[0]))})</span>
-                          )}
-                        </span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
+              <>
+                <label className="flex flex-col gap-1 text-sm text-[var(--color-text)]">
+                  {OFFENCE_SEARCH_LABEL}
+                  <input
+                    type="search"
+                    value={offenceQuery}
+                    onChange={(e) => setOffenceQuery(e.target.value)}
+                    className="min-h-11 rounded-md border border-[var(--color-control-border)] bg-[var(--color-surface)] px-3 text-sm text-[var(--color-text)]"
+                    data-testid="offence-search"
+                  />
+                </label>
+                {shownOffences.length === 0 && <p className="text-sm text-[var(--color-text-dim)]" role="status" data-testid="offence-search-empty">{OFFENCE_SEARCH_EMPTY}</p>}
+                <ul className="flex flex-col gap-2" data-testid="offence-list">
+                  {shownOffences.map(({ o, ids }) => {
+                    const on = ids.every((i) => picked.has(i));
+                    return (
+                      <li key={o.id}>
+                        <label className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)] bg-[var(--color-accent-dim)]" : "border-[var(--color-border)] bg-[var(--color-surface)]"}`}>
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-6 w-6 shrink-0"
+                            aria-label={offenceCheckboxName(o)}
+                            aria-describedby={offenceNoteIds(o).join(" ") || undefined}
+                            checked={on}
+                            onChange={() => setPicked((prev) => {
+                              const next = new Set(prev);
+                              for (const i of ids) {
+                                if (on) next.delete(i);
+                                else next.add(i);
+                              }
+                              return next;
+                            })}
+                          />
+                          <span className="flex flex-1 flex-col gap-0.5">
+                            <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                              <span className="font-medium text-[var(--color-text)]">{o.title}</span>
+                              <span className="text-xs text-[var(--color-text-dim)]">
+                                {o.sections && <>{o.sections} · </>}
+                                <span className={offenceMark(validated, ids) === "validated" ? "" : "text-[var(--color-warn)]"} data-testid="offence-mark">{offenceMark(validated, ids)}</span>
+                              </span>
+                            </span>
+                            {o.notValidated && (
+                              <span className="block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-not-validated`} data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
+                            )}
+                            {o.ipcChecked && (
+                              <span className="block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-ipc`} data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
+                            )}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
             )}
           </fieldset>
 

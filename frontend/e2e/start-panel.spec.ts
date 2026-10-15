@@ -21,7 +21,7 @@ test("first visit: the panel shows R1's heading, line, three ordered texts, two 
   await expect(page.getByRole("heading", { name: "The facts" })).toBeVisible();
   await expect(page.getByText("The offence", { exact: true })).toBeVisible();
   const zone = page.getByTestId("facts-dropzone");
-  await expect(zone).toContainText("Drop a file here, or paste the text below");
+  await expect(zone).toContainText("Drop a file here, or paste the text into the box.");
   await expect(zone).toContainText(".txt, .pdf or .docx");
   expect(await zone.getByTestId("facts-file").getAttribute("accept"), "the type line says only what the input takes").toBe(".txt,.pdf,.docx");
 });
