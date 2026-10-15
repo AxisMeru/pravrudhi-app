@@ -66,9 +66,9 @@ test("a failed check gets the signed wording for each coded refusal and distinct
 });
 
 test("the inputs are checked against the engine's limits before a request is sent", () => {
-  assert.equal(checkInputs("(2020) 3 SCC 456", "a quote").ok, true);
+  assert.equal(checkInputs("(2099) 1 SCC 1", "a quote").ok, true);
   assert.equal(checkInputs("   ", "a quote").ok, false);
-  assert.equal(checkInputs("(2020) 3 SCC 456", " ").ok, false);
+  assert.equal(checkInputs("(2099) 1 SCC 1", " ").ok, false);
   assert.equal(checkInputs("x".repeat(CITATION_MAX + 1), "q").ok, false);
   assert.equal(checkInputs("c", "x".repeat(QUOTE_MAX + 1)).ok, false);
   assert.equal(checkInputs("x".repeat(CITATION_MAX), "x".repeat(QUOTE_MAX)).ok, true);
@@ -153,10 +153,15 @@ test("the preview flag defaults to shown unless the engine says false explicitly
 });
 
 test("checkInputs: a null quote is an existence-only check and passes; an empty or blank quote is still refused; the citation limits still apply", () => {
-  assert.equal(checkInputs("(2020) 3 SCC 456", null).ok, true);
+  assert.equal(checkInputs("(2099) 1 SCC 1", null).ok, true);
   assert.equal(checkInputs("   ", null).ok, false);
-  assert.equal(checkInputs("(2020) 3 SCC 456", "").ok, false);
-  assert.equal(checkInputs("(2020) 3 SCC 456", "   ").ok, false);
+  assert.equal(checkInputs("(2099) 1 SCC 1", "").ok, false);
+  assert.equal(checkInputs("(2099) 1 SCC 1", "   ").ok, false);
   assert.equal(checkInputs("C".repeat(501), null).ok, false);
   assert.equal(checkInputs("C".repeat(500), null).ok, true);
+});
+
+test("the example citation in the citation boxes is R1's invented one, with a future year (15 Oct)", async () => {
+  const { CITATION_PLACEHOLDER } = await import("./citationCheck");
+  assert.equal(CITATION_PLACEHOLDER, "(2099) 1 SCC 1");
 });

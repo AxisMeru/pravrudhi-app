@@ -4,7 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { verifyCitation } from "@/lib/api";
-import { PREVIEW_LABEL } from "@/lib/citationCheck";
+import { CITATION_PLACEHOLDER, PREVIEW_LABEL } from "@/lib/citationCheck";
 import { CITATION_EXISTENCE_ONLY, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT } from "@/lib/citationExistence";
 import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, checkCitations, coverageLine, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
 import { CitationCheckResult } from "./CitationCheck";
@@ -88,7 +88,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
           onChange={(e) => setText(e.target.value)}
           rows={4}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
-          placeholder={CITATION_EXISTENCE_ONLY ? "(2020) 3 SCC 456" : "(2020) 3 SCC 456 | the words to look for"}
+          placeholder={CITATION_EXISTENCE_ONLY ? CITATION_PLACEHOLDER : `${CITATION_PLACEHOLDER} | the words to look for`}
         />
       </label>
       <button

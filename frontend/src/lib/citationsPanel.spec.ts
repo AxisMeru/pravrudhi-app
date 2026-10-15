@@ -7,10 +7,10 @@ import { COVERAGE_NOT_REPORTED, DEV_STACK_ONLY_TEXT, MAX_CITATIONS, VERIFIED_WIT
 // Invented citations and quotes only.
 
 test("one citation per line; an optional quote after a bar; blank lines are ignored; line numbers are the typed ones", () => {
-  const { items, skipped } = parseCitationLines("(2020) 3 SCC 456 | the sum shall be paid\n\n  (1999) 1 SCC 10  \r\n(2001) 2 SCC 5 |   ");
+  const { items, skipped } = parseCitationLines("(2099) 1 SCC 1 | the sum shall be paid\n\n  (1999) 1 SCC 10  \r\n(2001) 2 SCC 5 |   ");
   assert.equal(skipped, 0);
   assert.deepEqual(items, [
-    { line: 1, citation: "(2020) 3 SCC 456", quote: "the sum shall be paid" },
+    { line: 1, citation: "(2099) 1 SCC 1", quote: "the sum shall be paid" },
     { line: 3, citation: "(1999) 1 SCC 10", quote: null },
     { line: 4, citation: "(2001) 2 SCC 5", quote: null },
   ]);
@@ -103,20 +103,20 @@ test("an over-long citation or quote is NEVER cut: it reaches the length check a
 });
 
 test("the FIRST bar splits a line: later bars belong to the quote", () => {
-  const { items } = parseCitationLines("(2020) 3 SCC 456 | the sum | shall be paid | in full");
-  assert.deepEqual(items[0], { line: 1, citation: "(2020) 3 SCC 456", quote: "the sum | shall be paid | in full" });
+  const { items } = parseCitationLines("(2099) 1 SCC 1 | the sum | shall be paid | in full");
+  assert.deepEqual(items[0], { line: 1, citation: "(2099) 1 SCC 1", quote: "the sum | shall be paid | in full" });
 });
 
 test("a line sent without a quote shows the engine's answer, and a VERIFIED answer to it is fail-closed: never shown as verified", async () => {
-  const stray = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2020) 3 SCC 456").items);
+  const stray = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2099) 1 SCC 1").items);
   assert.equal(stray[0].state.phase, "error");
   assert.equal(stray[0].state.phase === "error" && stray[0].state.message, VERIFIED_WITHOUT_QUOTE_TEXT);
-  const product = await checkCitations(async () => ({ result: "IN_INDEX", note: "n", status: "verified", label: "Verified", verified: true }), parseCitationLines("(2020) 3 SCC 456").items);
+  const product = await checkCitations(async () => ({ result: "IN_INDEX", note: "n", status: "verified", label: "Verified", verified: true }), parseCitationLines("(2099) 1 SCC 1").items);
   assert.equal(product[0].state.phase === "result" && product[0].state.view.status === "IN_INDEX" && product[0].state.view.product === null, true); // product wording is off: the stray flag cannot show
-  const inIndex = await checkCitations(async () => ({ result: "IN_INDEX", note: "The citation is in the index; no quote was checked." }), parseCitationLines("(2020) 3 SCC 456").items);
+  const inIndex = await checkCitations(async () => ({ result: "IN_INDEX", note: "The citation is in the index; no quote was checked." }), parseCitationLines("(2099) 1 SCC 1").items);
   assert.equal(inIndex[0].state.phase === "result" && inIndex[0].state.view.status, "IN_INDEX");
   // the same VERIFIED answer WITH a quote is a normal result
-  const withQuote = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2020) 3 SCC 456 | the words").items);
+  const withQuote = await checkCitations(async () => ({ result: "VERIFIED", note: "n" }), parseCitationLines("(2099) 1 SCC 1 | the words").items);
   assert.equal(withQuote[0].state.phase === "result" && withQuote[0].state.view.status, "VERIFIED");
 });
 

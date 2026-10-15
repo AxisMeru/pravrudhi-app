@@ -9,7 +9,7 @@ import { CITATION_ERROR_TEXT } from "./signedStrings";
 import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 // Invented citation and quote only.
-const C = "(2020) 3 SCC 456";
+const C = "(2099) 1 SCC 1";
 const Q = "the party shall pay the sum in full";
 const reply = (result: string, note = "A fixed note.") => async () => ({ result, note });
 

@@ -55,11 +55,11 @@ test("a 422 reads in plain words while existence-only, never the code; flag off 
 });
 
 test("the panel: existence-only sends NO quote even after a | and flags the typed quote; flag off is unchanged (both arms)", () => {
-  const text = "(2020) 3 SCC 456 | the words\n(2019) 1 SCC 2\nB |";
+  const text = "(2099) 1 SCC 1 | the words\n(2019) 1 SCC 2\nB |";
   const on = parseCitationLines(text, true).items;
-  assert.deepEqual(on.map((i) => [i.citation, i.quote, i.quoteIgnored === true]), [["(2020) 3 SCC 456", null, true], ["(2019) 1 SCC 2", null, false], ["B", null, false]]);
+  assert.deepEqual(on.map((i) => [i.citation, i.quote, i.quoteIgnored === true]), [["(2099) 1 SCC 1", null, true], ["(2019) 1 SCC 2", null, false], ["B", null, false]]);
   const off = parseCitationLines(text, false).items;
-  assert.deepEqual(off.map((i) => [i.citation, i.quote]), [["(2020) 3 SCC 456", "the words"], ["(2019) 1 SCC 2", null], ["B", null]]);
+  assert.deepEqual(off.map((i) => [i.citation, i.quote]), [["(2099) 1 SCC 1", "the words"], ["(2019) 1 SCC 2", null], ["B", null]]);
   assert.ok(off.every((i) => i.quoteIgnored === undefined));
 });
 

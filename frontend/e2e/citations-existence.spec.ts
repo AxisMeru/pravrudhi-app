@@ -7,7 +7,7 @@ import { sha } from "./support/sha";
  */
 test.skip(process.env.CITATION_EXISTENCE_BUILD !== "1" || process.env.CITATION_NAV_BUILD !== "1", "needs a build with the citation nav and existence-only flags");
 
-const CITATION = "(2020) 3 SCC 456";
+const CITATION = "(2099) 1 SCC 1";
 const NOT_IN = { result: "NOT_IN_INDEX", note: "The case was not found in our index. That does not show whether the citation is real: the index does not hold every judgment.", status: "not_in_index", label: "not in index", verified: false, preview: true };
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
 const base = { is_denial: false, screening_signal: null, citation_note: null, claimed: true, start: null, end: null, attempts: 1, occurrences: 1, offsets_source: null, error: null, quote: null, quote_check: null };

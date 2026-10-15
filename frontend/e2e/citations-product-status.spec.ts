@@ -20,7 +20,7 @@ for (const [result, a] of Object.entries(ANSWERS)) {
   test(`${result}: the engine's label is shown verbatim with the preview badge, beside the status`, async ({ page }) => {
     await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result, note: "A fixed note.", ...a, preview: true, verified: result === "VERIFIED" } }));
     await page.goto("/citations");
-    await page.getByLabel("Citation (one)").fill("(2020) 3 SCC 456");
+    await page.getByLabel("Citation (one)").fill("(2099) 1 SCC 1");
     await page.getByLabel("Quote to look for").fill("a quoted passage");
     await page.getByRole("button", { name: "Check" }).click();
     await expect(page.getByTestId("citation-status")).toHaveText(result === "NOT_IN_INDEX" ? "Not found in our index" : result); // #128 D4
