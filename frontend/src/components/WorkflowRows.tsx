@@ -27,7 +27,7 @@ export function WorkflowRows() {
                 {w.note && <div className="mt-0.5 text-xs text-[var(--color-text-dim)]">{w.note}</div>}
               </div>
               {w.status === "Built" && workflowLink(w.name) && (
-                <Link href={workflowLink(w.name)!.href} className="text-xs text-[var(--color-accent)] underline" data-testid="workflow-open">{workflowLink(w.name)!.label}</Link>
+                <Link href={workflowLink(w.name)!.href} className="inline-flex min-h-6 items-center text-xs text-[var(--color-accent)] underline max-md:min-h-11" data-testid="workflow-open">{workflowLink(w.name)!.label}</Link>
               )}
               <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${w.status === "Building" ? "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]" : "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]"}`} data-testid="workflow-status">
                 {w.status}

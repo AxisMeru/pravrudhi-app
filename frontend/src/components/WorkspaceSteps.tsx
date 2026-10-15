@@ -11,7 +11,7 @@ export function WorkspaceSteps({ hasFacts, hasResult }: { hasFacts: boolean; has
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-sm font-medium text-[var(--color-text)]">
                 <span className="mr-1 text-[var(--color-text-dim)]">{i + 1}</span>
-                {s.href ? <a href={s.href} className="underline" data-testid={`step-link-${s.key}`}>{s.label}</a> : s.label}
+                {s.href ? <a href={s.href} className="inline-flex min-h-6 items-center underline max-md:min-h-11" data-testid={`step-link-${s.key}`}>{s.label}</a> : s.label}
               </span>
               <span className="text-xs text-[var(--color-text-dim)]" data-testid={`step-state-${s.key}`}>{s.state}</span>
             </div>
