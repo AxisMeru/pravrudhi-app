@@ -65,7 +65,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   // R1 (15 Oct): frame 06 as retaken by Track A at main f8738cf7 (528x64, sha256 0a019ee3...c9d2) and its exact alt
   assert.equal(statSync(join(root, "public", "guide", "06-memo-export.png")).size, 8643);
   assert.equal(GUIDE_IMAGES.memo.alt, "The memo export controls on the Matter workspace page once a result is shown: the label \u201cDownload the memo\u201d with the buttons Markdown (.md) and Word (.docx), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).");
-  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 25856, "the frame retaken from the citations-ON build at 836925cd (Track A, 15 Oct, sha256 43a8dad67c77…)");
+  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 28522, "the frame retaken from the citations-ON build at the D9 batch (Web, 15 Oct, sha256 d2ee473d9e12…)");
   assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only/i);
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
@@ -88,7 +88,7 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
 test("R1 conditions on the images: the citations shot (arm ON, retaken frame only) has the preview caption and alt; the checklist alt names the marks, never a count", () => {
   assert.equal(GUIDE_IMAGES.citations.caption, "Preview: existence check only."); // shown only with the retaken frame 05 (arm ON)
   assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
-  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel: a preview label, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.");
+  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel: a preview label, a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.");
   assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
