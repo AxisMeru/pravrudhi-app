@@ -10,6 +10,7 @@ import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StartPanel } from "@/components/screening/StartPanel";
+import { FactFilter } from "@/components/screening/FactFilter";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { CITATIONS_PANEL_ENABLED } from "@/lib/citationNav";
@@ -58,6 +59,7 @@ function download(name: string, body: string | Uint8Array, type: string): void {
 
 export default function ScreeningPage() {
   const [paste, setPaste] = useState("");
+  const [factFilterState, setFactFilterState] = useState<{ runId: string; factId: string } | null>(null); // per result: it applies only to the run it was chosen on, and nothing is stored
   const [startPanelClosed, setStartPanelClosed] = useState(false); // closed for this visit only: the browser keeps nothing for it (the data-handling page names the only three keys the app stores)
   // What Intake handed over: its chosen facts together with the citations it found. The citations are listed in Hearing preparation only while the screened facts are still those facts.
   const [intakeHand, setIntakeHand] = useState<{ facts: string[]; citations: Array<{ text: string }> } | null>(null);
@@ -598,8 +600,13 @@ export default function ScreeningPage() {
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {/* R1 (15 Oct): the standing line appears once per result, above the first block, not in every block's banner (before a result it stands at the top of the page). */}
             <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
+            <FactFilter
+              facts={result.facts}
+              selected={factFilterState && factFilterState.runId === result.run_id ? factFilterState.factId : null}
+              onSelect={(id) => setFactFilterState(id === null ? null : { runId: result.run_id, factId: id })}
+            />
             {result.contracts.map((c, i) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={factFilterState && factFilterState.runId === result.run_id ? factFilterState.factId : null} />
             ))}
             {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}

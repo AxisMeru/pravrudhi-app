@@ -1,4 +1,4 @@
-import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, NO_FACT_GROUP_HEADING, WHAT_TO_CHECK_LABEL, REASON_CODE_LABEL, CONTRACT_REVIEW_HEADING, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
+import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, NO_FACT_GROUP_HEADING, WHAT_TO_CHECK_LABEL, REASON_CODE_LABEL, CONTRACT_REVIEW_HEADING, DEFENCE_PROMPT_NOTE, FACT_FILTER_EMPTY } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { blockTitle, isAlternateLimb, offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
@@ -43,9 +43,13 @@ function Row({ row }: { row: ScreeningRow }) {
   );
 }
 
-export function IngredientChecklist({ contract, facts, agenda = false, live = true }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"]; agenda?: boolean; live?: boolean }) {
-  const rows = rowsFor(contract, facts);
-  const summary = summarize(contract, rows);
+export function IngredientChecklist({ contract, facts, agenda = false, live = true, factFilter = null }: { contract: AnalyseFactsContract; facts: AnalyseFactsResult["facts"]; agenda?: boolean; live?: boolean; factFilter?: string | null }) {
+  const all = rowsFor(contract, facts);
+  // the fact filter (M2a): only the rows that cite the selected fact; rows that cite no fact (and the group of them) are not among them
+  const keep = (r: ScreeningRow) => factFilter === null || r.factId === factFilter;
+  const rows = factFilter === null ? all : { ...all, ingredients: all.ingredients.filter(keep), defences: all.defences.filter(keep) };
+  const filteredOut = factFilter !== null && rows.ingredients.length === 0 && rows.defences.length === 0;
+  const summary = summarize(contract, all); // the counts always describe the whole block, never the filtered view
   const referral = contractReferral(contract);
   const offence = offenceOf(contract.contract_id);
   return (
@@ -62,6 +66,7 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
         )}
       </header>
       <SummaryBanner summary={summary} agenda={agenda} live={live} />
+      {filteredOut && <p className="text-sm text-[var(--color-text-dim)]" data-testid="fact-filter-empty">{FACT_FILTER_EMPTY}</p>}
       {referral && (
         <div className="rounded-md border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" data-testid="contract-review">
           <p className="font-medium">{CONTRACT_REVIEW_HEADING}</p>
