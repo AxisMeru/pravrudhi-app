@@ -193,8 +193,8 @@ export async function withWorkspace(path: string): Promise<string> {
   return `${path}${sep}workspace=${encodeURIComponent(DEFAULT_WORKSPACE)}`;
 }
 
-async function getJSON<T>(path: string, opts: { authOptional?: boolean } = {}): Promise<T> {
-  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, { cache: "no-store", authOptional: opts.authOptional });
+async function getJSON<T>(path: string, opts: { authOptional?: boolean; signal?: AbortSignal } = {}): Promise<T> {
+  const res = await engineFetch(`${detectBase()}${await withWorkspace(path)}`, { cache: "no-store", authOptional: opts.authOptional, signal: opts.signal });
   if (!res.ok) throw new ApiError(res.status, path);
   return (await res.json()) as T;
 }
@@ -455,7 +455,18 @@ export async function health(): Promise<HealthResponse> {
   // authOptional (2026-09-24): ConnectionBanner polls this every 5s on every page, for every visitor --
   // "is the engine reachable at all" is a connectivity probe, not something that should ever redirect an
   // anonymous visitor to /signin, same principle as edition()'s /api/me and notifications()'s poll.
-  return getJSON<HealthResponse>("/api/health", { authOptional: true });
+  // #312 (Track-B storm attack): a /api/health that never answers must not hold a connection for ever (six fill the browser's pool and queue every other same-origin fetch): the request itself is aborted after HEALTH_TIMEOUT_MS.
+  return getJSON<HealthResponse>("/api/health", { authOptional: true, signal: timeoutSignal(HEALTH_TIMEOUT_MS) });
+}
+
+export const HEALTH_TIMEOUT_MS = 8_000;
+
+/** An AbortSignal that aborts after `ms` (AbortSignal.timeout where the browser has it, else a controller and a timer). */
+export function timeoutSignal(ms: number): AbortSignal {
+  if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
 }
 
 export async function status(): Promise<StatusResponse> {

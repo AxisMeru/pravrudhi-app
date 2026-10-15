@@ -18,6 +18,7 @@ export function ConnectionBanner() {
     let cancelled = false;
 
     async function check() {
+      if (document.hidden) return; // a hidden tab does not poll (#312); it checks again the moment it is shown
       try {
         await health();
         if (!cancelled) setReachable(true);
@@ -28,9 +29,12 @@ export function ConnectionBanner() {
 
     check();
     const id = setInterval(check, 5000);
+    const onVisible = () => { if (!document.hidden) void check(); };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
