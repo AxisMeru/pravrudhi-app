@@ -40,7 +40,7 @@ export default function GuidePage() {
         <section data-testid="guide-before">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_BEFORE_HEADING}</h2>
           <p className="mt-1 text-sm text-[var(--color-text-dim)]">{GUIDE_BEFORE}</p>
-          <p className="mt-1 text-sm"><Link href="/data-handling" className="text-[var(--color-accent)] underline">{GUIDE_BEFORE_LINK}</Link></p>
+          <p className="mt-1 text-sm"><Link href="/data-handling" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline">{GUIDE_BEFORE_LINK}</Link></p>
         </section>
         <section className="space-y-6">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_STEPS_HEADING}</h2>

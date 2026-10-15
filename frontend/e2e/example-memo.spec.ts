@@ -25,6 +25,7 @@ async function memoText(page: import("@playwright/test").Page, edit: boolean): P
   if (edit) await f1.fill("My own client's fact about a loan.");
   await page.getByRole("button", { name: "Screen these facts" }).click();
   await expect(page.getByTestId("checklist").first()).toBeVisible();
+  await page.getByTestId("memo-menu-button").click();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   return readFileSync((await dl.path()) as string, "utf8");
 }

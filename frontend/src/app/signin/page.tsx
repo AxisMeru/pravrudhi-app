@@ -132,6 +132,7 @@ export default function SignInPage() {
             <input
               id="email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -148,6 +149,7 @@ export default function SignInPage() {
             <input
               id="password"
               type="password"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -192,7 +194,7 @@ export default function SignInPage() {
           </div>
 
           <div className="text-center text-sm text-[var(--color-text-dim)]">
-            <Link href="/" className="hover:text-[var(--color-text)]">
+            <Link href="/" className="inline-flex min-h-6 items-center hover:text-[var(--color-text)]">
               Back to home
             </Link>
           </div>

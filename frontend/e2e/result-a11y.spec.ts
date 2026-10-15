@@ -24,11 +24,12 @@ async function result(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("checklist")).toHaveCount(5);
 }
 
-test("R5: 'Print / save as PDF' is beside the 'Download the memo' group, not inside it", async ({ page }) => {
+test("R5: 'Print / save as PDF' is beside the 'Download the memo' menu, not inside it", async ({ page }) => {
   await result(page);
   const group = page.getByTestId("memo-group");
+  await group.getByTestId("memo-menu-button").click();
   await expect(group.getByRole("button", { name: "Print / save as PDF" })).toHaveCount(0);
-  await expect(group.getByRole("button")).toHaveText(["Markdown (.md)", "Word (.docx)"]);
+  await expect(group.getByRole("button")).toHaveText(["Download the memo", "Word (.docx)", "Markdown (.md)"]);
   await expect(page.getByTestId("memo-actions").getByRole("button", { name: "Print / save as PDF", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "PDF", exact: true })).toHaveCount(0);
 });
@@ -36,7 +37,8 @@ test("R5: 'Print / save as PDF' is beside the 'Download the memo' group, not ins
 test("R6: one live region for the whole result, not one per block", async ({ page }) => {
   await result(page);
   // the Citations panel under the result (arm ON) has its own live region for the answers a user asks for there (#223 D6): it is a separate feature, not a block of the result
-  const statuses = page.getByTestId("screening-result").locator('[role="status"]:not([data-testid^="citations-panel"])');
+  // and the fact filter's own status ("Showing all rows.", M2a) announces a control's state, not the result: it is likewise not a block of the result
+  const statuses = page.getByTestId("screening-result").locator('[role="status"]:not([data-testid^="citations-panel"]):not([data-testid="fact-filter-status"])');
   await expect(statuses).toHaveCount(1);
   // R1 (15 Oct): and the standing line is on the page once per result (above the first block), not once per block
   await expect(page.getByText("This is a screening aid, not legal advice. A lawyer decides.", { exact: true })).toHaveCount(1);

@@ -138,6 +138,7 @@ for (const fixture of FIXTURES) {
         }
 
         // The memo the user downloads carries the same run, contract by contract.
+        await page.getByTestId("memo-menu-button").click();
         const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
         const memo = readFileSync(await download.path(), "utf8");
         expect(memo, "the memo does not carry the run id").toContain(result.run_id);

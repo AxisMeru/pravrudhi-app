@@ -186,6 +186,7 @@ for (let run = 1; run <= REPEATS; run++) {
     await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
 
     // the memo and the run record carry the same run
+    await page.getByTestId("memo-menu-button").click();
     const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
     const memo = readFileSync(await memoDl.path(), "utf8");
     expect(memo).toContain("# Screening memo");

@@ -22,6 +22,9 @@ test("06 the memo export group", async ({ page }) => {
   await page.getByRole("button", { name: "Screen these facts" }).click();
   const actions = page.getByTestId("memo-actions");
   await expect(actions).toBeVisible();
+  await page.getByTestId("memo-menu-button").click(); // the frame shows the menu opened (M2b)
+  await expect(page.getByTestId("memo-menu-list")).toBeVisible();
+  await page.evaluate(() => { for (const e of document.querySelectorAll<HTMLElement>("body *")) if (getComputedStyle(e).position === "fixed") e.style.display = "none"; }); // the floating Shortcuts button is not part of the frame
   await actions.screenshot({ path: "public/guide/06-memo-export.png" });
 });
 
