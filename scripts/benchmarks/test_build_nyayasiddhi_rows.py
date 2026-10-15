@@ -132,7 +132,7 @@ class AboutRun(unittest.TestCase):
         data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness")); self.assertEqual(errs, [])
         line = [l for l in data["rows"][0]["about_run"] if l.startswith("Element by element")][0]
         self.assertEqual(line, B.HARNESS_CONTRACT.replace(B.CONTRACT_HASH, "")); self.assertNotIn("contract_map", line); self.assertTrue(line.endswith("(item_id, element_index)."))
-        self.assertTrue(ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness").replace("981218e2f961", "000000000000"))[1], "a different fragment fails closed")
+        self.assertTrue(ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness").replace("981218e2f961", "different-fragment"))[1], "a different fragment fails closed")
     def test_a_row_is_not_run_for_ni138_only_when_the_notes_carry_the_exact_sentence(self):
         sent = "A scored NI138 item is outside the harness's contracts: 96 items written {item_id, verdict NOT_PROOF} without error, not sent (refer_mapping REFER_IS_NOT_PROOF)."
         data, errs = ref_run("nyayasiddhi-ref-S-harness", notes_for("nyayasiddhi-ref-S-harness", extra=sent)); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["not_run_groups"], ["NI138"])
