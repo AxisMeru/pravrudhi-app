@@ -140,3 +140,17 @@ test("#330: a focused film shows a focus ring that is not clipped (drawn by the 
   expect(r.offset).toBe("2px");
   expect(r.clipped, "no ancestor clips the ring").toBe(false);
 });
+
+// Track-B F1/F2 (deploy-15 attack): the frame's ring is a focus-within ring, so it also shows when a control INSIDE the player has focus, and in a browser without :has.
+test("a focused control inside the film player also shows the frame's ring", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" }); // the Play button (inside the frame) exists only under reduced motion
+  await page.goto("/technical-film");
+  const before = await page.getByTestId("film-frame").evaluate((f) => ({ within: f.matches(":focus-within"), style: getComputedStyle(f).outlineStyle }));
+  expect(before.within).toBe(false);
+  expect(before.style).toBe("none");
+  await page.getByTestId("film-play").focus();
+  const inside = await page.getByTestId("film-frame").evaluate((f) => ({ within: f.matches(":focus-within"), style: getComputedStyle(f).outlineStyle, width: getComputedStyle(f).outlineWidth }));
+  expect(inside.within).toBe(true);
+  expect(inside.style).toBe("solid");
+  expect(inside.width).toBe("2px");
+});
