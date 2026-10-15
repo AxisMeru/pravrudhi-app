@@ -42,11 +42,11 @@ test("R6: one live region for the whole result, not one per block", async ({ pag
   await expect(page.getByText("This is a screening aid, not legal advice. A lawyer decides.", { exact: true })).toHaveCount(1);
 });
 
-test("R7: each offence checkbox is named 'title — sections' (a separator), never run together", async ({ page }) => {
+test("R7 (R1, #310 F2): each offence checkbox is named 'title \u00b7 sections' (the one separator every offence label uses), never run together", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: IDS, entries: IDS.map((id) => ({ id, validated: true })) } }));
   await page.goto("/screening");
-  await expect(page.getByRole("checkbox", { name: "Criminal breach of trust — BNS 316 · IPC 405" })).toBeVisible();
-  await expect(page.getByRole("checkbox", { name: "Cheating — BNS 318 · IPC 415" })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Criminal breach of trust · BNS 316 · IPC 405" })).toBeVisible();
+  await expect(page.getByRole("checkbox", { name: "Cheating · BNS 318 · IPC 415" })).toBeVisible();
   for (const box of await page.getByRole("checkbox").all()) {
     const name = (await box.getAttribute("aria-label")) ?? "";
     expect(name, name).not.toMatch(/[a-z]BNS/);

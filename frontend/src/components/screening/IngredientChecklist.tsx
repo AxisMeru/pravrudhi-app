@@ -1,6 +1,6 @@
 import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHECK_NOTE, NO_FACT_GROUP_HEADING, WHAT_TO_CHECK_LABEL, REASON_CODE_LABEL, CONTRACT_REVIEW_HEADING, DEFENCE_PROMPT_NOTE } from "@/lib/screening/copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
-import { blockTitle, isAlternateLimb, offenceOf } from "@/lib/screening/offences";
+import { contractListLabel, isAlternateLimb, offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
 import { CHIP_TONE, SummaryBanner } from "./SummaryBanner";
 
@@ -49,11 +49,11 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
   const referral = contractReferral(contract);
   const offence = offenceOf(contract.contract_id);
   return (
-    <section className="space-y-3" data-testid="checklist" aria-label={`Ingredients: ${blockTitle(contract.contract_id)}`}>
+    <section className="space-y-3" data-testid="checklist" aria-label={`Ingredients: ${contractListLabel(contract.contract_id)}`}>
       <header>
-        <h2 className="text-base font-semibold text-[var(--color-text)]">{blockTitle(contract.contract_id)}</h2>
+        <h2 className="text-base font-semibold text-[var(--color-text)]">{contractListLabel(contract.contract_id)}</h2>
         {/* #206 R9: a way's title already ends in the sections, and an offence shown by its reference has none: the line appears only when it adds something. */}
-        {offence?.sections && !blockTitle(contract.contract_id).includes(offence.sections) && (
+        {offence?.sections && !contractListLabel(contract.contract_id).includes(offence.sections) && (
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="offence-sections">{offence.sections}</p>
         )}
         {isAlternateLimb(contract.contract_id) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="alternate-limb-note">{ALTERNATE_LIMB_NOTE}</p>}

@@ -51,9 +51,10 @@ test("R9: a way's title already ends in its sections, so the sections are not re
   }
 });
 
-test("R9: a single-way offence whose title has no sections still shows them; one with no sections shows no empty line", () => {
+test("R9 (R1, #310 F1: one label rule): a single-way offence's heading carries its sections ('<title> \u00b7 <sections>'), so there is no second sections line under it; one with no sections shows no empty line", () => {
   const personation = html(contract("ipc416", () => "established"));
-  assert.ok(personation.includes(`>${offenceOf("ipc416")!.sections}<`), "sections shown under a title that lacks them");
+  assert.ok(personation.includes(`>Cheating by personation \u00b7 ${offenceOf("ipc416")!.sections}<`), "the heading is the offence label");
+  assert.ok(!personation.includes('data-testid="offence-sections"'), "the sections are not repeated on a line of their own");
   const bns69 = html(contract("bns69", () => "established"));
   assert.doesNotMatch(bns69, /<p class="[^"]*">\s*<\/p>/);
 });

@@ -73,9 +73,9 @@ export function offenceOf(contractId: string): Offence | null {
   return OFFENCES.find((o) => o.contracts.includes(contractId)) ?? null;
 }
 
-/** The accessible name of an offence's checkbox (R7, 15 Oct): the title, a separator, then the sections ("Criminal breach of trust \u2014 BNS 316 \u00b7 IPC 405"), never the two run together. */
+/** The accessible name of an offence's checkbox (R7, 15 Oct): the title, the same " \u00b7 " separator every offence label uses (R1, #310 F2), then the sections ("Criminal breach of trust \u00b7 BNS 316 \u00b7 IPC 405"), never the two run together. */
 export function offenceCheckboxName(o: { title: string; sections: string }): string {
-  return o.sections ? `${o.title} \u2014 ${o.sections}` : o.title;
+  return o.sections ? `${o.title} \u00b7 ${o.sections}` : o.title;
 }
 
 /** The ids of the notes under an offence's checkbox that describe it (read after the name, not joined into it). */
