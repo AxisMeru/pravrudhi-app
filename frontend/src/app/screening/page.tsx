@@ -29,7 +29,7 @@ import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff } from "@/lib/handoff";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
-import { EXAMPLES, exampleById, initialFactsFor, type DemoExample } from "@/lib/demo/example";
+import { EXAMPLES, exampleById, initialFactsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
@@ -233,7 +233,7 @@ export default function ScreeningPage() {
   }
 
   const version = svc?.kind === "ok" ? svc.status.engine_version : null;
-  const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: example ? { label: example.label, citation: example.citation } : null });
+  const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: memoExample(request?.facts ?? [], example) });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -252,7 +252,7 @@ export default function ScreeningPage() {
           </div>
         </details>
         {exampleMissing && <ExampleNotFound page="/screening" />}
-        {example && <ExampleBanner example={example} />}
+        {example && isUnchangedExample(facts, example) && <ExampleBanner example={example} />}
         {!example && (
           <div className="flex flex-col gap-1 print:hidden" data-testid="example-entry">
             <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
