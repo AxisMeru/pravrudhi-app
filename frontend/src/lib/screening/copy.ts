@@ -91,3 +91,9 @@ export const DROP_ZONE_TYPES = ".txt, .pdf or .docx";
 // P5 slice 3 (#144): the offence search. "Search by name or section" is R1's; the empty line is proposed by Web for R1's read at the head.
 export const OFFENCE_SEARCH_LABEL = "Search by name or section";
 export const OFFENCE_SEARCH_EMPTY = "No offence matches that search.";
+
+// P5 M2a (#144): the fact filter of the result. R1's words (15 Oct), labels and statuses only: none says anything about what the models do.
+export const FACT_FILTER_HINT = "Select a fact to see the rows that cite it.";
+export const FACT_FILTER_CLEAR = "Show all rows";
+export const FACT_FILTER_EMPTY = "No ingredient row cites this fact.";
+export const factFilterStatus = (factId: string | null): string => (factId === null ? "Showing all rows." : `Showing the rows that cite ${factId}.`);
