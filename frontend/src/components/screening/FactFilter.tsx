@@ -29,7 +29,7 @@ export function FactFilter({ facts, selected, onSelect }: { facts: ReadonlyArray
       </ul>
       <div className="flex flex-wrap items-center gap-3">
         {selected !== null && (
-          <button type="button" onClick={() => onSelect(null)} className="inline-flex min-h-8 items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)] max-md:min-h-11" data-testid="fact-filter-clear">
+          <button type="button" onClick={() => { const prev = selected; onSelect(null); /* the clear button unmounts: focus goes to the fact that was selected, not to the page */ requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-testid="fact-filter-${prev}"]`)?.focus()); }} className="inline-flex min-h-8 items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)] max-md:min-h-11" data-testid="fact-filter-clear">
             {FACT_FILTER_CLEAR}
           </button>
         )}

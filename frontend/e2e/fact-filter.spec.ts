@@ -33,15 +33,14 @@ test("the filter shows R1's hint and 'Showing all rows.'; selecting a fact narro
   await expect(page.getByTestId("fact-filter-hint")).toHaveText("Select a fact to see the rows that cite it.");
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing all rows.");
   await expect(rows).toHaveCount(3);
-  const banner = await page.getByTestId("checklist").first().innerText();
+  const bannerBefore = await page.getByTestId("summary-text").first().innerText();
   await page.getByTestId("fact-filter-F1").click();
   await expect(page.getByTestId("fact-filter-F1")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing the rows that cite F1.");
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText("deceives another person");
   await expect(page.getByTestId("no-fact-group")).toHaveCount(0);
-  expect((await page.getByTestId("checklist").first().innerText()).includes("deceives another person")).toBe(true);
-  expect(banner.length).toBeGreaterThan(0);
+  expect(await page.getByTestId("summary-text").first().innerText(), "the counts describe the whole block, not the filtered view").toBe(bannerBefore);
   await page.getByTestId("fact-filter-F1").click();
   await expect(rows).toHaveCount(3);
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing all rows.");
@@ -62,4 +61,30 @@ test("Show all rows clears; a fact no row cites shows the empty line; the keyboa
   await page.getByRole("button", { name: "Show all rows" }).click();
   await expect(rows).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Show all rows" })).toHaveCount(0);
+});
+
+test("printing clears the filter first: a printed result has ALL the rows, and the selection comes back afterwards", async ({ page }) => {
+  await screened(page);
+  const rows = page.getByTestId("ingredient-row");
+  await page.getByTestId("fact-filter-F1").click();
+  await expect(rows).toHaveCount(1);
+  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+  await page.emulateMedia({ media: "print" });
+  await expect(rows).toHaveCount(3);
+  await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing all rows.");
+  await page.emulateMedia({ media: "screen" });
+  await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
+  await expect(rows).toHaveCount(1);
+  await expect(page.getByTestId("fact-filter-F1")).toHaveAttribute("aria-pressed", "true");
+});
+
+test("Show all rows by keyboard leaves focus on the fact that was selected, not on the page", async ({ page }) => {
+  await screened(page);
+  await page.getByTestId("fact-filter-F2").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("fact-filter-clear")).toBeVisible();
+  await page.getByTestId("fact-filter-clear").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("fact-filter-clear")).toHaveCount(0);
+  await expect(page.getByTestId("fact-filter-F2")).toBeFocused();
 });
