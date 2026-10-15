@@ -31,7 +31,7 @@ test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and
   for (const path of ["/benchmarks", "/demo"]) {
     await page.goto(path);
     const link = page.getByTestId("nyayasiddhi-link");
-    await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-proof development benchmark (data + scorer)");
+    await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-by-element development benchmark (data + scorer)");
     await expect(link).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
     await expect(page.getByTestId("nyayasiddhi-blurb")).toHaveText("development benchmark; descriptive; no ranking");
     await expect(page.getByTestId("nyayasiddhi")).not.toContainText(/\d+(\.\d+)?%/);
@@ -44,6 +44,7 @@ test("the NyayaSiddhi results: R1's heading and intro, two signed cards with the
   const box = page.getByTestId("nyayasiddhi-results");
   await expect(box.getByRole("heading", { name: "NyayaSiddhi results", level: 2 })).toBeVisible();
   await expect(box).toContainText("Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.");
+  await expect(box.getByTestId("ns-supply-line")).toHaveText("For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.");
   const rows = box.getByTestId("ns-row");
   await expect(rows).toHaveCount(2);
   await expect(rows.first()).toContainText("Reported by the entrant");
@@ -57,6 +58,11 @@ test("the NyayaSiddhi results: R1's heading and intro, two signed cards with the
   expect(text).toContain("The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.");
   expect(text).not.toMatch(/proof|verified|\bbest\b|better|\bbeat\b|rank/i);
   await expect(box.getByTestId("ns-chart")).toHaveCount(4);
+  // R1's split labels (the HF card's words win) and the errors line: only the obj1_dev row had an error (errors counted as not supported gives 0 of 64; counted as supported, 1 of 64)
+  await expect(rows.first()).toContainText("Second development set, cruelty items left out; exposed to Anthropic in an earlier study");
+  await expect(rows.nth(1)).toContainText("Development items; used to design fixes, so seen by us");
+  await expect(rows.first().getByTestId("ns-error-line")).toHaveCount(0);
+  await expect(rows.nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 64.");
 });
 
 test("the NyayaSiddhi results: the group chooser shows a family's figures; the unit chooser offers only the units the rows carry", async ({ page }) => {
@@ -68,6 +74,11 @@ test("the NyayaSiddhi results: the group chooser shows a family's figures; the u
   const text = await box.innerText();
   expect(text).toContain("0 of 27 (exact 95% interval 0.0% to 12.8%)");
   expect(text).toContain("0 of 47 (exact 95% interval 0.0% to 7.5%)");
+  // for the Cheating group the two error mappings also disagree on the obj1_dev row (1 of 27), so its errors line names that figure
+  await expect(box.getByTestId("ns-row").nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 27.");
+  // Dishonoured cheque: the mappings agree there, so no errors line
+  await box.getByTestId("ns-groups").getByText("Dishonoured cheque", { exact: true }).click();
+  await expect(box.getByTestId("ns-error-line")).toHaveCount(0);
 });
 
 test("the NyayaSiddhi results work at phone width: no horizontal scroll and the choosers are phone-size targets", async ({ page }) => {

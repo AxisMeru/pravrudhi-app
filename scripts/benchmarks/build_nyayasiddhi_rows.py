@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """app#344: build the /benchmarks results data file from SIGNED NyayaSiddhi result rows (append-only JSONL, result_row schema; validated upstream with validate_674.py).
-Usage: build_nyayasiddhi_rows.py --rows results.jsonl --kinds entry_kinds.json --out frontend/src/data/nyayasiddhi/rows.json
+Usage: build_nyayasiddhi_rows.py --rows results.jsonl --kinds entry_kinds.json [--sensitivity ROW_ID=error_sensitivity.json ...] --out frontend/src/data/nyayasiddhi/rows.json
 Checks, and exits 1 with every violation: each line is a JSON object with the result_row keys; status/split/unit in the closed vocabularies; every metric carries k, n and an exact 95% Clopper-Pearson
 interval that this script RECOMPUTES (bench_tables.cp_interval, 5 decimals) and must equal; a row carries BOTH measures (false_proof, coverage); an organiser entry has an entry kind in the kinds file
-(row_id -> "product" | "reference_arm"), set by hand by the organisers and never inferred from a name; an outside entry has none. Nothing is edited or added except entry_kind; the source file's sha256 is recorded.
+(row_id -> "product" | "reference_arm"), set by hand by the organisers and never inferred from a name; an outside entry has none. Nothing is edited or added except entry_kind and, for a row with --sensitivity, its error_sensitivity block (how each figure changes when errors are counted the other way); that file's n_error must equal the row's, and for every "measure|group" its n and k_as_not_proof must equal the row's own n and k (the rows count errors as not-proof). The source file's sha256 is recorded.
 Stdlib only."""
 import argparse, hashlib, json, sys
 from pathlib import Path
@@ -42,7 +42,22 @@ def check_row(r, kinds, line_no):
     elif r["row_id"] in kinds: errs.append(f"{where}: an outside entry carries no entry kind")
     return errs
 
-def build(rows_path, kinds_path):
+def check_sensitivity(r, sens, line_label):
+    errs = []
+    if sens.get('n_error') != r['n_error']: errs.append(f"{line_label}: sensitivity n_error {sens.get('n_error')!r} != row n_error {r['n_error']!r}")
+    if r.get('error_mapping') != 'error_counted_as_not_proof': errs.append(f"{line_label}: the row's error_mapping must be error_counted_as_not_proof for a sensitivity block")
+    by = {(m['name'], m.get('group', 'ALL')): m for m in r['metrics']}
+    for key, v in sens.get('metrics', {}).items():
+        name, _, group = key.partition('|')
+        m = by.get((name, group))
+        if m is None: errs.append(f"{line_label}: sensitivity key {key!r} has no metric in the row"); continue
+        if v.get('n') != m['n'] or v.get('k_as_not_proof') != m['k']: errs.append(f"{line_label}: {key}: sensitivity n/k_as_not_proof {v.get('n')}/{v.get('k_as_not_proof')} != row {m['n']}/{m['k']}")
+        if not isinstance(v.get('k_as_proof'), int) or not isinstance(v.get('agree'), bool): errs.append(f"{line_label}: {key}: k_as_proof/agree")
+    return errs
+
+def build(rows_path, kinds_path, sens_paths=None):
+    sens_all = {rid: json.loads(Path(p).read_text()) for rid, p in (sens_paths or {}).items()}
+    sens_sha = {rid: hashlib.sha256(Path(p).read_bytes()).hexdigest() for rid, p in (sens_paths or {}).items()}
     raw = Path(rows_path).read_bytes()
     kinds = json.loads(Path(kinds_path).read_text())
     rows, errs = [], []
@@ -54,17 +69,22 @@ def build(rows_path, kinds_path):
         errs += e
         if not e:
             if r.get("organiser_entry") is True: r = dict(r, entry_kind=kinds[r["row_id"]])
+            if r["row_id"] in sens_all:
+                es = check_sensitivity(r, sens_all[r["row_id"]], f"line {i} ({r['row_id']})")
+                errs += es
+                if not es: r = dict(r, error_sensitivity=sens_all[r["row_id"]]["metrics"])
             rows.append(r)
     ids = [r["row_id"] for r in rows]
     if len(set(ids)) != len(ids): errs.append("duplicate row_id")
+    for rid in set(sens_all) - set(ids): errs.append(f"sensitivity for a row that is not in the file: {rid}")
     unknown = set(kinds) - set(ids)
     if unknown: errs.append(f"entry kinds for rows that are not in the file: {sorted(unknown)}")
-    return {"source": {"rows_file_sha256": hashlib.sha256(raw).hexdigest(), "rows": len(rows), "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi"}, "rows": rows}, errs
+    return {"source": {"rows_file_sha256": hashlib.sha256(raw).hexdigest(), "rows": len(rows), "error_sensitivity_sha256": sens_sha, "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi"}, "rows": rows}, errs
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(); ap.add_argument("--rows", required=True); ap.add_argument("--kinds", required=True); ap.add_argument("--out", required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--rows", required=True); ap.add_argument("--kinds", required=True); ap.add_argument("--sensitivity", action="append", default=[], help="ROW_ID=error_sensitivity.json"); ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
-    data, errs = build(a.rows, a.kinds)
+    data, errs = build(a.rows, a.kinds, dict(x.split('=', 1) for x in a.sensitivity))
     for e in errs: print("[FAIL]", e)
     if errs: return 1
     Path(a.out).write_text(json.dumps(data, indent=1, sort_keys=True) + "\n")

@@ -84,6 +84,56 @@
    "benchmark_version": "v0.2",
    "entry_kind": "product",
    "error_mapping": "error_counted_as_not_proof",
+   "error_sensitivity": {
+    "coverage|ALL": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 107
+    },
+    "coverage|CHEAT": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 7
+    },
+    "coverage|NI138": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 93
+    },
+    "coverage|TRUST": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 7
+    },
+    "false_proof|ALL": {
+     "agree": false,
+     "k_as_not_proof": 0,
+     "k_as_proof": 1,
+     "n": 64
+    },
+    "false_proof|CHEAT": {
+     "agree": false,
+     "k_as_not_proof": 0,
+     "k_as_proof": 1,
+     "n": 27
+    },
+    "false_proof|NI138": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 3
+    },
+    "false_proof|TRUST": {
+     "agree": true,
+     "k_as_not_proof": 0,
+     "k_as_proof": 0,
+     "n": 34
+    }
+   },
    "manifest_sha256": "c557d30ba6bcf981c1175a29bac6fa62c89be7fedbc844c3b635408c30c0c78b",
    "metrics": [
     {
@@ -183,6 +233,9 @@
  ],
  "source": {
   "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi",
+  "error_sensitivity_sha256": {
+   "nyaya-product-engine-42e6ed71_cfg-c26cb086-obj1_dev-v0.2": "fb9fd03842c39c1d1ec4d7e3cafa9d4004f284948aee19c1bdf46a069db7b159"
+  },
   "rows": 2,
   "rows_file_sha256": "3e8aa33537cf393f1bdae76dee42ae6219bb25295de00d13c6c3a5bb8422de35"
  }

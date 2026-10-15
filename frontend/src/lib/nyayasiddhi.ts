@@ -6,6 +6,8 @@ export interface NyayaSiddhiStrings {
   heading: string;
   /** One or two sentences: what the rows are and that only signed rows appear. */
   intro: string;
+  /** Shown once, under the intro paragraph (R1, 15 Oct): the board holds only our own rows; a larger hidden set depends on court-item supply; no date promised. */
+  benchmarksSupplyLine: string;
   tableCaption: string;
   colSystem: string;
   colStatus: string;
@@ -15,6 +17,8 @@ export interface NyayaSiddhiStrings {
   stackLabel: string;
   /** Printed on a row entered by the organisers, by the row's own entry kind (never by a name): our product, or a reference arm run by the organisers. */
   organiserEntry: Record<"product" | "reference_arm", string>;
+  /** Under a row's figures when it had errors and counting them the other way changes the wrongly-supported figure for the shown group; {e}, {k}, {n} are filled from the data. */
+  errorLine: string;
   /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
   zeroWithZero: string;
   unitHeading: string;
@@ -47,15 +51,17 @@ type Nullable<T> = { [K in keyof T]: T[K] extends Record<string, string> ? Recor
 export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   heading: "NyayaSiddhi results",
   intro: "NyayaSiddhi is our benchmark for screening under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
+  benchmarksSupplyLine: "For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.",
   tableCaption: "NyayaSiddhi runs, one card for each run",
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",
   stackLabel: "dev stack (local)",
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
+  errorLine: "{e} gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be {k} of {n}.",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },
   unit: { whole_item: "Whole item", element: "Each ingredient" },
-  split: { obj1_dev: "Development items, already seen", obj1b_minus_cruelty: "Second development set, cruelty items left out" },
+  split: { obj1_dev: "Development items; used to design fixes, so seen by us", obj1b_minus_cruelty: "Second development set, cruelty items left out; exposed to Anthropic in an earlier study" },
   status: { "self-reported": "Reported by the entrant", "re-scored": "Re-scored by the organisers", reproduced: "Reproduced by the organisers", "third-party verified": "Checked by an outside party" },
   measure: { false_proof: "Wrongly supported", coverage: "Coverage" },
   measureNote: {

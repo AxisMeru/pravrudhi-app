@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, metricOf, pct, unitsOf, zeroWithZero, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
+import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, errorLineFor, metricOf, pct, unitsOf, zeroWithZero, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
 import { resolveStrings, type NyayaSiddhiStrings } from "@/lib/nyayasiddhi";
 
 /** One figure: the count with its n, the exact interval printed, and the interval drawn on a 0 to 1 scale. The numbers are always in the text; the drawing only repeats them. */
@@ -48,6 +48,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
     <section className="space-y-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="nyayasiddhi-results">
       <h2 className="text-base font-medium text-[var(--color-text)]">{s.heading}</h2>
       <p className="text-sm text-[var(--color-text)]">{s.intro}</p>
+      <p className="text-sm text-[var(--color-text)]" data-testid="ns-supply-line">{s.benchmarksSupplyLine}</p>
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-[var(--color-text)]">{s.unitHeading}</legend>
         <div className="flex flex-wrap gap-2" data-testid="ns-units">
@@ -80,6 +81,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
                 </div>
               ))}
             </div>
+            {(() => { const el = errorLineFor(r, activeGroup); return el ? <p className="text-sm text-[var(--color-text)]" data-testid="ns-error-line">{s.errorLine.replace("{e}", String(el.e)).replace("{k}", String(el.k)).replace("{n}", String(el.n))}</p> : null; })()}
             {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
           </li>
         ))}

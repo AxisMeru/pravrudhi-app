@@ -39,6 +39,10 @@ export interface ResultRow {
   /** For an organiser entry only, set in the data file by the data build step from the organisers' own list (never inferred from a system name): our product, or a reference arm (a frontier or open model run by the organisers). */
   entryKind: EntryKind | null;
   metrics: Metric[];
+  /** Rows the engine failed to answer (a count; the figures count them as not supported). */
+  nError: number;
+  /** For a row with errors: for each "measure|group", how the counts change when errors are counted the other way (from the error-sensitivity file); keyed like "false_proof|ALL". */
+  errorSensitivity: Record<string, { kAsProof: number; kAsNotProof: number; n: number; agree: boolean }>;
 }
 
 const isObj = (x: unknown): x is Record<string, unknown> => typeof x === "object" && x !== null && !Array.isArray(x);
@@ -79,12 +83,21 @@ export function parseRow(x: unknown): ResultRow | null {
   const entryKind = oneOf(ENTRY_KINDS, x.entry_kind) ? x.entry_kind : null;
   if (organiser && entryKind === null) return null;
   if (!organiser && x.entry_kind !== undefined) return null;
+  if (!Number.isInteger(x.n_error) || (x.n_error as number) < 0) return null;
+  const errorSensitivity: ResultRow["errorSensitivity"] = {};
+  if (x.error_sensitivity !== undefined) {
+    if (!isObj(x.error_sensitivity)) return null;
+    for (const [key, v] of Object.entries(x.error_sensitivity)) {
+      if (!isObj(v) || !Number.isInteger(v.k_as_proof) || !Number.isInteger(v.k_as_not_proof) || !Number.isInteger(v.n) || typeof v.agree !== "boolean") return null;
+      errorSensitivity[key] = { kAsProof: v.k_as_proof as number, kAsNotProof: v.k_as_not_proof as number, n: v.n as number, agree: v.agree };
+    }
+  }
   // a superseded row is never shown
   if (typeof x.superseded_by === "string" && x.superseded_by) return null;
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    organiserEntry: organiser, entryKind, metrics: ms,
+    organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity,
   };
 }
 
@@ -100,6 +113,14 @@ export const unitsOf = (rows: readonly ResultRow[]): Unit[] => UNITS.filter((u) 
 export function zeroWithZero(row: ResultRow, group: string): boolean {
   const fp = metricOf(row, "false_proof", group), cov = metricOf(row, "coverage", group);
   return !!fp && !!cov && fp.k === 0 && cov.k === 0 && cov.n > 0;
+}
+
+/** The errors line applies to a group when the row had errors AND counting them the other way changes the wrongly-supported figure for that group (the two mappings disagree). Returns the numbers for R1's line. */
+export function errorLineFor(row: ResultRow, group: string): { e: number; k: number; n: number } | null {
+  if (row.nError <= 0) return null;
+  const x = row.errorSensitivity[`false_proof|${group}`];
+  if (!x || x.agree) return null;
+  return { e: row.nError, k: x.kAsProof, n: x.n };
 }
 
 /** The groups that appear in the rows of one unit: ALL first, then the families in the order they first appear. */
