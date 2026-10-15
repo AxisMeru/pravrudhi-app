@@ -119,3 +119,13 @@ test("Hearing preparation lists Intake's citations only while the facts are the 
   await run();
   await expect(page.getByTestId("hearing-citation")).toHaveCount(1);
 });
+
+test("#297: the engine's 503 intake_timeout reads R1's plain sentence in the status line, never the code", async ({ page }) => {
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ status: 503, json: { error: "intake_timeout" } }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented: a long text that the engine stops reading.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("This text took too long to read, so the intake was stopped. Try a shorter text.");
+  await expect(page.locator("body")).not.toContainText("intake_timeout");
+});

@@ -4,6 +4,8 @@ export const INTAKE_PAGE_SUBTITLE = "Intake turns text you paste into numbered f
 export const INTAKE_PASTE_LABEL = "Paste the text";
 export const INTAKE_RUN_BUTTON = "Run intake";
 export const INTAKE_UNREADABLE = "Intake could not run just now. Try again.";
+// #297 (R1, byte-exact): the engine stopped an intake that ran too long (503, code intake_timeout). No model is named, nothing is said about what was or was not kept, no time figure; the code itself is never shown.
+export const INTAKE_TIMEOUT = "This text took too long to read, so the intake was stopped. Try a shorter text.";
 export const INTAKE_CITATIONS_HEADING = "Citations in your text";
 
 // R1's FINAL caveat set for the paste box (14 Oct; replaces the earlier per-fact notes). (1) is the privacy one and sits with the paste box before Run intake.
