@@ -118,12 +118,18 @@ export function zeroWithZero(row: ResultRow, group: string): boolean {
   return !!fp && !!cov && fp.k === 0 && cov.k === 0 && cov.n > 0;
 }
 
-/** The errors line applies to a group when the row had errors AND counting them the other way changes the wrongly-supported figure for that group (the two mappings disagree). Returns the numbers for R1's line. */
-export function errorLineFor(row: ResultRow, group: string): { e: number; k: number; n: number } | null {
+/**
+ * The errors line applies to a group when the row had errors AND counting them the other way changes the figure of EITHER measure for that group (the two mappings disagree). Returns the numbers for R1's three-part line:
+ * `wrong` (wrongly supported would be k of n) and/or `coverage` (coverage would be c of m); a part is present only when its own figure differs, and the counts come from the error-sensitivity data for the shown group.
+ */
+export function errorLineFor(row: ResultRow, group: string): { e: number; wrong?: { k: number; n: number }; coverage?: { c: number; m: number } } | null {
   if (row.nError <= 0) return null;
-  const x = row.errorSensitivity[`false_proof|${group}`];
-  if (!x || x.kAsProof === x.kAsNotProof) return null; // recomputed from the counts, not trusted from the file's `agree`
-  return { e: row.nError, k: x.kAsProof, n: x.n };
+  const fp = row.errorSensitivity[`false_proof|${group}`], cov = row.errorSensitivity[`coverage|${group}`];
+  // recomputed from the counts, not trusted from the file's `agree`
+  const wrong = fp && fp.kAsProof !== fp.kAsNotProof ? { k: fp.kAsProof, n: fp.n } : undefined;
+  const coverage = cov && cov.kAsProof !== cov.kAsNotProof ? { c: cov.kAsProof, m: cov.n } : undefined;
+  if (!wrong && !coverage) return null;
+  return { e: row.nError, ...(wrong ? { wrong } : {}), ...(coverage ? { coverage } : {}) };
 }
 
 /** The groups that appear in the rows of one unit: ALL first, then the families in the order they first appear. */

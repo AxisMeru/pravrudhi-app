@@ -17,8 +17,12 @@ export interface NyayaSiddhiStrings {
   stackLabel: Record<string, string>;
   /** Printed on a row entered by the organisers, by the row's own entry kind (never by a name): our product, or a reference arm run by the organisers. */
   organiserEntry: Record<"product" | "reference_arm", string>;
-  /** Under a row's figures when it had errors and counting them the other way changes the wrongly-supported figure for the shown group; {e}, {k}, {n} are filled from the data. */
-  errorLine: string;
+  /** R1's three-part errors line (15 Oct), under a row's figures when it had errors and counting them the other way changes a figure of the shown group: lead-in + the parts that differ, joined, + the end. {e}, {k}, {n}, {c}, {m} come from the error-sensitivity data. */
+  errorLeadIn: string;
+  errorPartWrong: string;
+  errorPartCoverage: string;
+  errorJoin: string;
+  errorEnd: string;
   /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
   zeroWithZero: string;
   unitHeading: string;
@@ -57,7 +61,11 @@ export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   // keyed on the manifest's exact stack strings (R1 via Interim goal, 15 Oct); any other value shows no row
   stackLabel: { "dev stack (local)": "dev stack (local)", "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)": "Anthropic API; not our dev stack or production stack" },
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
-  errorLine: "{e} gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be {k} of {n}.",
+  errorLeadIn: "{e} gave an error. Errors are counted as not supported here; counted as supported, ",
+  errorPartWrong: "wrongly supported would be {k} of {n}",
+  errorPartCoverage: "coverage would be {c} of {m}",
+  errorJoin: " and ",
+  errorEnd: ".",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },

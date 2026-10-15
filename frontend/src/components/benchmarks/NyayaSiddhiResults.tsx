@@ -84,7 +84,15 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
                 </div>
               ))}
             </div>
-            {(() => { const el = errorLineFor(r, activeGroup); return el ? <p className="text-sm text-[var(--color-text)]" data-testid="ns-error-line">{s.errorLine.replace("{e}", String(el.e)).replace("{k}", String(el.k)).replace("{n}", String(el.n))}</p> : null; })()}
+            {(() => {
+              const el = errorLineFor(r, activeGroup);
+              if (!el) return null;
+              const parts = [
+                ...(el.wrong ? [s.errorPartWrong.replace("{k}", String(el.wrong.k)).replace("{n}", String(el.wrong.n))] : []),
+                ...(el.coverage ? [s.errorPartCoverage.replace("{c}", String(el.coverage.c)).replace("{m}", String(el.coverage.m))] : []),
+              ];
+              return <p className="text-sm text-[var(--color-text)]" data-testid="ns-error-line">{s.errorLeadIn.replace("{e}", String(el.e)) + parts.join(s.errorJoin) + s.errorEnd}</p>;
+            })()}
             {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
           </li>
         ))}

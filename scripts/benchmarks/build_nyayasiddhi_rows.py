@@ -20,7 +20,7 @@ ALLOWED_STACKS = {"dev stack (local)", "Anthropic API (organiser-run reference a
 
 def check_row(r, kinds, line_no):
     errs = []
-    where = f"line {line_no}"
+    where = line_no if isinstance(line_no, str) else f"line {line_no}"
     if not isinstance(r, dict): return [f"{where}: not a JSON object"]
     for k in REQUIRED:
         if k not in r: errs.append(f"{where}: missing {k}")
@@ -69,28 +69,33 @@ def stack_of(row, manifests):
     return None, f"{row['row_id']}: no manifest in the manifests dir has sha256 {row['manifest_sha256'][:12]}"
 
 def build(rows_path, kinds_path, sens_paths=None, manifests_dir=None):
-    manifests = sorted(str(p) for p in Path(manifests_dir).iterdir() if p.is_file()) if manifests_dir else []
+    rows_paths = [rows_path] if isinstance(rows_path, (str, Path)) else list(rows_path)
+    mdirs = [] if not manifests_dir else ([manifests_dir] if isinstance(manifests_dir, (str, Path)) else list(manifests_dir))
+    manifests = sorted(str(p) for d in mdirs for p in Path(d).iterdir() if p.is_file())
     sens_all = {rid: json.loads(Path(p).read_text()) for rid, p in (sens_paths or {}).items()}
     sens_sha = {rid: hashlib.sha256(Path(p).read_bytes()).hexdigest() for rid, p in (sens_paths or {}).items()}
-    raw = Path(rows_path).read_bytes()
     kinds = json.loads(Path(kinds_path).read_text())
-    rows, errs = [], []
-    for i, line in enumerate(raw.decode().splitlines(), 1):
+    rows, errs, shas = [], [], {}
+    for rp in rows_paths:
+      raw = Path(rp).read_bytes()
+      shas[f"{Path(rp).parent.name}/{Path(rp).name}"] = hashlib.sha256(raw).hexdigest()
+      for i, line in enumerate(raw.decode().splitlines(), 1):
+        label = f"{Path(rp).parent.name}/{Path(rp).name} line {i}"
         if not line.strip(): continue
         try: r = json.loads(line)
-        except ValueError as e: errs.append(f"line {i}: not JSON ({e})"); continue
-        e = check_row(r, kinds, i)
+        except ValueError as e: errs.append(f"{label}: not JSON ({e})"); continue
+        e = check_row(r, kinds, label)
         errs += e
         if not e:
             stack, serr = stack_of(r, manifests)
-            if serr: errs.append(f"line {i} ({serr})"); continue
+            if serr: errs.append(f"{label} ({serr})"); continue
             r = dict(r, stack=stack)
             if r.get("organiser_entry") is True: r = dict(r, entry_kind=kinds[r["row_id"]])
             if r.get("n_error", 0) > 0 and r["row_id"] not in sens_all:
-                errs.append(f"line {i} ({r['row_id']}): n_error {r['n_error']} > 0 needs an error-sensitivity file (--sensitivity ROW_ID=file); the page must not print a bare count")
+                errs.append(f"{label} ({r['row_id']}): n_error {r['n_error']} > 0 needs an error-sensitivity file (--sensitivity ROW_ID=file); the page must not print a bare count")
                 continue
             if r["row_id"] in sens_all:
-                es = check_sensitivity(r, sens_all[r["row_id"]], f"line {i} ({r['row_id']})")
+                es = check_sensitivity(r, sens_all[r["row_id"]], f"{label} ({r['row_id']})")
                 errs += es
                 if not es: r = dict(r, error_sensitivity=sens_all[r["row_id"]]["metrics"])
             rows.append(r)
@@ -99,16 +104,17 @@ def build(rows_path, kinds_path, sens_paths=None, manifests_dir=None):
     for rid in set(sens_all) - set(ids): errs.append(f"sensitivity for a row that is not in the file: {rid}")
     unknown = set(kinds) - set(ids)
     if unknown: errs.append(f"entry kinds for rows that are not in the file: {sorted(unknown)}")
-    return {"source": {"rows_file_sha256": hashlib.sha256(raw).hexdigest(), "rows": len(rows), "error_sensitivity_sha256": sens_sha, "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi"}, "rows": rows}, errs
+    src = {"rows_file_sha256": next(iter(shas.values()))} if len(shas) == 1 else {"rows_files_sha256": shas}
+    return {"source": {**src, "rows": len(rows), "error_sensitivity_sha256": sens_sha, "benchmark": "NyayaSiddhi, HF AxisMeru/nyayasiddhi"}, "rows": rows}, errs
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(); ap.add_argument("--rows", required=True); ap.add_argument("--kinds", required=True); ap.add_argument("--manifests", required=True, help="dir of the signed manifests (each row's manifest_sha256 must match one file); its stack is carried into the row"); ap.add_argument("--sensitivity", action="append", default=[], help="ROW_ID=error_sensitivity.json"); ap.add_argument("--out", required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("--rows", action="append", required=True, help="a signed rows JSONL; repeat for several files (their rows are kept in the order given)"); ap.add_argument("--kinds", required=True); ap.add_argument("--manifests", action="append", required=True, help="dir of the signed manifests (repeatable) (each row's manifest_sha256 must match one file); its stack is carried into the row"); ap.add_argument("--sensitivity", action="append", default=[], help="ROW_ID=error_sensitivity.json"); ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
     data, errs = build(a.rows, a.kinds, dict(x.split('=', 1) for x in a.sensitivity), a.manifests)
     for e in errs: print("[FAIL]", e)
     if errs: return 1
     Path(a.out).write_text(json.dumps(data, indent=1, sort_keys=True) + "\n")
-    print(f"[OK] {len(data['rows'])} rows, source sha256 {data['source']['rows_file_sha256'][:12]}")
+    print(f"[OK] {len(data['rows'])} rows from {len(a.rows)} file(s): " + ", ".join(f"{k} {v[:12]}" for k, v in (data['source'].get('rows_files_sha256') or {Path(a.rows[0]).parent.name + '/' + Path(a.rows[0]).name: data['source']['rows_file_sha256']}).items()))
     return 0
 
 if __name__ == "__main__":

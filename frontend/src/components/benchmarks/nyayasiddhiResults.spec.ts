@@ -18,7 +18,11 @@ const R1 = {
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",
   stackLabel: { "dev stack (local)": "dev stack (local)", "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)": "Anthropic API; not our dev stack or production stack" },
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
-  errorLine: "{e} gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be {k} of {n}.",
+  errorLeadIn: "{e} gave an error. Errors are counted as not supported here; counted as supported, ",
+  errorPartWrong: "wrongly supported would be {k} of {n}",
+  errorPartCoverage: "coverage would be {c} of {m}",
+  errorJoin: " and ",
+  errorEnd: ".",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
   noItems: "No items in this group.", noFigure: "No figure for this group.", chartLabel: "Interval for", of: "of", intervalLabel: "exact 95% interval", to: "to",
   family: { CHEAT: "Cheating", TRUST: "Criminal breach of trust", NI138: "Dishonoured cheque", CRUELTY: "Cruelty by the husband or his relatives" },
@@ -84,7 +88,7 @@ test("the errors line: only when the row had errors AND counting them the other 
   assert.ok(!renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ROWS, strings: resolveStrings() })).includes("gave an error"), "no line when n_error is 0");
   const noErr = parseRows({ rows: [row("n", "self-reported", { n_error: 0, error_sensitivity: sens })] });
   assert.ok(!renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: noErr, strings: resolveStrings() })).includes("gave an error"));
-  assert.deepEqual(errorLineFor(withErr[0], "ALL"), { e: 1, k: 1, n: 64 });
+  assert.deepEqual(errorLineFor(withErr[0], "ALL"), { e: 1, wrong: { k: 1, n: 64 } });
   assert.equal(errorLineFor(withErr[0], "CHEAT"), null, "the two mappings agree for this group");
 });
 
@@ -108,6 +112,24 @@ test("the stack label is per row, keyed on the manifest's stack: the API stack r
   }
   const mixed = html1(parseRows({ rows: [row("dev", "self-reported"), row("u", "self-reported", { stack: "some other stack" })] }));
   assert.equal((mixed.match(/data-testid="ns-row"/g) ?? []).length, 1);
+});
+
+test("the errors line has three byte-exact parts: both parts joined when both figures change, one part when one does, and no line when neither (R1, 15 Oct)", () => {
+  const html1 = (extra: Record<string, unknown>) => renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: parseRows({ rows: [row("e", "self-reported", { n_error: 2, ...extra })] }), strings: resolveStrings() }));
+  const both = { "false_proof|ALL": { k_as_proof: 4, k_as_not_proof: 3, n: 64, agree: false }, "coverage|ALL": { k_as_proof: 24, k_as_not_proof: 23, n: 107, agree: false } };
+  const lead = "2 gave an error. Errors are counted as not supported here; counted as supported, ";
+  assert.ok(html1({ error_sensitivity: both }).includes(lead + "wrongly supported would be 4 of 64 and coverage would be 24 of 107."), "both parts, joined");
+  const onlyWrong = html1({ error_sensitivity: { ...both, "coverage|ALL": { k_as_proof: 23, k_as_not_proof: 23, n: 107, agree: true } } });
+  assert.ok(onlyWrong.includes(lead + "wrongly supported would be 4 of 64."));
+  assert.ok(!onlyWrong.includes("coverage would be"), "never 'would be' with an unchanged figure");
+  const onlyCov = html1({ error_sensitivity: { ...both, "false_proof|ALL": { k_as_proof: 3, k_as_not_proof: 3, n: 64, agree: true } } });
+  assert.ok(onlyCov.includes(lead + "coverage would be 24 of 107."));
+  assert.ok(!onlyCov.includes("wrongly supported would be"));
+  const neither = html1({ error_sensitivity: { "false_proof|ALL": { k_as_proof: 3, k_as_not_proof: 3, n: 64, agree: true }, "coverage|ALL": { k_as_proof: 23, k_as_not_proof: 23, n: 107, agree: true } } });
+  assert.ok(!neither.includes("gave an error"), "no line when neither differs");
+  assert.ok(!html1({ n_error: 0, error_sensitivity: both }).includes("gave an error"), "no line when there were no errors");
+  const rowsBoth = parseRows({ rows: [row("e", "self-reported", { n_error: 2, error_sensitivity: both })] });
+  assert.deepEqual(errorLineFor(rowsBoth[0], "ALL"), { e: 2, wrong: { k: 4, n: 64 }, coverage: { c: 24, m: 107 } });
 });
 
 test("no 'proof', 'verified', 'best', 'better', 'beat' or 'rank' anywhere on the rendered page, and no comparison between rows", () => {

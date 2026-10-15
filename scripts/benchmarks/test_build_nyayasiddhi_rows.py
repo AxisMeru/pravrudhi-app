@@ -70,5 +70,17 @@ class T(unittest.TestCase):
         other = "some other stack"; sha = hashlib.sha256(manifest(other)).hexdigest()
         self.assertTrue(any("not one the page has words for" in e for e in run([row(manifest_sha256=sha)], {"invented-1": "product"}, stack=other)[1]))
         self.assertTrue(any("no manifest" in e for e in run([row()], {"invented-1": "product"}, with_manifest=False)[1]))
+    def test_several_rows_files_are_built_in_the_order_given_with_each_sha_recorded(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "x").mkdir(); (Path(d) / "y").mkdir()
+            a, b = Path(d) / "x" / "results.jsonl", Path(d) / "y" / "results.jsonl"  # same file name, different folders
+            a.write_text(json.dumps(row(row_id="first")) + "\n"); b.write_text(json.dumps(row(row_id="second")) + "\n")
+            k = Path(d) / "k.json"; k.write_text(json.dumps({"first": "product", "second": "reference_arm"}))
+            md = Path(d) / "m"; md.mkdir(); (md / "m.json").write_bytes(manifest(DEV))
+            data, errs = B.build([str(a), str(b)], str(k), None, [str(md)])
+            self.assertEqual(errs, []); self.assertEqual([r["row_id"] for r in data["rows"]], ["first", "second"])
+            self.assertEqual(set(data["source"]["rows_files_sha256"]), {"x/results.jsonl", "y/results.jsonl"})
+            b.write_text(json.dumps(row(row_id="first")) + "\n")
+            self.assertTrue(any("duplicate" in e for e in B.build([str(a), str(b)], str(k), None, [str(md)])[1]))
 if __name__ == "__main__":
     unittest.main()
