@@ -373,7 +373,7 @@ export default function ScreeningPage() {
                       <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
                         <input
                           type="checkbox"
-                          className="mt-1 max-md:h-5 max-md:w-5"
+                          className="mt-1 h-6 w-6 shrink-0"
                           aria-label={offenceCheckboxName(o)}
                           aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                           checked={on}
@@ -522,7 +522,7 @@ export default function ScreeningPage() {
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
             <StatuteNotice />
             {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
-            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
+            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="break-all font-mono">{result.score_sha256}</span></div>
           </div>
         )}
       </div>
