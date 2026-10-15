@@ -1,3 +1,4 @@
+import { INTERNAL_ERROR_LINE } from "./internalError";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -16,7 +17,9 @@ test("which line each failure reads: timeout only for 503 + intake_timeout; the 
   assert.equal(intakeErrorLine(new ApiError(503, "/api/v1/intake", { code: "intake_timeout" })), INTAKE_TIMEOUT);
   assert.equal(intakeErrorLine(new ApiError(503, "/api/v1/intake", { code: "something_else" })), INTAKE_UNREADABLE);
   assert.equal(intakeErrorLine(new ApiError(503, "/api/v1/intake")), INTAKE_UNREADABLE);
-  assert.equal(intakeErrorLine(new ApiError(500, "/api/v1/intake", { code: "intake_timeout" })), INTAKE_UNREADABLE);
+  // the timeout line needs 503 + the code: a 502 with it stays general; a 500 is an internal error and reads R1's sentence (lib/internalError.ts)
+  assert.equal(intakeErrorLine(new ApiError(502, "/api/v1/intake", { code: "intake_timeout" })), INTAKE_UNREADABLE);
+  assert.equal(intakeErrorLine(new ApiError(500, "/api/v1/intake", { code: "intake_timeout" })), INTERNAL_ERROR_LINE);
   assert.equal(intakeErrorLine(new ApiError(401, "/api/v1/intake")), INTAKE_SIGNED_IN_ONLY);
   assert.equal(intakeErrorLine(new ApiError(403, "/api/v1/intake", { code: "intake_timeout" })), INTAKE_SIGNED_IN_ONLY);
   assert.equal(intakeErrorLine(new Error("network")), INTAKE_UNREADABLE);
