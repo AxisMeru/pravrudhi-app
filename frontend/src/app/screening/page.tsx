@@ -485,6 +485,15 @@ export default function ScreeningPage() {
 
         {result && request && (
           <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
+            {/* Print only (#234; no new words: the step's own "Facts" label, then the facts as submitted, numbered as the memo numbers them). The form is hidden on paper, so without this the printout carries only the facts a row happens to cite. */}
+            <section className="hidden print:block" aria-hidden data-testid="print-facts">
+              <h2 className="text-base font-semibold">Facts</h2>
+              <ol className="mt-2 flex flex-col gap-1 text-sm">
+                {request.facts.map((f, i) => (
+                  <li key={i}><span className="font-mono">F{i + 1}</span> {f}</li>
+                ))}
+              </ol>
+            </section>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions" id="step-memo">
               <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
                 <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
