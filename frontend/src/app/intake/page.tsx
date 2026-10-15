@@ -22,7 +22,7 @@ import {
   type IntakeView,
 } from "@/lib/intake";
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
-import { INTAKE_CAVEATS, INTAKE_DATA_LINE, INTAKE_LEFT_OUT_DIGITS, intakeLeftOut, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
+import { INTAKE_CAVEATS, INTAKE_DATA_LINE, INTAKE_LIMIT_LINE, INTAKE_LEFT_OUT_DIGITS, intakeLeftOut, INTAKE_PAGE_TITLE, INTAKE_PAGE_SUBTITLE, INTAKE_PASTE_LABEL, INTAKE_RUN_BUTTON, INTAKE_UNREADABLE, INTAKE_CITATIONS_HEADING } from "@/lib/intakeCopy";
 
 // Intake: paste text, get numbered facts tied to the words they came from and the citations found, choose up to 8 facts, and send them to Screening. The words are R1's
 // (lib/intake.ts, lib/factSelectionCopy.ts) or proposed in lib/intakeCopy.ts. Offered only when NEXT_PUBLIC_INTAKE=1; otherwise this route goes back to Workflows.
@@ -79,6 +79,7 @@ export default function IntakePage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="intake-limit-line">{INTAKE_LIMIT_LINE}</p>
           <ul className="space-y-1 text-xs text-[var(--color-text-dim)]" data-testid="intake-caveats">
             {INTAKE_CAVEATS.map((c) => <li key={c}>{c}</li>)}
           </ul>

@@ -180,3 +180,17 @@ test("app#348: at 390 px the Run intake and Screen the chosen facts buttons are 
   const screen = (await page.getByTestId("selector-screen").boundingBox())!;
   expect(screen.height, `Screen ${screen.height}px`).toBeGreaterThanOrEqual(44);
 });
+
+// #359 (R1, byte-exact): the limit is said under the paste box; a 422 string_too_long says the text is too long; another 422 keeps the refused line.
+test("the limit line sits under the paste box; a too-long refusal says so and any other 422 keeps the refused line", async ({ page }) => {
+  let body: unknown = { detail: [{ type: "string_too_long", loc: ["body", "text"], msg: "String should have at most 200000 characters" }] };
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ status: 422, json: body }));
+  await page.goto("/intake");
+  await expect(page.getByTestId("intake-limit-line")).toHaveText("Intake reads up to 200,000 characters.");
+  await page.getByLabel("Paste the text").fill("Invented text.\n\nMore invented text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("This text is longer than 200,000 characters, so intake did not read it. Shorten it and run it again.");
+  body = { detail: [{ type: "missing", msg: "Field required" }] };
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("Intake could not read this text. Check the text, change it if needed, and run it again.");
+});

@@ -109,12 +109,15 @@ export interface ApiErrorDetail {
   code?: string;
   reason?: string;
   retryAfter?: number;
+  /** The `type` of each item of a FastAPI 422 `detail` list (for example string_too_long): only the type names, never the engine's messages. */
+  validationTypes?: string[];
 }
 
 export class ApiError extends Error {
   readonly code?: string;
   readonly reason?: string;
   readonly retryAfter?: number;
+  readonly validationTypes?: string[];
   constructor(
     public readonly status: number,
     public readonly path: string,
@@ -125,6 +128,7 @@ export class ApiError extends Error {
     this.code = detail.code;
     this.reason = detail.reason;
     this.retryAfter = detail.retryAfter;
+    this.validationTypes = detail.validationTypes;
   }
 }
 
@@ -132,15 +136,17 @@ export class ApiError extends Error {
 export async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
   let code: string | undefined;
   let reason: string | undefined;
+  let validationTypes: string[] | undefined;
   try {
-    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown };
+    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown; detail?: unknown };
     if (typeof body.error === "string") code = body.error;
     if (typeof body.reason === "string") reason = body.reason;
+    if (Array.isArray(body.detail)) validationTypes = body.detail.flatMap((d) => (typeof d === "object" && d !== null && typeof (d as { type?: unknown }).type === "string" ? [(d as { type: string }).type] : []));
   } catch {
     /* not JSON (a gateway error page): status alone */
   }
   const ra = Number(res.headers.get("retry-after"));
-  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined });
+  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined, validationTypes });
 }
 
 // Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
