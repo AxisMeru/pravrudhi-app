@@ -9,18 +9,11 @@ import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 export const MAX_CITATIONS = 10;
 /** #223 D5: the engine allows about six lookups a minute, so with the existence-only arm ON a batch takes at most five lines per try (the box says so). */
 export const MAX_CITATIONS_EXISTENCE = 5;
-/** The engine's rate window in seconds, used when a 429 carries no Retry-After. */
-export const DEFAULT_BATCH_WAIT_S = 60;
-
-/** #223 D5 (R1): the one sentence shown when a batch stops at the engine's rate limit. */
-export const batchStopText = (checked: number, total: number, wait: number): string =>
-  `Checked ${checked} of ${total} lines. The check allows only a few lookups a minute; try the rest in ${wait} seconds.`;
-
-/** Shown instead of a result when the engine answers VERIFIED to a line sent WITHOUT a quote: that cannot be true (nothing was looked up in the text), so nothing is shown as verified. */
-export const VERIFIED_WITHOUT_QUOTE_TEXT = "The engine answered verified to a citation sent without a quote, which cannot be right, so no result is shown for it.";
-
-/** Shown when the engine's reply carries no recognised coverage. Never a typed-in claim about what the index holds. */
-export const COVERAGE_NOT_REPORTED = "Coverage not reported by the engine.";
+/** #223 D5 (R1, 15 Oct): the one sentence shown when a batch stops at the engine's rate limit; with no Retry-After it says "about a minute" (the engine's window), never a number it was not told. */
+export const batchStopText = (checked: number, total: number, wait?: number): string =>
+  `Checked ${checked} of ${total} lines. The check allows only a few lookups a minute; try the rest in ${wait === undefined ? "about a minute" : `${wait} seconds`}.`;
+/** #223 D5 (R1): said when the pasted text had more lines than one try takes; the number is the one cap constant. */
+export const overCapText = (cap: number = MAX_CITATIONS_EXISTENCE): string => `Only the first ${cap} lines were checked. Check the rest in a second try.`;
 
 export interface CitationLine {
   /** 1-based line number in the pasted text, so a row can be matched to the line the user typed. */

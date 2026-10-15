@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { verifyCitation } from "@/lib/api";
 import { CITATION_PLACEHOLDER, PREVIEW_LABEL } from "@/lib/citationCheck";
 import { CITATION_EXISTENCE_ONLY, COVERAGE_LIMITS_TEXT, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT, SIGNED_OUT_BEFORE_TEXT } from "@/lib/citationExistence";
-import { COVERAGE_NOT_REPORTED, DEFAULT_BATCH_WAIT_S, MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, coverageLine, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
+import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, coverageLine, overCapText, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
 import { CitationCheckResult } from "./CitationCheck";
 import { useSignedOut } from "./useSignedOut";
 
@@ -27,7 +27,7 @@ export function CitationsPanelView({ rows, skipped, coverage, existenceOnly = CI
   const stopAt = existenceOnly ? rows.findIndex((r) => r.state.phase === "error" && r.state.kind === "rate_limited") : -1;
   const shown = stopAt === -1 ? rows : rows.slice(0, stopAt);
   const limited = stopAt === -1 ? null : rows[stopAt].state;
-  const wait = limited && limited.phase === "error" && limited.wait !== undefined ? limited.wait : DEFAULT_BATCH_WAIT_S;
+  const wait = limited && limited.phase === "error" ? limited.wait : undefined;
   const cap = existenceOnly ? MAX_CITATIONS_EXISTENCE : MAX_CITATIONS;
   return (
     <div className="space-y-2" data-testid="citations-panel-results" role="status">
@@ -44,7 +44,12 @@ export function CitationsPanelView({ rows, skipped, coverage, existenceOnly = CI
           {batchStopText(stopAt, rows.length, wait)}
         </p>
       )}
-      {skipped > 0 && (
+      {skipped > 0 && existenceOnly && !limited && (
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-skipped">
+          {overCapText(cap)}
+        </p>
+      )}
+      {skipped > 0 && !existenceOnly && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-skipped">
           {skipped} more line{skipped === 1 ? "" : "s"} not checked: at most {cap} at a time.
         </p>

@@ -9,7 +9,7 @@ import { classifyVerifyError, statusLabel, verifyView } from "./citationCheck";
 import {
   CONFLICT_HEADING, CONFLICT_TEXT, COVERAGE_LIMITS_TEXT, MALFORMED_HEADING, MALFORMED_TEXT, RETENTION_EXISTENCE, SIGNED_OUT_401_TEXT, SIGNED_OUT_BEFORE_TEXT,
 } from "./citationExistence";
-import { MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, parseCitationLines } from "./citationsPanel";
+import { MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, overCapText, parseCitationLines } from "./citationsPanel";
 import { SESSION_401_TEXT } from "./signedStrings";
 
 // Citations-ON readiness (#223, explorer's pre-flip review D1-D7; R1's exact strings, 15 Oct). Both arms: the ON arm (existence-only) shows the new wording; the OFF arm is unchanged.
@@ -23,8 +23,11 @@ test("R1's strings are exact (D1, D2a, D3, D4, D5, D7)", () => {
   assert.equal(SIGNED_OUT_BEFORE_TEXT, "Citation checks need you to be signed in.");
   assert.equal(SIGNED_OUT_401_TEXT, "Sign in to check citations. Nothing was looked up.");
   assert.equal(batchStopText(3, 5, 42), "Checked 3 of 5 lines. The check allows only a few lookups a minute; try the rest in 42 seconds.");
+  assert.equal(batchStopText(3, 5), "Checked 3 of 5 lines. The check allows only a few lookups a minute; try the rest in about a minute."); // no Retry-After (R1's ruling)
+  assert.equal(overCapText(), "Only the first 5 lines were checked. Check the rest in a second try.");
+  assert.equal(overCapText(MAX_CITATIONS_EXISTENCE), overCapText(), "the 5 is the one cap constant");
   assert.equal(RETENTION_EXISTENCE, "The citation check does not save the citation you enter.");
-  for (const s of [CONFLICT_TEXT, MALFORMED_TEXT, SIGNED_OUT_401_TEXT, batchStopText(1, 2, 3)]) assert.doesNotMatch(s, /Nothing was scored|session has ended|Exactly one parseable/, s);
+  for (const s of [CONFLICT_TEXT, MALFORMED_TEXT, SIGNED_OUT_401_TEXT, batchStopText(1, 2, 3), batchStopText(1, 2), overCapText()]) assert.doesNotMatch(s, /Nothing was scored|session has ended|Exactly one parseable/, s);
 });
 
 test("D1/D2a: CONFLICT and MALFORMED read as plain words with the ON arm; the OFF arm shows the tokens and the engine's notes as before", () => {
@@ -81,7 +84,13 @@ test("D5: the panel shows the stop ONCE (no repeated rows, no 'Nothing was score
   assert.match(html, /try the rest in 42 seconds\./);
   assert.doesNotMatch(html, /Nothing was scored|Too many requests/);
   const noWait = await checkCitations(async () => { throw new ApiError(429, "/x"); }, items.slice(0, 2), undefined, undefined, true);
-  assert.match(renderToStaticMarkup(createElement(CitationsPanelView, { rows: noWait, skipped: 0, coverage: null, existenceOnly: true })), /Checked 0 of 2 lines\. .* in 60 seconds\./, "no Retry-After: the engine's one-minute window");
+  assert.match(renderToStaticMarkup(createElement(CitationsPanelView, { rows: noWait, skipped: 0, coverage: null, existenceOnly: true })), /Checked 0 of 2 lines\. The check allows only a few lookups a minute; try the rest in about a minute\./, "no Retry-After: 'about a minute', no invented number");
+  // more lines than one try takes: the over-cap sentence (ON arm), once; the OFF arm keeps its count line
+  const ok = await checkCitations(async () => ({ result: "NOT_IN_INDEX", note: "n" }), items, undefined, undefined, true);
+  const over = renderToStaticMarkup(createElement(CitationsPanelView, { rows: ok, skipped: 3, coverage: null, existenceOnly: true }));
+  assert.match(over, /Only the first 5 lines were checked\. Check the rest in a second try\./);
+  assert.doesNotMatch(over, /more lines? not checked/);
+  assert.match(renderToStaticMarkup(createElement(CitationsPanelView, { rows: ok, skipped: 3, coverage: null, existenceOnly: false })), /3 more lines not checked: at most 10 at a time\./);
 });
 
 test("D6: the panel's result area is a live region (role=status), present before any result", () => {

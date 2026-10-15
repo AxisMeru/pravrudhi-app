@@ -176,8 +176,13 @@ test("the Screening Citations panel (arm ON): the coverage limit before typing, 
   await panel.getByRole("button", { name: "Check citations" }).click();
   await expect(page.getByTestId("citations-panel-rate-stop")).toHaveText("Checked 2 of 5 lines. The check allows only a few lookups a minute; try the rest in 42 seconds.");
   await expect(page.getByTestId("citations-panel-row")).toHaveCount(2); // no repeated refusal rows
-  await expect(page.getByTestId("citations-panel-skipped")).toHaveText("2 more lines not checked: at most 5 at a time.");
+  await expect(page.getByTestId("citations-panel-skipped")).toHaveCount(0); // the run stopped at the rate limit: the stop sentence is the one message
   expect(calls).toBe(3); // nothing sent after the first 429
+  // more lines than one try takes, no rate limit: R1's over-cap sentence, once
+  calls = -100; // no 429 from here on
+  await panel.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citations-panel-skipped")).toHaveText("Only the first 5 lines were checked. Check the rest in a second try.");
+  await expect(page.getByTestId("citations-panel-row")).toHaveCount(5);
   await expect(page.locator("body")).not.toContainText(/Nothing was scored|Too many requests/);
   await expect(page.getByTestId("citations-panel-results")).toHaveAttribute("role", "status");
 });
