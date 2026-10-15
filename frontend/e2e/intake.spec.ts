@@ -180,3 +180,16 @@ test("app#348: at 390 px the Run intake and Screen the chosen facts buttons are 
   const screen = (await page.getByTestId("selector-screen").boundingBox())!;
   expect(screen.height, `Screen ${screen.height}px`).toBeGreaterThanOrEqual(44);
 });
+
+// #358: the engine looked these citations up, so none of them reads "Not checked."; only a status this build does not know does.
+test("each citation status has its own line: CONFLICT and MALFORMED are not shown as Not checked", async ({ page }) => {
+  const statuses = ["CONFLICT", "MALFORMED", "IN_INDEX", "NOT_IN_INDEX", "SOMETHING_NEW"];
+  const answer = { ...ANSWER, bundle: { ...ANSWER.bundle, citations: statuses.map((st, i) => ({ text: `Invented v. Sample (200${i}) 1 SCC 1`, verifier_status: st, fact_ids: ["F1"] })) } };
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ json: answer }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented text.\n\nMore invented text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("citation-line")).toHaveText([
+    "Could not match one case", "Not looked up", "Found in our index", "Not found in our index: this does not show whether the citation is real", "Not checked.",
+  ]);
+});
