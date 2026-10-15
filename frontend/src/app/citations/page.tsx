@@ -35,7 +35,7 @@ export default function CitationsPage() {
   const [view, setView] = useState<VerifyView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const signedOut = useSignedOut();
+  const signedOut = useSignedOut(served && CITATION_EXISTENCE_ONLY);
 
   async function submit() {
     const check = checkInputs(citation, CITATION_EXISTENCE_ONLY ? null : quote);

@@ -126,3 +126,12 @@ test("flag off (the hosted build): /citations is a notice and a way back to Scre
   await page.getByTestId("citation-not-offered-link").click();
   await expect(page).toHaveURL(/\/screening\/?$/);
 });
+
+// #223 (R2, 15 Oct): the signed-out probe belongs to the existence-only page; with it off, /citations makes no identity request (a signed-out 401 in the console is the noise #212 removed).
+test("with the existence-only flag off, /citations makes no /api/me request", async ({ page }) => {
+  const calls: string[] = [];
+  page.on("request", (r) => { if (new URL(r.url()).pathname === "/api/me") calls.push(r.url()); });
+  await page.goto("/citations");
+  await page.waitForLoadState("networkidle");
+  expect(calls).toEqual([]);
+});

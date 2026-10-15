@@ -98,3 +98,14 @@ test("D6: the panel's result area is a live region (role=status), present before
   const html = renderToStaticMarkup(createElement(CitationsPanelView, { rows: [], skipped: 0, coverage: null, existenceOnly: true }));
   assert.match(html, /role="status"/);
 });
+
+test("useSignedOut sends no identity request unless enabled, and both callers pass the arm (R2, 15 Oct)", () => {
+  const { readFileSync } = require("node:fs") as typeof import("node:fs");
+  const hook = readFileSync("src/components/citations/useSignedOut.ts", "utf8");
+  assert.match(hook, /useSignedOut\(enabled: boolean\)/, "the hook takes an enabled flag");
+  assert.match(hook, /if \(!enabled\) return;/, "the effect is a no-op when disabled, before isSignedIn runs");
+  const page = readFileSync("src/app/citations/page.tsx", "utf8");
+  assert.match(page, /useSignedOut\(served && CITATION_EXISTENCE_ONLY\)/);
+  const panel = readFileSync("src/components/citations/CitationsPanel.tsx", "utf8");
+  assert.match(panel, /useSignedOut\(CITATION_EXISTENCE_ONLY\)/);
+});

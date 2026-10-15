@@ -75,7 +75,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
   const [busy, setBusy] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   useEffect(() => () => abortRef.current?.abort(), []);
-  const signedOut = useSignedOut();
+  const signedOut = useSignedOut(CITATION_EXISTENCE_ONLY);
 
   async function run() {
     const parsed = parseCitationLines(text);
