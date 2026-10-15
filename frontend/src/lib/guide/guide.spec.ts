@@ -62,6 +62,9 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   // frame 05 is shown only on the build with the panel (retaken on such a build); a build without it shows no image and no caption (R1: never the old hosted-build frame)
   assert.equal(step6.image, CITATIONS_PANEL_ENABLED ? GUIDE_IMAGES.citations : undefined);
   assert.equal(GUIDE_IMAGES.citations.file, "05-citations-panel.png");
+  // R1 (15 Oct): frame 06 as retaken by Track A at main f8738cf7 (528x64, sha256 0a019ee3...c9d2) and its exact alt
+  assert.equal(statSync(join(root, "public", "guide", "06-memo-export.png")).size, 8643);
+  assert.equal(GUIDE_IMAGES.memo.alt, "The memo export controls under the checklist: the label \u201cDownload the memo\u201d with the buttons Markdown (.md) and Word (.docx), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).");
   assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 14178, "the retaken frame (Track A, 15 Oct, sha256 c54566d6…01b0)");
   assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only/i);
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
@@ -137,7 +140,7 @@ test("P16: R1's four-marks sentence, the No fact cited description, the banner d
   assert.ok(text.includes("Each ingredient shows one of four marks: Supported by a fact, Suggested by the screening judge; check it, Needs your review, or No fact cited."));
   assert.ok(GUIDE_STATUSES.some((s) => s.label === "No fact cited" && s.meaning === "No fact cited means the screening found no fact in your papers that supports this ingredient. It is a prompt to look for one, not a finding about your matter."));
   assert.ok(c.GUIDE_BANNER_TEXT.startsWith("On a result where no ingredient has a cited fact, a review agenda is shown first: what each ingredient needs, and which facts to look for. Nothing there is a finding about your matter."));
-  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md) and Word (.docx); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid."));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md) and Word (.docx); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and the standing line that this is a screening aid."));
   assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.endsWith("Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file."));
   assert.doesNotMatch(c.GUIDE_BANNER_TEXT + text, /\b\d+ of \d+\b|0 of 3/);
 });
