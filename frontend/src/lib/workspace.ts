@@ -22,6 +22,9 @@ export const WORKSPACE_PATH = "/screening";
 
 /** The link on a Built /workflows row to its step (the label is a plain action; R1 to confirm). */
 export const WORKFLOW_OPEN_LABEL = `Open in ${WORKSPACE_TITLE}`;
+/** The link on the Built Intake row: Intake is its own page (/intake), not a step of the workspace (R1 to confirm the label). */
+export const INTAKE_PATH = "/intake";
+export const INTAKE_OPEN_LABEL = "Open Intake";
 /** The link on /citations when the check is not offered. */
 export const CITATIONS_GO_LABEL = `Go to ${WORKSPACE_TITLE}`;
 

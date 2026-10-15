@@ -7,7 +7,7 @@ import { PAGE_TITLES, pageTitle } from "./pageTitles";
 import { PALETTE_PAGES } from "./palette";
 import { SCREENING_TITLE } from "./screening/copy";
 import { HEARING_NOT_OFFERED_TEXT, WORKFLOW_OPEN_LABEL, WORKSPACE_ANCHORS, WORKSPACE_LOCKED_TEXT, WORKSPACE_NAV_LABEL, WORKSPACE_STATE_WORDS, WORKSPACE_STEP_LABELS, WORKSPACE_TITLE, workspaceSteps } from "./workspace";
-import { WORKFLOWS, workflowStepAnchor } from "./workflowsCopy";
+import { WORKFLOWS, workflowLink, workflowStepAnchor } from "./workflowsCopy";
 
 // R1's exact strings (15 Oct).
 test("the workspace's names and step words are R1's, exactly", () => {
@@ -55,7 +55,10 @@ test("/workflows: only a Built row has a link, to a step of the workspace; a Bui
     assert.ok(a === null || anchors.has(a as never), `${w.name} -> ${a}`);
   }
   assert.equal(workflowStepAnchor("Memo preparation"), "step-memo");
-  assert.equal(workflowStepAnchor("Intake"), "step-facts");
+  // Intake is its own page, so its row links to /intake, not to a step (#231)
+  assert.equal(workflowStepAnchor("Intake"), null);
+  assert.deepEqual(workflowLink("Intake"), { href: "/intake", label: "Open Intake" });
+  assert.deepEqual(workflowLink("Memo preparation"), { href: "/screening#step-memo", label: WORKFLOW_OPEN_LABEL });
   assert.equal(workflowStepAnchor("Screening orchestration"), "step-screen");
 });
 

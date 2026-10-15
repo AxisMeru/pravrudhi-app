@@ -80,8 +80,13 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
     const link = row.getByTestId("workflow-open");
     if (badge === "Built") {
       await expect(link).toHaveCount(1);
-      await expect(link).toHaveAttribute("href", /^\/screening#step-(facts|screen|memo|hearing)$/);
-      await expect(link).toHaveText("Open in Matter workspace");
+      if (/^Intake/.test((await row.locator("div > div").first().textContent()) ?? "")) {
+        await expect(link).toHaveAttribute("href", "/intake");
+        await expect(link).toHaveText("Open Intake");
+      } else {
+        await expect(link).toHaveAttribute("href", /^\/screening#step-(screen|memo|hearing)$/);
+        await expect(link).toHaveText("Open in Matter workspace");
+      }
     } else {
       expect(badge).toBe("Building");
       await expect(link).toHaveCount(0);
@@ -122,8 +127,8 @@ test("the /workflows link is a next/link (base-path aware)", async () => {
   const { join } = await import("node:path");
   const src = readFileSync(join(__dirname, "..", "src", "components", "WorkflowRows.tsx"), "utf8");
   expect(src).toContain('import Link from "next/link"');
-  expect(src).toMatch(/<Link href=\{`\$\{WORKSPACE_PATH\}#/);
-  expect(src).not.toMatch(/<a href=\{`\$\{WORKSPACE_PATH\}/);
+  expect(src).toMatch(/<Link href=\{workflowLink\(/);
+  expect(src).not.toMatch(/<a href=\{/);
 });
 
 // R2 (#216 note): the example banner (a court's name, "example only") shows only while the facts are the loaded example, unchanged.
