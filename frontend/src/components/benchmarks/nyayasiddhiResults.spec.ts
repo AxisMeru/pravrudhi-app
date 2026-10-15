@@ -16,7 +16,7 @@ const R1 = {
   tableCaption: "NyayaSiddhi runs, one card for each run",
   unitHeading: "Counted per", groupHeading: "Offence group", groupAll: "All groups",
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",
-  stackLabel: "dev stack (local)",
+  stackLabel: { "dev stack (local)": "dev stack (local)", "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)": "Anthropic API; not our dev stack or production stack" },
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
   errorLine: "{e} gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be {k} of {n}.",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
@@ -31,7 +31,7 @@ const R1 = {
 
 // INVENTED layout fixture (test-only, never shipped): the shape of signed rows from the result_row schema.
 const m = (name: string, group: string, k: number, n: number, lo: number | null, hi: number | null) => ({ name, group, k, n, interval_method: "clopper-pearson-exact", interval_level: 0.95, ci_low: lo, ci_high: hi });
-const row = (id: string, status: string, over: Record<string, unknown> = {}) => ({ row_id: id, status, benchmark_version: "v0.2", split: "obj1_dev", unit: "whole_item", system_name: "invented", system_version: "1", run_date: "2026-10-01", organiser_entry: true, entry_kind: "product", superseded_by: null, n_error: 0,
+const row = (id: string, status: string, over: Record<string, unknown> = {}) => ({ row_id: id, status, benchmark_version: "v0.2", split: "obj1_dev", unit: "whole_item", system_name: "invented", system_version: "1", run_date: "2026-10-01", stack: "dev stack (local)", organiser_entry: true, entry_kind: "product", superseded_by: null, n_error: 0,
   metrics: [m("false_proof", "ALL", 2, 40, 0.006, 0.169), m("coverage", "ALL", 30, 40, 0.588, 0.893), m("coverage", "CHEAT", 10, 12, 0.516, 0.979), m("false_proof", "CHEAT", 0, 12, 0, 0.265), m("coverage", "ODD", 1, 2, 0.013, 0.987), m("false_proof", "ODD", 0, 2, 0, 0.842)], ...over });
 const ROWS = parseRows({ rows: STATUSES.map((st, i) => row(`r${i}`, st)) });
 const html = () => renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ROWS, strings: resolveStrings() }));
@@ -44,7 +44,7 @@ test("every constant is R1's exact string (and none is unset)", () => {
 test("the page shows R1's words: heading, intro, labels, status words, material words, measure names and notes", () => {
   const h = html();
   const decoded = h.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-  for (const t of [R1.heading, R1.intro, R1.benchmarksSupplyLine, R1.tableCaption, R1.unitHeading, R1.groupHeading, R1.groupAll, R1.colSystem, R1.colStatus, R1.colSplit, R1.colRunDate, R1.stackLabel, R1.organiserEntry.product, R1.split.obj1_dev, R1.unit.whole_item,
+  for (const t of [R1.heading, R1.intro, R1.benchmarksSupplyLine, R1.tableCaption, R1.unitHeading, R1.groupHeading, R1.groupAll, R1.colSystem, R1.colStatus, R1.colSplit, R1.colRunDate, R1.stackLabel["dev stack (local)"], R1.organiserEntry.product, R1.split.obj1_dev, R1.unit.whole_item,
     R1.measure.false_proof, R1.measure.coverage, R1.measureNote.false_proof, R1.measureNote.coverage, ...Object.values(R1.status), R1.family.CHEAT]) assert.ok(decoded.includes(t), t);
   assert.ok(!decoded.includes(R1.family.TRUST), "a family with no row is not offered");
 });
@@ -86,6 +86,28 @@ test("the errors line: only when the row had errors AND counting them the other 
   assert.ok(!renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: noErr, strings: resolveStrings() })).includes("gave an error"));
   assert.deepEqual(errorLineFor(withErr[0], "ALL"), { e: 1, k: 1, n: 64 });
   assert.equal(errorLineFor(withErr[0], "CHEAT"), null, "the two mappings agree for this group");
+});
+
+const API_STACK = "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)";
+test("the stack label is per row, keyed on the manifest's stack: the API stack reads R1's API label and never 'dev stack (local)'; an unknown stack shows no row (fail closed)", () => {
+  const html1 = (rows: ReturnType<typeof parseRows>) => renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows, strings: resolveStrings() }));
+  const api = parseRows({ rows: [row("api", "self-reported", { stack: API_STACK, organiser_entry: true, entry_kind: "reference_arm" })] });
+  const h = html1(api);
+  assert.ok(h.includes("Anthropic API; not our dev stack or production stack"));
+  assert.ok(!h.includes("dev stack (local)"), "an API row never says dev stack (local)");
+  const dev = html1(parseRows({ rows: [row("dev", "self-reported")] }));
+  assert.ok(dev.includes("dev stack (local)") && !dev.includes("Anthropic API"));
+  const unknown = parseRows({ rows: [row("u", "self-reported", { stack: "some other stack" })] });
+  assert.equal(unknown.length, 1, "the parser keeps it");
+  assert.equal(html1(unknown), "", "but the view shows nothing for a stack it has no words for");
+  // inherited object keys are not stacks: the view must show no row and must not throw (R2, #351)
+  for (const bad of ["constructor", "toString", "hasOwnProperty", "__proto__", "valueOf"]) {
+    const rowsBad = parseRows({ rows: [row("p", "self-reported", { stack: bad })] });
+    assert.equal(rowsBad.length, 1, `${bad}: the parser keeps it`);
+    assert.equal(html1(rowsBad), "", `${bad}: the view shows nothing`);
+  }
+  const mixed = html1(parseRows({ rows: [row("dev", "self-reported"), row("u", "self-reported", { stack: "some other stack" })] }));
+  assert.equal((mixed.match(/data-testid="ns-row"/g) ?? []).length, 1);
 });
 
 test("no 'proof', 'verified', 'best', 'better', 'beat' or 'rank' anywhere on the rendered page, and no comparison between rows", () => {

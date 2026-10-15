@@ -13,8 +13,8 @@ export interface NyayaSiddhiStrings {
   colStatus: string;
   colSplit: string;
   colRunDate: string;
-  /** The stack label printed on every row ("dev stack (local)": the benchmark's organiser rows were measured on the local development stack). */
-  stackLabel: string;
+  /** The stack label printed on a row, keyed by the manifest's stack value ("dev stack (local)" for the local development stack). A row whose stack has no entry here is NOT shown (fail closed): the label is never guessed. */
+  stackLabel: Record<string, string>;
   /** Printed on a row entered by the organisers, by the row's own entry kind (never by a name): our product, or a reference arm run by the organisers. */
   organiserEntry: Record<"product" | "reference_arm", string>;
   /** Under a row's figures when it had errors and counting them the other way changes the wrongly-supported figure for the shown group; {e}, {k}, {n} are filled from the data. */
@@ -54,7 +54,8 @@ export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   benchmarksSupplyLine: "For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.",
   tableCaption: "NyayaSiddhi runs, one card for each run",
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",
-  stackLabel: "dev stack (local)",
+  // keyed on the manifest's exact stack strings (R1 via Interim goal, 15 Oct); any other value shows no row
+  stackLabel: { "dev stack (local)": "dev stack (local)", "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)": "Anthropic API; not our dev stack or production stack" },
   organiserEntry: { product: "Entered by the NyayaSiddhi organisers, who also built this system", reference_arm: "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry" },
   errorLine: "{e} gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be {k} of {n}.",
   zeroWithZero: "The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.",
