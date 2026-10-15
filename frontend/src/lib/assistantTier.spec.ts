@@ -150,3 +150,24 @@ test("#323: a tab that starts hidden reads nothing until it is shown", async () 
   assert.deepEqual(h.seen, ["unreachable"]);
   h.stop();
 });
+
+// #124 (3): the 8 s timeout timer is cleared as soon as the read settles (answered or failed); it only fires when the read never settles.
+function timerHarness() {
+  const set: Array<{ fn: () => void; ms: number; cleared: boolean }> = [];
+  return { set, timers: { set: (fn: () => void, ms: number) => { const t = { fn, ms, cleared: false }; set.push(t); return t; }, clear: (t: unknown) => { (t as { cleared: boolean }).cleared = true; } } };
+}
+test("readAssistantState clears its timeout timer when the read answers, when it fails, and uses it only when the read never settles", async () => {
+  const a = timerHarness();
+  assert.equal(await readAssistantState(async () => ({ assistant_tier: { state: "available" } }), 8_000, a.timers), "available");
+  assert.equal(a.set.length, 1); assert.equal(a.set[0].ms, 8_000); assert.equal(a.set[0].cleared, true);
+  const b = timerHarness();
+  assert.equal(await readAssistantState(async () => { throw new Error("x"); }, 8_000, b.timers), "unreachable");
+  assert.equal(b.set[0].cleared, true);
+  const c = timerHarness();
+  const pending = readAssistantState(() => new Promise<never>(() => {}), 8_000, c.timers);
+  await Promise.resolve();
+  assert.equal(c.set[0].cleared, false, "still waiting");
+  c.set[0].fn();
+  assert.equal(await pending, "unreachable");
+  assert.equal(c.set[0].cleared, true);
+});

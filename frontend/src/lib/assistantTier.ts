@@ -47,12 +47,20 @@ export const nextTierPollDelay = (state: AssistantState, consecutiveFailures = 1
 };
 
 /** The state after a health read that may have failed: a rejection or a timeout is "unreachable" (greyed, no line). */
-export async function readAssistantState(read: () => Promise<unknown>, timeoutMs = 8_000): Promise<AssistantState> {
+export async function readAssistantState(
+  read: () => Promise<unknown>,
+  timeoutMs = 8_000,
+  timers: { set: (fn: () => void, ms: number) => unknown; clear: (t: unknown) => void } = { set: (fn, ms) => setTimeout(fn, ms), clear: (t) => clearTimeout(t as ReturnType<typeof setTimeout>) },
+): Promise<AssistantState> {
+  let timer: unknown;
   try {
-    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("health read timed out")), timeoutMs));
+    const timeout = new Promise<never>((_, reject) => { timer = timers.set(() => reject(new Error("health read timed out")), timeoutMs); });
     return assistantStateOf(await Promise.race([read(), timeout]));
   } catch {
     return "unreachable";
+  } finally {
+    // #124 (3): the 8 s timer is cleared as soon as the read settles, so it does not outlive the read (or fire into an unmounted page)
+    if (timer !== undefined) timers.clear(timer);
   }
 }
 
