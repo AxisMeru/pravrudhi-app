@@ -2,7 +2,7 @@ import { expect, test } from "./support/engineTest";
 
 // #251 (#253, #254, #256): the two motion films play INSIDE the app with the browser's own <video>: narrated but starting MUTED with a visible Turn on sound button, controls, captions OFF by default with a visible Show captions toggle, a Download the film link, nothing fetched until the visitor presses play, the poster first;
 // under reduced motion the poster waits for the visitor's button. At 400 px and on a desktop the page does not scroll sideways. The only committed source is the H.264 MP4 (Interim lead, 15 Oct). Playwright's own Chromium cannot decode H.264, so the play step runs only where the browser says it can; the rest (source, poster, captions, preload, no fetch before play, layout) is checked everywhere.
-const PAGES = [["/guide", "client"], ["/technical-film", "technical"]] as const;
+const PAGES = [["/guide", "client"], ["/technical-film", "technical"], ["/how-it-was-built", "technical"]] as const;
 const VIEWPORTS = [{ width: 400, height: 800 }, { width: 1280, height: 800 }];
 
 for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {
@@ -71,4 +71,20 @@ test("/demo links to the technical film page and to the film in the guide", asyn
   await page.goto("/demo");
   await expect(page.getByTestId("demo-technical-film")).toHaveAttribute("href", /\/technical-film\/?$/);
   await expect(page.getByTestId("demo-guide-film")).toHaveAttribute("href", /\/guide\/?#film$/);
+});
+
+test("/how-it-was-built carries the technical film under the signed title and subtitle; the guide has no link or nav entry for it; /technical-film still plays", async ({ page }) => {
+  await page.goto("/how-it-was-built");
+  const section = page.getByTestId("how-built-film");
+  await expect(section.getByRole("heading", { name: "Technical film", level: 2 })).toBeVisible();
+  await expect(section).toContainText("How a screening is built and checked, as a short narrated film.");
+  await expect(section.getByTestId("film-technical").getByTestId("film-video")).toBeVisible();
+  await expect(section.getByTestId("film-sound")).toHaveText("Turn on sound");
+  await expect(section.getByTestId("film-captions")).toHaveText("Show captions");
+  await expect(section.getByTestId("film-download")).toHaveText("Download the film");
+  await page.goto("/guide");
+  await expect(page.getByTestId("guide-technical-film-link")).toHaveCount(0);
+  await expect(page.locator('#primary-navigation a[href="/technical-film"]')).toHaveCount(0);
+  await page.goto("/technical-film");
+  await expect(page.getByTestId("film-technical").getByTestId("film-video")).toBeVisible();
 });
