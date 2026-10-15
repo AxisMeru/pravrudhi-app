@@ -11,12 +11,14 @@ export function useAssistantState(): AssistantState {
   useEffect(() => {
     let off = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0; // consecutive "unreachable" reads; a read that answers starts the count over
     // one read, then the next after a delay that depends on the answer (a failed read is retried in seconds, not a minute)
     const poll = () =>
       readAssistantState(health).then((s) => {
         if (off) return;
         setState(s);
-        timer = setTimeout(poll, nextTierPollDelay(s));
+        failures = s === "unreachable" ? failures + 1 : 0;
+        timer = setTimeout(poll, nextTierPollDelay(s, failures, Math.random()));
       });
     poll();
     return () => {

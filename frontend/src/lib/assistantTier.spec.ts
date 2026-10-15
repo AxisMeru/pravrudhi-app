@@ -65,8 +65,12 @@ test("R1 14 Oct: the paused line and the row greying apply ONLY with the entry f
 });
 
 import { TIER_POLL_MS, TIER_RETRY_MS, nextTierPollDelay } from "./assistantTier";
-test("#309: an unreachable (failed or slow) health read is retried in seconds; every other state keeps the slow poll", () => {
-  assert.equal(nextTierPollDelay("unreachable"), TIER_RETRY_MS);
-  for (const s of ["available", "paused", "not_configured"] as const) assert.equal(nextTierPollDelay(s), TIER_POLL_MS);
-  assert.ok(TIER_RETRY_MS < TIER_POLL_MS && TIER_RETRY_MS <= 10_000);
+test("#309/#311: an unreachable read is retried soon, then backs off 5, 10, 20, 40 s to the 60 s poll (+-20% jitter); every other state keeps the 60 s poll", () => {
+  const seq = [1, 2, 3, 4, 5, 6, 20].map((n) => nextTierPollDelay("unreachable", n, 0.5));
+  assert.deepEqual(seq, [5_000, 10_000, 20_000, 40_000, 60_000, 60_000, 60_000]);
+  assert.equal(nextTierPollDelay("unreachable", 1, 0), 4_000);   // the low end of the jitter
+  assert.equal(nextTierPollDelay("unreachable", 1, 1), 6_000);   // the high end
+  assert.equal(nextTierPollDelay("unreachable", 5, 1), 72_000);  // a capped delay may be jittered above the poll (never a faster pace than the cap's low end)
+  for (const s of ["available", "paused", "not_configured"] as const) assert.equal(nextTierPollDelay(s, 3, 0.9), TIER_POLL_MS);
+  assert.ok(TIER_RETRY_MS < TIER_POLL_MS);
 });
