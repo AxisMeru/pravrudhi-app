@@ -32,7 +32,7 @@ import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { displayElementName, referenceOf } from "@/lib/screening/reference";
-import { blockTitle, offerableContracts } from "@/lib/screening/offences";
+import { blockTitle, contractListLabel, offerableContracts } from "@/lib/screening/offences";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { exampleById, exampleFactsText, type DemoExample } from "@/lib/demo/example";
 import Link from "next/link";
@@ -485,7 +485,7 @@ export default function MattersPage() {
                     }`}
                   >
                     <input type="checkbox" className="sr-only" checked={selected.has(id)} onChange={() => toggleContract(id)} />
-                    {blockTitle(id)}
+                    {contractListLabel(id)}
                     {validationLabel(validationMark(validated, id)) && (
                       <span className="text-[var(--color-warn)]">({validationLabel(validationMark(validated, id))})</span>
                     )}
