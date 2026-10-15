@@ -4,7 +4,7 @@
 // every new string is in lib/screening/copy.ts (R1 reviews that list). The engine's decisions are shown in plain words and never changed here.
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
@@ -32,7 +32,7 @@ import { takeHandoff, takeHandoffCitations } from "@/lib/handoff";
 import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
-import { EXAMPLES, exampleById, initialFactsFor, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
+import { EXAMPLES, exampleById, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
@@ -61,7 +61,8 @@ export default function ScreeningPage() {
   const [intakeHand, setIntakeHand] = useState<{ facts: string[]; citations: Array<{ text: string }> } | null>(null);
   // An example link's facts are the first state (read from the URL on the client), so no empty box shows and then fills. The list itself is drawn only
   // after hydration (the static page cannot know the URL): until then a same-height placeholder stands where the boxes will be.
-  const [facts, setFacts] = useState<string[]>(() => (typeof window === "undefined" ? [""] : initialFactsFor(window.location.search)));
+  // The first render is the static page's (one empty box): reading the URL here made the client's first render differ from the HTML and React threw hydration error #418 on ?example= links (#241). The example's facts are put in by the layout effect below, before the browser paints, so there is still no empty box on screen.
+  const [facts, setFacts] = useState<string[]>([""]);
   const hydrated = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -140,15 +141,15 @@ export default function ScreeningPage() {
 
   // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
   // static export). An id this app does not have shows the "not available" notice with a link to the first example.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const asked = new URLSearchParams(window.location.search).get("example");
     const found = exampleById(asked);
-    if (asked !== null && found === null) void Promise.resolve().then(() => setExampleMissing(true));
+    // State is set synchronously here on purpose: a layout effect's updates are flushed before the browser paints, a deferred (microtask) update is not, and one frame could then show an empty Fact F1 box (#241, R2).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the URL is only readable in the browser; the update must land before the first paint
+    if (asked !== null && found === null) setExampleMissing(true);
     if (found === null) return;
-    void Promise.resolve().then(() => {
-      setFacts([...found.facts]);
-      setExample(found);
-    });
+    setFacts([...found.facts]);
+    setExample(found);
   }, []);
 
   useEffect(() => {
@@ -187,6 +188,21 @@ export default function ScreeningPage() {
   }, [contractsTry]);
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
+
+  // #248: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the offence list has loaded, and the list then pushes the target down the page, so the visitor lands short of it.
+  // Once the registry has answered (the list, or its error, is on the page) the page scrolls to the named step once more, only when the URL names one and the visitor has not scrolled it into view.
+  const hashScrolled = useRef(false);
+  useEffect(() => {
+    if (picker === "loading" || hashScrolled.current) return;
+    hashScrolled.current = true;
+    const id = window.location.hash.slice(1);
+    if (!(Object.values(WORKSPACE_ANCHORS) as string[]).includes(id)) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+  }, [picker]);
 
   // P2: a new result is brought into view at once, so the user does not scroll past the facts they just typed.
   useEffect(() => {
@@ -380,7 +396,7 @@ export default function ScreeningPage() {
                       <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
                         <input
                           type="checkbox"
-                          className="mt-1 max-md:h-5 max-md:w-5"
+                          className="mt-1 h-6 w-6 shrink-0"
                           aria-label={offenceCheckboxName(o)}
                           aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                           checked={on}
@@ -529,7 +545,7 @@ export default function ScreeningPage() {
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
             <StatuteNotice />
             {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
-            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
+            <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="break-all font-mono">{result.score_sha256}</span></div>
           </div>
         )}
       </div>

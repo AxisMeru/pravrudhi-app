@@ -549,7 +549,7 @@ export default function MattersPage() {
         {result && (
           <div className="flex flex-col gap-4">
             <div className="text-xs text-[var(--color-text-dim)]">
-              run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span>
+              run {result.run_id} · score sha <span className="break-all font-mono">{result.score_sha256}</span>
             </div>
             {(() => {
               // The standard of proof applied, next to the verdict (#32): from the engine's `standard` field, else its default.

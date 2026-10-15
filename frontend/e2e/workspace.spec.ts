@@ -166,3 +166,16 @@ test("the Memo and Hearing preparation anchors carry a note before a result and 
   await expect(page.locator("#step-memo")).toHaveCount(1);
   await expect(page.locator("#step-hearing")).toHaveCount(1);
 });
+
+// #248: the /workflows links to Memo and Hearing preparation must leave the locked line IN VIEW. The browser scrolls to the hash before the offence list has loaded; the list then pushes the line down the page.
+test("a #step-memo / #step-hearing link ends with the locked line in view, even when the offence list loads late", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await page.route("**/api/nyaya/registry/contracts", async (r) => { await new Promise((res) => setTimeout(res, 600)); await r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }); });
+  for (const [id, key] of [["step-memo", "locked-memo"], ["step-hearing", "locked-hearing"]] as const) {
+    await page.goto("/workflows");
+    await page.locator(`a[href="/screening#${id}"]`).click();
+    await expect(page.getByTestId(key)).toBeVisible();
+    await expect(page.getByTestId("offence-list")).toBeVisible();
+    await expect.poll(async () => page.getByTestId(key).evaluate((el) => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= window.innerHeight; }), { message: `${key} is in view`, timeout: 5000 }).toBe(true);
+  }
+});
