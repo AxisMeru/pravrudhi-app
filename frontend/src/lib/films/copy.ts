@@ -8,7 +8,7 @@ export const FILM_DIR = "/films";
 
 export const FILM_PLAY_BUTTON = "Play the film";
 export const FILM_TRANSCRIPT_HEADING = "What the film shows";
-export const FILM_NARRATED_NOTE = "The film is narrated; the captions and the list below carry the same words.";
+export const FILM_NARRATED_NOTE = "The film is narrated; the captions carry the narration, and the list below sums up each scene.";
 export const FILM_SYNTHETIC_VOICE = "The narration is a synthetic voice.";
 // New controls (Web, 15 Oct; proposed wording, for R1 to confirm when built). The film starts muted so it can start anywhere; the visible button turns the narration on.
 export const FILM_SOUND_ON = "Turn on sound";
