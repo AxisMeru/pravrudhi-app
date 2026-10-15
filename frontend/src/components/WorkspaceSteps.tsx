@@ -5,7 +5,7 @@ export function WorkspaceSteps({ hasFacts, hasResult }: { hasFacts: boolean; has
   const steps = workspaceSteps({ hasFacts, hasResult });
   return (
     <nav aria-label={WORKSPACE_STEPS_LABEL} className="print:hidden" data-testid="workspace-steps">
-      <ol className="grid gap-2 sm:grid-cols-4">
+      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {steps.map((s, i) => (
           <li key={s.key} className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2" data-testid={`step-${s.key}`} data-state={s.state}>
             <div className="flex items-baseline justify-between gap-2">
