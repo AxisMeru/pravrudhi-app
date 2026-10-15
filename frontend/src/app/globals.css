@@ -5,59 +5,59 @@
    sets data-theme from localStorage before first paint (components/ThemeScript.tsx). Every pair used for text is checked to WCAG AA in BOTH themes by
    src/lib/theme/contrast.spec.ts, which reads the values below: change a value here and that test re-computes the ratios. */
 @theme {
-  --color-bg: #0f1114;
-  --color-surface: #15181d;
-  --color-surface-raised: #1b2027;
-  --color-border: #3a414b;
-  --color-control-border: #6b7480;
-  --color-text: #e8eaee;
-  --color-text-dim: #a2abb8;
-  --color-accent: #6ee7b7;
-  --color-on-accent: #0f1114;
-  --color-accent-dim: #2f6f56;
-  --color-warn: #f2b84b;
-  --color-danger: #f2707a;
-  --color-ok: #5fd39a;
-  --color-info: #7fb2ff;
+  --color-bg: #0e1622;
+  --color-surface: #152133;
+  --color-surface-raised: #1b2a40;
+  --color-border: #2c3b52;
+  --color-control-border: #8392ab;
+  --color-text: #e8ecf3;
+  --color-text-dim: #c1cad8;
+  --color-accent: #7fb1e8;
+  --color-on-accent: #0e1622;
+  --color-accent-dim: #1e3350;
+  --color-warn: #f2c46b;
+  --color-danger: #f2909a;
+  --color-ok: #8fe0b5;
+  --color-info: #a9c6f0;
   --color-note: #b9a2ff;
 }
 
 /* Light theme. */
 :root[data-theme="light"] {
-  --color-bg: #f7f6f2;
+  --color-bg: #f6f4ef;
   --color-surface: #ffffff;
-  --color-surface-raised: #efede6;
-  --color-border: #bdb8aa;
-  --color-control-border: #7d786a;
-  --color-text: #1c1b18;
-  --color-text-dim: #55524a;
-  --color-accent: #0f5c4d;
+  --color-surface-raised: #faf8f4;
+  --color-border: #ddd8cc;
+  --color-control-border: #7a7567;
+  --color-text: #1b2230;
+  --color-text-dim: #4a5262;
+  --color-accent: #1f4e79;
   --color-on-accent: #ffffff;
-  --color-accent-dim: #b7dccf;
-  --color-warn: #7a4f00;
-  --color-danger: #a4262c;
-  --color-ok: #17633a;
-  --color-info: #1f4e8c;
+  --color-accent-dim: #e6edf5;
+  --color-warn: #7a4b00;
+  --color-danger: #8a2e22;
+  --color-ok: #1c5a3b;
+  --color-info: #23487a;
   --color-note: #5b3f9a;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --color-bg: #f7f6f2;
+    --color-bg: #f6f4ef;
     --color-surface: #ffffff;
-    --color-surface-raised: #efede6;
-    --color-border: #bdb8aa;
-    --color-control-border: #7d786a;
-    --color-text: #1c1b18;
-    --color-text-dim: #55524a;
-    --color-accent: #0f5c4d;
+    --color-surface-raised: #faf8f4;
+    --color-border: #ddd8cc;
+    --color-control-border: #7a7567;
+    --color-text: #1b2230;
+    --color-text-dim: #4a5262;
+    --color-accent: #1f4e79;
     --color-on-accent: #ffffff;
-    --color-accent-dim: #b7dccf;
-    --color-warn: #7a4f00;
-    --color-danger: #a4262c;
-    --color-ok: #17633a;
-    --color-info: #1f4e8c;
+    --color-accent-dim: #e6edf5;
+    --color-warn: #7a4b00;
+    --color-danger: #8a2e22;
+    --color-ok: #1c5a3b;
+    --color-info: #23487a;
     --color-note: #5b3f9a;
     color-scheme: light;
   }
@@ -154,14 +154,14 @@ table,
     --color-bg: #ffffff;
     --color-surface: #ffffff;
     --color-surface-raised: #ffffff;
-    --color-border: #bdb8aa;
+    --color-border: #ddd8cc;
     --color-text: #000000;
     --color-text-dim: #333333;
-    --color-accent: #0f5c4d;
+    --color-accent: #1f4e79;
     --color-warn: #7a4f00;
-    --color-danger: #a4262c;
-    --color-ok: #17633a;
-    --color-info: #1f4e8c;
+    --color-danger: #8a2e22;
+    --color-ok: #1c5a3b;
+    --color-info: #23487a;
     --color-note: #5b3f9a;
   }
   nav,

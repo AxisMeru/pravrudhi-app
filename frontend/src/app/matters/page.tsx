@@ -416,7 +416,7 @@ export default function MattersPage() {
             accept=".txt,.pdf,.docx"
             aria-label="Load facts from a file"
             data-testid="facts-file"
-            className="text-sm"
+            className="min-h-6 text-sm"
             onChange={async (e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
