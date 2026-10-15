@@ -42,20 +42,23 @@ export function ConnectionBanner() {
     };
   }, []);
 
-  if (reachable) return null;
-
+  // The region is always in the page (empty while the engine answers) and the message appears inside it, so a screen reader announces it when it appears (a live region must exist before its content changes).
   return (
-    <div className="flex items-center gap-2 border-b border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-5 py-2 text-sm text-[var(--color-danger)]">
-      <AlertTriangle size={14} />
-      <span>
-        {isHostedBuild() ? (
-          <>The hosted engine is not answering right now. It may be outside its service hours; try again later.</>
-        ) : (
-          <>
-            No engine reachable at {apiBase() || window.location.origin}. Start one with <code>pravrudhi app</code>.
-          </>
-        )}
-      </span>
+    <div role="status" aria-live="polite" data-testid="connection-banner-region">
+      {!reachable && (
+      <div className="flex items-center gap-2 border-b border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-5 py-2 text-sm text-[var(--color-danger)]">
+        <AlertTriangle size={14} />
+        <span>
+          {isHostedBuild() ? (
+            <>The hosted engine is not answering right now. It may be outside its service hours; try again later.</>
+          ) : (
+            <>
+              No engine reachable at {apiBase() || window.location.origin}. Start one with <code>pravrudhi app</code>.
+            </>
+          )}
+        </span>
+      </div>
+      )}
     </div>
   );
 }
