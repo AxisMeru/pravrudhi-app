@@ -82,7 +82,8 @@ test("engineFetch: an anonymous 401 without authOptional still redirects to /sig
 // token"). This is what actually bounced an anonymous /matters visit to /signin mid-request, after the
 // edition()/notifications() fixes alone weren't enough to stop it.
 test("localToken: a 401 from the local-token probe (a hosted engine, no local write-guard) does not redirect", async () => {
-  const { localToken } = await import("./api");
+  const { localToken, forgetLocalToken } = await import("./api");
+  forgetLocalToken();
   await withAnonymousBrowser(async (assignCalls) => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = (async () => new Response(JSON.stringify({ detail: "not found" }), { status: 401 })) as typeof fetch;
@@ -93,5 +94,31 @@ test("localToken: a 401 from the local-token probe (a hosted engine, no local wr
       globalThis.fetch = originalFetch;
     }
     assert.deepEqual(assignCalls, [], "a failed local-token probe must never redirect to /signin");
+  });
+});
+
+// Lead-2, 15 Oct: the probe's "no local token" answer (401/403/404) is remembered for the visit: one request, however many writes follow; a network failure is not remembered.
+test("localToken: a refused probe (403) is asked once; a network failure is asked again", async () => {
+  const { localToken, forgetLocalToken } = await import("./api");
+  await withAnonymousBrowser(async () => {
+    const originalFetch = globalThis.fetch;
+    let calls = 0;
+    try {
+      forgetLocalToken();
+      globalThis.fetch = (async () => { calls += 1; return new Response(JSON.stringify({ detail: "forbidden" }), { status: 403 }); }) as typeof fetch;
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(calls, 1, "the refused probe is not repeated on every write");
+      forgetLocalToken();
+      calls = 0;
+      globalThis.fetch = (async () => { calls += 1; throw new TypeError("network down"); }) as typeof fetch;
+      assert.equal(await localToken(), null);
+      assert.equal(await localToken(), null);
+      assert.equal(calls, 2, "a network failure is not remembered");
+    } finally {
+      globalThis.fetch = originalFetch;
+      forgetLocalToken();
+    }
   });
 });

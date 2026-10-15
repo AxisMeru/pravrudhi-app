@@ -7,7 +7,7 @@ const LINE_START = "Element-by-element screening under Indian law, starting with
 test("the name and the line: the title, the sidebar name, and the line on the Screening page", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
-  await expect(page).toHaveTitle("Pravrudhi-Nyaya");
+  await expect(page).toHaveTitle("Matter workspace · Pravrudhi-Nyaya"); // R1, 15 Oct (D4): every page has its own title
   await expect(page.locator("aside").getByText("Pravrudhi-Nyaya", { exact: true })).toBeVisible();
   await expect(page.getByTestId("product-line")).toContainText(LINE_START);
   await expect(page.getByTestId("product-line")).not.toContainText(/proof|proved|established|verbatim/i);

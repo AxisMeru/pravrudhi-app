@@ -18,6 +18,11 @@ function detectBase(): string {
 // Resolve at request time so static prerendering cannot freeze the browser's base.
 export { detectBase as apiBase };
 
+/** True when the engine is a hosted one named at build time (NEXT_PUBLIC_API_BASE): a different origin from the page, behind the web session. A page served by the engine itself is not. */
+export function isHostedEngine(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, ""));
+}
+
 // Get the current web session's access token for Supabase JWT auth.
 async function webSessionToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
@@ -168,7 +173,7 @@ export const DEFAULT_WORKSPACE = "default";
 // workspace", not the admin-gets-engine-root path that local/desktop use has always relied on. So naming one
 // must depend on there being a session, not merely on the path shape. `typeof window === "undefined"` guards
 // the dynamic import the same way webSessionToken() above does, so this stays inert during SSR/static build.
-async function hasWebSession(): Promise<boolean> {
+export async function hasWebSession(): Promise<boolean> {
   if (typeof window === "undefined") return false;
   try {
     const { currentSession } = await import("./auth");
@@ -199,9 +204,19 @@ async function getJSON<T>(path: string, opts: { authOptional?: boolean } = {}): 
 // when the engine serves it. It is fetched once and kept in memory; it is never stored anywhere a script on
 // another page could reach.
 let cachedToken: string | null = null;
+// The probe is answered "no token" (401, 403, 404...) by every engine that is not a local desktop one. That answer does not change during a visit, so it is remembered: the next write does not
+// ask again (and a visitor's console shows one failed probe, not one per write). A network failure is NOT remembered (the engine may simply have been unreachable a moment ago).
+let noLocalToken = false;
+
+/** Forget what the token probe answered (a test, or a change of engine): the next write asks again. */
+export function forgetLocalToken(): void {
+  cachedToken = null;
+  noLocalToken = false;
+}
 
 export async function localToken(): Promise<string | null> {
   if (cachedToken !== null) return cachedToken;
+  if (noLocalToken) return null;
   try {
     // authOptional (2026-09-24): this is a same-origin local-write-guard probe, not the user's session --
     // a hosted engine either doesn't serve this route at all or 401s it for every caller, signed in or not,
@@ -212,7 +227,10 @@ export async function localToken(): Promise<string | null> {
     // /signin mid-request, discovered live-debugging why the edition()/notifications() fixes alone weren't
     // enough.
     const res = await engineFetch(`${detectBase()}/api/app-token`, { cache: "no-store", authOptional: true });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      noLocalToken = true;
+      return null;
+    }
     cachedToken = ((await res.json()) as { token: string }).token;
     return cachedToken;
   } catch {

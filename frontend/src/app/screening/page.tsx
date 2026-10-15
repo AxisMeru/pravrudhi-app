@@ -38,7 +38,7 @@ import { OFFENCES, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
-import { CHECKING_SIGN_IN_LABEL, FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -315,7 +315,7 @@ export default function ScreeningPage() {
               Split into numbered facts
             </button>
           </div>
-          <p className="text-xs text-[var(--color-text-dim)]">{FILE_NOTE}</p>
+          <p className="text-xs text-[var(--color-text-dim)]">{SCREENING_FILE_NOTE}</p>
           {!hydrated && <div className="h-11 rounded-md border border-[var(--color-border)]" data-testid="fact-list-pending" aria-hidden="true" />}
           <ol className="flex flex-col gap-2" aria-label="Numbered facts" data-testid="fact-list" hidden={!hydrated}>
             {hydrated && facts.map((f, i) => (
