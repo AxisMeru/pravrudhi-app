@@ -158,6 +158,7 @@ table,
 @media print {
   /* A printed memo is always the light theme, whatever the screen shows. */
   :root,
+  :root:not([data-theme]), /* #286: System with an OS-light screen: the light media query's :root:not([data-theme]) block would otherwise keep the screen-light values in print */
   :root[data-theme="dark"],
   :root[data-theme="light"] {
     --color-bg: #ffffff;
@@ -172,6 +173,7 @@ table,
     --color-ok: #1c5a3b;
     --color-info: #23487a;
     --color-note: #5b3f9a;
+    color-scheme: light; /* Track-B INFO on #319: the dark screen's color-scheme must not carry into print */
   }
   nav,
   aside:not([data-testid="caveat-strip"]) {
