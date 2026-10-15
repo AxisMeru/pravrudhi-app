@@ -20,7 +20,7 @@ export async function runCitationCheck(verify: Verify, citation: string, quote: 
   if (!check.ok) return { phase: "invalid", message: check.message };
   try {
     const reply = await verify(citation, quote, signal);
-    return { phase: "result", view: verifyView(reply), coverage: reply.coverage };
+    return { phase: "result", view: verifyView(reply, undefined, undefined, citation), coverage: reply.coverage };
   } catch (e) {
     const { kind, message } = classifyVerifyError(e);
     const wait = e instanceof ApiError && e.status === 429 && typeof e.retryAfter === "number" ? e.retryAfter : undefined;

@@ -186,3 +186,18 @@ test("the Screening Citations panel (arm ON): the coverage limit before typing, 
   await expect(page.locator("body")).not.toContainText(/Nothing was scored|Too many requests/);
   await expect(page.getByTestId("citations-panel-results")).toHaveAttribute("role", "status");
 });
+
+// app#347 (R1, 15 Oct): a CONFLICT for a citation that already names the case shows the "even with the case name" sentence and never the advice to add the name; a bare citation keeps the signed sentence.
+test("app#347: a CONFLICT on a line with a case name reads the new sentence; a bare citation reads the signed one", async ({ page }) => {
+  const CONFLICT = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand.", status: "conflict", label: "conflict: the citation matches more than one indexed case", verified: false, preview: true };
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
+  await page.goto("/citations");
+  await page.getByRole("textbox").fill("Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Could not match one case");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not match this citation to exactly one case in our index, even with the case name. That does not show whether the citation is real. Check the citation by hand.");
+  await expect(page.locator("body")).not.toContainText("Adding the case name");
+  await page.getByRole("textbox").fill("(2000) 4 SCC 168");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
+});
