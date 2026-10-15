@@ -6,7 +6,7 @@ import { buildDocx } from "../docxWriter";
 import { MEMO_DISCLAIMER } from "../memo";
 import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
-import { CONTRACT_BLOCK_TITLES, isAlternateLimb, offenceLabel, offenceOf } from "./offences";
+import { CONTRACT_BLOCK_TITLES, blockTitle, isAlternateLimb, offenceLabel, offenceOf } from "./offences";
 import { STEP_LABELS, STEP_TRACE_HEADING, stepCheckText } from "../assistantRun";
 
 const line = (s: string): string => s.replace(/\r?\n/g, " ");
@@ -26,6 +26,12 @@ export interface ScreeningMemoOptions {
   generatedAt: string;
 }
 
+/** The memo's heading for a block: a way of a multi-way offence carries its own title, any other known offence its label with sections, and a contract the app does not know the neutral "Offence", NEVER the contract id (R2, #210). */
+export function memoBlockHeading(contractId: string): string {
+  const off = offenceOf(contractId);
+  return CONTRACT_BLOCK_TITLES[contractId] ?? (off ? offenceLabel(off) : blockTitle(contractId));
+}
+
 export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {
   const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, "", `> ${BANNER_STANDING_LINE}`, ""];
   out.push(`- Run id: ${result.run_id}`, `- Engine version: ${opts.engineVersion ?? "unknown"}`, `- Score sha256: ${result.score_sha256}`);
@@ -38,14 +44,13 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     const off = offenceOf(c.contract_id);
     // R1 (15 Oct): a way of a multi-way offence carries the same title as on the screen (and the same alternate-way note under it), so the blocks of one offence do not read alike.
     const wayTitle = CONTRACT_BLOCK_TITLES[c.contract_id];
-    out.push(`## ${wayTitle ?? (off ? offenceLabel(off) : c.contract_id)}`, "");
-    if (wayTitle && isAlternateLimb(c.contract_id)) out.push(ALTERNATE_LIMB_NOTE, "");
-    out.push(`Contract: ${c.contract_id}`, "");
+    out.push(`## ${memoBlockHeading(c.contract_id)}`, "");
+    if (wayTitle && isAlternateLimb(c.contract_id)) out.push(ALTERNATE_LIMB_NOTE, ""); // R1 (15 Oct): no "Contract: <id>" line; the id stays in the run record
     if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
     // The banner sentence never appears without the standing line directly under it (R1).
     out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
     const ref = contractReferral(c);
-    if (ref) out.push(`Needs your review: ${line(ref.message)}${(ref.code ?? "").trim() ? ` (Engine reason code: ${ref.code})` : ""}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
+    if (ref) out.push(`Needs your review: ${line(ref.message)}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
     if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_PROMPT_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;

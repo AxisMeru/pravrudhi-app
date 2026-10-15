@@ -172,4 +172,10 @@ table,
     background: #fff !important;
     color: #000 !important;
   }
+  /* R1 (#204): the app shell is a viewport-height scroll container on screen; in print every ancestor of the content lets it flow, so a printed result is ALL of it, over as many pages as it takes. */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
 }

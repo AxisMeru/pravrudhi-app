@@ -99,7 +99,7 @@ test("buildMemo: carries run id, score hash, every fact hash, version, timestamp
     assert.ok(md.includes(s), `missing ${s.slice(0, 20)}`);
   }
   assert.match(MEMO_DISCLAIMER, /not legal advice/i);
-  assert.match(MEMO_DISCLAIMER, /REFER/);
+  assert.match(MEMO_DISCLAIMER, /referral, not an answer/); // R1, 15 Oct: the new wording names no REFER_TO_LAWYER token
 });
 
 test("buildMemo: submitted facts appear and multi-line facts stay inside their quote block", async () => {
