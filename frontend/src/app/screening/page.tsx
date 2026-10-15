@@ -28,6 +28,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff } from "@/lib/handoff";
+import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { EXAMPLES, exampleById, initialFactsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -38,7 +39,7 @@ import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
-import { CHECKING_SIGN_IN_LABEL, FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
+import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, validationLabel, validationMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
 
@@ -238,10 +239,11 @@ export default function ScreeningPage() {
     <div className="flex min-h-screen flex-col">
       <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
-        <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
+        <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />
+        {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         <CaveatStrip warming={warming} />
         <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
-          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)]">{ABOUT_SCREENING_LABEL}</summary>
+          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
             <p className="text-sm" data-testid="guide-link">
@@ -250,7 +252,7 @@ export default function ScreeningPage() {
           </div>
         </details>
         {exampleMissing && <ExampleNotFound page="/screening" />}
-        {example && <ExampleBanner example={example} />}
+        {example && isUnchangedExample(facts, example) && <ExampleBanner example={example} />}
         {!example && (
           <div className="flex flex-col gap-1 print:hidden" data-testid="example-entry">
             <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
@@ -267,7 +269,7 @@ export default function ScreeningPage() {
             </ul>
           </div>
         )}
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts">
+        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts" id="step-facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea
@@ -283,7 +285,7 @@ export default function ScreeningPage() {
               accept=".txt,.pdf,.docx"
               aria-label="Load facts from a file"
               data-testid="facts-file"
-              className="text-sm"
+              className="text-sm max-md:min-h-11"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
@@ -315,7 +317,7 @@ export default function ScreeningPage() {
               Split into numbered facts
             </button>
           </div>
-          <p className="text-xs text-[var(--color-text-dim)]">{FILE_NOTE}</p>
+          <p className="text-xs text-[var(--color-text-dim)]">{SCREENING_FILE_NOTE}</p>
           {!hydrated && <div className="h-11 rounded-md border border-[var(--color-border)]" data-testid="fact-list-pending" aria-hidden="true" />}
           <ol className="flex flex-col gap-2" aria-label="Numbered facts" data-testid="fact-list" hidden={!hydrated}>
             {hydrated && facts.map((f, i) => (
@@ -329,7 +331,7 @@ export default function ScreeningPage() {
                 />
                 <button
                   type="button"
-                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline"
+                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11"
                   aria-label={`Remove fact F${i + 1}`}
                   onClick={() => setFacts((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : [""]))}
                 >
@@ -338,11 +340,11 @@ export default function ScreeningPage() {
               </li>
             ))}
           </ol>
-          <button type="button" className="w-fit text-sm text-[var(--color-text-dim)] underline" onClick={() => setFacts((p) => [...p, ""])}>
+          <button type="button" className="inline-flex w-fit items-center text-sm text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11" onClick={() => setFacts((p) => [...p, ""])}>
             Add a fact
           </button>
 
-          <fieldset className="mt-2 flex flex-col gap-2">
+          <fieldset className="mt-2 flex flex-col gap-2" id="step-screen">
             <legend className="text-sm font-medium text-[var(--color-text)]">What to screen for</legend>
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
@@ -361,10 +363,10 @@ export default function ScreeningPage() {
                   const on = ids.every((i) => picked.has(i));
                   return (
                     <li key={o.id}>
-                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
+                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
                         <input
                           type="checkbox"
-                          className="mt-1"
+                          className="mt-1 max-md:h-5 max-md:w-5"
                           aria-label={offenceCheckboxName(o)}
                           aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                           checked={on}
@@ -468,7 +470,7 @@ export default function ScreeningPage() {
 
         {result && request && (
           <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions" id="step-memo">
               <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
                 <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
                 <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
@@ -487,6 +489,8 @@ export default function ScreeningPage() {
               </button>
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
+            {/* R1 (15 Oct): the standing line appears once per result, above the first block, not in every block's banner (before a result it stands at the top of the page). */}
+            <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
             {result.contracts.map((c, i) => (
               <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}

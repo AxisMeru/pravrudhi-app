@@ -1,4 +1,4 @@
-import { ApiError, apiBase, engineFetch, IS_DEMO } from "./api";
+import { ApiError, apiBase, engineFetch, hasWebSession, health, isHostedEngine, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { INVALID_ENGINE_ANSWER_TEXT, NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
 
@@ -28,8 +28,27 @@ export const STATUS_TIMEOUT_MS = 8_000;
 // A dead network or a gateway error page (not JSON) is "offline"; an engine that predates the route (404) is
 // "unknown" and must never block the form. Only a network failure, a timeout or a 5xx means offline; any other
 // 4xx or a body that is not the status JSON (e.g. an SPA fallback page) is "unknown", so the form stays usable.
+/**
+ * The keyed GET /api/v1/status is asked only where it can answer: a visitor with no web session on a HOSTED engine would be refused (401 in the console of every page), so for that visitor the app
+ * uses the public reachability read it already has (GET /api/health) and treats the service window as unknown, which never closes the form (Lead-2, 15 Oct: no keyed status for anonymous visitors).
+ * A signed-in visitor, and any visitor of an engine that serves the page itself, still read the status.
+ */
+export function statusNeedsKey(hosted: boolean, signedIn: boolean): boolean {
+  return !hosted || signedIn;
+}
+
+async function publicReachability(): Promise<StatusResult> {
+  try {
+    await health();
+    return { kind: "unknown" };
+  } catch (e) {
+    return e instanceof ApiError && e.status < 500 ? { kind: "unknown" } : { kind: "offline" };
+  }
+}
+
 export async function fetchServiceStatus(): Promise<StatusResult> {
   if (IS_DEMO) return { kind: "unknown" };
+  if (!statusNeedsKey(isHostedEngine(), await hasWebSession())) return publicReachability();
   try {
     const res = await engineFetch(`${apiBase()}/api/v1/status`, {
       cache: "no-store",

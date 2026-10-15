@@ -19,6 +19,6 @@ test("the Screening citations panel is rendered only when the nav flag AND the e
 test("the /citations notice for a build that does not serve the check: R1's signed sentence, never 'not yet served'", async () => {
   const { CITATION_NOT_OFFERED_TEXT, CITATION_NOT_OFFERED_LINK } = await import("./citationNav");
   assert.equal(CITATION_NOT_OFFERED_TEXT, "A citation check is not offered in this version of the app.");
-  assert.equal(CITATION_NOT_OFFERED_LINK, "Go to Screening");
+  assert.equal(CITATION_NOT_OFFERED_LINK, "Go to Matter workspace");
   assert.doesNotMatch(CITATION_NOT_OFFERED_TEXT, /not yet served|dev stack/i);
 });

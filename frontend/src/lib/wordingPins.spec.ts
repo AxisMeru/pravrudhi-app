@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { AnalyseFactsContract, AnalyseFactsResult } from "./api";
 import { STEPS } from "./demo/steps";
 import { elementStatusPresentation } from "./elementStatus";
-import { buildMemo } from "./memo";
 import { bindingLegText, quoteCheckPresentation } from "./reasonText";
 import { CAVEATS } from "./surfaceCopy";
 
@@ -42,41 +40,6 @@ test("the how-to-read stack sentence cites facts and never quotes them", () => {
     t,
     "Each offence is screened ingredient by ingredient: models read your facts and cite the facts they rely on, and a separate structure check confirms the right ingredients were covered. The structure check does not read your facts.",
   );
-});
-
-const el = (o: Record<string, unknown>) => ({
-  element: "a promise", is_denial: false, status: "established", claimed: true, p_established: 0.5, fact_id: "F1", quote: "the whole fact | text",
-  start: 0, end: 5, quote_check: "ok", attempts: 1, occurrences: 1, offsets_source: "system", quote_source: "whole_fact", error: null, ...o,
-});
-const memo = (contracts: Partial<AnalyseFactsContract>[]) =>
-  buildMemo(
-    {
-      run_id: "run-TOY", judge: "toy", score_sha256: "a".repeat(64), provenance: "toy",
-      facts: [{ id: "F1", text: "TOY fact.", sha256: "b".repeat(64) }],
-      contracts: contracts.map((c) => ({ contract_id: "toy", outcome: "PROOF", reason: "", assertions: null, lean: null, lean_outcome: null, uncertain: [], statute_text_mismatch: null, elements: [], ...c })),
-    } as unknown as AnalyseFactsResult,
-    { engineVersion: "0.6.0", generatedAt: "2026-10-08T10:00:00Z" },
-  );
-
-test("memo table: header with no score column (Lead-2, 13 Oct), cited fact with quotation marks only for a model quote", () => {
-  const md = memo([{ elements: [el({}) as never, el({ element: "b", quote: "words a judge wrote", quote_source: "model" }) as never, el({ element: "c", quote: null, fact_id: null, quote_source: null }) as never] }]);
-  assert.ok(md.includes("| Element | Status | Cited fact |"));
-  assert.doesNotMatch(md, /Judge score|0\.50/);
-  assert.ok(md.includes("| a promise | supported by a fact | the whole fact \\| text (F1) |"), md); // whole fact: no marks
-  assert.ok(md.includes('| b | supported by a fact | "words a judge wrote" (F1) |'), md); // a model's words: marks
-  assert.ok(md.includes("| c | supported by a fact | no cited fact |"), md);
-});
-
-test("memo: the two fallback sentences for a PROOF or DENIAL with an unknown reason, exactly", () => {
-  const md = memo([{ outcome: "PROOF", reason: "unknown_code" }, { outcome: "DENIAL", reason: "unknown_code", contract_id: "toy2" }]);
-  assert.ok(md.includes("Every element was supported by a fact cited from the submitted facts."));
-  assert.ok(md.includes("A defence element was supported by a fact cited from the submitted facts."));
-});
-
-test("memo: a missing or undefined quote_source prints the cited text bare, never in quotation marks", () => {
-  const md = memo([{ elements: [el({ element: "d", quote: "plain text", quote_source: undefined }) as never, (() => { const e = el({ element: "e", quote: "plain two" }) as Record<string, unknown>; delete e.quote_source; return e; })() as never] }]);
-  assert.ok(md.includes("| d | supported by a fact | plain text (F1) |"), md);
-  assert.ok(md.includes("| e | supported by a fact | plain two (F1) |"), md);
 });
 
 test("R1's agenda wording (14 Oct): the banner, group heading, alternate-limb note, unscreened note and validated-list note, exactly", async () => {

@@ -95,7 +95,7 @@ test("empty inputs send no request", async ({ page }) => {
 test("the citation check is not in the nav until the build turns it on, and the page still opens by URL", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD === "1", "the nav-on build is covered in citations-product-status.spec.ts");
   await page.goto("/screening");
-  await expect(page.getByRole("link", { name: "Screening", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Citation check" })).toHaveCount(0);
   await page.goto("/citations");
   await expect(page.getByTestId("citation-not-offered")).toBeVisible(); // the gated state (Lead-2, 15 Oct): a notice, not the form

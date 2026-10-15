@@ -95,6 +95,9 @@ export const PRE_SUBMIT_RETENTION =
 // Replaces "Files are read in your browser and never uploaded.", which read as if the text were not sent either.
 export const FILE_NOTE =
   "The file itself is not uploaded; the text read from it, like any text you type, is sent to the engine when you press Analyse. Review and edit it first.";
+// R1 (15 Oct, D5): the same sentence for the Screening page, where the button reads "Screen these facts" (Matters keeps FILE_NOTE: its button is "Analyse").
+export const SCREENING_FILE_NOTE =
+  "The file itself is not uploaded; the text read from it, like any text you type, is sent to the engine when you press Screen these facts. Review and edit it first.";
 // Under a result, only where the Citation check is offered (its nav flag).
 export const CITATION_NEXT_STEP = "To check a citation, use Citation check.";
 // Citation check: R1's text (checked against engine v0.5.46). The API-key and audit detail belongs in the API docs, not on this page.

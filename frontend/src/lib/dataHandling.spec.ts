@@ -48,7 +48,7 @@ test("/workflows: one status word each, R1's closing line, no figure or id", () 
   assert.equal(OFF[0].note, "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
   // R1's exact notes (14 Oct): paste-only intake, memo built by fixed rules, hearing checklist; no row says Planned and the removed row is gone
   assert.equal(OFF[1].note, "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only.");
-  assert.equal(OFF[2].note, "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown, PDF or Word (.docx).");
+  assert.equal(OFF[2].note, "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or Word (.docx), or print / save as PDF.");
   assert.equal(OFF[3].note, "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law.");
   assert.ok(!OFF.some((w) => /Planned|Matter update/.test(w.name + w.status + (w.note ?? ""))));
   assert.equal(WORKFLOWS_CLOSING, "A workflow runs only when you start it, and only on the matter you give it.");

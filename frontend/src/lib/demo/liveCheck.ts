@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 import type { AnalyseFactsContract, AnalyseFactsResult, AnalyseFactsWire } from "../api";
 import { nonReferReasonText } from "../reasonText";
 import { referReasonPresentation } from "../referReason";
+import { memoBlockHeading } from "../screening/memo";
 
 export const OUTCOMES = ["PROOF", "DENIAL", "ABSTAIN", "REFER_TO_LAWYER"] as const;
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -104,10 +105,10 @@ export function checkMemoText(memo: string, result: AnalyseFactsResult): string[
   if (!memo.includes(result.run_id)) out.push("the memo does not carry the run id");
   if (!memo.includes(result.score_sha256)) out.push("the memo does not carry the score sha256");
   for (const c of result.contracts) {
-    if (!memo.includes(`## ${c.contract_id}`)) out.push(`the memo has no section for ${c.contract_id}`);
-    if (!memo.includes(`Outcome: ${c.outcome}`)) out.push(`the memo does not state ${c.contract_id}'s outcome`);
+    // the screening memo (lib/screening/memo.ts) heads each block by the offence's label, never the raw contract id, and prints no raw outcome code (R1, #204/#214)
+    if (!memo.includes(`## ${memoBlockHeading(c.contract_id)}`)) out.push(`the memo has no section for ${c.contract_id}`);
     for (const e of c.elements ?? []) {
-      if (e.quote_source === "model" && e.quote && !memo.includes(e.quote.replace(/\r?\n/g, " ").replace(/\|/g, "\\|"))) out.push(`${c.contract_id}/${e.element}: the model quote is missing from the memo`);
+      if (e.quote_source === "model" && e.quote && !memo.includes(e.quote.replace(/\r?\n/g, " "))) out.push(`${c.contract_id}/${e.element}: the model quote is missing from the memo`);
       if (e.quote_source === "whole_fact" && e.fact_id && !memo.includes(e.fact_id)) out.push(`${c.contract_id}/${e.element}: the cited fact id is missing from the memo`);
     }
   }

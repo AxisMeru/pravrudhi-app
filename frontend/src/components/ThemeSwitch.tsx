@@ -24,7 +24,7 @@ export function ThemeSwitch() {
   const choice: ThemeChoice | null = useSyncExternalStore(subscribe, readTheme, () => null);
   return (
     <div role="group" aria-label={THEME_LABELS.groupAria} data-testid="theme-switch" className="space-y-1">
-      <div className="text-[11px] uppercase tracking-wide text-[var(--color-text-dim)]">{THEME_LABELS.heading}</div>
+      <div className="text-xs uppercase tracking-wide text-[var(--color-text-dim)]">{THEME_LABELS.heading}</div>
       <div className="flex gap-1">
         {THEME_CHOICES.map((c) => (
           <button
@@ -36,7 +36,7 @@ export function ThemeSwitch() {
               saveTheme(c);
               window.dispatchEvent(new Event(EVENT));
             }}
-            className={`flex-1 rounded-md border px-2 py-1 text-xs ${
+            className={`flex-1 rounded-md border px-2 py-1 text-xs max-md:min-h-11 ${
               choice === c
                 ? "border-[var(--color-accent)] bg-[var(--color-surface-raised)] text-[var(--color-text)]"
                 : "border-[var(--color-control-border)] text-[var(--color-text-dim)] hover:bg-[var(--color-hover)]"
