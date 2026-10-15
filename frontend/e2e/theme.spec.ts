@@ -49,6 +49,7 @@ test("the filled accent button is readable in both themes (text colour is on-acc
       return { fg: s.color, bgc: s.backgroundColor };
     });
     expect(colours.fg).not.toBe(colours.bgc);
-    expect(colours.fg).not.toBe("rgb(255, 255, 255)" === colours.fg && colours.bgc === "rgb(110, 231, 183)" ? colours.fg : "never");
+    // the canvas pair (CONTRAST_CHECK): light = white on #1f4e79, dark = #0e1622 on #7fb1e8
+    expect(colours).toEqual(choice === "theme-light" ? { fg: "rgb(255, 255, 255)", bgc: "rgb(31, 78, 121)" } : { fg: "rgb(14, 22, 34)", bgc: "rgb(127, 177, 232)" });
   }
 });
