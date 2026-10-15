@@ -165,9 +165,10 @@ table,
     --color-note: #5b3f9a;
   }
   nav,
-  aside {
+  aside:not([data-testid="caveat-strip"]) {
     display: none !important;
   }
+  /* The limits travel with the paper (Lead-2, 15 Oct): "How to read this analysis" (the validated-list and validation paragraph) is printed; only the navigation drawers are not. */
   body {
     background: #fff !important;
     color: #000 !important;
