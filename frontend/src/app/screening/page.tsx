@@ -188,6 +188,21 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
 
+  // #248: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the offence list has loaded, and the list then pushes the target down the page, so the visitor lands short of it.
+  // Once the registry has answered (the list, or its error, is on the page) the page scrolls to the named step once more, only when the URL names one and the visitor has not scrolled it into view.
+  const hashScrolled = useRef(false);
+  useEffect(() => {
+    if (picker === "loading" || hashScrolled.current) return;
+    hashScrolled.current = true;
+    const id = window.location.hash.slice(1);
+    if (!(Object.values(WORKSPACE_ANCHORS) as string[]).includes(id)) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+    el.scrollIntoView({ behavior: "auto", block: "start" });
+  }, [picker]);
+
   // P2: a new result is brought into view at once, so the user does not scroll past the facts they just typed.
   useEffect(() => {
     if (result) resultRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
