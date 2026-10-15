@@ -139,9 +139,14 @@ test("the Citations panel is below the checklist and nothing about the frontier 
   await expect(page.getByTestId("frontier-toggle")).toHaveCount(0);
   await expect(page.getByTestId("frontier-limit")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/frontier/i);
-  const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
-  await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
-  expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
+  // The panel is rendered only on a build with both citation flags (#190); on any other build there is no Citations heading at all.
+  if (process.env.CITATION_NAV_BUILD === "1" && process.env.CITATION_EXISTENCE_BUILD === "1") {
+    const y = async (id: string) => (await page.getByTestId(id).boundingBox())!.y;
+    await expect(page.getByRole("heading", { name: /citation/i }).first()).toBeVisible();
+    expect(await y("checklist")).toBeLessThan((await page.getByRole("heading", { name: /citation/i }).first().boundingBox())!.y);
+  } else {
+    await expect(page.getByRole("heading", { name: /citation/i })).toHaveCount(0);
+  }
 });
 
 test("a member who opens / lands on Screening", async ({ page }) => {

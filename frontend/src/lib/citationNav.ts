@@ -6,3 +6,12 @@ export const CITATION_NAV_ENABLED = process.env.NEXT_PUBLIC_CITATION_NAV === "1"
 export function citationNavOffered(href: string, enabled: boolean = CITATION_NAV_ENABLED): boolean {
   return enabled || href !== "/citations";
 }
+
+// The Case citations panel under a Screening result (L2A/Lead-2, 15 Oct, explorer gap review): shown only on a build that serves the citation check
+// (the nav flag) AND answers existence only (NEXT_PUBLIC_CITATION_EXISTENCE_ONLY=1). With either off it says "preview: existence check only", asks for
+// "|" quotes and surfaces an unmapped 422, so it is not rendered at all.
+export const CITATIONS_PANEL_ENABLED = CITATION_NAV_ENABLED && process.env.NEXT_PUBLIC_CITATION_EXISTENCE_ONLY === "1";
+
+export function citationsPanelOffered(nav: boolean = CITATION_NAV_ENABLED, existenceOnly: boolean = process.env.NEXT_PUBLIC_CITATION_EXISTENCE_ONLY === "1"): boolean {
+  return nav && existenceOnly;
+}

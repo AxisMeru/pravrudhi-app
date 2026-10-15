@@ -51,7 +51,7 @@ test("the result is brought into view and the run identifiers are the last line 
   await page.getByRole("button", { name: "Screen these facts" }).click();
   const result = page.getByTestId("screening-result");
   await expect(result).toBeVisible();
-  await expect.poll(async () => (await result.boundingBox())!.y, { timeout: 5000 }).toBeLessThan(200);
+  await expect.poll(async () => (await result.boundingBox())!.y, { timeout: 5000 }).toBeLessThan(400); // in view in the 600 px window (a result with no panel under it is shorter, so it cannot always reach the very top)
   const last = await result.locator(":scope > *").last().getAttribute("data-testid");
   expect(last).toBe("run-ids");
 });

@@ -3,6 +3,7 @@
 // that may defeat the claim" for a denial, "Not supported by these facts" for a missing ingredient, "quote" only about the opt-in frontier route
 // (whose sentence is imported from the frontier files, not written here).
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
+import { CITATIONS_PANEL_ENABLED } from "../citationNav";
 import { OFFENCES, offenceLabel } from "../screening/offences";
 import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL } from "../screening/copy";
 
@@ -80,6 +81,13 @@ export const GUIDE_BEFORE =
   "Do not enter real names or case details unless your firm's setup allows it. What leaves your firm, where it is processed and how long it is kept are set out on the Data handling page.";
 export const GUIDE_BEFORE_LINK = "Read Data handling";
 
+export const GUIDE_CITATIONS_OFF_TEXT =
+  "A citation check is not offered in this version of the app. When it is offered, it will tell you whether we can match a citation to exactly one case in our index; it will not look at quotes, and it will not tell you whether a citation is real.";
+export const GUIDE_LIMIT_CITATIONS_OFF =
+  "The citation check is not offered in this version of the app. When it is offered, \u201cFound in our index\u201d will mean existence only, not that the case says what you cite it for, and \u201cNot found in our index\u201d will not show that a citation is not real.";
+const GUIDE_LIMIT_CITATIONS_ON =
+  "The citation check is dev stack only; it is not served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.";
+
 export const GUIDE_STEPS_HEADING = "Screening, step by step";
 export const GUIDE_STEPS: GuideStep[] = [
   {
@@ -114,8 +122,12 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "citations",
     heading: "6. Check citations",
-    text: "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It does not tell you whether a citation is genuine. The panel is dev stack only: it is not served in the hosted deployment.",
-    image: GUIDE_IMAGES.citations,
+    // R1 (15 Oct): on a build with no citations panel the guide says so (no frame 05, no dev-stack caption). The flags-on wording below is the interim text; R1's pre-signed
+    // text for the CITATIONS=1 deploy replaces it at the flip.
+    text: CITATIONS_PANEL_ENABLED
+      ? "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It does not tell you whether a citation is genuine. The panel is dev stack only: it is not served in the hosted deployment."
+      : GUIDE_CITATIONS_OFF_TEXT,
+    image: CITATIONS_PANEL_ENABLED ? GUIDE_IMAGES.citations : undefined,
   },
   {
     id: "export",
@@ -161,7 +173,7 @@ export const GUIDE_LIMITS_HEADING = "What it does not do";
 export const GUIDE_LIMITS: string[] = [
   BANNER_STANDING_LINE,
   "The assistant reads only the facts you give it. A missing ingredient can mean the fact is not in your text.",
-  "The citation check is dev stack only; it is not served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.",
+  CITATIONS_PANEL_ENABLED ? GUIDE_LIMIT_CITATIONS_ON : GUIDE_LIMIT_CITATIONS_OFF,
 ];
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
