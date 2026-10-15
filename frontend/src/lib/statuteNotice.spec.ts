@@ -125,3 +125,12 @@ test("sourceLinkLabel: a recorded India Code page is 'Source on India Code'; the
   assert.equal(sourceLinkLabel(hitSourceLink({ act: "Indian Penal Code", source_url: null }, SOURCES).href), "India Code (home page)");
   assert.equal(sourceLinkLabel(hitSourceLink({ act: "Bharatiya Nyaya Sanhita", source_url: "https://www.indiacode.gov.in/x" }, SOURCES).href), "Source on India Code");
 });
+
+test("provisionSourceLink: a link never carries a character that can break out of a markdown link, and never a second URL", async () => {
+  const { provisionSourceLink } = await import("./statuteNotice");
+  for (const hostile of ["https://indiacode.gov.in/x)](https://evil.com)", "https://indiacode.gov.in/<script>", "https://indiacode.gov.in\\@evil.com", "https://indiacode.gov.in/a b"]) {
+    const { href } = provisionSourceLink(hostile);
+    assert.doesNotMatch(href, /[()[\]<>\s\\]/, hostile);
+    assert.equal((href.match(/https:\/\//g) ?? []).length, 1, `${hostile}: exactly one URL in ${href}`);
+  }
+});
