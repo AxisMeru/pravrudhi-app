@@ -16,9 +16,16 @@ const copySource = readFileSync(join(__dirname, "copy.ts"), "utf8");
 // R1 (15 Oct) signed lines that say the check "will not look at quotes" (negated, about the citation check, not the house path's judging): these exact lines, and only these, are exempt from the audit.
 const QUOTES_LINES = [GUIDE_CITATIONS_OFF_TEXT, GUIDE_CITATIONS_ON_TEXT, GUIDE_LIMIT_CITATIONS_ON];
 
+// The audit reads the source literal (a non-ASCII character is written as a \\uXXXX escape there) and cuts a hit at 160 characters, so an exempt line is matched by EXACT equality with that cut of
+// its source form, never by a shared start; the full text of each is pinned in full elsewhere in this file. Exactly three hits may be exempt.
+const asSource = (t: string): string => t.replace(/[^\x00-\x7f]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).slice(0, 160);
+const EXEMPT_HITS = new Set(QUOTES_LINES.map(asSource));
+
 test("the guide's own words carry no wording-audit hit: no proof, established or verbatim on the house path; the stale frontier sentences are gone (the frontier reader was removed in #129)", () => {
-  // R1 (15 Oct) signed one sentence that says the check "will not look at quotes": the word is negated and about the citation check, not the house path's judging, so that one line is allowed.
-  assert.deepEqual(scanSource("src/lib/guide/copy.ts", copySource).filter((h) => !QUOTES_LINES.some((l) => h.text.startsWith(l.slice(0, 40)))), []);
+  // R1 (15 Oct) signed three lines that say the check "will not look at quotes": the word is negated and about the citation check, not the house path's judging.
+  const hits = scanSource("src/lib/guide/copy.ts", copySource);
+  assert.equal(hits.filter((h) => EXEMPT_HITS.has(h.text)).length, 3, "exactly the three R1-signed lines are exempt");
+  assert.deepEqual(hits.filter((h) => !EXEMPT_HITS.has(h.text)), []);
   assert.deepEqual(scanSource("src/app/guide/page.tsx", readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8")), []);
 });
 
