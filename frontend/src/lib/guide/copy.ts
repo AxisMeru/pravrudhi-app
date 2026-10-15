@@ -27,7 +27,12 @@ export interface GuideImage {
   caption?: string;
 }
 
-export const GUIDE_CITATIONS_CAPTION = "Dev stack only: the citation check is not yet served in the hosted deployment.";
+// R1 (15 Oct): the frame-05 caption for a build WITH the citations panel. It is shown only with the retaken frame (see FRAME_05_RETAKEN below).
+export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
+
+// Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
+// hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
+const FRAME_05_RETAKEN = false;
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
@@ -50,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel as captured on the hosted build: a preview label and the sentence saying the citation index is not available, so no citation is checked.",
+    alt: "The Case citations panel: a preview label, a line saying how to enter one citation, an empty box and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
@@ -85,8 +90,11 @@ export const GUIDE_CITATIONS_OFF_TEXT =
   "A citation check is not offered in this version of the app. When it is offered, it will tell you whether we can match a citation to exactly one case in our index; it will not look at quotes, and it will not tell you whether a citation is real.";
 export const GUIDE_LIMIT_CITATIONS_OFF =
   "The citation check is not offered in this version of the app. When it is offered, \u201cFound in our index\u201d will mean existence only, not that the case says what you cite it for, and \u201cNot found in our index\u201d will not show that a citation is not real.";
-const GUIDE_LIMIT_CITATIONS_ON =
-  "The citation check is dev stack only; it is not served in the hosted deployment. There the citations panel says the index is not available, and no citation is checked. Where it is served, a hit means only that the citation is in the index; it is not a check that the case says what you cite it for, and a miss does not show that a citation is not real.";
+// R1's byte-exact text for a build WITH the citations panel (CITATIONS=1; both citation flags on). Neither contains "dev stack only" or "not served".
+export const GUIDE_CITATIONS_ON_TEXT =
+  "The citations panel below the checklist looks up one case citation that you enter in our index. It tells you whether we can match the citation to exactly one case in the index. It does not look at quotes, and it does not tell you whether the citation is real, because the index does not hold every judgment. The panel is labelled preview: existence check only.";
+export const GUIDE_LIMIT_CITATIONS_ON =
+  "The citation check looks the case up in our index from the citation alone and does not look at quotes. \u201cFound in our index\u201d is existence only, not a verification; \u201cNot found in our index\u201d does not show whether the citation is real, because the index does not hold every judgment.";
 
 export const GUIDE_STEPS_HEADING = "Screening, step by step";
 export const GUIDE_STEPS: GuideStep[] = [
@@ -124,10 +132,8 @@ export const GUIDE_STEPS: GuideStep[] = [
     heading: "6. Check citations",
     // R1 (15 Oct): on a build with no citations panel the guide says so (no frame 05, no dev-stack caption). The flags-on wording below is the interim text; R1's pre-signed
     // text for the CITATIONS=1 deploy replaces it at the flip.
-    text: CITATIONS_PANEL_ENABLED
-      ? "The citations panel below the checklist checks case citations you paste in against an index of Supreme Court judgments. It tells you whether a citation is in the index. It does not tell you whether a citation is genuine. The panel is dev stack only: it is not served in the hosted deployment."
-      : GUIDE_CITATIONS_OFF_TEXT,
-    image: CITATIONS_PANEL_ENABLED ? GUIDE_IMAGES.citations : undefined,
+    text: CITATIONS_PANEL_ENABLED ? GUIDE_CITATIONS_ON_TEXT : GUIDE_CITATIONS_OFF_TEXT,
+    image: CITATIONS_PANEL_ENABLED && FRAME_05_RETAKEN ? GUIDE_IMAGES.citations : undefined,
   },
   {
     id: "export",
