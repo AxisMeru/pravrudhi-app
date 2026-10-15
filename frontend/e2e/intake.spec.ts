@@ -193,6 +193,8 @@ test("the limit line sits under the paste box; a too-long refusal says so and an
   body = { detail: [{ type: "missing", msg: "Field required" }] };
   await page.getByTestId("intake-run").click();
   await expect(page.getByTestId("intake-error")).toHaveText("Intake could not read this text. Check the text, change it if needed, and run it again.");
+});
+
 // #358: the engine looked these citations up, so none of them reads "Not checked."; only a status this build does not know does.
 test("each citation status has its own line: CONFLICT and MALFORMED are not shown as Not checked", async ({ page }) => {
   const statuses = ["CONFLICT", "MALFORMED", "IN_INDEX", "NOT_IN_INDEX", "SOMETHING_NEW"];
