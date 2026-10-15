@@ -24,7 +24,7 @@ export function WorkflowRows() {
         {WORKFLOWS.map((w, i) => {
           const greyed = anyGreyed && i === 0;
                     return (
-            <li key={w.name} className={`flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 ${greyed ? "opacity-60" : ""}`} data-testid="workflow-row" data-paused={greyed ? "true" : undefined} data-status={w.status}>
+            <li key={w.name} className={`flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 ${greyed ? "border-dashed bg-transparent [&_h2]:text-[var(--color-text-dim)]" : ""}`} data-testid="workflow-row" data-paused={greyed ? "true" : undefined} data-status={w.status}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div><h2 className="text-base font-semibold text-[var(--color-text)]">{w.name}</h2>{w.label && <span className="ml-2 text-xs text-[var(--color-text-dim)]" data-testid="workflow-label">{w.label}</span>}</div>
                 {w.status === "Building" && <span className="text-xs font-medium text-[var(--color-text-dim)]" data-testid="workflow-status">{WORKFLOW_NOT_OFFERED}</span>}
