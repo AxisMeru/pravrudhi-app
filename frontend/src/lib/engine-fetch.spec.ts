@@ -182,6 +182,24 @@ test("isSignedIn and edition skip the /api/me probe for an anonymous visitor of 
       assert.equal(await isSignedIn(), false);
       await edition();
       assert.equal(meCalls, 2, "an engine that serves the page itself still answers the probe");
+      // third arm (R2, #230): a HOSTED engine with a SIGNED-IN session is still asked, and the answer is believed (the guard must not read as "signed out" for a signed-in visitor)
+      const { setSession, clearSession } = await import("./auth");
+      setSession("invented-token", { id: "u-invented", email: "invented@example.test" });
+      try {
+        process.env.NEXT_PUBLIC_API_BASE = "https://engine.example";
+        meCalls = 0;
+        globalThis.fetch = (async (url: string | URL | Request) => {
+          if (String(url).includes("/api/me")) meCalls += 1;
+          return new Response(JSON.stringify({ edition: "Pravrudhi", access: "member" }), { status: 200 });
+        }) as typeof fetch;
+        assert.equal(await isSignedIn(), true, "hosted + signed in: the stubbed 200 reads as signed in");
+        assert.equal(meCalls, 1, "the probe is asked for isSignedIn");
+        const e = await edition();
+        assert.equal(e.edition, PRODUCT.edition);
+        assert.equal(meCalls, 2, "and for edition");
+      } finally {
+        clearSession();
+      }
     } finally {
       globalThis.fetch = originalFetch;
       if (prev === undefined) delete process.env.NEXT_PUBLIC_API_BASE; else process.env.NEXT_PUBLIC_API_BASE = prev;
