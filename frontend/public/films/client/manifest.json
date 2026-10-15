@@ -1,127 +1,267 @@
 {
   "title": "Pravrudhi-Nyaya for Firms",
-  "durationS": 107.5,
+  "durationS": 278.9,
   "width": 1280,
   "height": 720,
   "fps": 30,
-  "audio": false,
+  "audio": true,
+  "narration": {
+    "voice": "hm_omega (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "2ebe69ec11ebf24266002465dbeb86762e8672a80546407260e0a491346a596d",
+    "timingsSha256": "bd6fbab8b1ce194ee45d0a80dcc3ddbb6e0c16413870e5a66e07411bbf8b07e8",
+    "scenes": [
+      {
+        "id": "open",
+        "audioS": 14.48,
+        "durS": 16,
+        "origDurS": 4.5,
+        "stretch": 1.5,
+        "wavSha256": "495711b0e990d03c8f794b9a4576e4d2cf99bb5b96e58c75cdf48780e4d0a357"
+      },
+      {
+        "id": "scope",
+        "audioS": 13.85,
+        "durS": 15.4,
+        "origDurS": 9,
+        "stretch": 1.5,
+        "wavSha256": "9e3c2b94f617a937ed7b0d9ac48530a44b8d9a19bdb0286ff6e20b8b62373ba1"
+      },
+      {
+        "id": "problem",
+        "audioS": 14.23,
+        "durS": 15.8,
+        "origDurS": 5.5,
+        "stretch": 1.5,
+        "wavSha256": "470c859eacfcddca7cf55f0ae9681632b2b6127e3031370f476641029f9cef8e"
+      },
+      {
+        "id": "input",
+        "audioS": 11.08,
+        "durS": 12.6,
+        "origDurS": 6.5,
+        "stretch": 1.5,
+        "wavSha256": "2abb34f36155241bafbb937f785c08f9b58fe50ae85280f315c875b7b1ca12f5"
+      },
+      {
+        "id": "checklist",
+        "audioS": 12.8,
+        "durS": 14.3,
+        "origDurS": 7,
+        "stretch": 1.5,
+        "wavSha256": "e46228b56e7ee51818234e302955f9447c1aed3086cf5d0bee67dbfdfe6bc88b"
+      },
+      {
+        "id": "result",
+        "audioS": 36,
+        "durS": 37.5,
+        "origDurS": 10.5,
+        "stretch": 1.5,
+        "wavSha256": "37b849a12c2264e1c0d80dbad2e8eff7f7eed1037b80c7339bcb0a01065f92b0"
+      },
+      {
+        "id": "judges",
+        "audioS": 16.33,
+        "durS": 17.9,
+        "origDurS": 7.5,
+        "stretch": 1.5,
+        "wavSha256": "19fcfa74917602b915b1929d36ee524f80950212d63b6f33834ec9038e49189c"
+      },
+      {
+        "id": "realdata",
+        "audioS": 21.63,
+        "durS": 23.2,
+        "origDurS": 9,
+        "stretch": 1.5,
+        "wavSha256": "db94fda14384279ce380501db9629280556d5f925fd57a7941bfc88dadfb8645"
+      },
+      {
+        "id": "lean",
+        "audioS": 15,
+        "durS": 16.5,
+        "origDurS": 6,
+        "stretch": 1.5,
+        "wavSha256": "9f393c42c8cbf510ec7d2590566f52ad373786a08129dfb520242715f4a222e1"
+      },
+      {
+        "id": "nyaya",
+        "audioS": 20.5,
+        "durS": 22,
+        "origDurS": 8,
+        "stretch": 1.5,
+        "wavSha256": "5f28e8669cb7847d9f8735ad956ec399a55bafdd6331da8d7f9c0eb1473b9b2a"
+      },
+      {
+        "id": "pipeline",
+        "audioS": 16,
+        "durS": 17.5,
+        "origDurS": 7.5,
+        "stretch": 1.5,
+        "wavSha256": "ca99cb31f4705de5ac7b5dc4f42c24a04edd260a6914794bac7d1a26a6aeb2ef"
+      },
+      {
+        "id": "workflows",
+        "audioS": 15,
+        "durS": 16.5,
+        "origDurS": 7,
+        "stretch": 1.5,
+        "wavSha256": "ef562c65db5b494fddb7c224df498c3ff7e1e29ba0349640f97dfe311ce5151d"
+      },
+      {
+        "id": "apart",
+        "audioS": 19.85,
+        "durS": 21.4,
+        "origDurS": 7.5,
+        "stretch": 1.5,
+        "wavSha256": "2c5d143f9a0d12a7e5a0c902bd281ab11b2d9ef6c96f2788759a71d35df40664"
+      },
+      {
+        "id": "privacy",
+        "audioS": 24.25,
+        "durS": 25.8,
+        "origDurS": 7.5,
+        "stretch": 1.5,
+        "wavSha256": "f4531a9a14761d846820fd8be01751890565444ff1c9cb8269b5caa320b2de3e"
+      },
+      {
+        "id": "end",
+        "audioS": 4.3,
+        "durS": 6.5,
+        "origDurS": 4.5,
+        "stretch": 1.444,
+        "wavSha256": "a96a9054e3c46466f9f01245faf24c45d6068b282c3c40e4a0dbe12991211f15"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.024,
+      "speechRmsDb": -19.2,
+      "peakBeforeLimit": 0.784,
+      "limiterGain": 1,
+      "scoreSeconds": 279.9,
+      "scoreLufs": -16
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
   "sources": {
-    "filmSha256": "cdb8ed3bc39e22b7bd6adf4ca05be5762dca00b90a5094d1c2bf382210be3d57",
+    "filmSha256": "62a26d02bbadf833ae4ad8412ca285f1209cde7f70774dc91d27d365b4ee2356",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
   },
   "encoders": {
-    "mp4": "H.264 (openh264enc, GStreamer)"
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
   },
   "scenes": [
     {
       "name": "Pravrudhi-Nyaya",
       "text": "The name and its purpose land on a case-file sheet.",
       "startS": 0,
-      "endS": 4.5
+      "endS": 16
     },
     {
       "name": "Scope and names",
-      "text": "Indian law broadly with a criminal-law focus; Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.",
-      "startS": 4.5,
-      "endS": 13.5
+      "text": "Indian law, starting with criminal matters; Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.",
+      "startS": 16,
+      "endS": 31.4
     },
     {
       "name": "The problem",
       "text": "Fluent AI answers versus a matter that needs every ingredient shown.",
-      "startS": 13.5,
-      "endS": 19
+      "startS": 31.4,
+      "endS": 47.2
     },
     {
       "name": "Your facts",
-      "text": "The live Screening page: the complaint split into numbered facts, the offence ticked.",
-      "startS": 19,
-      "endS": 25.5
+      "text": "The live Matter workspace: the complaint split into numbered facts, the offence ticked.",
+      "startS": 47.2,
+      "endS": 59.800000000000004
     },
     {
       "name": "Each ingredient",
       "text": "The live checklist: every ingredient with its status and what to check.",
-      "startS": 25.5,
-      "endS": 32.5
+      "startS": 59.800000000000004,
+      "endS": 74.10000000000001
     },
     {
       "name": "A review agenda",
       "text": "The live result on a public order: what is missing for each ingredient and what to check; ends on the standing line.",
-      "startS": 32.5,
-      "endS": 43
+      "startS": 74.10000000000001,
+      "endS": 111.60000000000001
     },
     {
       "name": "Two models",
       "text": "Our trained models read each ingredient; both must agree or the matter is referred.",
-      "startS": 43,
-      "endS": 50.5
+      "startS": 111.60000000000001,
+      "endS": 129.5
     },
     {
       "name": "Real field data",
       "text": "Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets. Evaluation items are checked against training data. Real and constructed cases are labelled.",
-      "startS": 50.5,
-      "endS": 59.5
+      "startS": 129.5,
+      "endS": 152.7
     },
     {
       "name": "The formal check",
       "text": "Each offence is a formal contract; the check confirms every ingredient was addressed.",
-      "startS": 59.5,
-      "endS": 65.5
+      "startS": 152.7,
+      "endS": 169.2
     },
     {
       "name": "Nyaya discipline",
       "text": "Three Nyaya ideas that change a result: evidence you can point to, judgment withheld, testimony is checked, not trusted.",
-      "startS": 65.5,
-      "endS": 73.5
+      "startS": 169.2,
+      "endS": 191.2
     },
     {
       "name": "The pipeline",
       "text": "The seven stages light up in order, from ingest to decide.",
-      "startS": 73.5,
-      "endS": 81
+      "startS": 191.2,
+      "endS": 208.7
     },
     {
       "name": "Managed workflows",
       "text": "Optional managed workflows broaden the same core: the assistant proposes, the core decides.",
-      "startS": 81,
-      "endS": 88
+      "startS": 208.7,
+      "endS": 225.2
     },
     {
       "name": "What sets it apart",
       "text": "Four differences from general-purpose legal AI.",
-      "startS": 88,
-      "endS": 95.5
+      "startS": 225.2,
+      "endS": 246.6
     },
     {
       "name": "Privacy and cost",
-      "text": "Our own models on rented GPUs; the live data-handling page; nothing is billed while idle.",
-      "startS": 95.5,
-      "endS": 103
+      "text": "Our own models on rented GPUs; the live data-handling page; those GPUs are not billed once stopped.",
+      "startS": 246.6,
+      "endS": 272.4
     },
     {
       "name": "End card",
       "text": "Name, line and address.",
-      "startS": 103,
-      "endS": 107.5
+      "startS": 272.4,
+      "endS": 278.9
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 6946832,
-      "sha256": "64d60c7db45bbecf4ea515d8bc3419e2b282d4d1ccbbafc95a17a128b3df48ed"
+      "bytes": 9749943,
+      "sha256": "04ad87ff08c5bc8968eb725d93d53c61b456ee59f660de1aa08f22ff10dfe858"
     },
     {
       "name": "poster.png",
-      "bytes": 90917,
-      "sha256": "a19e0e26c126f488400b899f8cbf044660c734687de0573e58edae02d63b9742"
+      "bytes": 92206,
+      "sha256": "39db21cfb742b1b0e87949c753313496d78576a4e13529de3811e0c874d983fc"
     },
     {
       "name": "captions.vtt",
-      "bytes": 2114,
-      "sha256": "4f5b75b0c18753f5e606ff7c0b86a56644bb0ffe790243fc20d9702e3619720c"
+      "bytes": 5288,
+      "sha256": "ed051287f6d6a702016002697f716a4555270358a3d0a2765e21302e0233f6eb"
     }
   ]
 }

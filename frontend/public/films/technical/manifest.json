@@ -1,103 +1,213 @@
 {
   "title": "Pravrudhi-Nyaya Technical Film",
-  "durationS": 251,
+  "durationS": 337,
   "width": 1280,
   "height": 720,
   "fps": 30,
-  "audio": false,
+  "audio": true,
+  "narration": {
+    "voice": "hm_omega (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "56f2a5d315aaef27c9b3038845fd89d57f5dd35170ff983c2cd1c6cbd93da41c",
+    "timingsSha256": "d55516588e7dbacf8660fb8444043c100d3badb9921b17ad8204fc9aa116a639",
+    "scenes": [
+      {
+        "id": "title",
+        "audioS": 13.93,
+        "durS": 15.5,
+        "origDurS": 7,
+        "stretch": 1.5,
+        "wavSha256": "b1ee1edbe0e5a5f1d9c860bcca5414a60e0fd4076c627a29a0f64449cfbffd5f"
+      },
+      {
+        "id": "names",
+        "audioS": 23.2,
+        "durS": 24.7,
+        "origDurS": 18,
+        "stretch": 1.372,
+        "wavSha256": "2e543fc36191f8ca14939770e319ef272ae29584c62a4ca2f8d7bb9c04a88e39"
+      },
+      {
+        "id": "corpus",
+        "audioS": 36.5,
+        "durS": 38,
+        "origDurS": 26,
+        "stretch": 1.462,
+        "wavSha256": "30b31bb5e144f9f173e76edfabf599c1dfe1910722d594b2b169e3b66ed46a5b"
+      },
+      {
+        "id": "judges",
+        "audioS": 32.35,
+        "durS": 33.9,
+        "origDurS": 28,
+        "stretch": 1.211,
+        "wavSha256": "47d489295a9d4b52f4fddc73b382e51f3b60a5fd325b254c86a2c09797c447d4"
+      },
+      {
+        "id": "harness",
+        "audioS": 36.23,
+        "durS": 37.8,
+        "origDurS": 30,
+        "stretch": 1.26,
+        "wavSha256": "45108061bea21ddbb02822e74bc0023bf930cbc0c2c108cdcf330dd92733a9a6"
+      },
+      {
+        "id": "grounding",
+        "audioS": 30.58,
+        "durS": 32.1,
+        "origDurS": 30,
+        "stretch": 1.07,
+        "wavSha256": "40758463359b6723d81f3b5d77107ae09bd8b5cabc48eac064f984c95666ecb1"
+      },
+      {
+        "id": "assistant",
+        "audioS": 24.03,
+        "durS": 26,
+        "origDurS": 26,
+        "stretch": 1,
+        "wavSha256": "51495bc24e6de0c82aaecbbaacc74d59dcc315c6299b9e5226c407cb93ff9397"
+      },
+      {
+        "id": "citations",
+        "audioS": 37.45,
+        "durS": 39,
+        "origDurS": 24,
+        "stretch": 1.5,
+        "wavSha256": "601b593d03bce45858d3ffb65e8df0fff0247167ca6c0596fb1eae3da3e16951"
+      },
+      {
+        "id": "serving",
+        "audioS": 37.55,
+        "durS": 39.1,
+        "origDurS": 26,
+        "stretch": 1.5,
+        "wavSha256": "68c0b8617e0b31ff1778c95c90b3e451314f713fa4b25d0ad8032c76d5fc2ab9"
+      },
+      {
+        "id": "evaluation",
+        "audioS": 38.53,
+        "durS": 40.1,
+        "origDurS": 28,
+        "stretch": 1.432,
+        "wavSha256": "f82732d5c86d127a163b1463e190cbdb9be64ef887f2f024d3ad791bf5bd5ef4"
+      },
+      {
+        "id": "end",
+        "audioS": 8.55,
+        "durS": 10.8,
+        "origDurS": 8,
+        "stretch": 1.35,
+        "wavSha256": "08d8b3f2f8ecda281151aa713275893de6c16d1b0eb15325b0593432c2d6a3f8"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.026,
+      "speechRmsDb": -19.2,
+      "peakBeforeLimit": 0.785,
+      "limiterGain": 1,
+      "scoreSeconds": 338,
+      "scoreLufs": -16.02
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
   "sources": {
-    "filmSha256": "cc6ea772008550faf4686d0af93afaf7eb09261575557ec41852413a41902f7f",
+    "filmSha256": "7d49d51eb5afba5bcfe8bcadf2ff52d9f2c4b67734613e5b47509f92ab7f60a9",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
-    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
-    "gateTokenReplaced": 1
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
   },
   "encoders": {
-    "mp4": "H.264 (openh264enc, GStreamer)"
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
   },
   "scenes": [
     {
       "name": "How it works",
       "text": "The title and what this film covers.",
       "startS": 0,
-      "endS": 7
+      "endS": 15.5
     },
     {
       "name": "Two names",
-      "text": "Pravrudhi-Nyaya is the product; Prabhasa-Nyaya is our own trained models; the system is a second reader that refers when it cannot support a statement.",
-      "startS": 7,
-      "endS": 25
+      "text": "Pravrudhi-Nyaya is the product; Prabhāsa-Nyāya is our own trained models; the system is a second reader that refers when it cannot support a statement.",
+      "startS": 15.5,
+      "endS": 40.2
     },
     {
       "name": "The corpus",
       "text": "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
-      "startS": 25,
-      "endS": 51
+      "startS": 40.2,
+      "endS": 78.2
     },
     {
       "name": "Element judges",
-      "text": "Element judges: our trained models that read one ingredient at a time. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.",
-      "startS": 51,
-      "endS": 79
+      "text": "Our trained models that read one ingredient at a time. An offence is broken into ingredients; a 4B judge scores each, a 32B judge checks the same ones, and the AND rule needs both.",
+      "startS": 78.2,
+      "endS": 112.1
     },
     {
       "name": "The harness",
       "text": "Deterministic assembly, the quote check, the Lean structure check and refer-first decide; no model decides.",
-      "startS": 79,
-      "endS": 109
+      "startS": 112.1,
+      "endS": 149.89999999999998
     },
     {
       "name": "Nyaya grounding",
       "text": "Pramana, nirnaya withheld and agama, explained in plain words.",
-      "startS": 109,
-      "endS": 139
+      "startS": 149.89999999999998,
+      "endS": 181.99999999999997
     },
     {
       "name": "The assistant",
       "text": "The optional Claude managed-agent assistant: consent, spending limits, and the core still decides. Offered to signed-in users; optional, with a consent box each run.",
-      "startS": 139,
-      "endS": 165
+      "startS": 181.99999999999997,
+      "endS": 207.99999999999997
     },
     {
       "name": "Citations",
-      "text": "An existence-only check against an index of judgments, and the rule that keeps a name match from passing as proof.",
-      "startS": 165,
-      "endS": 189
+      "text": "An existence-only check against an index of judgments, and the rule that keeps a name match from counting as a verification.",
+      "startS": 207.99999999999997,
+      "endS": 246.99999999999997
     },
     {
       "name": "Serving and cost",
-      "text": "Local machines plus serverless GPUs, a fallback endpoint, and what idle costs.",
-      "startS": 189,
-      "endS": 215
+      "text": "Local machines plus serverless GPUs, a planned fallback endpoint, and what idle costs.",
+      "startS": 246.99999999999997,
+      "endS": 286.09999999999997
     },
     {
       "name": "Evaluation discipline",
       "text": "Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.",
-      "startS": 215,
-      "endS": 243
+      "startS": 286.09999999999997,
+      "endS": 326.2
     },
     {
       "name": "End card",
       "text": "Name, line and where the technical report lives.",
-      "startS": 243,
-      "endS": 251
+      "startS": 326.2,
+      "endS": 337
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 8948834,
-      "sha256": "edd570bf2f3a719ad2323b159cf309c2904de77aa7369df7722a4165810d8dc4"
+      "bytes": 9645745,
+      "sha256": "e98261d380194d9a49afbc90dad57254d13570d8083263cd44d3b2b66bd960d7"
     },
     {
       "name": "poster.png",
-      "bytes": 140962,
-      "sha256": "42358b4aa741a4f6bc283eb39481f28e206ebb39cfeeee211058be378dab1519"
+      "bytes": 128573,
+      "sha256": "ea01dc1c6aced8d98b17c8e499e2e2633a29d2f51c827782fca087eba1fc6f0e"
     },
     {
       "name": "captions.vtt",
-      "bytes": 1788,
-      "sha256": "ae05ede9f3e23414c20658196fcfc71dbe87ff06a218e37ba358c0a01d3cb9c0"
+      "bytes": 6646,
+      "sha256": "ab88ac0899e7ca4a8b9d8619fb4f088b95722d9bd9601005929694e3c8b26e0a"
     }
   ]
 }

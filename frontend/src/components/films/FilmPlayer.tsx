@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
+import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
 import { FILM_MANIFESTS, clock, filmFile } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
@@ -13,19 +13,30 @@ const subscribe = (cb: () => void) => {
 const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * One film, played by the browser's own <video>: silent, with controls and captions on, nothing downloaded until the visitor presses play (preload none), the poster first.
+ * One film, played by the browser's own <video>: narrated but STARTING MUTED (so it can start anywhere; a visible button turns the sound on), captions OFF until the visitor asks (a visible button), controls on,
+ * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion the poster stays until the visitor asks for the film with the button. The scene text below is the film's own and is always on the page.
  */
 export function FilmPlayer({ id }: { id: FilmId }) {
   const film = FILM_MANIFESTS[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [captions, setCaptions] = useState(false);
+  const video = useRef<HTMLVideoElement>(null);
   const showVideo = !reduced || asked;
+  // the captions track has no `default`: it starts disabled, and the visible button (or the browser's own CC menu) turns it on
+  useEffect(() => {
+    const t = video.current?.textTracks[0];
+    if (t) t.mode = captions ? "showing" : "disabled";
+  }, [captions, showVideo]);
+  useEffect(() => { if (video.current) video.current.muted = muted; }, [muted, showVideo]);
   return (
     <figure className="space-y-3" data-testid={`film-${id}`}>
       <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-black">
         {showVideo ? (
           <video
+            ref={video}
             className="block aspect-video w-full"
             controls
             muted
@@ -37,7 +48,7 @@ export function FilmPlayer({ id }: { id: FilmId }) {
             autoPlay={reduced && asked}
           >
             <source src={filmFile(id, "film.mp4")} type="video/mp4" />
-            <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" default />
+            <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" />
             {FILM_VIDEO_UNSUPPORTED}
           </video>
         ) : (
@@ -50,7 +61,20 @@ export function FilmPlayer({ id }: { id: FilmId }) {
           </div>
         )}
       </div>
-      <figcaption className="text-xs text-[var(--color-text-dim)]">{film.title}. {FILM_SILENT_NOTE}</figcaption>
+      <figcaption className="text-xs text-[var(--color-text-dim)]">{film.title}. {FILM_NARRATED_NOTE} {FILM_SYNTHETIC_VOICE}</figcaption>
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        {showVideo && (
+          <>
+            <button type="button" onClick={() => setMuted((m) => !m)} aria-pressed={!muted} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
+              {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
+            </button>
+            <button type="button" onClick={() => setCaptions((c) => !c)} aria-pressed={captions} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
+              {captions ? FILM_CAPTIONS_HIDE : FILM_CAPTIONS_SHOW}
+            </button>
+          </>
+        )}
+        <a href={filmFile(id, "film.mp4")} download className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="film-download">{FILM_DOWNLOAD_LINK}</a>
+      </div>
       <section aria-label={FILM_TRANSCRIPT_HEADING} data-testid="film-scenes">
         <h3 className="text-sm font-medium text-[var(--color-text)]">{FILM_TRANSCRIPT_HEADING}</h3>
         <ol className="mt-1 space-y-1 text-sm text-[var(--color-text-dim)]">

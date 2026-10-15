@@ -173,3 +173,12 @@ test("the notification bell and the workspace bootstrap are the operator's: a me
 test("the demo and safety pages are open to a member in any spelling", () => {
   for (const v of ["/demo", "/demo.html", "/Demo/", "/safety", "/safety.html", "//safety"]) assert.equal(gateDecision(v, "product", false, false), "allow", v);
 });
+
+// #273: the film pages are offered on the law-firm surface to a non-Studio (product) visitor, in any spelling; a path that is not a page (the public files under /films/, a made-up /guide/technical-film) is closed, as every unlisted path is.
+test("the film pages are open to the product edition under the surface flag; the files under /films and unlisted paths are blocked", () => {
+  for (const p of ["/guide", "/guide/", "/technical-film", "/technical-film/", "/Technical-Film", "/technical-film.html"]) {
+    assert.equal(gateDecision(p, "product", false, true, false), "allow", p);
+    assert.equal(gateDecision(p, null, false, true, false), "allow", `${p}: a listed page is shown even while the edition is unknown`);
+  }
+  for (const p of ["/films/technical", "/films/client/", "/guide/technical-film", "/client-film"]) assert.equal(gateDecision(p, "product", false, true, false), "block", p);
+});

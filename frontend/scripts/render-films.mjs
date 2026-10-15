@@ -4,7 +4,10 @@
 // <export-folder> is a dated export laid out as: player/{index.html,app.js,app.css}, <film>/film/{meta,script}.json, <film>/modules/*.json, <film>/assets/*.json.
 // The player is third-party code and is NEVER committed: it is copied into frontend/.film-tools/ (gitignored), one token is changed so its headless entry works over http, and it is
 // run in a local Chromium that is allowed no network. Only these go under public/films/<film>/ (and into git): film.mp4 (H.264), poster.png, captions.vtt and manifest.json (source hashes, sizes,
-// durations, the film's scene text; no paths). A WebM (VP8) is also made, but only into .film-tools/out/<film>/ and never committed (Interim lead, 15 Oct: public history is permanent). Audio is never rendered. Encoding uses GStreamer (openh264enc, vp8enc), which must be installed.
+// durations, the film's scene text; no paths). A WebM (VP8) is also made, but only into .film-tools/out/<film>/ and never committed (Interim lead, 15 Oct: public history is permanent).
+// NARRATED (Web, 15 Oct): with --narration <dir> --narration-json <narration.json> the film is retimed to its narration (each scene lasts its audio plus a lead and a tail; scenes whose audio is longer than the
+// original are stretched up to 1.5x, then hold), the film's own score is rendered offline by the player and ducked under the voice, and film.mp4 carries AAC audio (mono, 56 kbit/s); captions.vtt is the narration's
+// own "text". <dir> holds the per-scene WAVs and the timings_*.json written by the narration render. The WebM is skipped. Encoding uses GStreamer (openh264enc, avenc_aac, mp4mux), which must be installed.
 import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -12,6 +15,8 @@ import http from "node:http";
 import { createRequire } from "node:module";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { captionCues, mixFilm, planScenes, readWav, sha256, stretchModule, upsample2, writeWav16Mono } from "./film-audio.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FRONTEND = resolve(HERE, "..");
@@ -29,6 +34,10 @@ const flag = (n) => args.includes(n);
 const opt = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const src = args[0] && !args[0].startsWith("--") ? resolve(args[0]) : null;
 const only = opt("--film", null);
+const narrDir = opt("--narration", null) ? resolve(opt("--narration", null)) : null;
+const narrJson = opt("--narration-json", null) ? resolve(opt("--narration-json", null)) : null;
+if (!!narrDir !== !!narrJson) { console.error("render-films: --narration and --narration-json go together"); process.exit(1); }
+const AUDIO_BPS = 56000;
 const workers = Number(opt("--workers", 4));
 const stop = (m) => { console.error("render-films: " + m); process.exit(1); };
 if (!src) stop("usage: node scripts/render-films.mjs <export-folder> [--film client|technical] [--workers 4] [--force]");
@@ -43,12 +52,21 @@ if (hits !== 1) stop(`the player's file-only gate was found ${hits} times, expec
 mkdirSync(join(TOOLS, "player/artifact-type"), { recursive: true });
 copyFileSync(join(src, "player/index.html"), join(TOOLS, "player/index.html"));
 copyFileSync(join(src, "player/app.css"), join(TOOLS, "player/artifact-type/app.css"));
-const patched = appjs.replace(GATE, GATE_OPEN);
+// the player refuses a film over 300 s (several checks of the same number); the narrated technical film is longer than that (its narration alone is ~320 s), so for a NARRATED render the number is raised to 420 in the local copy.
+// Each token is counted exactly like the gate token: found once or the player changed and must be looked at. The film's own files are never touched.
+const LIMITS = [["TH0=24,Ri0=300,", "TH0=24,Ri0=420,"], ["MOST = 24, LONGEST_S = 300,", "MOST = 24, LONGEST_S = 420,"], ["isFinite(d) && d > 0 && d <= 300", "isFinite(d) && d > 0 && d <= 420"], ["if(!(Y>0&&Y<=300))return null", "if(!(Y>0&&Y<=420))return null"]];
+let patched = appjs.replace(GATE, GATE_OPEN);
+if (narrDir) for (const [from, to] of LIMITS) {
+  const n = appjs.split(from).length - 1;
+  if (n !== 1) stop(`the player's 300 s limit token "${from}" was found ${n} times, expected exactly 1: the player changed; look at it before rendering`);
+  patched = patched.replace(from, to);
+}
 writeFileSync(join(TOOLS, "player/artifact-type/app.js"), patched);
+
 const playerSha = { original: sha(appjs), patched: sha(patched) };
 
 // --- GStreamer must have the encoders
-for (const el of ["openh264enc", "vp8enc", "mp4mux", "webmmux", "pngdec", "multifilesrc"]) {
+for (const el of ["openh264enc", "vp8enc", "mp4mux", "webmmux", "pngdec", "multifilesrc", ...(narrDir ? ["avenc_aac", "aacparse", "wavparse", "audioconvert"] : [])]) {
   try { execFileSync("gst-inspect-1.0", [el], { stdio: "ignore" }); } catch { stop(`GStreamer element ${el} is not available`); }
 }
 
@@ -115,6 +133,9 @@ function gst(argv) {
 const src_ = (dir) => ["multifilesrc", `location=${dir}/f%06d.png`, "index=0", `caps=image/png,framerate=${FPS}/1`, "!", "pngdec", "!", "videoconvert", "!", "video/x-raw,format=I420"];
 const encoders = {
   mp4: (dir, out, bps) => [...src_(dir), "!", "openh264enc", `bitrate=${bps}`, "rate-control=1", `gop-size=${FPS * 2}`, "complexity=2", "!", "h264parse", "!", "mp4mux", "faststart=true", "!", "filesink", `location=${out}`],
+  // video + AAC audio from the mixed WAV, one pipeline (faststart MP4)
+  mp4a: (dir, out, bps, wav) => [...src_(dir), "!", "openh264enc", `bitrate=${bps}`, "rate-control=1", `gop-size=${FPS * 2}`, "complexity=2", "!", "h264parse", "!", "mp4mux", "name=m", "faststart=true", "!", "filesink", `location=${out}`,
+    "filesrc", `location=${wav}`, "!", "wavparse", "!", "audioconvert", "!", "audio/x-raw,channels=1", "!", "avenc_aac", `bitrate=${AUDIO_BPS}`, "!", "aacparse", "!", "m."],
   webm: (dir, out, bps) => [...src_(dir), "!", "vp8enc", `target-bitrate=${bps}`, "end-usage=vbr", `keyframe-max-dist=${FPS * 2}`, "cpu-used=2", "!", "webmmux", "!", "filesink", `location=${out}`],
 };
 
@@ -131,9 +152,36 @@ async function stills(name, browser, base) {
   for (const l of await page.evaluate(() => window.__animation.consoleLog())) if (l.level === "error") console.log("  runner error: " + String(l.text).slice(0, 160));
 }
 
+/** Reads the narration renders, checks them against the narration source, retimes the scenes and adds the stretch module. Mutates files.modules; returns what the render and the manifest need. */
+function prepareNarration(files, scenes) {
+  const tf = readdirSync(narrDir).filter((f) => /^timings_.*\.json$/.test(f));
+  if (tf.length !== 1) stop(`${narrDir} must hold exactly one timings_*.json, found ${tf.length}`);
+  const timings = JSON.parse(readFileSync(join(narrDir, tf[0]), "utf8"));
+  const narrBytes = readFileSync(narrJson), narration = JSON.parse(narrBytes.toString("utf8"));
+  if (timings.src_sha256 !== sha256(narrBytes)) stop("the narration renders were made from a different narration.json than the one given (sha256 differs)");
+  const ids = scenes.map((x) => x.id), nids = narration.map((x) => x.id);
+  if (JSON.stringify(ids) !== JSON.stringify(nids)) stop(`the film's scenes (${ids.join(",")}) and the narration's (${nids.join(",")}) differ`);
+  const audioSeconds = {}, wavs = {};
+  for (const id of ids) {
+    const t = timings.scenes[id]; const b = readFileSync(join(narrDir, t.file));
+    if (sha256(b) !== t.sha256) stop(`${t.file} does not match its recorded sha256`);
+    const w = readWav(b); if (w.rate !== 24000 || w.chans.length !== 1) stop(`${t.file}: expected 24 kHz mono`);
+    wavs[id] = w.chans[0]; audioSeconds[id] = w.chans[0].length / 24000;
+  }
+  const plan = planScenes(scenes, audioSeconds);
+  const sm = files.modules.find((m) => m.name === "scenes.json"); const sj = JSON.parse(sm.text);
+  for (const sc of sj.scenes) sc.dur = plan.find((p) => p.id === sc.id).dur;
+  sm.text = JSON.stringify(sj, null, 2);
+  files.modules.push({ name: "shared.js", kind: "js", text: stretchModule(plan) });
+  files.modules.sort((a, b) => (a.name < b.name ? -1 : 1));
+  return { plan, wavs, narration, timings, narrSha: sha256(narrBytes), timingsSha: sha256(readFileSync(join(narrDir, tf[0]))) };
+}
+
 async function renderFilm(name, browser, base) {
-  const { files, scenes, missing, title } = loadFilm(name);
-  const filmSha = sha(JSON.stringify({ files, scenes }));
+  let { files, scenes, missing, title } = loadFilm(name);
+  const narr = narrDir ? prepareNarration(files, scenes) : null;
+  if (narr) scenes = scenes.map((sc) => ({ ...sc, dur: narr.plan.find((p) => p.id === sc.id).dur }));
+  const filmSha = sha(JSON.stringify({ files, scenes, narr: narr ? { n: narr.narrSha, t: narr.timingsSha } : null }));
   const outDir = join(OUT_ROOT, name);
   const manPath = join(outDir, "manifest.json");
   if (!flag("--force") && existsSync(manPath)) {
@@ -162,27 +210,51 @@ async function renderFilm(name, browser, base) {
   const posterT = Number(opt("--poster-at", Math.min(3, duration / 4)));
   const posterUrl = await first.page.evaluate(([t, sc]) => window.__animation.frame(t, { scale: sc }), [posterT, SCALE]);
   writeFileSync(join(outDir, "poster.png"), Buffer.from(posterUrl.split(",")[1], "base64"));
+  let mixPath = null, mixReport = null;
+  if (narr) {
+    console.log(`  rendering the score offline ...`);
+    const ar = await first.page.evaluate(async () => { const r = await window.__animation.renderAudio({ title: "score" }); return { wav: r.wav, bytes: r.wavBytes, seconds: r.seconds, lufs: r.lufs }; });
+    const parts = []; for (let off = 0; off < ar.bytes; off += 3 * 1024 * 1024) parts.push(Buffer.from(await first.page.evaluate(([h, o, l]) => window.__animation.read(h, o, l), [ar.wav, off, 3 * 1024 * 1024]), "base64"));
+    await first.page.evaluate((h) => window.__animation.free(h), ar.wav);
+    const score = readWav(Buffer.concat(parts));
+    const narrTrack = narr.plan.map((p) => ({ startS: p.voiceStartS, x: upsample2(narr.wavs[p.id]) }));
+    const { mix, report } = mixFilm({ score, narration: narrTrack, totalS: duration });
+    mixReport = { ...report, scoreSeconds: ar.seconds, scoreLufs: Math.round(ar.lufs * 100) / 100 };
+    mixPath = join(TOOLS, "out", name, "mix.wav"); mkdirSync(dirname(mixPath), { recursive: true }); writeFileSync(mixPath, writeWav16Mono(mix, 48000));
+    console.log(`  mix: ${JSON.stringify(mixReport)}`);
+  }
   for (const { page } of pages) await page.context().close();
 
   const outFiles = [];
   mkdirSync(join(TOOLS, "out", name), { recursive: true });
-  for (const [ext, enc] of Object.entries(encoders)) {
+  for (const [ext, enc] of Object.entries(narr ? { mp4: null } : encoders)) {
     // measured: VP8 lands at ~0.45 of the target-bitrate file size (a 600 kbit/s target gave 7.2 MB for 251 s), H.264 at ~0.9; the loop below lowers the target if a file is over the cap
-    let bps = Math.floor(((SIZE_CAP * 0.9 * 8) / duration) * (ext === "webm" ? 2 : 1)), size = Infinity; const target = ext === "webm" ? join(TOOLS, "out", name, "film.webm") : join(outDir, `film.${ext}`);
-    for (let attempt = 0; attempt < 3 && size > SIZE_CAP; attempt++) {
-      await gst(enc(tmp, target, bps)); size = statSync(target).size;
-      console.log(`  ${ext}: ${(size / 1e6).toFixed(2)} MB at ${Math.round(bps / 1000)} kbit/s`);
-      if (size > SIZE_CAP) bps = Math.floor(bps * 0.75);
+    const audioBytes = narr ? (AUDIO_BPS * duration) / 8 : 0;
+    let bps = narr ? Math.floor((((SIZE_CAP * 0.95 - audioBytes) * 8) / duration) / 0.9) : Math.floor(((SIZE_CAP * 0.9 * 8) / duration) * (ext === "webm" ? 2 : 1)), size = Infinity; const target = ext === "webm" ? join(TOOLS, "out", name, "film.webm") : join(outDir, `film.${ext}`);
+    for (let attempt = 0; attempt < (narr ? 4 : 3) && size > SIZE_CAP; attempt++) {
+      await gst(narr ? encoders.mp4a(tmp, target, bps, mixPath) : enc(tmp, target, bps)); size = statSync(target).size;
+      console.log(`  ${ext}: ${(size / 1e6).toFixed(2)} MB at ${Math.round(bps / 1000)} kbit/s${narr ? ` (+ AAC ${AUDIO_BPS / 1000} kbit/s)` : ""}`);
+      // narrated: scale the video bit rate by what the first pass actually produced, aiming at 96% of the cap
+      if (size > SIZE_CAP) bps = narr ? Math.floor(bps * ((SIZE_CAP * 0.96 - audioBytes) / Math.max(1, size - audioBytes))) : Math.floor(bps * 0.75);
     }
     if (size > SIZE_CAP) stop(`${name}: film.${ext} is ${size} bytes, over the ${SIZE_CAP} cap even at ${bps} bit/s: tell the lead before anything else moves`);
   }
-  writeFileSync(join(outDir, "captions.vtt"), captions(scenes));
+  if (narr) {
+    const cues = ["WEBVTT", ""]; let k = 0;
+    for (const p of narr.plan) for (const c of captionCues(narr.narration.find((x) => x.id === p.id).text, p.voiceStartS, p.voiceStartS + p.audioS)) cues.push(String(++k), `${vttTime(c.from)} --> ${vttTime(c.to)}`, c.text, "");
+    writeFileSync(join(outDir, "captions.vtt"), cues.join("\n"));
+  } else writeFileSync(join(outDir, "captions.vtt"), captions(scenes));
   if (flag("--keep-frames")) console.log(`  frames kept in ${tmp.slice(FRONTEND.length + 1)}`); else rmSync(tmp, { recursive: true, force: true });
   for (const n of ["film.mp4", "poster.png", "captions.vtt"]) { const b = readFileSync(join(outDir, n)); outFiles.push({ name: n, bytes: b.length, sha256: sha(b) }); }
   writeFileSync(manPath, JSON.stringify({
-    title, durationS: duration, width: 1280, height: 720, fps: FPS, audio: false,
-    sources: { filmSha256: filmSha, playerSha256: playerSha.original, playerPatchedSha256: playerSha.patched, gateTokenReplaced: 1 },
-    encoders: { mp4: "H.264 (openh264enc, GStreamer)" },
+    title, durationS: duration, width: 1280, height: 720, fps: FPS, audio: !!narr,
+    ...(narr ? { narration: {
+      voice: `${narr.timings.voice} (Kokoro-82M f3ff3571, lang ${narr.timings.lang}), a synthetic voice`, narrationJsonSha256: narr.narrSha, timingsSha256: narr.timingsSha,
+      scenes: narr.plan.map((p) => ({ id: p.id, audioS: Math.round(p.audioS * 100) / 100, durS: p.dur, origDurS: p.origDur, stretch: p.stretch, wavSha256: narr.timings.scenes[p.id].sha256 })),
+      mix: mixReport, audioCodec: `AAC mono ${AUDIO_BPS / 1000} kbit/s (avenc_aac, GStreamer)`,
+    } } : {}),
+    sources: { filmSha256: filmSha, playerSha256: playerSha.original, playerPatchedSha256: playerSha.patched, gateTokenReplaced: 1, ...(narrDir ? { durationLimitTokensReplaced: LIMITS.length, durationLimitS: "300 to 420 (local copy only)" } : {}) },
+    encoders: { mp4: narr ? "H.264 (openh264enc) + AAC (avenc_aac), GStreamer" : "H.264 (openh264enc, GStreamer)" },
     // the film's own scene text with start and end times: the captions and the page's transcript both come from this
     scenes: (() => { let t = 0; return scenes.map((sc) => { const o = { name: sc.name, text: sc.desc, startS: t, endS: t + sc.dur }; t += sc.dur; return o; }); })(),
     missingAssets: missing, files: outFiles,
