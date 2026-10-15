@@ -33,6 +33,11 @@ export function assistantStateOf(health: unknown): AssistantState {
   return "not_configured";
 }
 
+/** How long to wait before the next health read: a failed or slow read ("unreachable") is retried soon (#309: an anonymous visitor otherwise saw the greyed assistant for up to a minute after one slow first read), every other state keeps the slow poll. */
+export const TIER_POLL_MS = 60_000;
+export const TIER_RETRY_MS = 5_000;
+export const nextTierPollDelay = (state: AssistantState): number => (state === "unreachable" ? TIER_RETRY_MS : TIER_POLL_MS);
+
 /** The state after a health read that may have failed: a rejection or a timeout is "unreachable" (greyed, no line). */
 export async function readAssistantState(read: () => Promise<unknown>, timeoutMs = 8_000): Promise<AssistantState> {
   try {

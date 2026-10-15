@@ -63,3 +63,10 @@ test("R1 14 Oct: the paused line and the row greying apply ONLY with the entry f
   assert.deepEqual(pausedTreatment("available", true), { line: false, grey: false });
   assert.deepEqual(pausedTreatment("not_configured", true), { line: false, grey: false });
 });
+
+import { TIER_POLL_MS, TIER_RETRY_MS, nextTierPollDelay } from "./assistantTier";
+test("#309: an unreachable (failed or slow) health read is retried in seconds; every other state keeps the slow poll", () => {
+  assert.equal(nextTierPollDelay("unreachable"), TIER_RETRY_MS);
+  for (const s of ["available", "paused", "not_configured"] as const) assert.equal(nextTierPollDelay(s), TIER_POLL_MS);
+  assert.ok(TIER_RETRY_MS < TIER_POLL_MS && TIER_RETRY_MS <= 10_000);
+});
