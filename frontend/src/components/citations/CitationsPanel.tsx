@@ -132,9 +132,10 @@ export function CitationsPanel({ initial, embedded = false }: { initial?: string
       )}
       <button
         type="button"
-        onClick={run}
-        disabled={busy || !text.trim()}
-        className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
+        onClick={() => { if (!busy && text.trim()) void run(); }}
+        // #260: aria-disabled, not disabled: a disabled button drops keyboard focus to <body>, so a keyboard user lost their place after pressing Check
+        aria-disabled={busy || !text.trim()}
+        className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
       >
         {busy ? <Loader2 size={14} className="animate-spin" /> : <SearchCheck size={14} />}
         {busy ? "Checking…" : "Check citations"}
