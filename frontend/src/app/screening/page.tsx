@@ -150,7 +150,19 @@ export default function ScreeningPage() {
         }
       })
       .catch((e: unknown) => {
-        if (!off) setContractsError(e instanceof ApiError ? `Could not reach the engine's registry API (${e.status}).` : "Could not load contracts.");
+        if (off) return;
+        // A visitor the registry will not answer (401/403 signed out on an auth-required engine, 404 on a host that has no such route) who came by an example link still gets that
+        // example's offences, offered and selected: the contract ids are the example's own and the engine validates them on submit (#194). Any other failure is the usual error.
+        const found = exampleById(new URLSearchParams(window.location.search).get("example"));
+        if (found !== null && e instanceof ApiError && [401, 403, 404].includes(e.status)) {
+          const ids = found.contracts.flatMap((id) => offenceOf(id)?.contracts ?? [id]);
+          setContractsError(null);
+          setContracts(ids);
+          setContractsLoaded(true);
+          setPicked(new Set(ids));
+          return;
+        }
+        setContractsError(e instanceof ApiError ? `Could not reach the engine's registry API (${e.status}).` : "Could not load contracts.");
       });
     return () => {
       off = true;
