@@ -30,7 +30,7 @@ import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff, takeHandoffCitations } from "@/lib/handoff";
 import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
-import { HEARING_PREP_BUILT } from "@/lib/workspace";
+import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, WORKSPACE_ANCHORS, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, initialFactsFor, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -474,6 +474,14 @@ export default function ScreeningPage() {
             </div>
           )}
         </section>
+
+        {/* #232: the Memo and Hearing preparation anchors exist before a result too, so a /workflows link to them lands on a line that says why they are empty (the same words as the step bar). */}
+        {!result && (
+          <div className="flex flex-col gap-2 text-sm text-[var(--color-text-dim)] print:hidden" data-testid="locked-steps">
+            <p id={WORKSPACE_ANCHORS.memo} className="scroll-mt-4" data-testid="locked-memo"><span className="font-medium text-[var(--color-text)]">{WORKSPACE_STEP_LABELS.memo}.</span> {WORKSPACE_LOCKED_TEXT}</p>
+            <p id={WORKSPACE_ANCHORS.hearing} className="scroll-mt-4" data-testid="locked-hearing"><span className="font-medium text-[var(--color-text)]">{WORKSPACE_STEP_LABELS.hearing}.</span> {HEARING_PREP_BUILT ? WORKSPACE_LOCKED_TEXT : HEARING_NOT_OFFERED_TEXT}</p>
+          </div>
+        )}
 
         {result && request && (
           <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
