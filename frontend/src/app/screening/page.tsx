@@ -189,19 +189,36 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
 
-  // #248: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the offence list has loaded, and the list then pushes the target down the page, so the visitor lands short of it.
-  // Once the registry has answered (the list, or its error, is on the page) the page scrolls to the named step once more, only when the URL names one and the visitor has not scrolled it into view.
-  const hashScrolled = useRef(false);
+  // #248/#275: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the page has finished growing: the offence list, and then late reads (identity, the assistant's provider line)
+  // add content ABOVE it, so the visitor lands short of it (#275: 6 px short, intermittently, when the late content arrived after the one scroll #248 made). Once the registry has answered, the page keeps the named
+  // step in view while the content settles: it re-checks every time the page's content changes size, for at most a few seconds, and stops at once when the visitor scrolls or presses a key themselves.
   useEffect(() => {
-    if (picker === "loading" || hashScrolled.current) return;
-    hashScrolled.current = true;
+    if (picker === "loading") return;
     const id = window.location.hash.slice(1);
     if (!(Object.values(WORKSPACE_ANCHORS) as string[]).includes(id)) return;
-    const el = document.getElementById(id);
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    if (r.top >= 0 && r.bottom <= window.innerHeight) return;
-    el.scrollIntoView({ behavior: "auto", block: "start" });
+    const main = document.getElementById("main");
+    let visitorMoved = false;
+    const stopFollowing = () => { visitorMoved = true; };
+    const settle = () => {
+      if (visitorMoved) return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+      el.scrollIntoView({ behavior: "auto", block: "start" });
+    };
+    const events = ["wheel", "touchstart", "keydown", "mousedown"] as const;
+    for (const e of events) window.addEventListener(e, stopFollowing, { passive: true, once: true });
+    settle();
+    const watched = main?.firstElementChild ?? main;
+    const observer = typeof ResizeObserver === "function" && watched ? new ResizeObserver(settle) : null;
+    if (observer && watched) observer.observe(watched);
+    const stop = window.setTimeout(() => observer?.disconnect(), 4000);
+    return () => {
+      window.clearTimeout(stop);
+      observer?.disconnect();
+      for (const e of events) window.removeEventListener(e, stopFollowing);
+    };
   }, [picker]);
 
   // P2: a new result is brought into view at once, so the user does not scroll past the facts they just typed.
