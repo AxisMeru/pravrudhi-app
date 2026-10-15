@@ -3,7 +3,7 @@
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
-import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
+import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, NAME_COMPARED_EXCEPT_COMMON, CONFLICT_HEADING, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -77,7 +77,7 @@ export interface VerifyView {
   /** The engine's note, or null when it is withheld. */
   note: string | null;
   noteWithheld: boolean;
-  /** #509: the sentence shown after the note when a found citation carried a case name the index did not compare; null otherwise (a bare citation, any other status, the arm off). */
+  /** #509: the sentence shown after the note on a found line that carries a case name (R1: "not compared", or "compared, except common words" when name_compared is true); null otherwise (a bare citation, any other status, the arm off). */
   nameNote: string | null;
 }
 
@@ -131,9 +131,10 @@ export function citationHasCaseName(line: unknown): boolean {
 
 /** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
-  // the engine said it compared the name (IN_INDEX = matched): the "not compared" sentence would be untrue, so it is dropped
-  if (nameCompared === true) return null;
-  return existenceOnly && (status === "IN_INDEX" || status === "VERIFIED") && citationHasCaseName(citation) ? CASE_NAME_NOT_COMPARED : null;
+  if (!existenceOnly || !citationHasCaseName(citation)) return null;
+  // the engine said it compared the name: on IN_INDEX the "not compared" sentence would be untrue, so R1's "compared, except common words" sentence replaces it (one-line removable when the engine closes the gap)
+  if (nameCompared === true) return status === "IN_INDEX" ? NAME_COMPARED_EXCEPT_COMMON : null;
+  return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
 }
 
 export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, citation?: string): VerifyView {

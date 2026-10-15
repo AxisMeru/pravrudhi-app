@@ -226,7 +226,7 @@ test("#509 Intake: a found citation with a case name gets R1's sentence under it
 });
 
 // pravrudhi#509 NAME_MISMATCH (R1, 16 Oct): Intake's citation line.
-test("#509 Intake: a mismatch reads R1's heading and note; matched drops the not-compared sentence; absent keeps it; an unknown status is neutral, not Not checked.", async ({ page }) => {
+test("#509 Intake: a mismatch reads R1's heading and note; matched reads the compared-except-common-words sentence; absent keeps the not-compared one; an unknown status is neutral, not Not checked.", async ({ page }) => {
   const named = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
   const answer = { ...ANSWER, bundle: { ...ANSWER.bundle, citations: [
     { text: named, verifier_status: "NAME_MISMATCH", name_compared: true, fact_ids: ["F1"] },
@@ -240,7 +240,8 @@ test("#509 Intake: a mismatch reads R1's heading and note; matched drops the not
   await page.getByTestId("intake-run").click();
   await expect(page.getByTestId("citation-line")).toHaveText(["Case name did not match", "Found in our index", "Found in our index", "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand."]);
   await expect(page.getByTestId("citation-name-note")).toHaveText([
-    "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.",
+    "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.",
+    "The case name you typed was compared with the index, except a party named only by common words (such as a State or the Union of India), which is not compared.",
     "Only the citation was looked up; the case name you typed was not compared with the index.",
   ]);
   await expect(page.locator("body")).not.toContainText(/NAME_MISMATCH|BRAND_NEW/);
