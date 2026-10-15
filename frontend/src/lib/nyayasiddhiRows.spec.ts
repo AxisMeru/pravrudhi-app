@@ -1,19 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ALL_GROUP, groupsOf, intervalGeometry, metricOf, parseRow, parseRows, pct, unitsOf } from "./nyayasiddhiRows";
+import { ALL_GROUP, zeroWithZero, groupsOf, intervalGeometry, metricOf, parseRow, parseRows, pct, unitsOf } from "./nyayasiddhiRows";
 
 // INVENTED layout fixture (never a result, never shipped): the shape of a signed row from the result_row schema.
 const metric = (name: string, group: string | undefined, k: number, n: number, lo: number | null, hi: number | null) => ({ name, ...(group ? { group } : {}), k, n, interval_method: "clopper-pearson-exact", interval_level: 0.95, ci_low: lo, ci_high: hi });
 const ROW = (over: Record<string, unknown> = {}) => ({
   row_id: "invented-1", status: "self-reported", benchmark_version: "v0.2.2", split: "obj1_dev", unit: "whole_item", system_name: "invented-system", system_version: "0.0", manifest_sha256: "a".repeat(64), scorer_sha: "b".repeat(40),
-  run_date: "2026-10-01", stack: "dev stack (local)", metrics: [metric("false_proof", "ALL", 2, 40, 0.006, 0.169), metric("coverage", "ALL", 30, 40, 0.588, 0.893), metric("coverage", "CHEAT", 10, 12, 0.516, 0.979), metric("false_proof", "CHEAT", 0, 12, 0, 0.265)],
+  run_date: "2026-10-01", organiser_entry: true, metrics: [metric("false_proof", "ALL", 2, 40, 0.006, 0.169), metric("coverage", "ALL", 30, 40, 0.588, 0.893), metric("coverage", "CHEAT", 10, 12, 0.516, 0.979), metric("false_proof", "CHEAT", 0, 12, 0, 0.265)],
   supersedes: null, superseded_by: null, error_mapping: "none", n_error: 0, ...over,
 });
 
 test("a row that meets the contract parses; the figures keep their n and interval", () => {
   const r = parseRow(ROW())!;
-  assert.equal(r.rowId, "invented-1"); assert.equal(r.status, "self-reported"); assert.equal(r.stack, "dev stack (local)");
+  assert.equal(r.rowId, "invented-1"); assert.equal(r.status, "self-reported"); assert.equal(r.organiserEntry, true);
   assert.deepEqual(metricOf(r, "coverage", "ALL"), { name: "coverage", group: "ALL", k: 30, n: 40, ciLow: 0.588, ciHigh: 0.893 });
   assert.equal(metricOf(r, "coverage", "NI138"), null);
 });
@@ -44,4 +44,12 @@ test("units, groups and the interval drawing", () => {
   assert.deepEqual([g.low, g.point, g.high].map((v) => Math.round(v * 10) / 10), [58.8, 75, 89.3]);
   assert.equal(intervalGeometry({ name: "coverage", group: "ALL", k: 0, n: 0, ciLow: null, ciHigh: null }), null);
   assert.equal(pct(0.0345), "3.5%");
+});
+
+test("zero false proofs with zero coverage is detected (never read alone); 0 false proofs with coverage above 0 is not", () => {
+  const z = parseRow(ROW({ metrics: [metric("false_proof", "ALL", 0, 64, 0, 0.056), metric("coverage", "ALL", 0, 30, 0, 0.116)] }))!;
+  assert.equal(zeroWithZero(z, "ALL"), true);
+  assert.equal(zeroWithZero(parseRow(ROW())!, "ALL"), false);
+  assert.equal(zeroWithZero(parseRow(ROW({ metrics: [metric("false_proof", "ALL", 0, 64, 0, 0.056), metric("coverage", "ALL", 5, 30, 0.056, 0.347)] }))!, "ALL"), false);
+  assert.equal(zeroWithZero(parseRow(ROW())!, "NI138"), false);
 });

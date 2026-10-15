@@ -32,8 +32,8 @@ export interface ResultRow {
   systemName: string;
   systemVersion: string;
   runDate: string;
-  /** The stack the figures were measured on (for example "dev stack (local)"); null when the row does not say. */
-  stack: string | null;
+  /** organiser_entry in the schema: a row entered by the organisers (not a submitter). */
+  organiserEntry: boolean;
   metrics: Metric[];
 }
 
@@ -75,7 +75,7 @@ export function parseRow(x: unknown): ResultRow | null {
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    stack: typeof x.stack === "string" && x.stack ? x.stack : null, metrics: ms,
+    organiserEntry: x.organiser_entry === true, metrics: ms,
   };
 }
 
@@ -86,6 +86,12 @@ export function parseRows(file: unknown): ResultRow[] {
 }
 
 export const unitsOf = (rows: readonly ResultRow[]): Unit[] => UNITS.filter((u) => rows.some((r) => r.unit === u));
+
+/** True when a row answered nothing for the group: no false proof AND no coverage (0 false proofs that comes with 0 coverage is never read alone: R1's line). */
+export function zeroWithZero(row: ResultRow, group: string): boolean {
+  const fp = metricOf(row, "false_proof", group), cov = metricOf(row, "coverage", group);
+  return !!fp && !!cov && fp.k === 0 && cov.k === 0 && cov.n > 0;
+}
 
 /** The groups that appear in the rows of one unit: ALL first, then the families in the order they first appear. */
 export function groupsOf(rows: readonly ResultRow[], unit?: Unit): string[] {

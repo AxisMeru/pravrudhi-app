@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, metricOf, pct, unitsOf, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
+import { ALL_GROUP, MEASURES, groupsOf, intervalGeometry, metricOf, pct, unitsOf, zeroWithZero, type Measure, type Metric, type ResultRow, type Unit } from "@/lib/nyayasiddhiRows";
 import { resolveStrings, type NyayaSiddhiStrings } from "@/lib/nyayasiddhi";
 
 /** One figure: the count with its n, the exact interval printed, and the interval drawn on a 0 to 1 scale. The numbers are always in the text; the drawing only repeats them. */
@@ -68,7 +68,8 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colStatus}</dt><dd className="text-[var(--color-text)]" data-testid="ns-status">{s.status[r.status]}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colSplit}</dt><dd className="text-[var(--color-text)]">{s.split[r.split]}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colRunDate}</dt><dd className="text-[var(--color-text)]">{r.runDate}</dd></div>
-              <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colStack}</dt><dd className="text-[var(--color-text)]" data-testid="ns-stack">{r.stack ?? s.stackUnknown}</dd></div>
+              <div><dd className="text-[var(--color-text)]" data-testid="ns-stack">{s.stackLabel}</dd></div>
+              {r.organiserEntry && <div><dd className="text-[var(--color-text)]" data-testid="ns-organiser">{s.organiserEntry}</dd></div>}
             </dl>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {MEASURES.map((name) => (
@@ -79,6 +80,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
                 </div>
               ))}
             </div>
+            {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
           </li>
         ))}
       </ul>

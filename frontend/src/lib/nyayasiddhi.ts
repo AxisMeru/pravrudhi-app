@@ -11,9 +11,12 @@ export interface NyayaSiddhiStrings {
   colStatus: string;
   colSplit: string;
   colRunDate: string;
-  colStack: string;
-  /** Printed when a row does not name its stack. */
-  stackUnknown: string;
+  /** The stack label printed on every row ("dev stack (local)": the benchmark's organiser rows were measured on the local development stack). */
+  stackLabel: string;
+  /** Printed on a row entered by the organisers (organiser_entry). */
+  organiserEntry: string;
+  /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
+  zeroWithZero: string;
   unitHeading: string;
   groupHeading: string;
   /** "all" in the group chooser (the ALL group). */
@@ -39,7 +42,7 @@ export interface NyayaSiddhiStrings {
 type Nullable<T> = { [K in keyof T]: T[K] extends Record<string, string> ? Record<keyof T[K], string | null> : T[K] | null };
 
 export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
-  heading: null, intro: null, tableCaption: null, colSystem: null, colStatus: null, colSplit: null, colRunDate: null, colStack: null, stackUnknown: null,
+  heading: null, intro: null, tableCaption: null, colSystem: null, colStatus: null, colSplit: null, colRunDate: null, stackLabel: null, organiserEntry: null, zeroWithZero: null,
   unitHeading: null, groupHeading: null, groupAll: null,
   unit: { whole_item: null, element: null },
   split: { obj1_dev: null, obj1b_minus_cruelty: null },
