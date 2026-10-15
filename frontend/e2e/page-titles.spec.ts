@@ -22,9 +22,11 @@ for (const [path, name] of TITLES) {
   });
 }
 
+// #267: "/" renders the home page and then EditionGate redirects it (router.replace to the Matter workspace), so polling the live page's title raced that redirect. The served HTML is what carries
+// the home page's own title and it cannot race: read it as the browser first receives it.
 test("the home page keeps the product name alone as its title", async ({ page }) => {
-  await page.goto("/");
-  await expect(page).toHaveTitle("Pravrudhi-Nyaya");
+  const html = await (await page.request.get("/")).text();
+  expect(html.match(/<title>([^<]*)<\/title>/)?.[1]).toBe("Pravrudhi-Nyaya");
 });
 
 test("the Screening file note says 'when you press Screen these facts', never Analyse", async ({ page }) => {
