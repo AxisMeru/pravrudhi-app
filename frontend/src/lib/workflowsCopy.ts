@@ -24,14 +24,16 @@ import { HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, WORKFLOW_OPEN_LABEL
 /** R1 (14 Oct): the Screening orchestration row reads "Built" with the live note only when this build offers the assistant (NEXT_PUBLIC_ASSISTANT_ENTRY=1); the Intake row reads "Built" only when it carries NEXT_PUBLIC_INTAKE=1. Otherwise both stay "Building". */
 export const SCREENING_ASSISTANT_LIVE_NOTE = "An optional step-by-step screening assistant, offered to signed-in users, with a consent box you tick for each run. You see the engine's own decision result, never the assistant's wording of it.";
 
+/** The Screening orchestration (assistant) card: the one the assistant tier greys when it is paused or unreachable. Named, not "the first row" (#124). */
+export const ASSISTANT_WORKFLOW_NAME = "Screening orchestration";
 export const CITATION_CHECK_NAME = "Citation check";
 export const CITATION_OPEN_LABEL = "Open Citation check";
 
 export function workflowRows(on: { assistantOn: boolean; intakeOn: boolean; citationsOn?: boolean; hearingBuilt?: boolean }): readonly WorkflowRow[] {
   return [
     on.assistantOn
-      ? { name: "Screening orchestration", status: "Built", note: SCREENING_ASSISTANT_LIVE_NOTE }
-      : { name: "Screening orchestration", status: "Building", note: "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
+      ? { name: ASSISTANT_WORKFLOW_NAME, status: "Built", note: SCREENING_ASSISTANT_LIVE_NOTE }
+      : { name: ASSISTANT_WORKFLOW_NAME, status: "Building", note: "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product." },
     { name: "Intake", status: on.intakeOn ? "Built" : "Building", note: "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only." },
     { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or Word (.docx), or print / save as PDF." },
     // R1 (15 Oct): Hearing preparation and Citation check are listed only when they are built; the Citation check card only on a build that serves the existence check.
@@ -45,7 +47,7 @@ export const WORKFLOWS: readonly WorkflowRow[] = workflowRows({ assistantOn: ASS
 /** The step of the Matter workspace a Built row runs in (Lead-2, 15 Oct: the 13 Oct "no start button" rule is superseded for Built rows only; a Building row has no link). */
 export function workflowStepAnchor(name: string): string | null {
   switch (name) {
-    case "Screening orchestration": return WORKSPACE_ANCHORS.screen;
+    case ASSISTANT_WORKFLOW_NAME: return WORKSPACE_ANCHORS.screen;
     case "Memo preparation": return WORKSPACE_ANCHORS.memo;
     case "Hearing preparation": return WORKSPACE_ANCHORS.hearing;
     default: return null;

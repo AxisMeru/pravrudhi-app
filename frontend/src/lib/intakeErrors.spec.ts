@@ -35,3 +35,22 @@ test("a 503 body { error: 'intake_timeout' } read by the app's own error reader 
   assert.equal(detailOnly.code, undefined);
   assert.equal(intakeErrorLine(detailOnly), INTAKE_UNREADABLE); // until the engine sends the code, the general line stays (the classifier never guesses from free text)
 });
+
+// app#342 (Track C): a 422 (the engine refused the text) is not "try again"; a 429 carries the seconds the engine asked for; nothing from the engine's body reaches the line.
+import { INTAKE_RATE_LIMITED, INTAKE_REFUSED } from "./intakeCopy";
+test("422 reads the refused line; 429 with Retry-After reads the wait line with the seconds; a 429 without it stays general; other codes are unchanged", () => {
+  assert.equal(intakeErrorLine(new ApiError(422, "/api/v1/intake", {})), INTAKE_REFUSED);
+  assert.equal(intakeErrorLine(new ApiError(429, "/api/v1/intake", { retryAfter: 30 })), `${INTAKE_RATE_LIMITED} Seconds to wait: 30.`);
+  assert.equal(intakeErrorLine(new ApiError(429, "/api/v1/intake", {})), INTAKE_UNREADABLE);
+  assert.equal(intakeErrorLine(new ApiError(503, "/api/v1/intake", { code: "agent_at_capacity" })), INTAKE_UNREADABLE);
+  assert.equal(intakeErrorLine(new ApiError(401, "/api/v1/intake", {})), INTAKE_SIGNED_IN_ONLY);
+  for (const m of [INTAKE_REFUSED, INTAKE_RATE_LIMITED]) assert.doesNotMatch(m, /\b(422|429)\b|HTTP|rate limit exceeded|Nothing was scored/);
+});
+
+test("through the app's own error reader: a 429 with a Retry-After header gives the seconds; a 422 detail never reaches the line", async () => {
+  const r429 = await apiErrorFrom(new Response(JSON.stringify({ detail: "rate limit exceeded" }), { status: 429, headers: { "retry-after": "30", "content-type": "application/json" } }), "/api/v1/intake");
+  assert.equal(intakeErrorLine(r429), `${INTAKE_RATE_LIMITED} Seconds to wait: 30.`);
+  const r422 = await apiErrorFrom(new Response(JSON.stringify({ detail: "nothing readable in this text" }), { status: 422, headers: { "content-type": "application/json" } }), "/api/v1/intake");
+  assert.equal(intakeErrorLine(r422), INTAKE_REFUSED);
+  assert.doesNotMatch(intakeErrorLine(r422), /nothing readable/);
+});

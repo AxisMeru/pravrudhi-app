@@ -129,3 +129,39 @@ test("#297: the engine's 503 intake_timeout reads R1's plain sentence in the sta
   await expect(page.getByTestId("intake-error")).toHaveText("This text took too long to read, so the intake was stopped. Try a shorter text.");
   await expect(page.locator("body")).not.toContainText("intake_timeout");
 });
+
+// app#342 (Track C): a refused text (422) is not "try again"; a rate limit (429) shows the seconds the engine asked for; the engine's reason and detail never reach the page.
+test("app#342: a 422 refusal shows the refused line, never the engine's reason", async ({ page }) => {
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ status: 422, json: { detail: "nothing readable in this text" } }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented: a short text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("Intake could not read this text. Check the text, change it if needed, and run it again.");
+  await expect(page.locator("body")).not.toContainText("nothing readable");
+  expect(await page.locator("body").innerText()).not.toMatch(/\b422\b|HTTP/);
+});
+
+test("app#342: a 429 shows the seconds from Retry-After and none of the engine's detail", async ({ page }) => {
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ status: 429, headers: { "retry-after": "30" }, json: { detail: "rate limit exceeded" } }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented: a short text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("Too many requests. Wait the number of seconds shown before trying again. Seconds to wait: 30.");
+  await expect(page.locator("body")).not.toContainText("rate limit exceeded");
+  expect(await page.locator("body").innerText()).not.toMatch(/\b429\b|HTTP/);
+});
+
+test("app#342: a 503 agent_at_capacity keeps the general line (R1: no change), with no code or status on the page", async ({ page }) => {
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ status: 503, json: { error: "agent_at_capacity", detail: "the nyaya agent is at capacity; retry shortly" } }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented: a short text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("intake-error")).toHaveText("Intake could not run just now. Try again.");
+  const text = await page.locator("body").innerText();
+  expect(text).not.toContain("agent_at_capacity");
+  expect(text).not.toContain("at capacity");
+  expect(text).not.toMatch(/\b503\b|HTTP/);
+});

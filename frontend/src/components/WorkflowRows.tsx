@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
-import { WORKFLOWS, WORKFLOWS_CLOSING, WORKFLOW_NOT_OFFERED, workflowLink } from "@/lib/workflowsCopy";
+import { ASSISTANT_WORKFLOW_NAME, WORKFLOWS, WORKFLOWS_CLOSING, WORKFLOW_NOT_OFFERED, workflowLink } from "@/lib/workflowsCopy";
 import { START_PANEL_HEADING } from "@/lib/screening/copy";
 import { WORKSPACE_PATH } from "@/lib/workspace";
 import { useAssistantState } from "@/components/useAssistantTier";
@@ -21,8 +21,8 @@ export function WorkflowRows() {
       )}
       <Link href={WORKSPACE_PATH} className="inline-flex min-h-6 w-fit items-center rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] max-md:min-h-11" data-testid="workflows-start">{START_PANEL_HEADING}</Link>
       <ul className="grid gap-4 md:grid-cols-2">
-        {WORKFLOWS.map((w, i) => {
-          const greyed = anyGreyed && i === 0;
+        {WORKFLOWS.map((w) => {
+          const greyed = anyGreyed && w.name === ASSISTANT_WORKFLOW_NAME;
                     return (
             <li key={w.name} className={`flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 ${greyed ? "border-dashed bg-transparent [&_h2]:text-[var(--color-text-dim)]" : ""}`} data-testid="workflow-row" data-paused={greyed ? "true" : undefined} data-status={w.status}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">

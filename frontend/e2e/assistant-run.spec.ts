@@ -35,7 +35,7 @@ const CONSENT = "Running with the assistant sends your facts to Anthropic throug
 const PAUSED = "The assistant features are paused; screening works as normal";
 const health = (tier?: unknown) => ({ ok: true, version: "0.6.2", kernel: "0.6.2", ledger: true, ...(tier ? { assistant_tier: tier } : {}) });
 
-async function open(page: import("@playwright/test").Page, opts: { tier?: unknown; info?: unknown; answer?: unknown; healthStatus?: number; me?: number; assistStatus?: number; hangFirstAssist?: boolean } = {}) {
+async function open(page: import("@playwright/test").Page, opts: { tier?: unknown; info?: unknown; answer?: unknown; healthStatus?: number; me?: number; assistStatus?: number; assistBody?: unknown; plainStatus?: number; plainBody?: unknown; hangFirstAssist?: boolean } = {}) {
   if (opts.hangFirstAssist) await page.clock.install();
   const posts: { assist: string[]; plain: number } = { assist: [], plain: 0 };
   await page.route("**/api/me", (r) => (opts.me === 401 || opts.me === 503 ? r.fulfill({ status: opts.me, json: { error: "x" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
@@ -45,11 +45,12 @@ async function open(page: import("@playwright/test").Page, opts: { tier?: unknow
   await page.route("**/api/v1/analyse-facts/assist", (r) => {
     posts.assist.push(r.request().postData() ?? "");
     if (opts.hangFirstAssist && posts.assist.length === 1) return; // never answered: the app's own 320 s timeout ends it (fake clock)
-    if (opts.assistStatus) return r.fulfill({ status: opts.assistStatus, json: { error: "rate_limited" } });
+    if (opts.assistStatus) return r.fulfill({ status: opts.assistStatus, json: opts.assistBody ?? { error: "rate_limited" } });
     return r.fulfill({ json: opts.answer ?? FINISHED });
   });
   await page.route("**/api/v1/analyse-facts", (r) => {
     posts.plain += 1;
+    if (opts.plainStatus) return r.fulfill({ status: opts.plainStatus, json: opts.plainBody ?? { detail: "Internal Server Error" } });
     return r.fulfill({ json: CORE });
   });
   await page.goto("/screening");
@@ -286,3 +287,32 @@ test("run again: a fallback (assist refused, plain result) does not show it", as
   await expect(page.getByTestId("run-again-note")).toHaveCount(0);
   await expect(page.getByTestId("assistant-run-button")).toHaveText("Run with the screening assistant");
 });
+
+// #338 (Track-B): the assisted route is paid and consent is per run, so a 5xx there is NEVER retried (an unhandled exception can come after paid work): exactly ONE request, coded or not. The plain route keeps its one retry.
+const FIVE_XX: Array<[string, number, unknown]> = [
+  ["a bare 500", 500, { detail: "Internal Server Error" }],
+  ["a coded 500 internal_error", 500, { error: "internal_error", detail: "an internal error occurred; try again later" }],
+  ["a coded 503 agent_unavailable", 503, { error: "agent_unavailable" }],
+  ["a coded 503 agent_at_capacity", 503, { error: "agent_at_capacity" }],
+  ["a 502", 502, { detail: "Bad Gateway" }],
+];
+for (const [name, status, body] of FIVE_XX) {
+  test(`assisted run: ${name} makes exactly one request (never retried)`, async ({ page }) => {
+    const posts = await open(page, { tier: AVAILABLE, assistStatus: status, assistBody: body });
+    await page.getByTestId("assistant-consent").check();
+    await page.getByTestId("assistant-run-button").click();
+    await expect(page.getByText(/The engine answered with an error|The analysis service is (busy|not available)/i).first()).toBeVisible();
+    await page.waitForTimeout(800); // an immediate retry would already have been sent
+    expect(posts.assist).toHaveLength(1);
+  });
+}
+
+for (const [name, status, body] of [["a bare 500", 500, { detail: "Internal Server Error" }], ["a coded 500 internal_error", 500, { error: "internal_error", detail: "an internal error occurred; try again later" }]] as const) {
+  test(`plain screening: ${name} still makes exactly two requests (one retry)`, async ({ page }) => {
+    const posts = await open(page, { tier: AVAILABLE, plainStatus: status, plainBody: body });
+    await page.getByRole("button", { name: "Screen these facts" }).click();
+    await expect(page.getByText("The engine answered with an error")).toBeVisible();
+    expect(posts.plain).toBe(2);
+    expect(posts.assist).toHaveLength(0);
+  });
+}
