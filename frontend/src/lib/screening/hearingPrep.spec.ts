@@ -21,6 +21,14 @@ function contract(id: string, supported: (i: number) => string, citations: Analy
     elements: els(id).map((e, i) => ({ element: e, is_denial: false, status: supported(i), claimed: true, p_established: 0.5, fact_id: null, quote: null })),
   } as unknown as AnalyseFactsContract;
 }
+/** A contract for which the screen's own all-supported line holds: PROOF, Lean PROOF, every ingredient established, a second-judge p on each. */
+function settledContract(id: string, citations: AnalyseFactsContract["citations"] = []): AnalyseFactsContract {
+  const c = contract(id, () => "established", citations) as unknown as { outcome: string; lean_outcome: string; elements: Record<string, unknown>[] };
+  c.outcome = "PROOF";
+  c.lean_outcome = "PROOF";
+  c.elements.forEach((e) => (e.p_established_second = 0.99));
+  return c as unknown as AnalyseFactsContract;
+}
 const result = (facts: readonly string[], contracts: AnalyseFactsContract[]): AnalyseFactsResult =>
   ({ run_id: "shape-fixture", judge: "fixture", score_sha256: "a".repeat(64), provenance: "fixture", facts: facts.map((t, i) => ({ id: `F${i + 1}`, text: t, sha256: "b".repeat(64) })), contracts }) as unknown as AnalyseFactsResult;
 
@@ -70,10 +78,11 @@ test("Karnataka (2 blocks): two titles, the second flagged as an alternate way, 
 });
 
 test("all supported: no open ingredient in any block, nothingOpen is true, the blocks and citations are still listed", () => {
-  const all = result(EX["karnataka-cheating-2025"].facts, [contract("ipc415_property", () => "established", PROV415)]);
+  const all = result(EX["karnataka-cheating-2025"].facts, [settledContract("ipc415_property", PROV415)]);
   const p = buildHearingPrep(all);
   assert.equal(p.nothingOpen, true);
-  assert.deepEqual(p.blocks.map((b) => b.open), [[]]);
+  assert.equal(p.status, "settled");
+  assert.deepEqual(p.blocks.map((b) => [b.state, b.open]), [["settled", []]]);
   assert.equal(p.citations.length, 1);
 });
 
@@ -116,12 +125,76 @@ test("deterministic and pure: the same result gives the same output, and the inp
   assert.equal(JSON.stringify(madras), frozen);
 });
 
-test("a malformed contract (no elements, no citations, null citations) does not throw", () => {
+test("a malformed contract (no elements, no citations, null citations) does not throw, and settles nothing", () => {
   const bad = result(["A fact."], [{ contract_id: "ipc415_property" } as unknown as AnalyseFactsContract, { contract_id: "ipc415_damaging_act", elements: [], citations: null } as unknown as AnalyseFactsContract]);
   const p = buildHearingPrep(bad);
   assert.equal(p.blocks.length, 2);
   assert.deepEqual(p.blocks.map((b) => b.open), [[], []]);
-  assert.equal(buildHearingPrep({ ...bad, contracts: undefined } as unknown as AnalyseFactsResult).blocks.length, 0);
+  assert.deepEqual(p.blocks.map((b) => b.state), ["unsettled", "unsettled"]);
+  assert.equal(p.status, "unsettled");
+  assert.equal(p.nothingOpen, false);
+});
+
+// R2 + R1 (15 Oct, #215): settled is the screen's own all-supported predicate. An empty list is not a settled block, a referred block is not settled, a block whose all-supported line the screen withholds is not settled, and a result with no blocks screened nothing.
+const referred = (id: string, reason: string, supported: (i: number) => string): AnalyseFactsContract => ({ ...contract(id, supported, PROV415), outcome: "REFER_TO_LAWYER", reason }) as unknown as AnalyseFactsContract;
+
+test("A: referred (contract not validated) with no element rows: unsettled, no checklist, nothingOpen false", () => {
+  const c = referred("ni138", "contract_not_validated", () => "established");
+  (c as unknown as { elements: unknown[] }).elements = [];
+  const p = buildHearingPrep(result(["A fact."], [c]));
+  assert.deepEqual([p.blocks[0].state, p.blocks[0].open], ["unsettled", []]);
+  assert.equal(p.status, "unsettled");
+  assert.equal(p.nothingOpen, false);
+});
+
+test("B: referred by a second check that did not confirm, three established: open list empty, still unsettled, nothingOpen false", () => {
+  const p = buildHearingPrep(result(["A fact."], [referred("ipc415_property", "second_judge_not_confirmed", () => "established")]));
+  assert.deepEqual([p.blocks[0].state, p.blocks[0].open], ["unsettled", []]);
+  assert.equal(p.status, "unsettled");
+  assert.equal(p.nothingOpen, false);
+});
+
+test("H: no contracts, or contracts missing: status nothingScreened, no blocks, nothingOpen false", () => {
+  for (const r of [result(["A fact."], []), { ...result(["A fact."], []), contracts: undefined } as unknown as AnalyseFactsResult]) {
+    const p = buildHearingPrep(r);
+    assert.deepEqual([p.blocks.length, p.status, p.nothingOpen], [0, "nothingScreened", false]);
+  }
+});
+
+test("all ingredients established but the screen withholds its all-supported line (ABSTAIN, Lean disagreement, no second-judge p, no Lean outcome): unsettled, never settled", () => {
+  const mutate = (f: (c: { outcome: string; lean_outcome: string | null; elements: Record<string, unknown>[] }) => void): AnalyseFactsContract => {
+    const c = settledContract("ipc415_property", PROV415) as unknown as { outcome: string; lean_outcome: string | null; elements: Record<string, unknown>[] };
+    f(c);
+    return c as unknown as AnalyseFactsContract;
+  };
+  const cases: Record<string, AnalyseFactsContract> = {
+    abstain: mutate((c) => (c.outcome = "ABSTAIN")),
+    leanDisagrees: mutate((c) => (c.lean_outcome = "OMISSION")),
+    noLean: mutate((c) => (c.lean_outcome = null)),
+    missingSecondP: mutate((c) => delete c.elements[1].p_established_second),
+    secondPNull: mutate((c) => (c.elements[0].p_established_second = null)),
+  };
+  for (const [name, c] of Object.entries(cases)) {
+    const p = buildHearingPrep(result(["A fact."], [c]));
+    assert.deepEqual([p.blocks[0].state, p.status, p.nothingOpen], ["unsettled", "unsettled", false], name);
+  }
+  assert.equal(buildHearingPrep(result(["A fact."], [settledContract("ipc415_property")])).status, "settled", "control: the unchanged contract is settled");
+  // a defence found keeps the screen's line withheld too
+  const withDefence = settledContract("ipc415_property") as unknown as { elements: Record<string, unknown>[] };
+  withDefence.elements.push({ element: "good faith", is_denial: true, status: "established", claimed: true, p_established: 0.9, fact_id: null, quote: null });
+  assert.equal(buildHearingPrep(result(["A fact."], [withDefence as unknown as AnalyseFactsContract])).blocks[0].state, "unsettled");
+});
+
+test("block state and result status: nothingOpen needs at least one block and EVERY block settled; open beats unsettled beats settled; an unsettled block carries no checklist even if some ingredient is open", () => {
+  const settled = settledContract("ipc415_property", PROV415);
+  const open = contract("ipc415_damaging_act", () => "not_confirmed", PROV415);
+  const unsettled = referred("ipc405_misappropriation", "uncertain", () => "established");
+  assert.equal(buildHearingPrep(result(["A fact."], [settled])).status, "settled");
+  assert.equal(buildHearingPrep(result(["A fact."], [settled, unsettled])).status, "unsettled");
+  assert.equal(buildHearingPrep(result(["A fact."], [settled, unsettled, open])).status, "open");
+  assert.equal(buildHearingPrep(result(["A fact."], [settled, open])).nothingOpen, false);
+  const referredOpen = buildHearingPrep(result(["A fact."], [referred("ipc415_damaging_act", "uncertain", () => "not_confirmed")]));
+  assert.deepEqual([referredOpen.blocks[0].state, referredOpen.blocks[0].open], ["unsettled", []]);
 });
 
 // R1 (15 Oct, #204): no internal token reaches a user-visible text. The output carries no contract id by design; this scans every string in it, and the module's own words.
@@ -146,6 +219,8 @@ test("the module's own words are pinned", () => {
     citationFromScreening: "Provision the screening applied",
     citationFromIntake: "Found in the text you pasted",
     allSupportedNote: "Nothing is open under any heading. This checklist is a screening aid: read the cited facts yourself before you rely on them.",
+    unsettledBlock: "The screening did not settle this part, so no checklist is given here. A lawyer should read the result for it.",
+    nothingScreened: "Nothing was screened, so there is no checklist to prepare.",
     checkLabel: "What to check",
     standingLine: "This is a screening aid, not legal advice. A lawyer decides.",
   });

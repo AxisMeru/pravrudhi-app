@@ -4,7 +4,7 @@
 // No contract id, reason code or engine status leaves this module: the output is display text only (hearingPrep.spec.ts scans it).
 import type { AnalyseFactsResult } from "../api";
 import { BANNER_STANDING_LINE, NO_CHECK_NOTE, WHAT_TO_CHECK_LABEL } from "./copy";
-import { rowsFor } from "./model";
+import { contractReferral, rowsFor, summarize } from "./model";
 import { memoBlockHeading } from "./memo";
 import { isAlternateLimb } from "./offences";
 
@@ -18,6 +18,9 @@ export const HEARING_PREP_STRINGS = {
   citationFromScreening: "Provision the screening applied",
   citationFromIntake: "Found in the text you pasted",
   allSupportedNote: "Nothing is open under any heading. This checklist is a screening aid: read the cited facts yourself before you rely on them.",
+  // R1's exact words (15 Oct, #215): a block the screening did not settle gets this sentence INSTEAD of a checklist; nothing screened gets the second.
+  unsettledBlock: "The screening did not settle this part, so no checklist is given here. A lawyer should read the result for it.",
+  nothingScreened: "Nothing was screened, so there is no checklist to prepare.",
   checkLabel: WHAT_TO_CHECK_LABEL,
   standingLine: BANNER_STANDING_LINE,
 } as const;
@@ -30,6 +33,13 @@ export interface OpenIngredient {
   whatToCheck: string;
 }
 
+/**
+ * open: it has ingredients, the engine did not refer it, and at least one ingredient is not supported (the checklist is given).
+ * settled: the screen's own all-supported line holds for it (model.ts summarize().allSupported: the ONE predicate, imported, not copied).
+ * unsettled: referred to a lawyer, no ingredient rows, or all ingredients supported but the screen withholds its all-supported line (ABSTAIN, Lean disagreement, a missing second-judge p): no checklist, `open` is empty and the app shows unsettledBlock.
+ */
+export type BlockState = "open" | "settled" | "unsettled";
+
 export interface HearingPrepBlock {
   /** Position in the result (1-based): a stable list key. Never a contract id. */
   index: number;
@@ -38,6 +48,7 @@ export interface HearingPrepBlock {
   /** True for the second or later way of an offence that has a title of its own, as on the screen (the app adds its signed alternate-way note). */
   alternateWay: boolean;
   open: OpenIngredient[];
+  state: BlockState;
 }
 
 export type CitationSource = "screening" | "intake";
@@ -47,10 +58,14 @@ export interface HearingPrepCitation {
   source: CitationSource;
 }
 
+/** nothingScreened: the result has no blocks. open: some block has an open ingredient. unsettled: none is open but some block is unsettled. settled: at least one block and every block settled. */
+export type HearingPrepStatus = "nothingScreened" | "open" | "unsettled" | "settled";
+
 export interface HearingPrep {
   blocks: HearingPrepBlock[];
   citations: HearingPrepCitation[];
-  /** True when no block has an open ingredient. */
+  status: HearingPrepStatus;
+  /** True ONLY for status "settled": an empty list of blocks or a referred block never reads as nothing open. */
   nothingOpen: boolean;
 }
 
@@ -82,15 +97,19 @@ export function buildHearingPrep(result: AnalyseFactsResult, intakeCitations: re
     }
   };
   (result.contracts ?? []).forEach((c, i) => {
-    const open = rowsFor(c, result.facts ?? []).ingredients
-      .filter((r) => r.chip !== "supported")
-      .map((r) => ({ ingredient: r.element, whatToCheck: r.whatToCheck ?? NO_CHECK_NOTE }));
-    blocks.push({ index: i + 1, title: memoBlockHeading(c.contract_id), alternateWay: isAlternateLimb(c.contract_id), open });
+    const all = rowsFor(c, result.facts ?? []);
+    const rows = all.ingredients;
+    const open = rows.filter((r) => r.chip !== "supported").map((r) => ({ ingredient: r.element, whatToCheck: r.whatToCheck ?? NO_CHECK_NOTE }));
+    const state: BlockState =
+      contractReferral(c) !== null || rows.length === 0 ? "unsettled" : open.length > 0 ? "open" : summarize(c, all).allSupported ? "settled" : "unsettled";
+    blocks.push({ index: i + 1, title: memoBlockHeading(c.contract_id), alternateWay: isAlternateLimb(c.contract_id), open: state === "open" ? open : [], state });
     for (const p of c.citations ?? []) {
       const t = provisionText(p);
       if (t) add(t, "screening");
     }
   });
   for (const ic of intakeCitations) if (typeof ic?.text === "string") add(ic.text, "intake");
-  return { blocks, citations, nothingOpen: blocks.every((b) => b.open.length === 0) };
+  const status: HearingPrepStatus =
+    blocks.length === 0 ? "nothingScreened" : blocks.some((b) => b.state === "open") ? "open" : blocks.some((b) => b.state === "unsettled") ? "unsettled" : "settled";
+  return { blocks, citations, status, nothingOpen: status === "settled" };
 }
