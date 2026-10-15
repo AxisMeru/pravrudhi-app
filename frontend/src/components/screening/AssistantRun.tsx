@@ -44,7 +44,7 @@ export function AssistantRun({
         <input type="checkbox" className="mt-1" checked={usable && consent} disabled={!usable || busy} onChange={(e) => onConsent(e.target.checked)} data-testid="assistant-consent" />
         <span data-testid="assistant-consent-line">{assistantConsentLine(provider)}</span>
       </label>
-      <Link href="/data-handling#dh-assistant" className="w-fit text-xs text-[var(--color-accent)] underline" data-testid="assistant-data-link">
+      <Link href="/data-handling#dh-assistant" className="inline-flex min-h-6 w-fit items-center text-xs text-[var(--color-accent)] underline" data-testid="assistant-data-link">
         {ASSISTANT_DATA_LINK_TEXT}
       </Link>
       <button

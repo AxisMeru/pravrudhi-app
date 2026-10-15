@@ -7,9 +7,9 @@ test("system: with no stored choice the page follows the operating system, in bo
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/guide");
   expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBeNull();
-  expect(await bg(page)).toBe("rgb(247, 246, 242)");
+  expect(await bg(page)).toBe("rgb(246, 244, 239)");
   await page.emulateMedia({ colorScheme: "dark" });
-  expect(await bg(page)).toBe("rgb(15, 17, 20)");
+  expect(await bg(page)).toBe("rgb(14, 22, 34)");
 });
 
 test("an explicit choice wins over the system, is stored, and is applied before hydration on the next load", async ({ page }) => {
@@ -18,7 +18,7 @@ test("an explicit choice wins over the system, is stored, and is applied before 
   await page.getByTestId("theme-light").click();
   expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBe("light");
   expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBe("light");
-  expect(await bg(page)).toBe("rgb(247, 246, 242)");
+  expect(await bg(page)).toBe("rgb(246, 244, 239)");
   await page.addInitScript(() => {
     document.addEventListener("DOMContentLoaded", () => { (window as unknown as { __themeAtDcl?: string | null }).__themeAtDcl = document.documentElement.getAttribute("data-theme"); });
   });
@@ -31,12 +31,12 @@ test("System clears the stored choice and the attribute; Dark sets it", async ({
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/guide");
   await page.getByTestId("theme-dark").click();
-  expect(await bg(page)).toBe("rgb(15, 17, 20)");
+  expect(await bg(page)).toBe("rgb(14, 22, 34)");
   expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBe("dark");
   await page.getByTestId("theme-system").click();
   expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBeNull();
   expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBeNull();
-  expect(await bg(page)).toBe("rgb(247, 246, 242)");
+  expect(await bg(page)).toBe("rgb(246, 244, 239)");
 });
 
 test("the filled accent button is readable in both themes (text colour is on-accent, not white on mint)", async ({ page }) => {

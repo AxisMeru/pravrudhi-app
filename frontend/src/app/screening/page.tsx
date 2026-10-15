@@ -332,7 +332,7 @@ export default function ScreeningPage() {
               accept=".txt,.pdf,.docx"
               aria-label="Load facts from a file"
               data-testid="facts-file"
-              className="text-sm max-md:min-h-11"
+              className="min-h-6 text-sm max-md:min-h-11"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";

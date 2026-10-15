@@ -31,8 +31,8 @@ test("globals.css defines at least the dark theme and a light theme, with differ
   const surfaces = new Set(Object.values(THEMES).map((t) => t.surface.toLowerCase()));
   assert.ok(Object.keys(THEMES).length >= 3, `found ${Object.keys(THEMES).length} theme blocks`);
   assert.ok(surfaces.size >= 2, "dark and light surfaces must differ");
-  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#0f1114"), "the dark theme block is present");
-  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#f7f6f2"), "the light theme block is present");
+  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#0e1622"), "the dark theme block is present");
+  assert.ok(Object.values(THEMES).some((t) => t.bg.toLowerCase() === "#f6f4ef"), "the light theme block is present");
 });
 
 test("each status chip's text on its own derived fill meets AA in every theme block", () => {
