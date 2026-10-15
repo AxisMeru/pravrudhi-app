@@ -6,15 +6,15 @@ import { CHIP_TONE, SummaryBanner } from "./SummaryBanner";
 
 function Row({ row }: { row: ScreeningRow }) {
   return (
-    <li className="space-y-2 rounded-md border border-[var(--color-border)] p-3" data-testid="ingredient-row" data-chip={row.chip}>
+    <li className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="ingredient-row" data-chip={row.chip}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <p className="text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
-        <span className={`inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 text-[11px] font-normal ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
+        <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[13px] font-semibold ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
           {CHIP_LABEL[row.chip]}
         </span>
       </div>
       {row.reason && (
-        <p className="text-xs text-[var(--color-text-dim)]" data-testid="ingredient-reason">
+        <p className="text-sm text-[var(--color-text-dim)]" data-testid="ingredient-reason">
           {row.reason}
         </p>
       )}
@@ -35,8 +35,8 @@ function Row({ row }: { row: ScreeningRow }) {
           {row.quote.check && <span className="ml-1.5 text-[11px] not-italic text-[var(--color-text-dim)]">{row.quote.check}</span>}
         </p>
       )}
-      <p className="border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-text-dim)]" data-testid="what-to-check">
-        <span className="font-medium text-[var(--color-text-dim)]">{WHAT_TO_CHECK_LABEL}: </span>
+      <p className="border-t border-[var(--color-border)] pt-2 text-sm text-[var(--color-text-dim)]" data-testid="what-to-check">
+        <span className="font-semibold text-[var(--color-text)]">{WHAT_TO_CHECK_LABEL}: </span>
         {row.whatToCheck ?? NO_CHECK_NOTE}
       </p>
     </li>
@@ -51,7 +51,7 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
   return (
     <section className="space-y-3" data-testid="checklist" aria-label={`Ingredients: ${blockTitle(contract.contract_id)}`}>
       <header>
-        <h2 className="text-base font-semibold text-[var(--color-text)]">{blockTitle(contract.contract_id)}</h2>
+        <h2 className="font-serif text-lg font-semibold text-[var(--color-text)]">{blockTitle(contract.contract_id)}</h2>
         {/* #206 R9: a way's title already ends in the sections, and an offence shown by its reference has none: the line appears only when it adds something. */}
         {offence?.sections && !blockTitle(contract.contract_id).includes(offence.sections) && (
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="offence-sections">{offence.sections}</p>
