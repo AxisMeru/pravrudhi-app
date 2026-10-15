@@ -11,19 +11,19 @@ import { buildScreeningMemo, buildScreeningMemoDocx } from "./screening/memo";
 
 const ab = (u: Uint8Array): ArrayBuffer => u.buffer.slice(u.byteOffset, u.byteOffset + u.byteLength) as ArrayBuffer;
 const text = async (u: Uint8Array): Promise<string> => (await mammoth.extractRawText({ buffer: Buffer.from(u) })).value;
-/** The visible text of one memo markdown line (markup removed; bullets are drawn with a bullet character in Word). */
+/** The visible text of one memo markdown line (markup removed; bullets are real Word list numbering, so the raw text carries no bullet character). */
 const plain = (md: string): string[] =>
-  md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "◦ ").replace(/^- /, "• ").replace(/\*\*/g, ""));
+  md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "").replace(/^- /, "").replace(/\*\*/g, ""));
 
 test("crc32 matches the standard check value", () => {
   assert.equal(crc32(new TextEncoder().encode("123456789")), 0xcbf43926);
 });
 
-test("the .docx is a readable archive by the app's own checks, with exactly the three parts, and the same input gives the same bytes", async () => {
+test("the .docx is a readable archive by the app's own checks, with exactly its eight parts, and the same input gives the same bytes", async () => {
   const bytes = buildDocx("# Title\n\n- **A**: b\n");
   checkDocxArchive(ab(bytes));
   await verifyDocxInflation(ab(bytes));
-  assert.deepEqual(readEntries(ab(bytes)).map((e) => e.name), ["[Content_Types].xml", "_rels/.rels", "word/document.xml"]);
+  assert.deepEqual(readEntries(ab(bytes)).map((e) => e.name), ["[Content_Types].xml", "_rels/.rels", "word/document.xml", "word/_rels/document.xml.rels", "word/styles.xml", "word/numbering.xml", "docProps/core.xml", "docProps/app.xml"]);
   assert.deepEqual(buildDocx("# Title\n\n- **A**: b\n"), bytes);
   assert.notDeepEqual(buildDocx("# Other\n"), bytes);
 });
@@ -31,7 +31,7 @@ test("the .docx is a readable archive by the app's own checks, with exactly the 
 test("Word reads it back: headings, quotes, bullets and bold text, with markup characters and control characters handled", async () => {
   const md = ["# Screening memo", "", "> A quote & a <tag> \"x\" 'y'", "", "- **Supported by a fact**: the ingredient", "  - F1: a fact with \u0001 a control character", "**Label** end"].join("\n");
   const back = (await text(buildDocx(md))).split("\n").filter((l) => l.trim());
-  assert.deepEqual(back, ["Screening memo", "A quote & a <tag> \"x\" 'y'", "• Supported by a fact: the ingredient", "◦ F1: a fact with  a control character", "Label end"]);
+  assert.deepEqual(back, ["Screening memo", "A quote & a <tag> \"x\" 'y'", "Supported by a fact: the ingredient", "F1: a fact with  a control character", "Label end"]);
 });
 
 test("blank lines make no paragraph; an unknown line is plain text", () => {
@@ -79,7 +79,34 @@ test("a fact's own asterisks reach the Word memo exactly as in the .md memo; onl
   const md = buildScreeningMemo(RESULT_WITH_STARS, OPTS);
   const docx = buildScreeningMemoDocx(RESULT_WITH_STARS, OPTS);
   const back = (await text(docx)).split("\n").filter((l) => l.trim());
-  const intended = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "\u25e6 ").replace(/^(- )?\*\*([^*]+)\*\*/, (_m, b: string | undefined, label: string) => `${b ? "\u2022 " : ""}${label}`).replace(/^- /, "\u2022 "));
+  const intended = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "").replace(/^(- )?\*\*([^*]+)\*\*/, (_m, b: string | undefined, label: string) => `${label}`).replace(/^- /, ""));
   assert.deepEqual(back, intended);
   for (const s of ["Mr. *** told ***", "a ** b", "the **price**"]) assert.ok(back.some((l) => l.includes(s)), s);
+});
+
+// R4 (explorer result review, 15 Oct): a navigable, accessible Word file: heading styles, real list numbering, a document language and title, and the styles/properties parts.
+test("the .docx has heading styles, real bullets, en-IN as the document language and a title", () => {
+  const bytes = buildDocx("# Screening memo\n\n## Offence\n\n### Ingredients\n\n> a quote\n\n- **A**: b\n  - c\n\nplain\n");
+  // the writer stores every part uncompressed: read the local headers in order
+  const parts: Record<string, string> = {};
+  const buf = Buffer.from(bytes);
+  for (let at = 0; at + 30 < buf.length && buf.readUInt32LE(at) === 0x04034b50; ) {
+    const size = buf.readUInt32LE(at + 18), nlen = buf.readUInt16LE(at + 26), xlen = buf.readUInt16LE(at + 28);
+    const start = at + 30 + nlen + xlen;
+    parts[buf.subarray(at + 30, at + 30 + nlen).toString("utf8")] = buf.subarray(start, start + size).toString("utf8");
+    at = start + size;
+  }
+  const doc = parts["word/document.xml"];
+  assert.match(doc, /<w:pStyle w:val="Heading1"\/>/);
+  assert.match(doc, /<w:pStyle w:val="Heading2"\/>/);
+  assert.match(doc, /<w:pStyle w:val="Heading3"\/>/);
+  assert.match(doc, /<w:pStyle w:val="Quote"\/>/);
+  assert.equal((doc.match(/<w:numPr><w:ilvl w:val="0"\/><w:numId w:val="1"\/><\/w:numPr>/g) ?? []).length, 1, "one top-level list item");
+  assert.equal((doc.match(/<w:numPr><w:ilvl w:val="1"\/><w:numId w:val="1"\/><\/w:numPr>/g) ?? []).length, 1, "one second-level list item");
+  assert.doesNotMatch(doc, /\u2022|\u25e6/, "no typed bullet characters");
+  assert.match(parts["word/styles.xml"], /w:styleId="Heading1"/);
+  assert.match(parts["word/styles.xml"], /<w:lang w:val="en-IN"/);
+  assert.match(parts["word/numbering.xml"], /<w:numFmt w:val="bullet"\/>/);
+  assert.match(parts["docProps/core.xml"], /<dc:title>Screening memo<\/dc:title>/);
+  assert.match(parts["docProps/core.xml"], /<dc:language>en-IN<\/dc:language>/);
 });

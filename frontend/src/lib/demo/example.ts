@@ -75,3 +75,22 @@ export function initialFactsFor(search: string): string[] {
   const found = exampleById(new URLSearchParams(search).get("example"));
   return found === null ? [""] : [...found.facts];
 }
+
+const clean = (t: string): string => t.replace(/\s*\n\s*/g, " ").trim();
+
+/**
+ * True only while the facts on the page are the loaded example's facts, unchanged: the same facts, in the same order, word for word (blank boxes and line breaks inside a fact are not changes, the
+ * same cleaning the page applies before it sends the facts). The example label and the order's citation, and R1's example consent sentence, are shown ONLY while this is true: once a fact is typed,
+ * edited, added, removed or pasted over, the facts are the user's own and a court's name must not sit above them (R2, #216).
+ */
+export function isUnchangedExample(facts: readonly string[], example: DemoExample | null): boolean {
+  if (example === null) return false;
+  const mine = facts.map(clean).filter((t) => t !== "");
+  const theirs = example.facts.map(clean).filter((t) => t !== "");
+  return mine.length === theirs.length && mine.every((t, i) => t === theirs[i]);
+}
+
+/** The example label and citation a memo carries: only for a run whose facts are the example's, unchanged. */
+export function memoExample(facts: readonly string[], example: DemoExample | null): { label: string; citation: string } | null {
+  return example !== null && isUnchangedExample(facts, example) ? { label: example.label, citation: example.citation } : null;
+}
