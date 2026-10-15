@@ -53,3 +53,11 @@ test("zero false proofs with zero coverage is detected (never read alone); 0 fal
   assert.equal(zeroWithZero(parseRow(ROW({ metrics: [metric("false_proof", "ALL", 0, 64, 0, 0.056), metric("coverage", "ALL", 5, 30, 0.056, 0.347)] }))!, "ALL"), false);
   assert.equal(zeroWithZero(parseRow(ROW())!, "NI138"), false);
 });
+
+test("the errors line uses the counts, not the file's agree flag", async () => {
+  const { errorLineFor } = await import("./nyayasiddhiRows");
+  const r = parseRow(ROW({ n_error: 3, error_sensitivity: { "false_proof|ALL": { k_as_proof: 2, k_as_not_proof: 0, n: 40, agree: true } } }))!;
+  assert.deepEqual(errorLineFor(r, "ALL"), { e: 3, k: 2, n: 40 });
+  const same = parseRow(ROW({ n_error: 3, error_sensitivity: { "false_proof|ALL": { k_as_proof: 2, k_as_not_proof: 2, n: 40, agree: false } } }))!;
+  assert.equal(errorLineFor(same, "ALL"), null);
+});

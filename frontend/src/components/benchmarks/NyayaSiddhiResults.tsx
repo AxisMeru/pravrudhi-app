@@ -26,7 +26,7 @@ export function Figure({ m, measure, s }: { m: Metric | null; measure: Measure; 
 
 function Radio({ name, value, checked, onChange, label }: { name: string; value: string; checked: boolean; onChange: () => void; label: string }) {
   return (
-    <label className={`inline-flex min-h-6 cursor-pointer items-center gap-2 rounded-md border px-3 py-1 text-sm max-md:min-h-11 ${checked ? "border-[var(--color-accent)] text-[var(--color-text)]" : "border-[var(--color-border)] text-[var(--color-text-dim)]"}`}>
+    <label className={`inline-flex min-h-6 cursor-pointer items-center gap-2 rounded-md border px-3 py-1 text-sm focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-accent)] max-md:min-h-11 ${checked ? "border-[var(--color-accent)] text-[var(--color-text)]" : "border-[var(--color-border)] text-[var(--color-text-dim)]"}`}>
       <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="sr-only" />
       {label}
     </label>

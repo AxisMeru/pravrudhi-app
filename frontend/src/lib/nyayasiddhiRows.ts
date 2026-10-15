@@ -119,7 +119,7 @@ export function zeroWithZero(row: ResultRow, group: string): boolean {
 export function errorLineFor(row: ResultRow, group: string): { e: number; k: number; n: number } | null {
   if (row.nError <= 0) return null;
   const x = row.errorSensitivity[`false_proof|${group}`];
-  if (!x || x.agree) return null;
+  if (!x || x.kAsProof === x.kAsNotProof) return null; // recomputed from the counts, not trusted from the file's `agree`
   return { e: row.nError, k: x.kAsProof, n: x.n };
 }
 

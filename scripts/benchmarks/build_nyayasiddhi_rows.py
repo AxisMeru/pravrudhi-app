@@ -53,6 +53,7 @@ def check_sensitivity(r, sens, line_label):
         if m is None: errs.append(f"{line_label}: sensitivity key {key!r} has no metric in the row"); continue
         if v.get('n') != m['n'] or v.get('k_as_not_proof') != m['k']: errs.append(f"{line_label}: {key}: sensitivity n/k_as_not_proof {v.get('n')}/{v.get('k_as_not_proof')} != row {m['n']}/{m['k']}")
         if not isinstance(v.get('k_as_proof'), int) or not isinstance(v.get('agree'), bool): errs.append(f"{line_label}: {key}: k_as_proof/agree")
+        elif v['agree'] != (v['k_as_proof'] == v['k_as_not_proof']): errs.append(f"{line_label}: {key}: agree {v['agree']!r} is not recomputed from k_as_proof {v['k_as_proof']} and k_as_not_proof {v['k_as_not_proof']}")
     return errs
 
 def build(rows_path, kinds_path, sens_paths=None):
@@ -69,6 +70,9 @@ def build(rows_path, kinds_path, sens_paths=None):
         errs += e
         if not e:
             if r.get("organiser_entry") is True: r = dict(r, entry_kind=kinds[r["row_id"]])
+            if r.get("n_error", 0) > 0 and r["row_id"] not in sens_all:
+                errs.append(f"line {i} ({r['row_id']}): n_error {r['n_error']} > 0 needs an error-sensitivity file (--sensitivity ROW_ID=file); the page must not print a bare count")
+                continue
             if r["row_id"] in sens_all:
                 es = check_sensitivity(r, sens_all[r["row_id"]], f"line {i} ({r['row_id']})")
                 errs += es

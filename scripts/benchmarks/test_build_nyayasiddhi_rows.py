@@ -44,5 +44,14 @@ class T(unittest.TestCase):
         for bad in ({"n_error": 2, "metrics": good["metrics"]}, {"n_error": 1, "metrics": {"false_proof|ALL": dict(good["metrics"]["false_proof|ALL"], k_as_not_proof=3)}}, {"n_error": 1, "metrics": {"false_proof|NI138": good["metrics"]["false_proof|ALL"]}}):
             self.assertTrue(run([r], {"invented-1": "product"}, {"invented-1": bad})[1])
         self.assertTrue(any("not in the file" in e for e in run([r], {"invented-1": "product"}, {"ghost": good})[1]))
+    def test_a_row_with_errors_and_no_sensitivity_fails_closed(self):
+        r = row(n_error=3, error_mapping="error_counted_as_not_proof")
+        self.assertTrue(any("needs an error-sensitivity file" in e for e in run([r], {"invented-1": "product"})[1]))
+        self.assertEqual(run([row(n_error=0)], {"invented-1": "product"})[1], [])
+    def test_agree_is_recomputed_not_trusted(self):
+        r = row(n_error=1, error_mapping="error_counted_as_not_proof")
+        lie = {"n_error": 1, "metrics": {"false_proof|ALL": {"k_as_proof": 2, "k_as_not_proof": 2, "n": 40, "agree": False}}}  # equal counts must read agree true
+        lie2 = {"n_error": 1, "metrics": {"false_proof|ALL": {"k_as_proof": 3, "k_as_not_proof": 2, "n": 40, "agree": True}}}  # different counts must read agree false
+        for bad in (lie, lie2): self.assertTrue(any("not recomputed" in e for e in run([r], {"invented-1": "product"}, {"invented-1": bad})[1]))
 if __name__ == "__main__":
     unittest.main()

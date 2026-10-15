@@ -89,3 +89,22 @@ test("the NyayaSiddhi results work at phone width: no horizontal scroll and the 
   expect(sw).toBeLessThanOrEqual(iw);
   for (const l of await page.getByTestId("ns-groups").locator("label").all()) expect((await l.boundingBox())!.height).toBeGreaterThanOrEqual(44);
 });
+
+// WCAG 2.4.7: the unit and group choosers are radios hidden from view (sr-only inputs in labels): keyboard focus must show on the label.
+test("the NyayaSiddhi choosers show keyboard focus: tabbing to a radio draws an outline on its label", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const box = page.getByTestId("nyayasiddhi-results");
+  await expect(box).toBeVisible();
+  await box.getByTestId("ns-units").locator("input").focus();
+  let o = await box.getByTestId("ns-units").locator("label").first().evaluate((l) => ({ style: getComputedStyle(l).outlineStyle, width: getComputedStyle(l).outlineWidth }));
+  expect(o).toEqual({ style: "solid", width: "2px" });
+  // by keyboard: tab from the unit radio to the group radio group, and the focused label is outlined
+  await page.keyboard.press("Tab");
+  const focusedLabel = page.locator("label:focus-within");
+  await expect(focusedLabel).toHaveCount(1);
+  o = await focusedLabel.evaluate((l) => ({ style: getComputedStyle(l).outlineStyle, width: getComputedStyle(l).outlineWidth }));
+  expect(o).toEqual({ style: "solid", width: "2px" });
+  expect(await focusedLabel.evaluate((l) => !!l.closest('[data-testid="ns-groups"]'))).toBe(true);
+  // an unfocused label has no outline
+  await expect(box.getByTestId("ns-units").locator("label").first()).toHaveCSS("outline-style", "none");
+});
