@@ -8,6 +8,7 @@ import { expect, test } from "./support/engineTest";
 import { InvalidEngineAnswerError, decideResultOnly, withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
 import { CHIP_LABEL } from "../src/lib/screening/copy";
+import { memoBlockHeading } from "../src/lib/screening/memo";
 import { knownElements, rowsFor, summarize } from "../src/lib/screening/model";
 import { OFFENCES } from "../src/lib/screening/offences";
 import { INVALID_ENGINE_ANSWER_TEXT } from "../src/lib/surfaceCopy";
@@ -142,7 +143,7 @@ for (const fixture of FIXTURES) {
         expect(memo, "the memo does not carry the run id").toContain(result.run_id);
         expect(memo, "the memo does not carry the score sha256").toContain(result.score_sha256);
         for (const c of result.contracts) {
-          expect(memo, `the memo has no section for ${c.contract_id}`).toContain(`Contract: ${c.contract_id}`);
+          expect(memo, `the memo has no section for ${c.contract_id}`).toContain(`## ${memoBlockHeading(c.contract_id)}`);
           expect(memo, `the memo lacks ${c.contract_id}'s summary line`).toContain(summarize(c, rowsFor(c, result.facts)).text);
         }
 

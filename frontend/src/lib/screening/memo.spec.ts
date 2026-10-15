@@ -57,7 +57,9 @@ test("the memo heading of each way equals the screen's block title; the alternat
 // R1, 15 Oct (#204): no internal token reaches the user's memo in either format: no REFER_TO_LAWYER, no contract id, no reason code. The Word file is built from the same lines, and its text is read back from the zip.
 test("the screening memo (.md and .docx text) carries no internal token: REFER_TO_LAWYER, contract ids, reason codes", async () => {
   const { OFFENCES } = await import("./offences");
-  const ids = OFFENCES.flatMap((o) => [...o.contracts]);
+  // R2 (#210): ids the app's OFFENCES table does not know must not reach the memo as a heading either (a contract in the engine's registry but not offered here, a future id, a lookalike).
+  const UNKNOWN = ["bns316_misappropriation", "ipc999_future_offence", "ni138_cheque_dishonour"];
+  const ids = [...OFFENCES.flatMap((o) => [...o.contracts]), ...UNKNOWN];
   const one = (id: string, reason: string) => ({ ...(RESULT.contracts[0] as object), contract_id: id, outcome: "REFER_TO_LAWYER", reason });
   const r = { ...RESULT, contracts: ids.map((id, i) => one(id, ["second_judge_not_confirmed", "uncertain", "missing_element"][i % 3])) } as unknown as AnalyseFactsResult;
   const o = { engineVersion: "0.6.3", generatedAt: "2026-10-14T00:00:00Z" };
@@ -76,6 +78,8 @@ test("the screening memo (.md and .docx text) carries no internal token: REFER_T
   }
   const TOKENS = /REFER_TO_LAWYER|\bipc\d+_|\bbns\d+_|\bni\d+|reason code|second_judge_not_confirmed|missing_element/i;
   assert.doesNotMatch(md, TOKENS);
+  for (const id of UNKNOWN) assert.ok(!md.includes(id), `${id} reached the memo`);
+  assert.equal(md.split("\n").filter((l) => l === "## Offence").length, UNKNOWN.length, "each unknown contract is headed by the neutral 'Offence'");
   for (const t of parts) assert.doesNotMatch(t, TOKENS);
   assert.ok(parts.some((t) => t.includes("A lawyer decides")), "the docx carries the new disclaimer");
   assert.match(md, /^> This memo is a screening aid, not legal advice\. A lawyer decides\./m);
