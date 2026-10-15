@@ -154,11 +154,6 @@ export default function CitationsPage() {
                 )}
               </div>
             )}
-            {!view.known && (
-              <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-unknown">
-                The engine sent a status this build does not know; it is shown as sent.
-              </p>
-            )}
             {view.note && (
               <p className="text-sm text-[var(--color-text)]" data-testid="citation-note">
                 {view.note}

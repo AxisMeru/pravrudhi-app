@@ -8,7 +8,6 @@ import { useSignedIn } from "@/components/useAssistantTier";
 import { FactSelector } from "@/components/FactSelector";
 import { PageHeader } from "@/components/PageHeader";
 import { postIntake } from "@/lib/api";
-import { caseNameNote } from "@/lib/citationCheck";
 import { intakeErrorLine } from "@/lib/intakeErrors";
 import { chosenFacts, initialSelection } from "@/lib/factSelection";
 import { setHandoff, setHandoffCitations } from "@/lib/handoff";
@@ -18,6 +17,7 @@ import {
   INTAKE_RAW_FALLBACK,
   INTAKE_SIGNED_IN_ONLY,
   INTAKE_SERVED_RAW,
+  citationExtra,
   citationLine,
   parseIntake,
   type IntakeView,
@@ -125,7 +125,7 @@ export default function IntakePage() {
                     <li key={i} className="rounded-md border border-[var(--color-border)] p-2">
                       <span className="text-[var(--color-text)]">{c.text}</span>
                       <span className="mt-1 block text-xs text-[var(--color-text-dim)]" data-testid="citation-line">{citationLine(c.verifierStatus)}</span>
-                      {caseNameNote(c.verifierStatus, c.text, true) && <span className="mt-1 block text-xs text-[var(--color-text-dim)]" data-testid="citation-name-note">{caseNameNote(c.verifierStatus, c.text, true)}</span>}
+                      {citationExtra(c) && <span className="mt-1 block text-xs text-[var(--color-text-dim)]" data-testid="citation-name-note">{citationExtra(c)}</span>}
                     </li>
                   ))}
                 </ul>

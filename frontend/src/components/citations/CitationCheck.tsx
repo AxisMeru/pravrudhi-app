@@ -25,11 +25,6 @@ export function CitationCheckResult({ state, announce = true }: { state: Citatio
             {state.view.product.label}
           </p>
         )}
-        {!state.view.known && (
-          <p className="text-[var(--color-text-dim)]" data-testid="citation-check-unknown">
-            The engine sent a status this build does not know; it is shown as sent.
-          </p>
-        )}
         {state.view.note && (
           <p className="text-[var(--color-text)]" data-testid="citation-check-note">
             {state.view.note}

@@ -204,7 +204,7 @@ test("each citation status has its own line: CONFLICT and MALFORMED are not show
   await page.getByLabel("Paste the text").fill("Invented text.\n\nMore invented text.");
   await page.getByTestId("intake-run").click();
   await expect(page.getByTestId("citation-line")).toHaveText([
-    "Could not match one case", "Not looked up", "Found in our index", "Not found in our index: this does not show whether the citation is real", "Not checked.",
+    "Could not match one case", "Not looked up", "Found in our index", "Not found in our index: this does not show whether the citation is real", "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.",
   ]);
 });
 
@@ -223,4 +223,25 @@ test("#509 Intake: a found citation with a case name gets R1's sentence under it
   await expect(page.getByTestId("citation-name-note")).toHaveCount(1);
   await expect(page.getByTestId("citation-name-note")).toHaveText("Only the citation was looked up; the case name you typed was not compared with the index.");
   await expect(page.locator("li").filter({ hasText: "Hridaya Ranjan" }).getByTestId("citation-name-note")).toHaveCount(1);
+});
+
+// pravrudhi#509 NAME_MISMATCH (R1, 16 Oct): Intake's citation line.
+test("#509 Intake: a mismatch reads R1's heading and note; matched drops the not-compared sentence; absent keeps it; an unknown status is neutral, not Not checked.", async ({ page }) => {
+  const named = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
+  const answer = { ...ANSWER, bundle: { ...ANSWER.bundle, citations: [
+    { text: named, verifier_status: "NAME_MISMATCH", name_compared: true, fact_ids: ["F1"] },
+    { text: named, verifier_status: "IN_INDEX", name_compared: true, fact_ids: ["F1"] },
+    { text: named, verifier_status: "IN_INDEX", fact_ids: ["F1"] },
+    { text: "Invented v. Sample (2000) 1 SCC 1", verifier_status: "BRAND_NEW", fact_ids: ["F1"] },
+  ] } };
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ json: answer }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented text.\n\nMore invented text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("citation-line")).toHaveText(["Case name did not match", "Found in our index", "Found in our index", "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand."]);
+  await expect(page.getByTestId("citation-name-note")).toHaveText([
+    "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.",
+    "Only the citation was looked up; the case name you typed was not compared with the index.",
+  ]);
+  await expect(page.locator("body")).not.toContainText(/NAME_MISMATCH|BRAND_NEW/);
 });
