@@ -39,13 +39,12 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
     // R1 (15 Oct): a way of a multi-way offence carries the same title as on the screen (and the same alternate-way note under it), so the blocks of one offence do not read alike.
     const wayTitle = CONTRACT_BLOCK_TITLES[c.contract_id];
     out.push(`## ${wayTitle ?? (off ? offenceLabel(off) : c.contract_id)}`, "");
-    if (wayTitle && isAlternateLimb(c.contract_id)) out.push(ALTERNATE_LIMB_NOTE, "");
-    out.push(`Contract: ${c.contract_id}`, "");
+    if (wayTitle && isAlternateLimb(c.contract_id)) out.push(ALTERNATE_LIMB_NOTE, ""); // R1 (15 Oct): no "Contract: <id>" line; the id stays in the run record
     if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
     // The banner sentence never appears without the standing line directly under it (R1).
     out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
     const ref = contractReferral(c);
-    if (ref) out.push(`Needs your review: ${line(ref.message)}${(ref.code ?? "").trim() ? ` (Engine reason code: ${ref.code})` : ""}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
+    if (ref) out.push(`Needs your review: ${line(ref.message)}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
     out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
     if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_PROMPT_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;

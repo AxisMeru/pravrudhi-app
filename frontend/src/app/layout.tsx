@@ -30,13 +30,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:rounded-md focus:bg-[var(--color-surface)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--color-text)]">Skip to main content</a>
-        <div className="flex h-screen">
+        <div className="flex h-screen print:block print:h-auto">
           <Sidebar />
           {/* Room for the drawer toggle, which is fixed at top-left below `md` and would otherwise sit on top
               of the first line of every page. */}
-          <div className="flex min-w-0 flex-1 flex-col pt-14 md:pt-0">
-            <ConnectionBanner />
-            <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto">
+          <div className="flex min-w-0 flex-1 flex-col pt-14 md:pt-0 print:block print:pt-0">
+            <div className="print:hidden">
+              <ConnectionBanner />
+            </div>
+            <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto print:overflow-visible">
               <EditionGate>{children}</EditionGate>
             </main>
           </div>

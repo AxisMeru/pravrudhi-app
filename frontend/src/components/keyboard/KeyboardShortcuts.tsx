@@ -73,7 +73,7 @@ export function KeyboardShortcuts() {
           onClick={openHelp}
           aria-label="Show keyboard shortcuts"
           title="Keyboard shortcuts (?)"
-          className="fixed bottom-4 right-4 z-40 hidden items-center gap-1.5 md:flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-text-dim)] shadow-lg transition-colors hover:text-[var(--color-text)]"
+          className="fixed bottom-4 right-4 z-40 hidden items-center gap-1.5 md:flex print:hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[11px] text-[var(--color-text-dim)] shadow-lg transition-colors hover:text-[var(--color-text)]"
         >
           <Command size={12} />
           Shortcuts
