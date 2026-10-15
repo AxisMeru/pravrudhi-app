@@ -7,15 +7,16 @@ import { useEffect, useRef, useState } from "react";
 import { useSignedIn } from "@/components/useAssistantTier";
 import { FactSelector } from "@/components/FactSelector";
 import { PageHeader } from "@/components/PageHeader";
-import { ApiError, postIntake } from "@/lib/api";
+import { postIntake } from "@/lib/api";
+import { intakeErrorLine } from "@/lib/intakeErrors";
 import { chosenFacts, initialSelection } from "@/lib/factSelection";
 import { setHandoff, setHandoffCitations } from "@/lib/handoff";
 import {
   INTAKE_DUPLICATE,
   INTAKE_LIMIT_SENTENCE,
   INTAKE_RAW_FALLBACK,
-  INTAKE_SERVED_RAW,
   INTAKE_SIGNED_IN_ONLY,
+  INTAKE_SERVED_RAW,
   citationLine,
   parseIntake,
   type IntakeView,
@@ -56,7 +57,7 @@ export default function IntakePage() {
         setSelected(initialSelection(v.facts.length));
       }
     } catch (e) {
-      setError(e instanceof ApiError && (e.status === 401 || e.status === 403) ? INTAKE_SIGNED_IN_ONLY : INTAKE_UNREADABLE);
+      setError(intakeErrorLine(e));
     } finally {
       abortRef.current = null;
       setLoading(false);

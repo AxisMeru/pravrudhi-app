@@ -128,7 +128,8 @@ export class ApiError extends Error {
   }
 }
 
-async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
+/** Reads the engine's error body ({ error: <code>, reason? }) into an ApiError; exported so a spec can run a recorded body through the same path the app uses. */
+export async function apiErrorFrom(res: Response, path: string): Promise<ApiError> {
   let code: string | undefined;
   let reason: string | undefined;
   try {
