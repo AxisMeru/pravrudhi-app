@@ -62,7 +62,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   // frame 05 is shown only on the build with the panel (retaken on such a build); a build without it shows no image and no caption (R1: never the old hosted-build frame)
   assert.equal(step6.image, CITATIONS_PANEL_ENABLED ? GUIDE_IMAGES.citations : undefined);
   assert.equal(GUIDE_IMAGES.citations.file, "05-citations-panel.png");
-  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 14543, "the retaken frame (Track A, 15 Oct)");
+  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 14178, "the retaken frame (Track A, 15 Oct, sha256 c54566d6…01b0)");
   assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only/i);
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
