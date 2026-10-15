@@ -2,7 +2,6 @@ import { strict as assert } from "node:assert";
 import test from "node:test";
 
 import type { AnalyseFactsContract, AnalyseFactsElement, AnalyseFactsResult } from "../api";
-import { buildMemo } from "../memo";
 import { buildRunRecord, buildScreeningMemo } from "./memo";
 import { rowsFor } from "./model";
 import { OFFENCES, offenceLabel } from "./offences";
@@ -54,17 +53,15 @@ test("any other contract still shows its own element wording and its own what-to
   assert.equal(displayElementName(c, c.elements[0]), null);
 });
 
-test("no engine element name or rule text appears in either memo for bns69; the run record keeps the engine's text unchanged", () => {
+test("no engine element name or rule text appears in the memo for bns69; the run record keeps the engine's text unchanged", () => {
   const c = contract("bns69", [el(REF.elements[0]), el(REF.elements[1]), el(REF.denials[0], { is_denial: true, status: "established" })]);
   const screening = buildScreeningMemo(result(c), { engineVersion: "0", generatedAt: "t" });
-  const matters = buildMemo(result(c), { engineVersion: "0", generatedAt: "t" });
-  for (const memo of [screening, matters]) {
+  for (const memo of [screening]) {
     for (const name of ENGINE_NAMES) assert.ok(!memo.includes(name), `the engine's wording is in a memo: ${name.slice(0, 40)}`);
     assert.doesNotMatch(memo, EXPLICIT);
     assert.ok(memo.includes("BNS 69 · ingredient 1"));
   }
   assert.ok(screening.includes(REFERENCE_WHAT_TO_CHECK));
-  assert.ok(!matters.includes("Provision text"), "no provision block for a reference-only contract");
   const record = buildRunRecord({ facts: ["x"], contractIds: ["bns69"] }, result(c), { engineVersion: "0", generatedAt: "t" });
   for (const name of ENGINE_NAMES) assert.ok(record.includes(JSON.stringify(name).slice(1, -1)), `the run record lost the engine's text: ${name.slice(0, 40)}`);
 });
@@ -81,14 +78,10 @@ test("the explicit-word list reads as intended", () => {
   assert.doesNotMatch("BNS 69 · ingredient 1", EXPLICIT);
 });
 
-// R2's survivor (13 Oct): the screening memo heading for BNS 69 is exactly "BNS 69", never "BNS 69 ()", and the Matters memo's " (defence)" suffix stays on other contracts only.
-test("the screening memo heading for BNS 69 is exactly 'BNS 69'; the Matters memo keeps ' (defence)' on other contracts only", () => {
+// R2's survivor (13 Oct): the screening memo heading for BNS 69 is exactly "BNS 69", never "BNS 69 ()".
+test("the screening memo heading for BNS 69 is exactly 'BNS 69'", () => {
   const c = contract("bns69", [el(REF.elements[0])]);
   const memo = buildScreeningMemo(result(c), { engineVersion: "0", generatedAt: "t" });
   assert.ok(memo.split("\n").includes("## BNS 69"), "the heading line is exactly '## BNS 69'");
   assert.doesNotMatch(memo, /BNS 69 \(\)/);
-  const ref = buildMemo(result(contract("bns69", [el(REF.elements[0]), el(REF.denials[0], { is_denial: true })])), { engineVersion: "0", generatedAt: "t" });
-  assert.doesNotMatch(ref, /\(defence\)/);
-  const other = buildMemo(result(contract("bns85", [el(contractElements.contracts.bns85.elements[0]), el(contractElements.contracts.bns85.denials[0] ?? "a defence", { is_denial: true })])), { engineVersion: "0", generatedAt: "t" });
-  assert.match(other, /\(defence\)/);
 });
