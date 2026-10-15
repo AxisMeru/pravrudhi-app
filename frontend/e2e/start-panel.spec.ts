@@ -52,3 +52,26 @@ test("dropping a text file on the drop zone fills the paste box", async ({ page 
   await page.getByTestId("facts-dropzone").dispatchEvent("drop", { dataTransfer: data });
   await expect(page.locator("#screening-paste")).toHaveValue("Invented: Ravi sold a toy lorry to Meena.");
 });
+
+test("a file dropped just outside the drop zone is refused by the page, so the browser does not open it in place of the page", async ({ page }) => {
+  await page.goto("/screening");
+  const prevented = await page.evaluate(() => {
+    const dt = new DataTransfer();
+    dt.items.add(new File(["x"], "facts.txt", { type: "text/plain" }));
+    const e = new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true });
+    document.body.dispatchEvent(e);
+    const o = new DragEvent("dragover", { dataTransfer: dt, bubbles: true, cancelable: true });
+    document.body.dispatchEvent(o);
+    return [e.defaultPrevented, o.defaultPrevented];
+  });
+  expect(prevented).toEqual([true, true]);
+  // text dragged within the page (no Files) is left alone
+  const textPrevented = await page.evaluate(() => {
+    const dt = new DataTransfer();
+    dt.setData("text/plain", "abc");
+    const e = new DragEvent("dragover", { dataTransfer: dt, bubbles: true, cancelable: true });
+    document.body.dispatchEvent(e);
+    return e.defaultPrevented;
+  });
+  expect(textPrevented).toBe(false);
+});
