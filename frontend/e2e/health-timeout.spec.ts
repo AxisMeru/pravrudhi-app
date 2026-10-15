@@ -23,3 +23,23 @@ test("a hidden tab does not poll health, and checks again when it is shown", asy
   await page.evaluate(() => { Object.defineProperty(document, "hidden", { value: false, configurable: true }); document.dispatchEvent(new Event("visibilitychange")); });
   await expect.poll(() => hits, { timeout: 5_000 }).toBeGreaterThan(before);
 });
+
+// R2 (#318): a legitimately slow first read (an engine just started) must not show the banner: one unanswered read changes nothing, and the banner clears on the first answered read.
+test("one slow health read does not show the banner; a second unanswered read in a row does, and the first answer clears it", async ({ page }) => {
+  test.setTimeout(60_000);
+  let calls = 0;
+  let hang = true;
+  await page.route("**/api/health", (r) => {
+    calls += 1;
+    if (hang && calls === 1) return; // the first read never answers (aborted after 8 s)
+    if (hang) return; // ... and so does every later one until we say otherwise
+    return r.fulfill({ json: { ok: true, version: "x", kernel: "x", ledger: true } });
+  });
+  const banner = page.getByText(/No engine reachable|The hosted engine is not answering/);
+  await page.goto("/workflows");
+  await page.waitForTimeout(9_000); // the first read has been aborted once: the banner is NOT up
+  await expect(banner).toHaveCount(0);
+  await expect(banner).toBeVisible({ timeout: 15_000 }); // a second unanswered read in a row
+  hang = false; // the engine answers: the next poll clears the banner
+  await expect(banner).toHaveCount(0, { timeout: 15_000 });
+});

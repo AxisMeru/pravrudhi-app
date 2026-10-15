@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { apiBase, health } from "@/lib/api";
+import { apiBase, health, isAbortError } from "@/lib/api";
 import { isHostedBuild } from "@/lib/serviceStatus";
 
 /**
@@ -16,13 +16,17 @@ export function ConnectionBanner() {
 
   useEffect(() => {
     let cancelled = false;
+    let timeouts = 0; // consecutive reads that gave NO answer within the timeout (#312): one slow read (an engine just started) is not "not answering"; two in a row are
 
     async function check() {
       if (document.hidden) return; // a hidden tab does not poll (#312); it checks again the moment it is shown
       try {
         await health();
+        timeouts = 0;
         if (!cancelled) setReachable(true);
-      } catch {
+      } catch (e) {
+        if (isAbortError(e) && ++timeouts < 2) return; // the first unanswered read changes nothing; the 5 s poll reads again
+        if (!isAbortError(e)) timeouts = 0;
         if (!cancelled) setReachable(false);
       }
     }

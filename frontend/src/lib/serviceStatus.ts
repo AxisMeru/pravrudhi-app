@@ -1,4 +1,4 @@
-import { ApiError, apiBase, engineFetch, hasWebSession, health, isHostedEngine, IS_DEMO } from "./api";
+import { ApiError, apiBase, engineFetch, hasWebSession, health, isAbortError, isHostedEngine, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { INVALID_ENGINE_ANSWER_TEXT, NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
 
@@ -42,6 +42,8 @@ async function publicReachability(): Promise<StatusResult> {
     await health();
     return { kind: "unknown" };
   } catch (e) {
+    // a read that gave no answer in time (#312) is inconclusive, like a 4xx: it never closes the form ("unknown"); only a refusal or a failed connection is "offline"
+    if (isAbortError(e)) return { kind: "unknown" };
     return e instanceof ApiError && e.status < 500 ? { kind: "unknown" } : { kind: "offline" };
   }
 }

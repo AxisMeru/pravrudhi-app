@@ -461,6 +461,9 @@ export async function health(): Promise<HealthResponse> {
 
 export const HEALTH_TIMEOUT_MS = 8_000;
 
+/** True for the error a request's own timeout (or any abort) produces: the read gave no answer, which is not a refusal. */
+export const isAbortError = (e: unknown): boolean => typeof e === "object" && e !== null && ((e as { name?: string }).name === "TimeoutError" || (e as { name?: string }).name === "AbortError");
+
 /** An AbortSignal that aborts after `ms` (AbortSignal.timeout where the browser has it, else a controller and a timer). */
 export function timeoutSignal(ms: number): AbortSignal {
   if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") return AbortSignal.timeout(ms);
