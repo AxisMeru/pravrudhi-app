@@ -64,6 +64,9 @@ export const CITATION_FOUND = "Found in our index";
 export const CITATION_NOT_FOUND = "Not found in our index: this does not show whether the citation is real";
 export const CITATION_UNAVAILABLE = "The citation check was unavailable for this citation.";
 export const CITATION_NOT_CHECKED = "Not checked.";
+// #358 (proposed, R1 to confirm or replace): the engine DID look these up, so "Not checked." was false; the words are the signed /citations headings.
+export const CITATION_CONFLICT = "Could not match one case";
+export const CITATION_MALFORMED = "Not looked up";
 
 /** One plain line for a citation's machine status; a status this build does not know reads "Not checked." (never a guess). */
 export function citationLine(status: string): string {
@@ -75,6 +78,10 @@ export function citationLine(status: string): string {
       return CITATION_NOT_FOUND;
     case "CHECK_UNAVAILABLE":
       return CITATION_UNAVAILABLE;
+    case "CONFLICT":
+      return CITATION_CONFLICT;
+    case "MALFORMED":
+      return CITATION_MALFORMED;
     default:
       return CITATION_NOT_CHECKED;
   }
