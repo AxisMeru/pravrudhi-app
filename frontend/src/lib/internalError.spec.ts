@@ -49,3 +49,14 @@ test("the sentence applies to internal errors only: a 503, a 422 and a 401 keep 
   assert.notEqual(intakeErrorLine(new ApiError(503, "/x", { code: "intake_timeout" }), STUB), STUB);
   assert.notEqual(intakeErrorLine(new ApiError(403, "/x"), STUB), STUB);
 });
+
+test("a coded 503 service_config_missing never reaches the page: Screening reads its signed line, Citations and Intake keep their generic lines", () => {
+  const e = new ApiError(503, "/api/v1/x", { code: "service_config_missing" });
+  assert.equal(classifyAnalyseError(e).message, "The service is not fully set up. Nothing was scored.");
+  assert.doesNotMatch(classifyVerifyError(e).message, /service_config_missing/);
+  assert.equal(intakeErrorLine(e), INTAKE_UNREADABLE);
+  // the internal-error sentence is for HTTP 500 only
+  assert.notEqual(classifyAnalyseError(e, STUB).message, STUB);
+  assert.notEqual(classifyVerifyError(e, true, STUB).message, STUB);
+  assert.notEqual(intakeErrorLine(e, STUB), STUB);
+});
