@@ -1710,7 +1710,7 @@ export async function verifyCitation(
   citation: string,
   quote: string | null,
   signal?: AbortSignal,
-): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown }> {
+): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown; name_compared?: boolean }> {
   const path = "/api/v1/verify-citations";
   if (IS_DEMO) throw new ApiError(501, path);
   // #259: an anonymous visitor of a HOSTED engine has no session to present, so the check is not sent at all: no app-token request, no verify request, the citation text never leaves the browser.
@@ -1732,7 +1732,7 @@ export async function verifyCitation(
       authOptional: true,
     });
     if (!res.ok) throw await apiErrorFrom(res, path);
-    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown };
+    return (await res.json()) as { result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown; name_compared?: boolean };
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);

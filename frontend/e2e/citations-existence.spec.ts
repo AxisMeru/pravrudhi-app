@@ -1,5 +1,3 @@
-import { test as plain } from "@playwright/test";
-
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
 
@@ -243,9 +241,7 @@ test("#509 the Screening Citations panel: the sentence shows under the named fou
 const MM_TEXT = "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
 const NEUTRAL = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
 const NAMED_LINE = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
-// Plain Playwright test on purpose: these answers carry name_compared / NAME_MISMATCH (engine 0.6.19) and an unknown status, which the pinned 0.6.18 response schema rejects; the schema fixture moves with the engine pin.
-plain.skip(process.env.CITATION_EXISTENCE_BUILD !== "1" || process.env.CITATION_NAV_BUILD !== "1", "needs a build with the citation nav and existence-only flags");
-plain("#509 /citations: matched drops the not-compared sentence; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
+test("#509 /citations: matched drops the not-compared sentence; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
   let answer: Record<string, unknown> = { ...IN, name_compared: true };
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
   await page.goto("/citations");
@@ -258,7 +254,7 @@ plain("#509 /citations: matched drops the not-compared sentence; a mismatch read
   await expect(page.getByTestId("citation-check-status")).toHaveText("Case name did not match");
   await expect(page.getByTestId("citation-check-note")).toHaveText(MM_TEXT);
   await expect(page.locator("body")).not.toContainText(/NAME_MISMATCH|engine note/);
-  answer = { result: "SOMETHING_NEW", note: "engine note" };
+  answer = { result: "SOMETHING_NEW", note: "engine note", status: "something_new", label: "something new", verified: false, preview: true };
   await check();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Result not shown");
   await expect(page.getByTestId("citation-check-note")).toHaveText(NEUTRAL);

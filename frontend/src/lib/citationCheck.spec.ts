@@ -22,13 +22,14 @@ test("the preview label is exactly the decided wording", () => {
   assert.equal(PREVIEW_LABEL, "preview: existence check only");
 });
 
-test("the six statuses the engine can answer are shown verbatim and known", () => {
-  assert.deepEqual([...VERIFY_STATUSES], ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"]);
+const MISMATCH_NOTE = "We found this citation in our index, but the case name you typed does not match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
+test("the seven statuses the engine can answer (0.6.19 adds NAME_MISMATCH) are known; NAME_MISMATCH shows R1's note, the others the engine's", () => {
+  assert.deepEqual([...VERIFY_STATUSES], ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT", "NAME_MISMATCH"]);
   for (const s of VERIFY_STATUSES) {
     const v = verifyView({ result: s, note: "A fixed note." });
     assert.equal(v.status, s);
     assert.equal(v.known, true);
-    assert.equal(v.note, "A fixed note.");
+    assert.equal(v.note, s === "NAME_MISMATCH" ? MISMATCH_NOTE : "A fixed note.");
   }
 });
 
@@ -81,7 +82,7 @@ test("the inputs are checked against the engine's limits before a request is sen
 const ENGINE_LABELS = JSON.parse(readFileSync(join(__dirname, "fixtures", "engineCitationLabels.json"), "utf8")).labels as Record<string, { status: string; label: string }>;
 const PRODUCT = Object.fromEntries(
   Object.entries(ENGINE_LABELS).map(([result, a]) => [result, { result, ...a, preview: true, verified: result === "VERIFIED" }]),
-) as Record<"VERIFIED" | "EXISTS_QUOTE_NOT_FOUND" | "NOT_IN_INDEX" | "CONFLICT" | "MALFORMED", { result: string; status: string; label: string; preview: boolean; verified: boolean }>;
+) as Record<"VERIFIED" | "EXISTS_QUOTE_NOT_FOUND" | "NOT_IN_INDEX" | "CONFLICT" | "MALFORMED" | "NAME_MISMATCH", { result: string; status: string; label: string; preview: boolean; verified: boolean }>;
 
 test("the product status is OFF in this build by default, and off shows only the engine's status and note", () => {
   assert.equal(PRODUCT_STATUS_ENABLED, false);
@@ -89,12 +90,12 @@ test("the product status is OFF in this build by default, and off shows only the
     const v = verifyView({ ...reply, note: "A fixed note." });
     assert.equal(v.product, null);
     assert.equal(v.status, reply.result);
-    assert.equal(v.note, "A fixed note.");
+    assert.equal(v.note, reply.result === "NAME_MISMATCH" ? MISMATCH_NOTE : "A fixed note.");
   }
 });
 
-test("switched on, each of the six product statuses shows the engine's label verbatim with the preview flag", () => {
-  assert.deepEqual([...PRODUCT_STATUSES], ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed"]);
+test("switched on, each of the seven product statuses shows the engine's label verbatim with the preview flag", () => {
+  assert.deepEqual([...PRODUCT_STATUSES], ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed", "name_mismatch"]);
   for (const reply of Object.values(PRODUCT)) {
     const p = productStatus({ ...reply, note: "n" }, true);
     assert.deepEqual(p, { status: reply.status, label: reply.label, preview: true });
