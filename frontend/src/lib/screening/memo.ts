@@ -4,8 +4,8 @@ import type { AnalyseFactsResult } from "../api";
 import contractElements from "../fixtures/contractElements.json";
 import { buildDocx } from "../docxWriter";
 import { MEMO_DISCLAIMER } from "../memo";
-import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
-import { contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
+import { AGENDA_BANNER_TEXT, ALTERNATE_LIMB_NOTE, CHIP_LABEL, NO_FACT_GROUP_HEADING, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, ipcDisclosure, STRUCTURE_NOTE, WHAT_TO_CHECK_LABEL, BANNER_STANDING_LINE } from "./copy";
+import { agendaContractId, contractReferral, rowsFor, summarize, type ScreeningRow } from "./model";
 import { CONTRACT_BLOCK_TITLES, blockTitle, isAlternateLimb, offenceLabel, offenceOf } from "./offences";
 import { STEP_LABELS, STEP_TRACE_HEADING, stepCheckText } from "../assistantRun";
 
@@ -35,26 +35,35 @@ export function memoBlockHeading(contractId: string): string {
 }
 
 export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMemoOptions): string {
+  // R1 (15 Oct, #206 R12): the standing line appears ONCE, here under the disclaimer, never inside a block.
   const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, "", `> ${BANNER_STANDING_LINE}`, ""];
   out.push(`- Run id: ${result.run_id}`, `- Engine version: ${opts.engineVersion ?? "unknown"}`, `- Score sha256: ${result.score_sha256}`);
   out.push(`- Contract checker pin (sha256): ${contractElements._binary_sha256}`, `- Generated: ${opts.generatedAt}`, "", "## Facts", "");
   if (opts.example) out.push(`> ${line(opts.example.label)}`, `> ${line(opts.example.citation)}`, "");
   for (const f of result.facts) out.push(f.text ? `- **${f.id}**: ${line(f.text)}` : `- **${f.id}** (sha256 ${f.sha256})`);
   out.push("");
-  for (const c of result.contracts) {
+  // R1 (15 Oct): the review agenda sentence is the screen's, once, under the heading of the FIRST block that has no supported ingredient: the screen's own agendaContractId (one shared function).
+  const agendaId = agendaContractId(result.contracts, result.facts);
+  const agendaAt = agendaId === null ? -1 : result.contracts.findIndex((x) => x.contract_id === agendaId);
+  for (const [bi, c] of result.contracts.entries()) {
     const rows = rowsFor(c, result.facts);
     const s = summarize(c, rows);
     const off = offenceOf(c.contract_id);
     // R1 (15 Oct): a way of a multi-way offence carries the same title as on the screen (and the same alternate-way note under it), so the blocks of one offence do not read alike.
     const wayTitle = CONTRACT_BLOCK_TITLES[c.contract_id];
     out.push(`## ${memoBlockHeading(c.contract_id)}`, "");
+    if (bi === agendaAt) out.push(AGENDA_BANNER_TEXT, "");
     if (wayTitle && isAlternateLimb(c.contract_id)) out.push(ALTERNATE_LIMB_NOTE, ""); // R1 (15 Oct): no "Contract: <id>" line; the id stays in the run record
     if (off?.ipcChecked) out.push(ipcDisclosure(off.ipcChecked), "");
-    // The banner sentence never appears without the standing line directly under it (R1).
-    out.push(`**${s.text}**`, BANNER_STANDING_LINE, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
+    // The summary sentence stays per block; the standing line is once at the top of the memo (R1, 15 Oct), so it is not repeated here.
+    out.push(`**${s.text}**`, ...(s.allSupported ? [STRUCTURE_NOTE] : []), "");
     const ref = contractReferral(c);
     if (ref) out.push(`Needs your review: ${line(ref.message)}`, ""); // R1 14 Oct: one label for known and unknown reasons; an empty reason has no code to name
-    out.push("### Ingredients", "", ...rows.ingredients.flatMap(rowLines), "");
+    // R1 (15 Oct, #206 R12): the screen's grouping. Rows that are not "No fact cited" first, in the engine's order; then the No-fact-cited rows under the screen's own heading. An empty group is left out.
+    const cited = rows.ingredients.filter((r) => r.chip !== "not_supported");
+    const uncited = rows.ingredients.filter((r) => r.chip === "not_supported");
+    if (cited.length > 0) out.push("### Ingredients", "", ...cited.flatMap(rowLines), "");
+    if (uncited.length > 0) out.push(`### ${NO_FACT_GROUP_HEADING}`, "", ...uncited.flatMap(rowLines), "");
     if (rows.defences.length > 0) out.push(`### ${DEFENCE_HEADING}`, "", DEFENCE_PROMPT_NOTE, "", ...rows.defences.flatMap(rowLines), "");
     const att = c.lean_attestation;
     if (att?.binary_sha256) out.push(`Lean checker: binary sha256 ${att.binary_sha256}${att.wire_sha256 ? `, wire sha256 ${att.wire_sha256}` : ""}`, "");
