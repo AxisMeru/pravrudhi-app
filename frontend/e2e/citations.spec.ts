@@ -23,7 +23,7 @@ const shown = (status: string) => (status === "NOT_IN_INDEX" ? "Not found in our
 
 async function run(page: import("@playwright/test").Page): Promise<void> {
   await page.goto("/citations");
-  await page.getByLabel("Citation (one)").fill("(2020) 3 SCC 456");
+  await page.getByLabel("Citation (one)").fill("(2099) 1 SCC 1");
   await page.getByLabel("Quote to look for").fill("a quoted passage");
   await page.getByRole("button", { name: "Check" }).click();
 }
@@ -51,7 +51,7 @@ for (const [status, note] of Object.entries(NOTES)) {
     if (note.includes("fake")) await expect(page.getByTestId("citation-note")).toHaveCount(0);
     else await expect(page.getByTestId("citation-note")).toHaveText(note);
     await expect(page.getByText(/\bfake\b/i)).toHaveCount(0);
-    expect(body).toEqual({ citation: "(2020) 3 SCC 456", quote: "a quoted passage" });
+    expect(body).toEqual({ citation: "(2099) 1 SCC 1", quote: "a quoted passage" });
   });
 }
 

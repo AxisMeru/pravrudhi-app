@@ -32,7 +32,7 @@ export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
 
 // Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
 // hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
-const FRAME_05_RETAKEN = false;
+const FRAME_05_RETAKEN = true; // retaken by Track A at #209 72a74cb1 on a build with both citation flags on (528x246, 14,178 bytes, invented matter only; placeholder (2099) 1 SCC 1)
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
 export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
@@ -55,7 +55,7 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel: a preview label, a line saying how to enter one citation, an empty box and a Check citations button.",
+    alt: "The Case citations panel: a preview label, a line saying that each line takes one citation and that quotes are not checked, an empty box with an example citation as its placeholder, and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
@@ -92,7 +92,7 @@ export const GUIDE_LIMIT_CITATIONS_OFF =
   "The citation check is not offered in this version of the app. When it is offered, \u201cFound in our index\u201d will mean existence only, not that the case says what you cite it for, and \u201cNot found in our index\u201d will not show that a citation is not real.";
 // R1's byte-exact text for a build WITH the citations panel (CITATIONS=1; both citation flags on). Neither contains "dev stack only" or "not served".
 export const GUIDE_CITATIONS_ON_TEXT =
-  "The citations panel below the checklist looks up one case citation that you enter in our index. It tells you whether we can match the citation to exactly one case in the index. It does not look at quotes, and it does not tell you whether the citation is real, because the index does not hold every judgment. The panel is labelled preview: existence check only.";
+  "The citations panel below the checklist looks up the case citations that you enter, one per line, in our index. For each one it tells you whether we can match the citation to exactly one case in the index. It does not look at quotes, and it does not tell you whether a citation is real, because the index does not hold every judgment. The panel is labelled preview: existence check only.";
 export const GUIDE_LIMIT_CITATIONS_ON =
   "The citation check looks the case up in our index from the citation alone and does not look at quotes. \u201cFound in our index\u201d is existence only, not a verification; \u201cNot found in our index\u201d does not show whether the citation is real, because the index does not hold every judgment.";
 

@@ -153,3 +153,6 @@ export function checkInputs(citation: string, quote: string | null): { ok: true 
   if (quote !== null && quote.length > QUOTE_MAX) return { ok: false, message: `The quote is longer than ${QUOTE_MAX} characters.` };
   return { ok: true };
 }
+
+/** The example citation in the citation boxes (R1, 15 Oct): invented, with a future year so it cannot be a real entry. */
+export const CITATION_PLACEHOLDER = "(2099) 1 SCC 1";

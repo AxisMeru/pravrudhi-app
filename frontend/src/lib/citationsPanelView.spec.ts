@@ -17,7 +17,7 @@ test("the panel shows each status verbatim, an existence-only answer, an honest 
     if (n === 2) throw new ApiError(503, "/x", { code: "citation_index_unavailable" });
     return { result: n === 1 ? "VERIFIED" : n === 3 ? "IN_INDEX" : "NOT_IN_INDEX", note: "A fixed note.", coverage: { resolvable_cases: 7, courts_resolvable: { "Supreme Court": 5, "Delhi High Court": 2 }, year_min: 1980, year_max: 1990, note: "SCC-family" } };
   };
-  const rows = await checkCitations(verify, parseCitationLines("(2020) 3 SCC 456 | the words\nB | q\nno quote here\nD | q").items);
+  const rows = await checkCitations(verify, parseCitationLines("(2099) 1 SCC 1 | the words\nB | q\nno quote here\nD | q").items);
   const html = render(rows, 2, panelCoverage(rows));
   assert.match(html, />VERIFIED</);
   assert.match(html, />Not found in our index</); // #128 D4: the code token is never on screen

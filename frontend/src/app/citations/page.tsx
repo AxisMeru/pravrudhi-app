@@ -11,6 +11,7 @@ import { CITATION_NAV_ENABLED, CITATION_NOT_OFFERED_LINK, CITATION_NOT_OFFERED_T
 import { CITATION_EXISTENCE_ONLY, EXISTENCE_LIMITS, EXISTENCE_SUBTITLE } from "@/lib/citationExistence";
 import {
   CITATION_MAX,
+  CITATION_PLACEHOLDER,
   CITATION_CHECK_TITLE,
   PREVIEW_LABEL,
   QUOTE_MAX,
@@ -92,7 +93,7 @@ export default function CitationsPage() {
             onChange={(e) => setCitation(e.target.value)}
             maxLength={CITATION_MAX}
             className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
-            placeholder="(2020) 3 SCC 456"
+            placeholder={CITATION_PLACEHOLDER}
           />
         </label>
         {!CITATION_EXISTENCE_ONLY && (
