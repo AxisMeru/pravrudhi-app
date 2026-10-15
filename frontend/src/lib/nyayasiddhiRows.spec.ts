@@ -7,7 +7,7 @@ import { ALL_GROUP, zeroWithZero, groupsOf, intervalGeometry, metricOf, parseRow
 const metric = (name: string, group: string | undefined, k: number, n: number, lo: number | null, hi: number | null) => ({ name, ...(group ? { group } : {}), k, n, interval_method: "clopper-pearson-exact", interval_level: 0.95, ci_low: lo, ci_high: hi });
 const ROW = (over: Record<string, unknown> = {}) => ({
   row_id: "invented-1", status: "self-reported", benchmark_version: "v0.2.2", split: "obj1_dev", unit: "whole_item", system_name: "invented-system", system_version: "0.0", manifest_sha256: "a".repeat(64), scorer_sha: "b".repeat(40),
-  run_date: "2026-10-01", organiser_entry: true, entry_kind: "product", metrics: [metric("false_proof", "ALL", 2, 40, 0.006, 0.169), metric("coverage", "ALL", 30, 40, 0.588, 0.893), metric("coverage", "CHEAT", 10, 12, 0.516, 0.979), metric("false_proof", "CHEAT", 0, 12, 0, 0.265)],
+  run_date: "2026-10-01", stack: "dev stack (local)", organiser_entry: true, entry_kind: "product", metrics: [metric("false_proof", "ALL", 2, 40, 0.006, 0.169), metric("coverage", "ALL", 30, 40, 0.588, 0.893), metric("coverage", "CHEAT", 10, 12, 0.516, 0.979), metric("false_proof", "CHEAT", 0, 12, 0, 0.265)],
   supersedes: null, superseded_by: null, error_mapping: "none", n_error: 0, ...over,
 });
 
@@ -60,4 +60,10 @@ test("the errors line uses the counts, not the file's agree flag", async () => {
   assert.deepEqual(errorLineFor(r, "ALL"), { e: 3, k: 2, n: 40 });
   const same = parseRow(ROW({ n_error: 3, error_sensitivity: { "false_proof|ALL": { k_as_proof: 2, k_as_not_proof: 2, n: 40, agree: false } } }))!;
   assert.equal(errorLineFor(same, "ALL"), null);
+});
+
+test("a row must carry its manifest's stack; a row without one is dropped", () => {
+  assert.equal(parseRow(ROW({ stack: undefined })), null);
+  assert.equal(parseRow(ROW({ stack: "  " })), null);
+  assert.equal(parseRow(ROW({ stack: "dev stack (local)" }))?.stack, "dev stack (local)");
 });

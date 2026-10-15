@@ -34,6 +34,8 @@ export interface ResultRow {
   systemName: string;
   systemVersion: string;
   runDate: string;
+  /** The stack the figures were measured on, from the row's manifest (for example "dev stack (local)"); the page words it per stack value and shows a row only for a stack it has a word for (fail closed). */
+  stack: string;
   /** organiser_entry in the schema: a row entered by the organisers (not an outside entrant). */
   organiserEntry: boolean;
   /** For an organiser entry only, set in the data file by the data build step from the organisers' own list (never inferred from a system name): our product, or a reference arm (a frontier or open model run by the organisers). */
@@ -83,6 +85,7 @@ export function parseRow(x: unknown): ResultRow | null {
   const entryKind = oneOf(ENTRY_KINDS, x.entry_kind) ? x.entry_kind : null;
   if (organiser && entryKind === null) return null;
   if (!organiser && x.entry_kind !== undefined) return null;
+  if (typeof x.stack !== "string" || !x.stack.trim()) return null; // every row carries its manifest's stack
   if (!Number.isInteger(x.n_error) || (x.n_error as number) < 0) return null;
   const errorSensitivity: ResultRow["errorSensitivity"] = {};
   if (x.error_sensitivity !== undefined) {
@@ -97,7 +100,7 @@ export function parseRow(x: unknown): ResultRow | null {
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity,
+    stack: x.stack as string, organiserEntry: organiser, entryKind, metrics: ms, nError: x.n_error as number, errorSensitivity,
   };
 }
 

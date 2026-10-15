@@ -1,21 +1,28 @@
-import json, tempfile, unittest
+import hashlib, json, tempfile, unittest
 from pathlib import Path
 import build_nyayasiddhi_rows as B
 from bench_tables import cp_interval
 
+DEV = "dev stack (local)"
+API = "Anthropic API (organiser-run reference arm; not the dev stack, not the production stack)"
+def manifest(stack): return json.dumps({"system_name": "invented", "stack": stack}).encode()
+MSHA = hashlib.sha256(manifest(DEV)).hexdigest()
+
 def metric(name, group, k, n):
     lo, hi = cp_interval(k, n); return {"name": name, "group": group, "k": k, "n": n, "interval_method": "clopper-pearson-exact", "interval_level": 0.95, "ci_low": lo, "ci_high": hi}
 def row(**kw):
-    r = {"row_id": "invented-1", "status": "self-reported", "benchmark_version": "v0.2", "split": "obj1_dev", "unit": "whole_item", "system_name": "invented", "system_version": "1", "manifest_sha256": "a" * 64, "scorer_sha": "b" * 40,
+    r = {"row_id": "invented-1", "status": "self-reported", "benchmark_version": "v0.2", "split": "obj1_dev", "unit": "whole_item", "system_name": "invented", "system_version": "1", "manifest_sha256": MSHA, "scorer_sha": "b" * 40,
          "run_date": "2026-10-01", "organiser_entry": True, "metrics": [metric("false_proof", "ALL", 2, 40), metric("coverage", "ALL", 30, 40)], "supersedes": None, "superseded_by": None, "error_mapping": "none", "n_error": 0}
     r.update(kw); return r
-def run(rows, kinds, sens=None):
+def run(rows, kinds, sens=None, stack=DEV, with_manifest=True):
     with tempfile.TemporaryDirectory() as d:
         (Path(d) / "r.jsonl").write_text("\n".join(json.dumps(r) for r in rows)); (Path(d) / "k.json").write_text(json.dumps(kinds))
+        md = Path(d) / "manifests"; md.mkdir()
+        if with_manifest: (md / "m.json").write_bytes(manifest(stack))
         sp = {}
         for rid, doc in (sens or {}).items():
             (Path(d) / f"{rid}.json").write_text(json.dumps(doc)); sp[rid] = str(Path(d) / f"{rid}.json")
-        return B.build(str(Path(d) / "r.jsonl"), str(Path(d) / "k.json"), sp)
+        return B.build(str(Path(d) / "r.jsonl"), str(Path(d) / "k.json"), sp, str(md))
 
 class T(unittest.TestCase):
     def test_a_good_organiser_row_gets_its_kind_and_the_source_sha(self):
@@ -53,5 +60,15 @@ class T(unittest.TestCase):
         lie = {"n_error": 1, "metrics": {"false_proof|ALL": {"k_as_proof": 2, "k_as_not_proof": 2, "n": 40, "agree": False}}}  # equal counts must read agree true
         lie2 = {"n_error": 1, "metrics": {"false_proof|ALL": {"k_as_proof": 3, "k_as_not_proof": 2, "n": 40, "agree": True}}}  # different counts must read agree false
         for bad in (lie, lie2): self.assertTrue(any("not recomputed" in e for e in run([r], {"invented-1": "product"}, {"invented-1": bad})[1]))
+    def test_the_manifest_stack_is_carried_into_the_row(self):
+        data, errs = run([row()], {"invented-1": "product"})
+        self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["stack"], DEV)
+        api = hashlib.sha256(manifest(API)).hexdigest()
+        data, errs = run([row(manifest_sha256=api)], {"invented-1": "product"}, stack=API)
+        self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["stack"], API)
+    def test_an_unknown_stack_or_a_missing_manifest_fails_closed(self):
+        other = "some other stack"; sha = hashlib.sha256(manifest(other)).hexdigest()
+        self.assertTrue(any("not one the page has words for" in e for e in run([row(manifest_sha256=sha)], {"invented-1": "product"}, stack=other)[1]))
+        self.assertTrue(any("no manifest" in e for e in run([row()], {"invented-1": "product"}, with_manifest=False)[1]))
 if __name__ == "__main__":
     unittest.main()
