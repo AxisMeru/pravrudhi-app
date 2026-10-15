@@ -28,7 +28,7 @@ import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff } from "@/lib/handoff";
-import { EXAMPLES, exampleById, initialFactsFor, memoExample, type DemoExample } from "@/lib/demo/example";
+import { EXAMPLES, exampleById, initialFactsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
@@ -454,7 +454,7 @@ export default function ScreeningPage() {
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
-          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} />}
+          {notSignedIn && <NotSignedInNotice message={notSignedIn} onAnonymous={() => submit(true)} exampleFacts={isUnchangedExample(facts, example)} />}
           {limitNotice && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="facts-limit-notice">{limitNotice}</p>}
           {error && <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="screening-error">{error}</p>}
           {invalidRunId !== undefined && (

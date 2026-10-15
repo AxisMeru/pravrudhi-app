@@ -118,3 +118,6 @@ export const ANONYMOUS_DEMO_BUTTON = "Use the anonymous demo";
 const ANONYMOUS_RETENTION_PHRASE = PRE_SUBMIT_RETENTION.match(/kept for up to \d+ days/)?.[0] ?? "";
 export const ANONYMOUS_DEMO_NOTE = `The anonymous demo is not tied to your account, shows no second-check detail, and what you submit is ${ANONYMOUS_RETENTION_PHRASE}.`;
 export const SIGN_IN_LINK_TEXT = "Sign in";
+
+// R1 (15 Oct, #213): under the signed-out consent prompt, ONLY while the facts on the page are the loaded example, unchanged (never for typed or edited facts). The prompt and both buttons are unchanged.
+export const EXAMPLE_ANONYMOUS_NOTE = "These facts are a public court order used as an example, not your matter, so the anonymous demo is enough.";
