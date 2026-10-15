@@ -58,3 +58,21 @@ test("/workflows: only a Built row has a link, to a step of the workspace; a Bui
   assert.equal(workflowStepAnchor("Intake"), "step-facts");
   assert.equal(workflowStepAnchor("Screening orchestration"), "step-screen");
 });
+
+// R1 (15 Oct, #197): the /workflows Hearing preparation row status, the step 4 state and HEARING_PREP_BUILT come from ONE source and agree; the rendered section never repeats the standing line.
+test("Hearing preparation: the row status, step 4 and the flag agree; the section renders no standing line of its own", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { HEARING_PREP_BUILT } = await import("./workspace");
+  const row = WORKFLOWS.find((w) => w.name === "Hearing preparation")!;
+  assert.equal(row.status, HEARING_PREP_BUILT ? "Built" : "Building");
+  const step4 = workspaceSteps({ hasFacts: true, hasResult: true })[3];
+  assert.equal(step4.state, HEARING_PREP_BUILT ? WORKSPACE_STATE_WORDS.available : WORKSPACE_STATE_WORDS.notYet);
+  assert.equal(workspaceSteps({ hasFacts: true, hasResult: true })[3].note, HEARING_PREP_BUILT ? null : HEARING_NOT_OFFERED_TEXT);
+  assert.equal(workflowStepAnchor("Hearing preparation"), WORKSPACE_ANCHORS.hearing);
+  const src = readFileSync(join(__dirname, "..", "components", "HearingPreparation.tsx"), "utf8");
+  assert.doesNotMatch(src, /\bS\.standingLine\b|\.standingLine\b/, "R1: one standing line per result, above the first block");
+  assert.ok(src.includes(`id={WORKSPACE_ANCHORS.hearing}`), "the section carries the step-hearing anchor");
+  // the row note stays exactly as signed
+  assert.equal(row.note, "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law.");
+});
