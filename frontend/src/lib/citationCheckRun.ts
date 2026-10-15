@@ -2,13 +2,14 @@
 // `verifyView` (the five statuses shown verbatim, an unknown one flagged) and a failure through `classifyVerifyError` (the signed sentence for each
 // coded refusal, including `citation_index_unavailable` as an honest "not checked" state), exactly as /citations does.
 
+import { ApiError } from "./api";
 import { checkInputs, classifyVerifyError, verifyView, type VerifyErrorKind, type VerifyView } from "./citationCheck";
 
 export type CitationCheckState =
   | { phase: "idle" }
   | { phase: "checking" }
   | { phase: "result"; view: VerifyView; /** The engine's own coverage field when it sends one (shape not fixed yet), else undefined. */ coverage?: unknown }
-  | { phase: "error"; kind: VerifyErrorKind; message: string }
+  | { phase: "error"; kind: VerifyErrorKind; message: string; /** Seconds the engine asked to wait (a 429's Retry-After), when it sent one. */ wait?: number }
   | { phase: "invalid"; message: string };
 
 type Verify = (citation: string, quote: string | null, signal?: AbortSignal) => Promise<Parameters<typeof verifyView>[0] & { coverage?: unknown }>;
@@ -22,6 +23,7 @@ export async function runCitationCheck(verify: Verify, citation: string, quote: 
     return { phase: "result", view: verifyView(reply), coverage: reply.coverage };
   } catch (e) {
     const { kind, message } = classifyVerifyError(e);
-    return { phase: "error", kind, message };
+    const wait = e instanceof ApiError && e.status === 429 && typeof e.retryAfter === "number" ? e.retryAfter : undefined;
+    return { phase: "error", kind, message, ...(wait !== undefined ? { wait } : {}) };
   }
 }

@@ -35,7 +35,8 @@ test("R5: 'Print / save as PDF' is beside the 'Download the memo' group, not ins
 
 test("R6: one live region for the whole result, not one per block", async ({ page }) => {
   await result(page);
-  const statuses = page.getByTestId("screening-result").locator('[role="status"]');
+  // the Citations panel under the result (arm ON) has its own live region for the answers a user asks for there (#223 D6): it is a separate feature, not a block of the result
+  const statuses = page.getByTestId("screening-result").locator('[role="status"]:not([data-testid^="citations-panel"])');
   await expect(statuses).toHaveCount(1);
   // R1 (15 Oct): and the standing line is on the page once per result (above the first block), not once per block
   await expect(page.getByText("This is a screening aid, not legal advice. A lawyer decides.", { exact: true })).toHaveCount(1);

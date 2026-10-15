@@ -4,11 +4,12 @@ import { Loader2, SearchCheck } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { useSignedOut } from "@/components/citations/useSignedOut";
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
 import { verifyCitation } from "@/lib/api";
 import { CITATION_NAV_ENABLED, CITATION_NOT_OFFERED_LINK, CITATION_NOT_OFFERED_TEXT } from "@/lib/citationNav";
-import { CITATION_EXISTENCE_ONLY, EXISTENCE_LIMITS, EXISTENCE_SUBTITLE } from "@/lib/citationExistence";
+import { CITATION_EXISTENCE_ONLY, COVERAGE_LIMITS_TEXT, EXISTENCE_LIMITS, EXISTENCE_SUBTITLE, RETENTION_EXISTENCE, SIGNED_OUT_BEFORE_TEXT } from "@/lib/citationExistence";
 import {
   CITATION_MAX,
   CITATION_PLACEHOLDER,
@@ -34,6 +35,7 @@ export default function CitationsPage() {
   const [view, setView] = useState<VerifyView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const signedOut = useSignedOut(served && CITATION_EXISTENCE_ONLY);
 
   async function submit() {
     const check = checkInputs(citation, CITATION_EXISTENCE_ONLY ? null : quote);
@@ -84,7 +86,13 @@ export default function CitationsPage() {
             </>
           )}
         </p>
-        <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
+        {CITATION_EXISTENCE_ONLY && (
+          <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-coverage-limits">{COVERAGE_LIMITS_TEXT}</p>
+        )}
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_EXISTENCE_ONLY ? RETENTION_EXISTENCE : CITATION_RETENTION}</p>
+        {CITATION_EXISTENCE_ONLY && signedOut && (
+          <p className="text-sm text-[var(--color-text)]" data-testid="citation-signed-out">{SIGNED_OUT_BEFORE_TEXT}</p>
+        )}
         <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
@@ -122,6 +130,7 @@ export default function CitationsPage() {
             {error}
           </p>
         )}
+        <div role="status" data-testid="citation-live">
         {view && (
           <section className="space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="citation-result">
             <div className="text-sm text-[var(--color-text-dim)]">Result</div>
@@ -152,6 +161,7 @@ export default function CitationsPage() {
             )}
           </section>
         )}
+        </div>
         </>
       </div>
     </div>

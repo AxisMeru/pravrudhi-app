@@ -73,7 +73,8 @@ test("with the nav flag on, the result links to the citation check", async ({ pa
 test("the citation check says what is and is not stored, before anything is entered", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD !== "1", "the check's own page (with its retention line) is shown only on a build that serves it; the gated page is a notice");
   await page.goto("/citations");
+  // with the existence-only arm ON there is no quote box, so the line names the citation only (#223 D7, R1)
   await expect(page.getByTestId("citation-retention")).toHaveText(
-    "The citation check does not save the citation or the quote you enter.",
+    process.env.CITATION_EXISTENCE_BUILD === "1" ? "The citation check does not save the citation you enter." : "The citation check does not save the citation or the quote you enter.",
   );
 });

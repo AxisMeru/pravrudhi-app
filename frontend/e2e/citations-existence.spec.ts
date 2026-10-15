@@ -39,12 +39,12 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
   await expect(page.locator("body")).not.toContainText(/NOT_IN_INDEX|\bfake\b/);
 });
 
-test("/citations: a conflict reads as R1's sentence; the coded refusals read in plain words and never print a code", async ({ page }) => {
+test("/citations: a conflict reads as R1's heading; the coded refusals read in plain words and never print a code", async ({ page }) => {
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "CONFLICT", note: "n", status: "conflict", label: "conflict: the citation matches more than one indexed case", verified: false, preview: true } }));
   await page.goto("/citations");
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("The citation matches more than one case in our index, so we cannot tell which you mean.");
+  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a (R1's 15 Oct heading; the sentence under it is pinned in the next test)
   const cases: Array<[number, Record<string, unknown>, Record<string, string>, string]> = [
     [422, { error: "quote_not_served" }, {}, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index."],
     [422, { detail: [{ msg: "x" }] }, {}, "Enter one citation, and leave the quote empty."],
@@ -93,16 +93,18 @@ test("/citations anonymous (the Worker answers 401): the signed sign-in sentence
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
   await page.goto("/citations");
+  await expect(page.getByTestId("citation-signed-out")).toHaveText("Citation checks need you to be signed in."); // #223 D4: said before typing, signed out only
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-error")).toHaveText("You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.");
+  await expect(page.getByTestId("citation-error")).toHaveText("Sign in to check citations. Nothing was looked up.");
+  await expect(page.locator("body")).not.toContainText(/Nothing was scored|session has ended/);
   await expect(page.locator("body")).not.toContainText(/\b401\b|unauthorized/i);
   expect(new URL(page.url()).pathname).toMatch(/^\/citations\/?$/);
 });
 
 // R1, 14 Oct (#181): the arm ON: the limits text no longer says the check is not served; CONFLICT shows only the signed sentence (the engine's note is suppressed); IN_INDEX reads "Found in our index"
 // with the engine's existence-only note under it.
-test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT shows only the signed sentence; IN_INDEX reads 'Found in our index' with its note", async ({ page }) => {
+test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT shows R1's heading and sentence; IN_INDEX reads 'Found in our index' with its note", async ({ page }) => {
   const CONFLICT = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand.", status: "conflict", label: "conflict: the citation matches more than one indexed case", verified: false, preview: true };
   const IN_REAL = { ...IN, note: "Found in the index (existence only): no quote was checked, so this is not a verification." };
   await page.goto("/citations");
@@ -111,8 +113,8 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
   await page.getByLabel("Citation (one)").fill(CITATION);
   await page.getByRole("button", { name: "Check" }).click();
-  await expect(page.getByTestId("citation-status")).toHaveText("The citation matches more than one case in our index, so we cannot tell which you mean.");
-  await expect(page.getByTestId("citation-note")).toHaveCount(0);
+  await expect(page.getByTestId("citation-status")).toHaveText("Could not match one case"); // #223 D2a
+  await expect(page.getByTestId("citation-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Put the case name before the citation and check again."); // D1
   await expect(page.locator("body")).not.toContainText(/conflicting indexed cases|verify by hand|CONFLICT/);
   await page.unroute("**/api/v1/verify-citations");
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN_REAL }));
@@ -120,4 +122,67 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   await expect(page.getByTestId("citation-status")).toHaveText("Found in our index");
   await expect(page.getByTestId("citation-note")).toHaveText("Found in the index (existence only): no quote was checked, so this is not a verification.");
   await expect(page.locator("body")).not.toContainText(/\bIN_INDEX\b/);
+});
+
+// #223 (explorer's pre-flip review, R1's strings): D2a MALFORMED, D3 limits before typing, D4 signed-in vs signed-out, D5 batch stop, D6 live region, D7 privacy line.
+test("/citations (arm ON): a line the engine cannot read as one citation is 'Not looked up' with R1's sentence, never the raw token or 'Exactly one parseable citation is required.'", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: { result: "MALFORMED", note: "Exactly one parseable citation is required.", status: "malformed", label: "malformed", verified: false, preview: true } }));
+  await page.goto("/citations");
+  await page.getByLabel("Citation (one)").fill("1992 Supp (1) SCC 335");
+  await page.getByRole("button", { name: "Check" }).click();
+  await expect(page.getByTestId("citation-status")).toHaveText("Not looked up");
+  await expect(page.getByTestId("citation-note")).toHaveText("We could not read this line as one citation, so we did not look it up. Enter one citation per line, for example (2099) 1 SCC 1. That does not show whether a citation is real.");
+  await expect(page.locator("body")).not.toContainText(/MALFORMED|Exactly one parseable/);
+});
+
+test("/citations (arm ON): what the index covers is said BEFORE typing, under the limits; the privacy line names the citation only; the result area is a live region", async ({ page }) => {
+  await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } }));
+  await page.goto("/citations");
+  await expect(page.getByTestId("citation-coverage-limits")).toHaveText("Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as \u201CNot found in our index\u201D.");
+  await expect(page.getByTestId("citation-retention")).toHaveText("The citation check does not save the citation you enter."); // D7
+  await expect(page.getByTestId("citation-signed-out")).toHaveCount(0); // D4: signed in, no note
+  await expect(page.getByTestId("citation-live")).toHaveAttribute("role", "status"); // D6: present before any result
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: NOT_IN }));
+  await page.getByLabel("Citation (one)").fill(CITATION);
+  await page.getByRole("button", { name: "Check" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Not found in our index" })).toBeVisible();
+});
+
+test("the Screening Citations panel (arm ON): the coverage limit before typing, the cap in the box, signed-out note, one stop at the first 429, a live region", async ({ page }) => {
+  let calls = 0;
+  let screened = false; // signed in while the screening runs; the panel's own identity read, made when it appears, finds nobody signed in
+  await page.route("**/api/me", (r) => (screened ? r.fulfill({ status: 401, json: { error: "unauthorized" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
+  await page.route("**/api/v1/analyse-facts", (r) => {
+    screened = true;
+    return r.fulfill({ json: SCREENED });
+  });
+  await page.route("**/api/v1/verify-citations", (r) => {
+    calls += 1;
+    return calls === 3 ? r.fulfill({ status: 429, json: { error: "rate_limited" }, headers: { "retry-after": "42" } }) : r.fulfill({ json: NOT_IN });
+  });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  const panel = page.getByTestId("citations-panel");
+  await expect(panel.getByTestId("citations-panel-limits")).toHaveText("Our index covers Supreme Court citations in the form (year) volume SCC page. A neutral citation, an AIR citation or a High Court reporter citation is not covered and will come back as \u201CNot found in our index\u201D.");
+  await expect(panel.getByTestId("citations-panel-signed-out")).toHaveText("Citation checks need you to be signed in.");
+  await expect(panel).toContainText("One citation per line, at most 5 at a time.");
+  await expect(panel.getByTestId("citations-panel-live")).toHaveAttribute("role", "status");
+  await panel.getByRole("textbox").fill(Array.from({ length: 7 }, (_, i) => `(2099) ${i + 1} SCC 1`).join("\n"));
+  await panel.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citations-panel-rate-stop")).toHaveText("Checked 2 of 5 lines. The check allows only a few lookups a minute; try the rest in 42 seconds.");
+  await expect(page.getByTestId("citations-panel-row")).toHaveCount(2); // no repeated refusal rows
+  await expect(page.getByTestId("citations-panel-skipped")).toHaveCount(0); // the run stopped at the rate limit: the stop sentence is the one message
+  expect(calls).toBe(3); // nothing sent after the first 429
+  // more lines than one try takes, no rate limit: R1's over-cap sentence, once
+  calls = -100; // no 429 from here on
+  await panel.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citations-panel-skipped")).toHaveText("Only the first 5 lines were checked. Check the rest in a second try.");
+  await expect(page.getByTestId("citations-panel-row")).toHaveCount(5);
+  await expect(page.locator("body")).not.toContainText(/Nothing was scored|Too many requests/);
+  await expect(page.getByTestId("citations-panel-results")).toHaveAttribute("role", "status");
 });

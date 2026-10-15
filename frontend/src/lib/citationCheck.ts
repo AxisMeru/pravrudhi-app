@@ -2,7 +2,7 @@
 // engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
 
 import { ApiError } from "./api";
-import { CITATION_EXISTENCE_ONLY, CONFLICT_TEXT, DETAIL_422_TEXT, IN_INDEX_LABEL, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT } from "./citationExistence";
+import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -95,9 +95,17 @@ export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STA
 
 /** R1 14 Oct (#128 D4): the code token NOT_IN_INDEX stays in the data and never on screen; the result is shown as this label. Every other status is shown as the engine sent it. */
 export const NOT_IN_INDEX_LABEL = "Not found in our index";
-/** While the index is existence-only (flag) a CONFLICT reads as R1's sentence and IN_INDEX as "Found in our index"; every other status is as before. */
+/** While the index is existence-only (flag): CONFLICT and MALFORMED have plain headings (#223 D2a) and IN_INDEX reads "Found in our index"; every other status is as before. */
 export const statusLabel = (status: string, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): string =>
-  status === "NOT_IN_INDEX" ? NOT_IN_INDEX_LABEL : existenceOnly && status === "CONFLICT" ? CONFLICT_TEXT : existenceOnly && status === "IN_INDEX" ? IN_INDEX_LABEL : status;
+  status === "NOT_IN_INDEX"
+    ? NOT_IN_INDEX_LABEL
+    : existenceOnly && status === "CONFLICT"
+      ? CONFLICT_HEADING
+      : existenceOnly && status === "MALFORMED"
+        ? MALFORMED_HEADING
+        : existenceOnly && status === "IN_INDEX"
+          ? IN_INDEX_LABEL
+          : status;
 
 export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
@@ -105,13 +113,14 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
   const withheld = !note || NOTE_BANNED.test(note);
   // Existence-only index (R1 14 Oct): the engine's note "The case was not found in our index" is inexact under the stricter match rule (several matches or a longer title also give NOT_IN_INDEX), so R1's note replaces it.
   const override = existenceOnly && status === "NOT_IN_INDEX";
-  // R1 (#181): a CONFLICT shows ONLY the signed sentence as its heading; the engine's note ("The citation maps to conflicting indexed cases; verify by hand.") is suppressed, as NOT_IN_INDEX's is replaced.
-  const suppressed = existenceOnly && status === "CONFLICT";
+  // #223 (R1, 15 Oct): with the arm ON a CONFLICT and a MALFORMED each show R1's sentence under their plain heading; the engine's notes ("maps to conflicting indexed cases; verify by hand", "Exactly one parseable citation is required.") are replaced.
+  const explained = existenceOnly && (status === "CONFLICT" || status === "MALFORMED");
+  const explanation = status === "CONFLICT" ? CONFLICT_TEXT : MALFORMED_TEXT;
   return {
     status,
     known: (VERIFY_STATUSES as readonly string[]).includes(status),
-    note: override ? NOT_IN_INDEX_NOTE : suppressed ? null : withheld ? null : note,
-    noteWithheld: !override && !suppressed && withheld && !!note,
+    note: override ? NOT_IN_INDEX_NOTE : explained ? explanation : withheld ? null : note,
+    noteWithheld: !override && !explained && withheld && !!note,
     product: productStatus(reply, enabled),
   };
 }
@@ -128,7 +137,7 @@ export function classifyVerifyError(e: unknown, existenceOnly: boolean = CITATIO
       const wait = e.retryAfter ? ` Seconds to wait: ${e.retryAfter}.` : "";
       return { kind: "rate_limited", message: `${SERVICE_ERROR_TEXT.rate_limited}${wait}` };
     }
-    if (e.status === 401) return { kind: "signed_out", message: SESSION_401_TEXT };
+    if (e.status === 401) return { kind: "signed_out", message: existenceOnly ? SIGNED_OUT_401_TEXT : SESSION_401_TEXT };
     if (e.status === 503 && e.code === "verify_timeout") return { kind: "timeout", message: CITATION_ERROR_TEXT.verify_timeout };
     if (e.status === 503 && e.code === "verify_at_capacity") return { kind: "at_capacity", message: CITATION_ERROR_TEXT.verify_at_capacity };
     if (e.status === 503 && e.code === "citation_index_unavailable") return { kind: "index_unavailable", message: CITATION_ERROR_TEXT.citation_index_unavailable };
