@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -100,7 +101,6 @@ test("D6: the panel's result area is a live region (role=status), present before
 });
 
 test("useSignedOut sends no identity request unless enabled, and both callers pass the arm (R2, 15 Oct)", () => {
-  const { readFileSync } = require("node:fs") as typeof import("node:fs");
   const hook = readFileSync("src/components/citations/useSignedOut.ts", "utf8");
   assert.match(hook, /useSignedOut\(enabled: boolean\)/, "the hook takes an enabled flag");
   assert.match(hook, /if \(!enabled\) return;/, "the effect is a no-op when disabled, before isSignedIn runs");
