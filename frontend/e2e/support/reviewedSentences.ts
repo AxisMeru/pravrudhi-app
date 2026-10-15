@@ -223,4 +223,46 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "It is written here, not copied from the engine: the engine's own retention_notice still carries a training promise // the app does not enforce, so the app never displays it (CaveatStrip).",
     ],
   },
+  "public/films/client/manifest.json": {
+    reason: "the client film's own scene text (names, scene descriptions) as frozen in the v6 film strings (FILMS_V6_STRINGS_FROZEN, SHA256SUMS 46e72f81b7a7e416) and read and confirmed by R1 by hash; describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "Pravrudhi-Nyaya is the product, Prabhāsa-Nyāya our own trained models.",
+      "Our trained models read each ingredient;",
+      "Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets.",
+      "Evaluation items are checked against training data.",
+    ],
+  },
+  "public/films/technical/manifest.json": {
+    reason: "the technical film's own scene text as frozen in the v6 film strings (FILMS_V6_STRINGS_FROZEN, SHA256SUMS 46e72f81b7a7e416) and read and confirmed by R1 by hash; describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "evaluation",
+      "Prabhāsa-Nyāya is our own trained models;",
+      "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
+      "Our trained models that read one ingredient at a time.",
+      "Evaluation discipline",
+      "Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.",
+    ],
+  },
+  "public/films/client/captions.vtt": {
+    reason: "the client film's captions: the narration's own \"text\" (NARRATION_CLIENT_FROZEN v3, narration.json sha256 2ebe69ec11ebf242, R1-confirmed by hash), cut into cues; describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "4 00:00:24.340 --> 00:00:30.450 Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.",
+      "16 00:01:52.200 --> 00:02:02.300 Behind the checklist there are two of our trained models.",
+      "18 00:02:10.100 --> 00:02:14.014 Where does a model like that learn?",
+      "20 00:02:23.383 --> 00:02:31.725 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.",
+    ],
+  },
+  "public/films/technical/captions.vtt": {
+    reason: "the technical film's captions: the narration's own \"text\" (NARRATION_TECHNICAL_FROZEN v3, narration.json sha256 56f2a5d315aaef27, R1-confirmed by hash), cut into cues; describes how the product is built and evaluated, not what happens to a submission",
+    sentences: [
+      "Prabhāsa-Nyāya is our own set of trained models, which sit inside it.",
+      "9 00:01:02.207 --> 00:01:11.996 Then the material is split three ways: training, held-out testing, and evaluation.",
+      "10 00:01:11.996 --> 00:01:17.300 And evaluation items are checked against the training data, by identity and by text.",
+      "11 00:01:18.800 --> 00:01:22.986 Now the judges, our trained models that read one ingredient at a time.",
+      "36 00:04:31.730 --> 00:04:39.456 Development, training and tests run on our own GPU machines, and results from those are labelled dev stack, local.",
+      "38 00:04:46.700 --> 00:04:55.234 Finally, evaluation discipline.",
+      "39 00:04:55.234 --> 00:05:04.743 Every look at an evaluation set is counted, so nothing gets quietly re-run until it passes.",
+      "41 00:05:08.218 --> 00:05:15.716 And where a document-level overlap turned up in an earlier model line, we removed the affected evaluation rows and said so.",
+    ],
+  },
 };

@@ -13,6 +13,7 @@ export const PAGE_TITLES = {
   settings: "Settings",
   partnerKeys: "API access",
   citations: "Case citations",
+  technicalFilm: "Technical film",
   matters: "Offence rules",
   safety: "Safety record",
   benchmarks: "Benchmarks",
