@@ -64,7 +64,7 @@ export const CITATION_FOUND = "Found in our index";
 export const CITATION_NOT_FOUND = "Not found in our index: this does not show whether the citation is real";
 export const CITATION_UNAVAILABLE = "The citation check was unavailable for this citation.";
 export const CITATION_NOT_CHECKED = "Not checked.";
-// #358 (proposed, R1 to confirm or replace): the engine DID look these up, so "Not checked." was false; the words are the signed /citations headings.
+// #358 (R1 accepted these words, 15 Oct): the engine DID look these up, so "Not checked." was false; the words are the signed /citations headings.
 export const CITATION_CONFLICT = "Could not match one case";
 export const CITATION_MALFORMED = "Not looked up";
 
