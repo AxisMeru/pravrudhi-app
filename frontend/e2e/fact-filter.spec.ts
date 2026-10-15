@@ -29,7 +29,7 @@ async function screened(page: import("@playwright/test").Page) {
 
 test("the filter shows R1's hint and 'Showing all rows.'; selecting a fact narrows the rows, the counts stay whole; selecting it again restores all", async ({ page }) => {
   await screened(page);
-  const rows = page.getByTestId("ingredient-row");
+  const rows = page.locator('[data-testid="ingredient-row"]:visible'); // rows the filter hides are in the page but not visible
   await expect(page.getByTestId("fact-filter-hint")).toHaveText("Select a fact to see the rows that cite it.");
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing all rows.");
   await expect(rows).toHaveCount(3);
@@ -39,7 +39,7 @@ test("the filter shows R1's hint and 'Showing all rows.'; selecting a fact narro
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing the rows that cite F1.");
   await expect(rows).toHaveCount(1);
   await expect(rows.first()).toContainText("deceives another person");
-  await expect(page.getByTestId("no-fact-group")).toHaveCount(0);
+  await expect(page.getByTestId("no-fact-group")).not.toBeVisible();
   expect(await page.getByTestId("summary-text").first().innerText(), "the counts describe the whole block, not the filtered view").toBe(bannerBefore);
   await page.getByTestId("fact-filter-F1").click();
   await expect(rows).toHaveCount(3);
@@ -48,7 +48,7 @@ test("the filter shows R1's hint and 'Showing all rows.'; selecting a fact narro
 
 test("Show all rows clears; a fact no row cites shows the empty line; the keyboard works", async ({ page }) => {
   await screened(page);
-  const rows = page.getByTestId("ingredient-row");
+  const rows = page.locator('[data-testid="ingredient-row"]:visible'); // rows the filter hides are in the page but not visible
   await page.getByTestId("fact-filter-F3").focus();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing the rows that cite F3.");
@@ -63,19 +63,27 @@ test("Show all rows clears; a fact no row cites shows the empty line; the keyboa
   await expect(page.getByRole("button", { name: "Show all rows" })).toHaveCount(0);
 });
 
-test("printing clears the filter first: a printed result has ALL the rows, and the selection comes back afterwards", async ({ page }) => {
+test("printing shows ALL the rows by construction (no event needed): the filter hides rows on the screen only", async ({ page }) => {
   await screened(page);
-  const rows = page.getByTestId("ingredient-row");
+  const rows = page.locator('[data-testid="ingredient-row"]:visible');
   await page.getByTestId("fact-filter-F1").click();
   await expect(rows).toHaveCount(1);
-  await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
   await page.emulateMedia({ media: "print" });
   await expect(rows).toHaveCount(3);
-  await expect(page.getByTestId("fact-filter-status")).toHaveText("Showing all rows.");
   await page.emulateMedia({ media: "screen" });
-  await page.evaluate(() => window.dispatchEvent(new Event("afterprint")));
   await expect(rows).toHaveCount(1);
   await expect(page.getByTestId("fact-filter-F1")).toHaveAttribute("aria-pressed", "true");
+});
+
+test("printing with a fact that no row cites selected: the screen-only empty line is not on the paper, all rows are", async ({ page }) => {
+  await screened(page);
+  await page.getByTestId("fact-filter-F3").click();
+  await expect(page.getByTestId("fact-filter-empty")).toBeVisible();
+  await page.emulateMedia({ media: "print" });
+  await expect(page.getByTestId("fact-filter-empty")).not.toBeVisible();
+  await expect(page.locator('[data-testid="ingredient-row"]:visible')).toHaveCount(3);
+  await page.emulateMedia({ media: "screen" });
+  await expect(page.getByTestId("fact-filter-empty")).toBeVisible();
 });
 
 test("Show all rows by keyboard leaves focus on the fact that was selected, not on the page", async ({ page }) => {

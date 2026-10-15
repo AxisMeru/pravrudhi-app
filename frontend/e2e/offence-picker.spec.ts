@@ -66,3 +66,18 @@ test("with a ticked row pinned and nothing matching the search, the empty line s
   await expect(list.locator("li")).toHaveCount(1);
   await expect(list.getByRole("checkbox", { name: /Cheating by personation/ })).toBeChecked();
 });
+
+test("unticking a pinned row the search does not match leaves the focus on the search box, not on the page", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: LIST, entries: LIST.map((id) => ({ id, validated: true })) } }));
+  await page.goto("/screening");
+  const list = page.getByTestId("offence-list");
+  await expect(list.locator("li").first()).toBeVisible();
+  await list.getByRole("checkbox", { name: /Cheating by personation/ }).check();
+  const search = page.getByLabel("Search by name or section");
+  await search.fill("breach");
+  const pinned = list.getByRole("checkbox", { name: /Cheating by personation/ });
+  await pinned.focus();
+  await page.keyboard.press("Space");
+  await expect(pinned).toHaveCount(0);
+  await expect(search).toBeFocused();
+});

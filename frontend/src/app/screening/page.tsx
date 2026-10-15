@@ -5,7 +5,6 @@
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { flushSync } from "react-dom";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
@@ -105,14 +104,13 @@ export default function ScreeningPage() {
   const abortRef = useRef<AbortController | null>(null);
   // Leaving the page cancels the run in flight (#176): the request and its ticker no longer run on until the engine answers or the 320 s timeout.
   useEffect(() => () => abortRef.current?.abort(), []);
-  // A printed result is ALL of it (globals.css): the fact filter is a screen aid, so printing clears it first (flushSync, so the paper is drawn from the full list) and puts it back afterwards.
-  const filterBeforePrint = useRef<FactFilterState | null>(null);
+  // A file dropped just OUTSIDE the drop zone would be opened by the browser in place of this page (and the pasted facts lost): while a file is being dragged, the page itself refuses the drop. The zone's own handler still takes the file.
   useEffect(() => {
-    const before = () => flushSync(() => setFactFilterState((cur) => { filterBeforePrint.current = cur; return null; }));
-    const after = () => { if (filterBeforePrint.current) setFactFilterState(filterBeforePrint.current); filterBeforePrint.current = null; };
-    window.addEventListener("beforeprint", before);
-    window.addEventListener("afterprint", after);
-    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
+    const files = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+    const stop = (e: DragEvent) => { if (files(e)) e.preventDefault(); };
+    window.addEventListener("dragover", stop);
+    window.addEventListener("drop", stop);
+    return () => { window.removeEventListener("dragover", stop); window.removeEventListener("drop", stop); };
   }, []);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
@@ -471,14 +469,18 @@ export default function ScreeningPage() {
                             aria-label={offenceCheckboxName(o)}
                             aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                             checked={on}
-                            onChange={() => setPicked((prev) => {
-                              const next = new Set(prev);
-                              for (const i of ids) {
-                                if (on) next.delete(i);
-                                else next.add(i);
-                              }
-                              return next;
-                            })}
+                            onChange={() => {
+                              // unticking a pinned row the search does not match removes it from the list under the focus: the focus goes to the search box, not to the page
+                              if (on && offenceQ !== "" && !offenceHit({ o, ids })) requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-testid="offence-search"]')?.focus());
+                              setPicked((prev) => {
+                                const next = new Set(prev);
+                                for (const i of ids) {
+                                  if (on) next.delete(i);
+                                  else next.add(i);
+                                }
+                                return next;
+                              });
+                            }}
                           />
                           <span className="flex flex-1 flex-col gap-0.5">
                             <span className="flex flex-wrap items-baseline justify-between gap-x-3">
