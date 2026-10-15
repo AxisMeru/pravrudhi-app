@@ -28,4 +28,8 @@ test("the offence mark says validated only when every contract is; otherwise the
   assert.equal(offenceMark(v, ["a", "zz"]), "not validated, verify");
   assert.equal(offenceMark(null, ["a"]), "validation status unavailable, verify");
   assert.equal(offenceMark(new Map(), ["a"]), "validation status unavailable, verify");
+  // the static flag (an offence the app itself lists as not validated) wins over a registry that lists it: both arms
+  assert.equal(offenceMark(v, ["a", "b"], true), "not validated, verify");
+  assert.equal(offenceMark(v, ["a", "b"], false), "validated");
+  assert.equal(offenceMark(null, ["a"], true), "not validated, verify");
 });

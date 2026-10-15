@@ -191,7 +191,14 @@ export default function ScreeningPage() {
 
   const offered = OFFENCES.map((o) => ({ o, ids: o.contracts.filter((c) => contracts.includes(c)) })).filter((x) => x.ids.length > 0);
   const [offenceQuery, setOffenceQuery] = useState("");
-  const shownOffences = offered.filter(({ o }) => { const q = offenceQuery.trim().toLowerCase(); return q === "" || `${o.title} ${o.sections}`.toLowerCase().includes(q); });
+  // a ticked offence is submitted, so it never disappears behind a search: ticked rows the search does not match stay visible, pinned above the matches (R2, #290)
+  const shownOffences = (() => {
+    const q = offenceQuery.trim().toLowerCase();
+    if (q === "") return offered;
+    const hit = (x: (typeof offered)[number]) => `${x.o.title} ${x.o.sections}`.toLowerCase().includes(q);
+    const ticked = (x: (typeof offered)[number]) => x.ids.every((i) => picked.has(i));
+    return [...offered.filter((x) => ticked(x) && !hit(x)), ...offered.filter(hit)];
+  })();
 
   // #248/#275: a link to #step-memo / #step-hearing (the /workflows rows) scrolls to the target before the page has finished growing: the offence list, and then late reads (identity, the assistant's provider line)
   // add content ABOVE it, so the visitor lands short of it (#275: 6 px short, intermittently, when the late content arrived after the one scroll #248 made). Once the registry has answered, the page keeps the named
@@ -467,7 +474,7 @@ export default function ScreeningPage() {
                               <span className="font-medium text-[var(--color-text)]">{o.title}</span>
                               <span className="text-xs text-[var(--color-text-dim)]">
                                 {o.sections && <>{o.sections} · </>}
-                                <span className={offenceMark(validated, ids) === "validated" ? "" : "text-[var(--color-warn)]"} data-testid="offence-mark">{offenceMark(validated, ids)}</span>
+                                <span className={offenceMark(validated, ids, o.notValidated === true) === "validated" ? "" : "text-[var(--color-warn)]"} data-testid="offence-mark">{offenceMark(validated, ids, o.notValidated === true)}</span>
                               </span>
                             </span>
                             {o.notValidated && (

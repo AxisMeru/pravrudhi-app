@@ -62,8 +62,9 @@ export function validationLabel(mark: ValidationMark): string | null {
 
 /** P5 slice 3 (R1, 15 Oct): the offence rows of the Matter workspace carry a mark on EVERY row, the app's own words: "validated", "not validated, verify", or "validation status unavailable, verify" when the list cannot be read. */
 export const VALIDATED_LABEL = "validated";
-export function offenceMark(validated: ReadonlyMap<string, boolean> | null, contractIds: readonly string[]): string {
-  const marks = contractIds.map((i) => validationMark(validated, i));
+export function offenceMark(validated: ReadonlyMap<string, boolean> | null, contractIds: readonly string[], staticNotValidated = false): string {
+  // an offence the app itself lists as not validated (its note says so) is never marked "validated", whatever the registry says (R2, #290)
+  const marks = contractIds.map((i) => (staticNotValidated ? "not-validated" : validationMark(validated, i)) as ValidationMark);
   // an offence is "validated" only when every one of its contracts is; the status the visitor most needs to see wins otherwise
   const mark: ValidationMark = marks.includes("unavailable") ? "unavailable" : marks.includes("not-validated") ? "not-validated" : "none";
   return validationLabel(mark) ?? VALIDATED_LABEL;

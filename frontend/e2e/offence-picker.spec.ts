@@ -40,3 +40,17 @@ test("Search by name or section filters the rows; an empty result says so", asyn
   await expect(page.getByTestId("offence-search-empty")).toHaveText("No offence matches that search.");
   await expect(page.getByTestId("offence-list").locator("li")).toHaveCount(0);
 });
+
+test("a ticked offence stays visible, above the matches, while the search hides the others", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: LIST, entries: LIST.map((id) => ({ id, validated: true })) } }));
+  await page.goto("/screening");
+  const list = page.getByTestId("offence-list");
+  await expect(list.locator("li").first()).toBeVisible();
+  await list.getByRole("checkbox", { name: /Cheating by personation/ }).check();
+  await page.getByLabel("Search by name or section").fill("breach");
+  const names = await list.locator("li").allTextContents();
+  expect(names.length).toBeGreaterThanOrEqual(2);
+  expect(names[0]).toContain("Cheating by personation");
+  expect(names.some((n) => n.includes("Criminal breach of trust"))).toBe(true);
+  await expect(list.getByRole("checkbox", { name: /Cheating by personation/ })).toBeChecked();
+});
