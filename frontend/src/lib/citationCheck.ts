@@ -3,7 +3,7 @@
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
-import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
+import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -108,7 +108,18 @@ export const statusLabel = (status: string, existenceOnly: boolean = CITATION_EX
           ? IN_INDEX_LABEL
           : status;
 
-export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): VerifyView {
+/**
+ * app#347 (R1's rule, no engine change): the citation names a case iff the text before its "(year)" part contains " v. ", " v ", " vs. " or " versus " (case-insensitive). Anything else, and any doubt
+ * (no "(year)" part, an empty line, a non-string), counts as absent.
+ */
+export function citationHasCaseName(line: unknown): boolean {
+  if (typeof line !== "string") return false;
+  const year = /\(\s*\d{4}\s*\)/.exec(line);
+  if (!year) return false;
+  return /\s(?:v\.?|vs\.?|versus)\s/i.test(line.slice(0, year.index) + " ");
+}
+
+export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, citation?: string): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";
   const withheld = !note || NOTE_BANNED.test(note);
@@ -116,7 +127,7 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
   const override = existenceOnly && status === "NOT_IN_INDEX";
   // #223 (R1, 15 Oct): with the arm ON a CONFLICT and a MALFORMED each show R1's sentence under their plain heading; the engine's notes ("maps to conflicting indexed cases; verify by hand", "Exactly one parseable citation is required.") are replaced.
   const explained = existenceOnly && (status === "CONFLICT" || status === "MALFORMED");
-  const explanation = status === "CONFLICT" ? CONFLICT_TEXT : MALFORMED_TEXT;
+  const explanation = status === "CONFLICT" ? (citationHasCaseName(citation) ? CONFLICT_TEXT_WITH_NAME : CONFLICT_TEXT) : MALFORMED_TEXT;
   return {
     status,
     known: (VERIFY_STATUSES as readonly string[]).includes(status),

@@ -51,7 +51,7 @@ export default function CitationsPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      setView(verifyView(await verifyCitation(citation, CITATION_EXISTENCE_ONLY ? null : quote, ac.signal)));
+      setView(verifyView(await verifyCitation(citation, CITATION_EXISTENCE_ONLY ? null : quote, ac.signal), undefined, undefined, citation));
     } catch (e) {
       setError(classifyVerifyError(e).message);
     } finally {

@@ -15,6 +15,8 @@ export const NOT_IN_INDEX_NOTE = "We could not match this citation to exactly on
 export const IN_INDEX_LABEL = "Found in our index";
 /** #223 D1 (R1, 15 Oct; Lead-2): a CONFLICT is worded neutrally: the cause may be one case under a spelling variant, so it never says "more than one case" and never claims the citation is not real. */
 export const CONFLICT_TEXT = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.";
+/** app#347 (R1, 15 Oct, byte-exact): the CONFLICT sentence when the citation the reader typed already carries a case name (citationHasCaseName): the advice to add the name would be wrong. The heading stays "Could not match one case". */
+export const CONFLICT_TEXT_WITH_NAME = "We could not match this citation to exactly one case in our index, even with the case name. That does not show whether the citation is real. Check the citation by hand.";
 /** #223 D2a (R1): plain headings for the two statuses that had none (CONFLICT) or a raw token (MALFORMED) while the index is existence-only. */
 export const CONFLICT_HEADING = "Could not match one case";
 export const MALFORMED_HEADING = "Not looked up";

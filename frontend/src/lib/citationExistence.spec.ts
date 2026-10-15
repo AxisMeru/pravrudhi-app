@@ -116,3 +116,26 @@ test("#266: EXISTENCE_SUBTITLE says up to 5 at a time, equal to the cap constant
   assert.equal(EXISTENCE_SUBTITLE, "Look up citations, up to 5 at a time, and see whether each case is in our index.");
   assert.match(EXISTENCE_SUBTITLE, new RegExp(`up to ${MAX_CITATIONS_EXISTENCE} at a time`));
 });
+
+// app#347 (R1, 15 Oct): the CONFLICT sentence depends on whether the typed citation already carries a case name; both sentences are pinned byte-exact, the heading is unchanged, and the rule is a table.
+import { citationHasCaseName } from "./citationCheck";
+import { CONFLICT_TEXT_WITH_NAME } from "./citationExistence";
+test("#347: both CONFLICT sentences are R1's, byte-exact; the heading is unchanged", () => {
+  assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
+  assert.equal(CONFLICT_TEXT_WITH_NAME, "We could not match this citation to exactly one case in our index, even with the case name. That does not show whether the citation is real. Check the citation by hand.");
+  assert.doesNotMatch(CONFLICT_TEXT_WITH_NAME, /Adding the case name/);
+  assert.equal(CONFLICT_HEADING, "Could not match one case");
+});
+test("#347: the name-present rule: ' v. ', ' v ', ' vs. ' or ' versus ' before the (year) part, case-insensitive; anything else or any doubt is absent", () => {
+  const present = ["Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168", "A v B (1999) 1 SCC 1", "A vs. B (1999) 1 SCC 1", "A VS B (1999) 1 SCC 1", "A Versus B (1999) 1 SCC 1", "A V. B (1999) 1 SCC 1", "Ram v. Shyam ( 1988 ) 2 SCC 5"];
+  const absent = ["(2000) 4 SCC 168", "AIR 1999 SC 100", "", "   ", "State of Bihar (2000) 4 SCC 168", "Avvo (2000) 4 SCC 168", "Hridaya v. State of Bihar 4 SCC 168 2000", "Hridaya v. State of Bihar", "(2000) 4 SCC 168 Hridaya v. State", "A v.B (1999) 1 SCC 1", "Dev (1999) 1 SCC 1"];
+  for (const c of present) assert.equal(citationHasCaseName(c), true, c);
+  for (const c of absent) assert.equal(citationHasCaseName(c), false, c);
+  assert.equal(citationHasCaseName(undefined), false); assert.equal(citationHasCaseName(null), false); assert.equal(citationHasCaseName(42), false);
+});
+test("#347: verifyView picks the sentence from the citation (existence-only arm); no citation, or a bare one, keeps the signed sentence", () => {
+  const conflict = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand.", status: "conflict", label: "conflict", verified: false };
+  assert.equal(verifyView(conflict, false, true, "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168").note, CONFLICT_TEXT_WITH_NAME);
+  assert.equal(verifyView(conflict, false, true, "(2000) 4 SCC 168").note, CONFLICT_TEXT);
+  assert.equal(verifyView(conflict, false, true).note, CONFLICT_TEXT);
+});
