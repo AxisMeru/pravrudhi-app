@@ -77,7 +77,9 @@ test("#309/#311: an unreachable read is retried soon, then backs off 5, 10, 20, 
 
 // R2 (#311): the loop that useAssistantState runs, tested without React and without real timers.
 import { startTierPoller, type AssistantState } from "./assistantTier";
-function harness(answers: AssistantState[]) {
+function harness(answers: AssistantState[], hiddenAtStart = false) {
+  let hidden = hiddenAtStart;
+  const listeners: Array<() => void> = [];
   const timers: Array<{ fn: () => void; ms: number; cancelled: boolean }> = [];
   const seen: AssistantState[] = [];
   let reads = 0;
@@ -87,9 +89,12 @@ function harness(answers: AssistantState[]) {
     setTimer: (fn, ms) => { const t = { fn, ms, cancelled: false }; timers.push(t); return t; },
     clearTimer: (t) => { (t as { cancelled: boolean }).cancelled = true; },
     random: () => 0.5,
+    isHidden: () => hidden,
+    onVisibilityChange: (cb) => { listeners.push(cb); return () => { listeners.splice(listeners.indexOf(cb), 1); }; },
   });
   const tick = async () => { await Promise.resolve(); await Promise.resolve(); };
-  return { timers, seen, stop, tick, reads: () => reads };
+  const setHidden = (h: boolean) => { hidden = h; listeners.slice().forEach((cb) => cb()); };
+  return { timers, seen, stop, tick, reads: () => reads, setHidden, listeners };
 }
 
 test("the poller backs off 5, 10, 20 s while the read fails and starts over at 5 s after one that answers", async () => {
@@ -117,4 +122,31 @@ test("stop() cancels the pending timer, and a read still in flight does nothing 
   await h2.tick();
   assert.deepEqual(h2.seen, []);
   assert.deepEqual(h2.timers, []);
+});
+
+test("#323: a hidden tab makes no read; a read that fell due is made once when the tab is shown, then the loop goes on", async () => {
+  const h = harness(["available", "available", "available"]);
+  await h.tick();
+  assert.equal(h.reads(), 1);
+  h.setHidden(true);
+  h.timers[0].fn(); await h.tick(); // the 60 s poll falls due while hidden
+  assert.equal(h.reads(), 1, "no read while hidden");
+  h.setHidden(false); await h.tick(); // shown again: one read now
+  assert.equal(h.reads(), 2);
+  h.setHidden(true); h.setHidden(false); await h.tick(); // nothing was due: no extra read
+  assert.equal(h.reads(), 2);
+  assert.equal(h.timers.length, 2, "the next poll is scheduled after the read that answered");
+  h.stop();
+  assert.equal(h.listeners.length, 0, "stop() removes the visibility listener");
+});
+
+test("#323: a tab that starts hidden reads nothing until it is shown", async () => {
+  const h = harness(["unreachable", "available"], true);
+  await h.tick();
+  assert.equal(h.reads(), 0);
+  assert.deepEqual(h.timers, []);
+  h.setHidden(false); await h.tick();
+  assert.equal(h.reads(), 1);
+  assert.deepEqual(h.seen, ["unreachable"]);
+  h.stop();
 });
