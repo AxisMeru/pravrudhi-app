@@ -173,6 +173,7 @@ table,
     --color-ok: #1c5a3b;
     --color-info: #23487a;
     --color-note: #5b3f9a;
+    color-scheme: light; /* Track-B INFO on #319: the dark screen's color-scheme must not carry into print */
   }
   nav,
   aside:not([data-testid="caveat-strip"]) {

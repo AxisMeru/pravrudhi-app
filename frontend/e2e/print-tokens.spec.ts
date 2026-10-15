@@ -10,7 +10,8 @@ for (const [name, scheme, theme] of CASES) {
     await page.addInitScript((t) => { try { if (t) window.localStorage.setItem("pravrudhi-theme", t); else window.localStorage.removeItem("pravrudhi-theme"); } catch { /* storage unavailable */ } }, theme);
     await page.goto("/workflows");
     await page.emulateMedia({ colorScheme: scheme, media: "print" });
-    const vals = await page.evaluate(() => { const s = getComputedStyle(document.documentElement); return { bg: s.getPropertyValue("--color-bg").trim(), text: s.getPropertyValue("--color-text").trim(), accent: s.getPropertyValue("--color-accent").trim(), warn: s.getPropertyValue("--color-warn").trim() }; });
+    const vals = await page.evaluate(() => { const s = getComputedStyle(document.documentElement); return { bg: s.getPropertyValue("--color-bg").trim(), text: s.getPropertyValue("--color-text").trim(), accent: s.getPropertyValue("--color-accent").trim(), warn: s.getPropertyValue("--color-warn").trim(), scheme: s.colorScheme }; });
+    expect(vals.scheme).toBe("light");
     // the browser may hand back the minified form of a colour (#fff for #ffffff): compare the expanded value
     const full = (c: string) => (/^#[0-9a-f]{3}$/i.test(c) ? "#" + c.slice(1).split("").map((x) => x + x).join("") : c).toLowerCase();
     expect({ bg: full(vals.bg), text: full(vals.text), accent: full(vals.accent), warn: full(vals.warn) }).toEqual({ bg: "#ffffff", text: "#000000", accent: "#1f4e79", warn: "#7a4b00" });
