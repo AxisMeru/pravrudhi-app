@@ -10,7 +10,7 @@ import { NyayaSiddhiResultsView } from "./NyayaSiddhiResults";
 
 // INVENTED layout fixture and INVENTED words (test-only, never shipped): the real words are R1's.
 const W: NyayaSiddhiStrings = {
-  heading: "H1", intro: "INTRO", tableCaption: "CAP", colSystem: "SYS", colStatus: "STAT", colSplit: "SPL", colRunDate: "DATE", stackLabel: "dev stack (local)", organiserEntry: "ORGANISER", zeroWithZero: "ZEROZERO", unitHeading: "UNITH", groupHeading: "GRPH", groupAll: "ALLG",
+  heading: "H1", intro: "INTRO", tableCaption: "CAP", colSystem: "SYS", colStatus: "STAT", colSplit: "SPL", colRunDate: "DATE", stackLabel: "dev stack (local)", conflictLabel: "CONFLICT", organiserEntry: "ORGANISER", zeroWithZero: "ZEROZERO", unitHeading: "UNITH", groupHeading: "GRPH", groupAll: "ALLG",
   unit: { whole_item: "WHOLE", element: "ELEM" }, split: { obj1_dev: "DEV", obj1b_minus_cruelty: "MINUS" },
   status: { "self-reported": "SELF", "re-scored": "RESC", reproduced: "REPR", "third-party verified": "TPV" },
   measure: { false_proof: "FP", coverage: "COV" }, measureNote: { false_proof: "FPN", coverage: "COVN" },
@@ -29,7 +29,7 @@ test("the production words are all unset, so the view shows nothing until R1 wor
 
 test("with words and rows: the count, n and the exact interval are printed, the chart repeats them, and no comparative or ranking is worded", () => {
   const html = renderToStaticMarkup(createElement(NyayaSiddhiResultsView, { rows: ROWS, strings: W }));
-  for (const t of ["H1", "INTRO", "SELF", "dev stack (local)", "ORGANISER", "2 of 40", "exact 95% interval 0.6% to 16.9%", "30 of 40", "exact 95% interval 58.8% to 89.3%", "FP", "COV"]) assert.ok(html.includes(t), t);
+  for (const t of ["H1", "INTRO", "SELF", "dev stack (local)", "CONFLICT", "ORGANISER", "2 of 40", "exact 95% interval 0.6% to 16.9%", "30 of 40", "exact 95% interval 58.8% to 89.3%", "FP", "COV"]) assert.ok(html.includes(t), t);
   assert.equal((html.match(/data-testid="ns-chart"/g) ?? []).length, 2);
   assert.doesNotMatch(html, /better|worse|best|rank|outperform|beats|winner/i);
 });

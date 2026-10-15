@@ -69,6 +69,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colSplit}</dt><dd className="text-[var(--color-text)]">{s.split[r.split]}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colRunDate}</dt><dd className="text-[var(--color-text)]">{r.runDate}</dd></div>
               <div><dd className="text-[var(--color-text)]" data-testid="ns-stack">{s.stackLabel}</dd></div>
+              <div><dd className="text-[var(--color-text)]" data-testid="ns-conflict">{s.conflictLabel}</dd></div>
               {r.organiserEntry && <div><dd className="text-[var(--color-text)]" data-testid="ns-organiser">{s.organiserEntry}</dd></div>}
             </dl>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

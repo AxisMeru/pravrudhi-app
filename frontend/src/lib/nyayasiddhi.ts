@@ -13,6 +13,8 @@ export interface NyayaSiddhiStrings {
   colRunDate: string;
   /** The stack label printed on every row ("dev stack (local)": the benchmark's organiser rows were measured on the local development stack). */
   stackLabel: string;
+  /** The S7-1 conflict-of-interest label (Interim lead's ruling, 15 Oct): printed on every row, beside the stack label (the rows are our own organiser rows). */
+  conflictLabel: string;
   /** Printed on a row entered by the organisers (organiser_entry). */
   organiserEntry: string;
   /** Printed under a row's figures when it has 0 false proofs AND 0 coverage for the chosen group: that pair is never read alone. */
@@ -42,7 +44,7 @@ export interface NyayaSiddhiStrings {
 type Nullable<T> = { [K in keyof T]: T[K] extends Record<string, string> ? Record<keyof T[K], string | null> : T[K] | null };
 
 export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
-  heading: null, intro: null, tableCaption: null, colSystem: null, colStatus: null, colSplit: null, colRunDate: null, stackLabel: null, organiserEntry: null, zeroWithZero: null,
+  heading: null, intro: null, tableCaption: null, colSystem: null, colStatus: null, colSplit: null, colRunDate: null, stackLabel: null, conflictLabel: null, organiserEntry: null, zeroWithZero: null,
   unitHeading: null, groupHeading: null, groupAll: null,
   unit: { whole_item: null, element: null },
   split: { obj1_dev: null, obj1b_minus_cruelty: null },
