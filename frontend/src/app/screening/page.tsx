@@ -531,21 +531,21 @@ export default function ScreeningPage() {
           )}
           {checking && signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
           {inflight && (
-            <>
-              <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="w-fit text-sm text-[var(--color-text-dim)] underline">
+            <div className="flex flex-col gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="running-card">
+              <button type="button" onClick={() => abortRef.current?.abort()} data-testid="screening-cancel" className="inline-flex min-h-8 w-fit items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)] max-md:min-h-11">
                 Cancel
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
               {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
-              <p className="text-sm text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
-              <p className="font-mono text-sm text-[var(--color-text-dim)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
+              <p className="text-base font-medium text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
+              <p className="font-mono text-lg text-[var(--color-text)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
               {runAssisted && <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-assisted">{ASSISTED_RUNNING_NOTE}</p>}
               {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">{WARM_UP_NOTE}</p>}
               <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-leave">{LEAVE_AND_RETURN_TEXT}</p>
-            </>
+            </div>
           )}
           {inflight && elapsed >= SLOW_START_SECONDS && (
-            <p className="text-sm text-[var(--color-warn)]" role="status">
+            <p className="rounded-lg border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
           )}
