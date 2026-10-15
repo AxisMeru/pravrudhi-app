@@ -241,7 +241,7 @@ export default function ScreeningPage() {
         <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
         <CaveatStrip warming={warming} />
         <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
-          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:flex max-md:min-h-11 max-md:items-center">{ABOUT_SCREENING_LABEL}</summary>
+          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
             <p className="text-sm" data-testid="guide-link">

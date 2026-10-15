@@ -110,6 +110,21 @@ test.describe("phone touch targets and drawer header", () => {
     }
   });
 
+  test("D7 (R2, #217): the 'About this screening' fold keeps its disclosure marker at a phone width (summary stays display: list-item, 44 px from padding)", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: OFFENCES }));
+    await page.goto("/screening");
+    const summary = page.getByTestId("about-screening").locator("summary");
+    await expect(summary).toBeVisible();
+    const style = await summary.evaluate((el) => ({ display: getComputedStyle(el).display, listStyleType: getComputedStyle(el).listStyleType, h: el.getBoundingClientRect().height }));
+    expect(style.display, "a summary that is not a list-item loses its disclosure triangle").toBe("list-item");
+    expect(style.listStyleType).not.toBe("none");
+    expect(style.h).toBeGreaterThanOrEqual(SIZE_MIN);
+    // no other control this PR sized was turned into a flex summary / lost a marker: every <summary> on the page is a list-item
+    const displays = await page.locator("summary").evaluateAll((els) => els.map((e) => getComputedStyle(e).display));
+    expect(displays.length).toBeGreaterThan(0);
+    for (const d of displays) expect(d).toBe("list-item");
+  });
+
   test("D7: every link and button inside the open drawer is at least 44 px high", async ({ page }) => {
     await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
     await page.goto("/screening");
