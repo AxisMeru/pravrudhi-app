@@ -159,8 +159,8 @@ for (let run = 1; run <= REPEATS; run++) {
       const summary = summarize(c, rows);
       await expect(section.getByTestId("ingredient-row")).toHaveCount(rows.ingredients.length + rows.defences.length);
       await expect(section.getByTestId("summary-text")).toHaveText(summary.text);
-      // directly above the standing line
-      await expect(section.getByTestId("summary-banner")).toHaveText(new RegExp(`${summary.text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*This is a screening aid, not legal advice\\. A lawyer decides\\.`));
+      // R1 (15 Oct): the standing line is once per result (above the first block), not under each block's banner sentence
+      await expect(section.getByTestId("summary-banner")).not.toContainText("A lawyer decides.");
       const chips = await section.getByTestId("ingredient-chip").allInnerTexts();
       for (const t of chips) expect(Object.values(CHIP_LABEL), `an unknown chip "${t}"`).toContain(t);
       // every row names what to check, and a cited fact is shown in full from the submitted facts
