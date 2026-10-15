@@ -9,6 +9,7 @@ import { withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
 import { MATTER_CAVEAT, MATTER_DOC_ID, MATTER_NOT_SCREENED, MATTER_OFFENCE_IDS, checkMatterText } from "../src/lib/demo/screeningMatter";
 import { CHIP_LABEL } from "../src/lib/screening/copy";
+import { memoBlockHeading } from "../src/lib/screening/memo";
 import { knownElements, rowsFor, summarize } from "../src/lib/screening/model";
 import { OFFENCES } from "../src/lib/screening/offences";
 
@@ -191,7 +192,7 @@ for (let run = 1; run <= REPEATS; run++) {
     expect(memo).toContain(result.run_id);
     expect(memo).toContain(result.score_sha256);
     for (const c of result.contracts) {
-      expect(memo, `the memo has no section for ${c.contract_id}`).toContain(`Contract: ${c.contract_id}`);
+      expect(memo, `the memo has no section for ${c.contract_id}`).toContain(`## ${memoBlockHeading(c.contract_id)}`);
       expect(memo, `the memo lacks ${c.contract_id}'s banner`).toContain(summarize(c, rowsFor(c, result.facts)).text);
     }
     const lines = memo.split("\n");

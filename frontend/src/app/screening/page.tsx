@@ -240,7 +240,7 @@ export default function ScreeningPage() {
       <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
         <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
         <CaveatStrip warming={warming} />
-        <details className="rounded-md border border-[var(--color-border)] p-3" data-testid="about-screening">
+        <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
           <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)]">{ABOUT_SCREENING_LABEL}</summary>
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
@@ -252,7 +252,7 @@ export default function ScreeningPage() {
         {exampleMissing && <ExampleNotFound page="/screening" />}
         {example && <ExampleBanner example={example} />}
         {!example && (
-          <div className="flex flex-col gap-1" data-testid="example-entry">
+          <div className="flex flex-col gap-1 print:hidden" data-testid="example-entry">
             <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
             <ul className="flex flex-col gap-1 text-sm">
               {EXAMPLES.map((e) => (
@@ -267,7 +267,7 @@ export default function ScreeningPage() {
             </ul>
           </div>
         )}
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-label="Facts">
+        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts">
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea

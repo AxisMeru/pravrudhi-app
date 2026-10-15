@@ -26,7 +26,7 @@ export const SERVICE_ERROR_TEXT = {
 /** App-specific strings signed by R1 (6 Oct 2026; fixtures/appSignedStrings.json): the web session 401 and the memo disclaimer. */
 export const SESSION_401_TEXT = "You are not signed in, or your session has ended. Nothing was scored. Sign in and try again.";
 export const MEMO_DISCLAIMER_TEXT =
-  "This memo is an analysis aid, not legal advice. A REFER_TO_LAWYER outcome is a referral, not an answer: the system reached no verdict, and a lawyer should look at the matter. The cited fact is verbatim text from the submitted facts, not proof that it is relevant.";
+  "This memo is a screening aid, not legal advice. A lawyer decides. Where the screening hands an ingredient or an offence back for a lawyer's review, that is a referral, not an answer: no verdict was reached. A cited fact is text from the facts you submitted, shown for you to check; it is not a finding that the fact is relevant.";
 
 /**
  * Signed wording for the coded errors of pravrudhi #319 that THIS app surfaces (fixtures/codedErrorStrings.json: source note, head and
