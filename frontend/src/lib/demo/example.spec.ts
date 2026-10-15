@@ -135,3 +135,17 @@ test("isUnchangedExample / memoExample: only the example's facts, word for word 
   assert.equal(memoExample(["My own client's fact about a loan."], ex), null);
   assert.equal(memoExample(same, null), null);
 });
+
+// R2 (#227): Intake's citations belong to the facts Intake handed over; a replaced or edited fact drops them, restoring brings them back.
+test("intakeCitationsFor: the citations are listed only while the screened facts equal the handed facts", async () => {
+  const { intakeCitationsFor, factsEqual } = await import("./example");
+  const hand = { facts: ["Invented fact one.", "Invented fact two."], citations: [{ text: "Invented v. Sample (2000) 1 SCC 1" }] };
+  assert.deepEqual(intakeCitationsFor(["Invented fact one.", "Invented fact two."], hand), hand.citations);
+  assert.deepEqual(intakeCitationsFor(["Invented fact one.", "", "Invented fact two."], hand), hand.citations, "blank boxes are not a change");
+  assert.deepEqual(intakeCitationsFor(["Invented fact one.", "Another matter's fact."], hand), [], "a replaced fact");
+  assert.deepEqual(intakeCitationsFor(["Invented fact one."], hand), [], "a fact removed");
+  assert.deepEqual(intakeCitationsFor(["Invented fact one.", "Invented fact two.", "Extra."], hand), [], "a fact added");
+  assert.deepEqual(intakeCitationsFor(["Invented fact two.", "Invented fact one."], hand), [], "reordered");
+  assert.deepEqual(intakeCitationsFor(hand.facts, null), [], "nothing handed over");
+  assert.equal(factsEqual(["a  \n b"], ["a b"]), true);
+});

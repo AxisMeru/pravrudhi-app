@@ -84,10 +84,22 @@ const clean = (t: string): string => t.replace(/\s*\n\s*/g, " ").trim();
  * edited, added, removed or pasted over, the facts are the user's own and a court's name must not sit above them (R2, #216).
  */
 export function isUnchangedExample(facts: readonly string[], example: DemoExample | null): boolean {
-  if (example === null) return false;
-  const mine = facts.map(clean).filter((t) => t !== "");
-  const theirs = example.facts.map(clean).filter((t) => t !== "");
+  return example !== null && factsEqual(facts, example.facts);
+}
+
+/** The same facts, in the same order, word for word (blank boxes and line breaks inside a fact are not changes). */
+export function factsEqual(a: readonly string[], b: readonly string[]): boolean {
+  const mine = a.map(clean).filter((t) => t !== "");
+  const theirs = b.map(clean).filter((t) => t !== "");
   return mine.length === theirs.length && mine.every((t, i) => t === theirs[i]);
+}
+
+/**
+ * The citations Intake found, only while the facts that were screened are the facts that were handed over from Intake (R2, #227): once the facts are replaced, edited or another matter's text is
+ * loaded, the citations belong to the earlier text and are not listed beside the new matter's checklist.
+ */
+export function intakeCitationsFor(screenedFacts: readonly string[], hand: { facts: readonly string[]; citations: ReadonlyArray<{ text: string }> } | null): Array<{ text: string }> {
+  return hand !== null && factsEqual(screenedFacts, hand.facts) ? [...hand.citations] : [];
 }
 
 /** The example label and citation a memo carries: only for a run whose facts are the example's, unchanged. */

@@ -16,7 +16,7 @@ export function HearingPreparation({ result, intakeCitations }: { result: Analys
           <div key={b.index} className="flex flex-col gap-2 rounded-md border border-[var(--color-border)] p-3" data-testid="hearing-block" data-state={b.state}>
             <h3 className="text-sm font-medium text-[var(--color-text)]">{b.title}</h3>
             {b.alternateWay && <p className="text-xs text-[var(--color-text-dim)]" data-testid="hearing-alternate-way">{ALTERNATE_LIMB_NOTE}</p>}
-            {b.state === "unsettled" && <p className="text-sm text-[var(--color-text)]" data-testid="hearing-unsettled">{S.unsettledBlock}</p>}
+            {b.state !== "open" && b.state !== "settled" && <p className="text-sm text-[var(--color-text)]" data-testid="hearing-unsettled">{S.unsettledBlock}</p>}
             {b.state === "settled" && <p className="text-sm text-[var(--color-text)]" data-testid="hearing-none-open">{S.noneOpen}</p>}
             {b.state === "open" && (
               <>
