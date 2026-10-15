@@ -22,7 +22,7 @@ export const CHIP_TONE: Readonly<Record<Chip, string>> = {
   supported: "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]",
   // A suggestion is neither a finding nor an error: dashed and neutral, so it never reads as a supported ingredient.
   suggested: "border-dashed border-[var(--color-info-border)] text-[var(--color-info)]",
-  not_supported: "border-[var(--color-border)] text-[var(--color-text-dim)]",
+  not_supported: "border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text-dim)]",
   // Amber, never red: a review item is an invitation to look, not a failure.
   review: "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]",
 };
