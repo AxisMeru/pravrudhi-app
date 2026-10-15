@@ -108,7 +108,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
             )}
             {zeroWithZero(r, activeGroup) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-zero-with-zero">{s.zeroWithZero}</p>}
             {activeGroup === ALL_GROUP && r.notRunGroups.length > 0 && <p className="text-sm text-[var(--color-text)]" data-testid="ns-not-run-all">{s.notRunAll}</p>}
-            {activeGroup === "NI138" && <p className="text-sm text-[var(--color-text)]" data-testid="ns-ni138-note">{s.ni138Note}</p>}
+            {activeGroup === "NI138" && (metricOf(r, "false_proof", "NI138") || metricOf(r, "coverage", "NI138")) && <p className="text-sm text-[var(--color-text)]" data-testid="ns-ni138-note">{s.ni138Note}</p>}
             </>}
           </li>
         ))}

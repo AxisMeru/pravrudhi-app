@@ -1,3 +1,5 @@
+import type { Locator } from "@playwright/test";
+
 import { expect, test } from "./support/engineTest";
 
 // The benchmarks page is short (R1's strings, 13 Oct): what we check, how we test, what the checks do and do not show. No figure outside the NyayaSiddhi results view: Interim lead's explicit exception (15 Oct) allows figures there only (the signed NyayaSiddhi rows, each with its n and exact 95% interval).
@@ -39,69 +41,94 @@ test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and
 });
 
 // Interim lead's exception (15 Oct): the NyayaSiddhi results from the signed rows (src/data/nyayasiddhi/rows.json), R1's words, each figure with its n and exact 95% interval; no ranking, no "proof".
-test("the NyayaSiddhi results: R1's heading and intro, the signed cards with their labels, and each figure with n and its exact interval", async ({ page }) => {
+const DEV = "Development items; used to design fixes, so seen by us";
+const SECOND = "Second development set, cruelty items left out; exposed to Anthropic in an earlier study";
+const CARD_HEADS = { product: "nyaya-product", o1: "nyayasiddhi-open-O1", o2: "nyayasiddhi-open-O2", direct: "nyayasiddhi-ref-S-direct", harness: "nyayasiddhi-ref-S-harness" } as const;
+const cardOf = (box: Locator, system: keyof typeof CARD_HEADS, split: "dev" | "second") => box.getByTestId("ns-row").filter({ hasText: CARD_HEADS[system] }).filter({ hasText: split === "dev" ? DEV : SECOND });
+
+test("the NyayaSiddhi results: R1's heading and intro, the signed cards in a fixed order under two split subheadings, with their labels, and each figure with n and its exact interval", async ({ page }) => {
   await page.goto("/benchmarks");
   const box = page.getByTestId("nyayasiddhi-results");
   await expect(box.getByRole("heading", { name: "NyayaSiddhi results", level: 2 })).toBeVisible();
   await expect(box).toContainText("Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.");
   await expect(box.getByTestId("ns-supply-line")).toHaveText("For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.");
-  // "Counted per": whole item shows six cards (file order: the product rows, then the API reference arm, then the open-model reference arm)
+  await expect(box.getByTestId("ns-order-line")).toHaveText("Rows are listed in a fixed order, by split and system name, never by a figure.");
+  await expect(box.getByText("How the system decides each item", { exact: true })).toBeVisible();
+  await expect(box.getByTestId("ns-unit-note")).toHaveText("Every figure on this page counts items, however the system decides them.");
+  // two subheadings, the development items first; inside each: the product row, then the reference arms by system name
+  await expect(box.getByTestId("ns-split-heading")).toHaveText([DEV, SECOND]);
   const rows = box.getByTestId("ns-row");
-  await expect(rows).toHaveCount(6);
-  // About this run: one closed block on each of the four reference rows in this view (none on the two product rows); opening it shows R1's first line
+  await expect(rows).toHaveCount(8);
+  for (let i = 0; i < 8; i++) await expect(rows.nth(i)).toContainText([CARD_HEADS.product, CARD_HEADS.o1, CARD_HEADS.o2, CARD_HEADS.direct][i % 4]);
+  // About this run: one closed block on each of the six reference rows in this view (none on the product rows); opening one shows R1's first line
   const about = box.getByTestId("ns-about-run");
-  await expect(about).toHaveCount(4);
-  await expect(about.first()).not.toHaveAttribute("open", "");
-  await expect(about.first().locator("summary")).toHaveText("About this run");
-  await about.first().locator("summary").click();
-  await expect(about.first().locator("li").first()).toHaveText("The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.");
-  await expect(rows.first()).toContainText("Reported by the entrant");
-  await expect(rows.first()).toContainText("Second development set, cruelty items left out; exposed to Anthropic in an earlier study");
-  await expect(rows.nth(1)).toContainText("Development items; used to design fixes, so seen by us");
-  // the per-row stack label and the per-row organiser line: the product rows, the API rows and the open-model rows each read their own
-  for (const i of [0, 1, 4, 5]) await expect(rows.nth(i).getByTestId("ns-stack")).toHaveText("dev stack (local)");
-  for (const i of [2, 3]) await expect(rows.nth(i).getByTestId("ns-stack")).toHaveText("Anthropic API; not our dev stack or production stack");
-  for (const i of [0, 1]) await expect(rows.nth(i).getByTestId("ns-organiser")).toHaveText("Entered by the NyayaSiddhi organisers, who also built this system");
-  for (const i of [2, 3, 4, 5]) await expect(rows.nth(i).getByTestId("ns-organiser")).toHaveText("Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry");
+  await expect(about).toHaveCount(6);
+  await expect(cardOf(box, "product", "dev").getByTestId("ns-about-run")).toHaveCount(0);
+  const o2 = cardOf(box, "o2", "dev").getByTestId("ns-about-run");
+  await expect(o2).not.toHaveAttribute("open", "");
+  await expect(o2.locator("summary")).toHaveText("About this run");
+  await o2.locator("summary").click();
+  await expect(o2.locator("li").first()).toHaveText("The prompt's output-format line was changed after a smoke test on five invented items; no real item was used for that test.");
+  // the API rows open with the exposure sentence, by split
+  const apiFirst = (split: "dev" | "second") => cardOf(box, "direct", split).getByTestId("ns-about-run").locator("li").first();
+  await cardOf(box, "direct", "dev").getByTestId("ns-about-run").locator("summary").click();
+  await expect(apiFirst("dev")).toHaveText("In this study, the allegation text of this split was sent to the Anthropic API, beginning with the stopped 20-item run; the registration records that it had not been sent to the API before.");
+  await cardOf(box, "direct", "second").getByTestId("ns-about-run").locator("summary").click();
+  await expect(apiFirst("second")).toHaveText("In this run, the allegation text of this split was sent to the Anthropic API again; it had been sent before, in an earlier study.");
+  await expect(cardOf(box, "product", "second")).toContainText("Reported by the entrant");
+  // the per-row stack label and the per-row organiser line
+  for (const sys of ["product", "o1", "o2"] as const) for (const sp of ["dev", "second"] as const) await expect(cardOf(box, sys, sp).getByTestId("ns-stack")).toHaveText("dev stack (local)");
+  for (const sp of ["dev", "second"] as const) await expect(cardOf(box, "direct", sp).getByTestId("ns-stack")).toHaveText("Anthropic API; not our dev stack or production stack");
+  for (const sp of ["dev", "second"] as const) await expect(cardOf(box, "product", sp).getByTestId("ns-organiser")).toHaveText("Entered by the NyayaSiddhi organisers, who also built this system");
+  for (const sys of ["o1", "o2", "direct"] as const) await expect(cardOf(box, sys, "dev").getByTestId("ns-organiser")).toHaveText("Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry");
   const text = await box.innerText();
-  expect(text).toContain("0 of 64 (exact 95% interval 0.0% to 5.6%)");
-  expect(text).toContain("0 of 128 (exact 95% interval 0.0% to 2.8%)");
-  expect(text).toContain("0 of 107 (exact 95% interval 0.0% to 3.4%)");
-  expect(text).toContain("9 of 107 (exact 95% interval 3.9% to 15.4%)");
-  expect(text).toContain("1 of 64 (exact 95% interval 0.0% to 8.4%)");
-  expect(text).toContain("23 of 107 (exact 95% interval 14.1% to 30.5%)");
-  expect(text).toContain("3 of 64 (exact 95% interval 1.0% to 13.1%)");
+  for (const t of ["0 of 64 (exact 95% interval 0.0% to 5.6%)", "0 of 128 (exact 95% interval 0.0% to 2.8%)", "0 of 107 (exact 95% interval 0.0% to 3.4%)", "9 of 107 (exact 95% interval 3.9% to 15.4%)", "1 of 64 (exact 95% interval 0.0% to 8.4%)", "23 of 107 (exact 95% interval 14.1% to 30.5%)", "3 of 64 (exact 95% interval 1.0% to 13.1%)", "69 of 107 (exact 95% interval 54.6% to 73.5%)", "12 of 64 (exact 95% interval 10.1% to 30.5%)", "7 of 15 (exact 95% interval 21.3% to 73.4%)", "20 of 128 (exact 95% interval 9.8% to 23.1%)"]) expect(text).toContain(t);
   expect(text).toContain("The system marked no item as supported here, so a count of 0 wrongly supported is not read on its own.");
-  expect(text).not.toMatch(/proof|verified|\bbest\b|better|\bbeat\b|rank/i);
-  await expect(box.getByTestId("ns-chart")).toHaveCount(12);
+  expect(text).not.toMatch(/\bproof\b|verified|\bbest\b|better|\bbeat\b|rank/i);
+  await expect(box.getByTestId("ns-chart")).toHaveCount(16);
   // the errors line: only rows that had errors and whose figure changes the other way (R1's sentence, numbers from the error-sensitivity files)
-  await expect(rows.first().getByTestId("ns-error-line")).toHaveCount(0);
-  await expect(rows.nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 64.");
-  await expect(rows.nth(4).getByTestId("ns-error-line")).toHaveText("2 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 4 of 64 and coverage would be 24 of 107.");
-  await expect(rows.nth(5).getByTestId("ns-error-line")).toHaveCount(0);
-  // "Each ingredient": the API harness arm's two rows
-  await box.getByTestId("ns-units").getByText("Each ingredient", { exact: true }).click();
+  await expect(cardOf(box, "product", "second").getByTestId("ns-error-line")).toHaveCount(0);
+  await expect(cardOf(box, "product", "dev").getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 64.");
+  await expect(cardOf(box, "o2", "dev").getByTestId("ns-error-line")).toHaveText("2 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 4 of 64 and coverage would be 24 of 107.");
+  await expect(cardOf(box, "o1", "dev").getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 13 of 64.");
+  await expect(cardOf(box, "o2", "second").getByTestId("ns-error-line")).toHaveCount(0);
+  // "Ingredient by ingredient": the API harness arm's two rows, now two cards under the two subheadings
+  await box.getByTestId("ns-units").getByText("Ingredient by ingredient", { exact: true }).click();
   await expect(rows).toHaveCount(2);
   await expect(box.getByTestId("ns-about-run")).toHaveCount(2);
   for (const i of [0, 1]) await expect(rows.nth(i)).toContainText("Anthropic API; not our dev stack or production stack");
   expect(await box.innerText()).toContain("8 of 64 (exact 95% interval 5.6% to 23.2%)");
+  // the harness arm was not given dishonoured-cheque items: All groups carries R1's no-numbers line
+  await expect(box.getByTestId("ns-not-run-all")).toHaveCount(2);
+  await expect(box.getByTestId("ns-not-run-all").first()).toHaveText("Dishonoured-cheque items were not given to this system; the figures for All groups count them as not supported.");
 });
 
-test("the NyayaSiddhi results: the group chooser shows a family's figures; the unit chooser offers the units the rows carry", async ({ page }) => {
+test("the NyayaSiddhi results: the group chooser shows a family's figures; the unit chooser offers the units the rows carry; the not-run and Dishonoured cheque lines", async ({ page }) => {
   await page.goto("/benchmarks");
   const box = page.getByTestId("nyayasiddhi-results");
-  await expect(box.getByTestId("ns-units").locator("label")).toHaveText(["Whole item", "Each ingredient"]);
+  await expect(box.getByTestId("ns-units").locator("label")).toHaveText(["Whole item at once", "Ingredient by ingredient"]);
   await expect(box.getByTestId("ns-groups").locator("label")).toHaveText(["All groups", "Cheating", "Criminal breach of trust", "Dishonoured cheque"]);
   await box.getByTestId("ns-groups").getByText("Cheating", { exact: true }).click();
   const text = await box.innerText();
   expect(text).toContain("0 of 27 (exact 95% interval 0.0% to 12.8%)");
   expect(text).toContain("0 of 47 (exact 95% interval 0.0% to 7.5%)");
   // for the Cheating group the two error mappings also disagree on the product obj1_dev row (1 of 27), so its errors line names that figure
-  await expect(box.getByTestId("ns-row").nth(1).getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 27.");
-  // Dishonoured cheque: for wrongly supported the mappings agree, but the open-model row's coverage would change (23 of 93), so that row alone carries a one-part line and the product rows none
+  await expect(cardOf(box, "product", "dev").getByTestId("ns-error-line")).toHaveText("1 gave an error. Errors are counted as not supported here; counted as supported, wrongly supported would be 1 of 27.");
+  await expect(box.getByTestId("ns-ni138-note")).toHaveCount(0);
+  // Dishonoured cheque: the note shows on every row where the group is shown; for wrongly supported the mappings agree, but the open-model rows' coverage would change, so each of those rows carries a one-part line and the product rows none
   await box.getByTestId("ns-groups").getByText("Dishonoured cheque", { exact: true }).click();
-  await expect(box.getByTestId("ns-error-line")).toHaveCount(1);
-  await expect(box.getByTestId("ns-row").nth(4).getByTestId("ns-error-line")).toHaveText("2 gave an error. Errors are counted as not supported here; counted as supported, coverage would be 23 of 93.");
+  const note = "Dishonoured cheque is not a product contract; a result of 'supported' here is not a product result.";
+  await expect(box.getByTestId("ns-ni138-note")).toHaveCount(4); // the four development rows carry figures for the group; the second-set rows have none
+  await expect(box.getByTestId("ns-ni138-note").first()).toHaveText(note);
+  await expect(cardOf(box, "o2", "dev").getByTestId("ns-error-line")).toHaveText("2 gave an error. Errors are counted as not supported here; counted as supported, coverage would be 23 of 93.");
+  await expect(cardOf(box, "product", "dev").getByTestId("ns-error-line")).toHaveCount(0);
+  // the harness arm: not run for this group. R1's line replaces the figures, there is no note under it
+  await box.getByTestId("ns-units").getByText("Ingredient by ingredient", { exact: true }).click();
+  await expect(box.getByTestId("ns-not-run")).toHaveCount(2);
+  await expect(box.getByTestId("ns-not-run").first()).toHaveText("Not run: this system was not given dishonoured-cheque items, which are outside its contracts.");
+  await expect(box.getByTestId("ns-ni138-note")).toHaveCount(0);
+  await expect(box.getByTestId("ns-chart")).toHaveCount(0);
+  await expect(box.getByTestId("ns-zero-with-zero")).toHaveCount(0);
 });
 
 test("the NyayaSiddhi results work at phone width: no horizontal scroll and the choosers are phone-size targets", async ({ page }) => {

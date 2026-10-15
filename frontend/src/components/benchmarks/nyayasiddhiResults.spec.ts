@@ -161,39 +161,52 @@ const TRAINED = "trained_on_public_items is false because we did not train or tu
 const PREFACE = /^In \d+ of \d+ replies, the model wrote explanatory text before its answer object; the first answer object was counted as its answer\. Counted after the run, from the call log\.$/;
 const NO_SEED = "No seed: the API offers none.";
 const SHIPPED = (JSON.parse(readFileSync(join(__dirname, "..", "..", "data", "nyayasiddhi", "rows.json"), "utf8")) as { rows: Record<string, unknown>[] }).rows;
-const aboutOf = (kind: string, system: string) => SHIPPED.filter((r) => r.entry_kind === kind && String(r.system_name).includes(system)).map((r) => r.about_run as string[]);
 
-test("About this run: every reference row carries R1's lines, in order, per row type; a product row carries none", () => {
-  assert.equal(SHIPPED.filter((r) => r.entry_kind === "reference_arm").length, 6);
-  for (const r of SHIPPED.filter((x) => x.entry_kind === "product")) assert.equal(r.about_run, undefined);
-  const common = (l: string[]) => { assert.equal(l[0], SMOKE); assert.match(l[1], PREFACE); assert.equal(l[2], TRAINED); assert.match(l[3], /^not checked: /); };
-  const direct = aboutOf("reference_arm", "S-direct"), harness = aboutOf("reference_arm", "S-harness"), open = aboutOf("reference_arm", "O2");
-  assert.equal(direct.length, 2); assert.equal(harness.length, 2); assert.equal(open.length, 2);
-  for (const l of direct) {
-    common(l);
-    assert.equal(l[4], "This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.");
-    assert.equal(l[5], NO_SEED); assert.equal(l.length, 6);
+const EXPOSURE: Record<string, string> = { obj1_dev: "In this study, the allegation text of this split was sent to the Anthropic API, beginning with the stopped 20-item run; the registration records that it had not been sent to the API before.", obj1b_minus_cruelty: "In this run, the allegation text of this split was sent to the Anthropic API again; it had been sent before, in an earlier study." };
+const RERUN = "This arm was run again after a first 20-item run was stopped because a reply used up its output limit before giving an answer; the output limit was raised from 400 to 1000 tokens; no verdict from the stopped run was read or used.";
+const HARNESS_CONTRACT = "Element by element against ONE pinned contract per family (CHEAT -> ipc415_damaging_act, TRUST -> ipc405_use_or_disposal; closed five-IPC candidate set); element replies are {decision, fact_id} with no element_id, and the runner joins each reply to its request by its own record (item_id, element_index).";
+const HARNESS_CHECK = "ESTABLISHED counts only with an integer fact_id from 1 to the item's sentence count (sentence_split.py 76c145ace3a7); otherwise NOT_ESTABLISHED, no repair, no second call; NOT_ESTABLISHED without a fact_id key is an ERROR; the check shows that the cited sentence exists, not that it supports the element.";
+const RUNON = /^In \d+ of \d+ replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer\.$/;
+const NOT_SERVED = /^Not served \(context rule: prompt tokens counted by the served model's own tokenizer \+ max_tokens 400 must fit the served max-model-len 4096; never truncated\): \d+ of \d+ scored items.*; each is written \{item_id, verdict NOT_PROOF, error true\}; error_mapping error_counted_as_not_proof; n_error = rows with error true \(.+\)\.$/;
+const SEED_DEV = "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.";
+const HOURS = "Hours bound that applied to this arm: 2.5 hours per split; the 60 percent run-on stop rule did not fire (13 of 170 and 7 of 143 replies ran on).";
+const STRAY = /^In 1 of 170 replies, the model added a stray line after its answer object and then stopped; the first answer object was counted as its answer\.$/;
+type Shipped = { row_id: string; split: string; about_run: string[]; not_run_groups?: string[] };
+
+test("About this run: every reference row carries R1's lines, whole sentences, in R1's order per row type; a product row carries none", () => {
+  const refs = SHIPPED.filter((r) => r.entry_kind === "reference_arm") as unknown as Shipped[];
+  assert.equal(refs.length, 8);
+  for (const r of SHIPPED.filter((x) => x.entry_kind === "product")) { assert.equal(r.about_run, undefined); assert.equal(r.not_run_groups, undefined); }
+  const of = (system: string) => refs.filter((r) => r.row_id.includes(system));
+  const balanced = (l: string) => (["()", "{}", "[]"] as const).every(([a, b]) => l.split(a).length === l.split(b).length);
+  for (const r of refs) for (const l of r.about_run) { assert.ok(balanced(l), `unbalanced: ${l}`); assert.doesNotMatch(l, /USD|spend|run directory|out_S-/i, l); }
+  assert.equal(of("S-direct").length, 2); assert.equal(of("S-harness").length, 2); assert.equal(of("-O2-").length, 2); assert.equal(of("-O1-").length, 2);
+  // API rows: exposure, smoke, the arm's own lines, preamble count, trained flag, overlap_check, no-seed line
+  for (const r of [...of("S-direct"), ...of("S-harness")]) {
+    const l = r.about_run;
+    assert.equal(l[0], EXPOSURE[r.split]); assert.equal(l[1], SMOKE);
+    assert.match(l[l.length - 4], PREFACE); assert.equal(l[l.length - 3], TRAINED); assert.match(l[l.length - 2], /^not checked: closed model used as released; /); assert.equal(l[l.length - 1], NO_SEED);
   }
-  for (const l of harness) {
-    common(l);
-    assert.equal(l[4], "Element by element against ONE pinned contract per family");
-    assert.equal(l[5], "Not a copy of the product's contract selection; never read beside the product row as the same task.");
-    assert.equal(l[6], "the check shows that the cited sentence exists, not that it supports the element");
-    assert.equal(l[7], NO_SEED); assert.equal(l.length, 8);
+  for (const r of of("S-direct")) { assert.equal(r.about_run[2], RERUN); assert.equal(r.about_run.length, 7); assert.equal(r.not_run_groups, undefined); }
+  for (const r of of("S-harness")) {
+    assert.deepEqual(r.about_run.slice(2, 5), [HARNESS_CONTRACT, "Not a copy of the product's contract selection; never read beside the product row as the same task.", HARNESS_CHECK]);
+    assert.equal(r.about_run.length, 9); assert.deepEqual(r.not_run_groups, ["NI138"]);
+    assert.ok(!r.about_run.join(" ").includes("contract_map"), "the pinned fragment is removed");
   }
-  for (const l of open) {
-    common(l);
-    assert.match(l[4], /^In \d+ of \d+ replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer\.$/);
-    assert.match(l[5], /^Not served \(context rule: prompt tokens counted by the served model's own tokenizer \+ max_tokens 400 must fit the served max-model-len 4096; never truncated\): \d+ of \d+ scored items$/);
-    assert.equal(l[6], "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0.");
-    assert.ok(!l.includes(NO_SEED), "the open-model rows ran locally and say nothing about an API seed");
+  // open-model rows: smoke, preamble count, trained flag, overlap_check, then the run's own lines; no exposure line, no API seed line
+  for (const r of [...of("-O2-"), ...of("-O1-")]) {
+    const l = r.about_run;
+    assert.equal(l[0], SMOKE); assert.match(l[1], PREFACE); assert.equal(l[2], TRAINED); assert.equal(l[3], "not checked: public open-weight model used as released, no training by us; no item-overlap check was run");
+    assert.match(l[4], RUNON); assert.equal(r.not_run_groups, undefined);
+    assert.ok(!l.includes(NO_SEED) && !l.some((x) => x.includes("Anthropic API")));
   }
-  // the obj1_dev open-model row had errors: it alone carries the n_error explanation
-  const dev = SHIPPED.find((r) => r.split === "obj1_dev" && String(r.system_name).includes("O2")) as { about_run: string[] };
-  assert.match(dev.about_run[7], /^n_error = rows with error true \(2: 1 not served for context, 1 an unparsable reply$/);
-  assert.equal(open.filter((l) => l.length === 8).length, 1);
-  // never printed: hashes, paths, spend, run directories
-  for (const r of SHIPPED) for (const l of r.about_run as string[] ?? []) { assert.doesNotMatch(l, /[0-9a-f]{12}|\/|USD|spend|run directory|\.jsonl?\b/i, l); }
+  for (const r of of("-O2-")) { assert.equal(r.about_run.length, 7); assert.match(r.about_run[5], NOT_SERVED); assert.equal(r.about_run[6], SEED_DEV); }
+  const o1dev = of("-O1-").find((r) => r.split === "obj1_dev") as Shipped, o1b = of("-O1-").find((r) => r.split !== "obj1_dev") as Shipped;
+  assert.match(o1dev.about_run[5], STRAY); assert.match(o1dev.about_run[6], NOT_SERVED); assert.deepEqual(o1dev.about_run.slice(7), [SEED_DEV, HOURS]);
+  assert.match(o1b.about_run[5], NOT_SERVED); assert.deepEqual(o1b.about_run.slice(6), [SEED_DEV, HOURS]); assert.equal(o1b.about_run.length, 8);
+  // the open-model row with errors carries the n_error explanation whole, in the not-served sentence
+  const o2dev = of("-O2-").find((r) => r.split === "obj1_dev") as Shipped;
+  assert.match(o2dev.about_run[5], /n_error = rows with error true \(2: 1 not served for context, 1 an unparsable reply, .+\)\.$/);
 });
 
 test("About this run renders as a closed details block headed by R1's constant, one per reference row, lines in order; none for a product row; a reference arm without lines is not shown", () => {

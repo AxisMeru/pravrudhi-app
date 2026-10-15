@@ -84,11 +84,11 @@ class T(unittest.TestCase):
             self.assertTrue(any("duplicate" in e for e in B.build([str(a), str(b)], str(k), None, [str(md)])[1]))
 
 # --- R1's About-this-run lines (15 Oct): whole sentences copied verbatim from the manifest notes, fail closed -----------------------------------------------
-FINAL_DIR = next((d for d in (Path("/home/ss/fusion-project/tmp_scratch/trackA/s7_682_rows/final7"),) if d.is_dir()), None)   # the signed package whose manifests carry the exposure sentences
+FINAL_DIR = next((d for d in (Path("/home/ss/fusion-project/tmp_scratch/trackA/s7_682_rows/final8"),) if d.is_dir()), None)   # the signed package whose manifests carry the exposure sentences
 OPEN_LOCAL = "nyayasiddhi-open-O2"
 def notes_for(system, split="obj1_dev", extra=""):
     """A manifest's notes assembled from the builder's own sentences (invented counts), in the manifests' own style, for the fail-closed tests."""
-    fill = lambda t: t.replace("NUM", "3").replace("WILD", "x (aaaaaaaaaaaa 1 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping e; n_error = rows with error true (0)")
+    fill = lambda t: t.replace("NUM", "3").replace("itemsWILD", "items (aaaaaaaaaaaa 1 tokens); each is written {item_id, verdict NOT_PROOF, error true}; error_mapping e; ").replace("WILD", "1: 1 not served")
     lines = [B.SMOKE, fill(B.PREFACE), B.TRAINED] + ([B.EXPOSURE[split]] if system in B.API_SYSTEMS else []) + [fill(x) for x in B.ABOUT_BY_SYSTEM[system]]
     lines = [x if x != B.NO_SEED else "Backend: Anthropic API lane Job, no seed (No seed: the API offers none.), max_tokens 1000; run directory out_x_v33." for x in lines]
     return ("dev stack (local); filler. One run per arm per split. " + " ".join(lines) + " Build notes: filler. " + extra).strip()
@@ -102,7 +102,7 @@ def ref_run(system, notes, overlap="not checked: invented", split="obj1_dev", st
 
 class AboutRun(unittest.TestCase):
     def test_each_row_type_gets_its_lines_in_order_copied_verbatim(self):
-        for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 7)]:
+        for system, n_lines in [("nyayasiddhi-ref-S-direct", 7), ("nyayasiddhi-ref-S-harness", 9), ("nyayasiddhi-open-O2", 7), ("nyayasiddhi-open-O1", 9)]:
             api = system in B.API_SYSTEMS
             data, errs = ref_run(system, notes_for(system), stack=API if api else DEV); self.assertEqual(errs, [], system)
             lines = data["rows"][0]["about_run"]; self.assertEqual(len(lines), n_lines, system)
@@ -118,6 +118,12 @@ class AboutRun(unittest.TestCase):
             else:
                 self.assertEqual(lines[0], B.SMOKE); self.assertTrue(is_pref(lines[1])); self.assertEqual(lines[2], B.TRAINED); self.assertEqual(lines[3], "not checked: invented")
                 self.assertFalse(any("Anthropic API" in l for l in lines), "no exposure line on the open-model rows")
+    def test_the_open_model_o1_stray_line_sentence_is_required_exactly_when_the_notes_mention_one(self):
+        base = notes_for("nyayasiddhi-open-O1"); stray = B.O1_STRAY.replace("NUM", "3")
+        self.assertIn(stray, base)
+        data, errs = ref_run("nyayasiddhi-open-O1", base.replace(stray + " ", ""), stack=DEV); self.assertEqual(errs, []); self.assertEqual(len(data["rows"][0]["about_run"]), 8, "no stray line in the notes: no such line")
+        self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(stray, stray[:-3] + "xyz."), stack=DEV)[1], "a mentioned but changed stray-line sentence fails")
+        self.assertTrue(ref_run("nyayasiddhi-open-O1", base.replace(B.O1_HOURS.replace("NUM", "3") + " ", ""), stack=DEV)[1], "the hours-bound sentence is required")
     def test_the_exposure_line_follows_the_split_on_api_rows_only(self):
         for split in B.EXPOSURE:
             data, errs = ref_run("nyayasiddhi-ref-S-direct", notes_for("nyayasiddhi-ref-S-direct", split), split=split); self.assertEqual(errs, []); self.assertEqual(data["rows"][0]["about_run"][0], B.EXPOSURE[split])
@@ -153,7 +159,7 @@ class AboutRun(unittest.TestCase):
         self.assertTrue(ref_run("nyayasiddhi-ref-S-direct", None)[1])
     def test_a_product_row_carries_no_about_run(self):
         data, errs = run([row()], {"invented-1": "product"}); self.assertEqual(errs, []); self.assertNotIn("about_run", data["rows"][0]); self.assertNotIn("not_run_groups", data["rows"][0])
-    @unittest.skipUnless(FINAL_DIR is not None, "the signed manifests with the exposure sentences (final7) are not on this machine")
+    @unittest.skipUnless(FINAL_DIR is not None, "the signed manifests with the exposure sentences (final8) are not on this machine")
     def test_the_signed_manifests_give_whole_sentences_that_are_substrings_of_their_notes(self):
         for f in sorted((FINAL_DIR / "manifests").glob("*.json")):
             m = json.loads(f.read_text())

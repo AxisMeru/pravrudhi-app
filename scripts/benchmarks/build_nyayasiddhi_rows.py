@@ -81,15 +81,18 @@ CONTRACT_HASH = "contract_map.json 981218e2f961: "   # the one pinned removal fr
 HARNESS_CONTRACT = "Element by element against ONE pinned contract per family (" + CONTRACT_HASH + "CHEAT -> ipc415_damaging_act, TRUST -> ipc405_use_or_disposal; closed five-IPC candidate set); element replies are {decision, fact_id} with no element_id, and the runner joins each reply to its request by its own record (item_id, element_index)."
 HARNESS_CHECK = "ESTABLISHED counts only with an integer fact_id from 1 to the item's sentence count (sentence_split.py 76c145ace3a7); otherwise NOT_ESTABLISHED, no repair, no second call; NOT_ESTABLISHED without a fact_id key is an ERROR; the check shows that the cited sentence exists, not that it supports the element."
 OPEN_RUNON = "In NUM of NUM replies, the model wrote a complete answer object and then kept writing until it reached its output limit; the first answer object was counted as its answer."
-OPEN_NOT_SERVED = "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): NUM of NUM scored items WILD n_error = rows with error true (WILD)."
+OPEN_NOT_SERVED = "Not served (context rule: prompt tokens counted by the served model's own tokenizer + max_tokens 400 must fit the served max-model-len 4096; never truncated): NUM of NUM scored itemsWILDn_error = rows with error true (WILD)."
+O1_STRAY = "In NUM of NUM replies, the model added a stray line after its answer object and then stopped; the first answer object was counted as its answer."   # required exactly when the notes mention a stray line (the obj1_dev run)
+O1_HOURS = "Hours bound that applied to this arm: 2.5 hours per split; the 60 percent run-on stop rule did not fire (NUM of NUM and NUM of NUM replies ran on)."
 OPEN_SEED = "Deviation from the registration: no vLLM seed was set (the registration named seed 682); decoding used temperature 0."
-EXPOSURE = {"obj1_dev": "In this run, the allegation text of this split was sent to the Anthropic API for the first time.", "obj1b_minus_cruelty": "In this run, the allegation text of this split was sent to the Anthropic API again; it had been sent before, in an earlier study."}  # #355: API rows only
+EXPOSURE = {"obj1_dev": "In this study, the allegation text of this split was sent to the Anthropic API, beginning with the stopped 20-item run; the registration records that it had not been sent to the API before.", "obj1b_minus_cruelty": "In this run, the allegation text of this split was sent to the Anthropic API again; it had been sent before, in an earlier study."}  # #355: API rows only
 NOT_RUN_SENTENCE = "A scored NI138 item is outside the harness's contracts"   # #353: a row whose notes carry it was not given dishonoured-cheque items
 ABOUT_ALL = [SMOKE, PREFACE]
 ABOUT_BY_SYSTEM = {   # after the common lines, the trained line and overlap_check, and (API rows) the exposure line
     "nyayasiddhi-ref-S-direct": [RERUN, NO_SEED],
     "nyayasiddhi-ref-S-harness": [HARNESS_CONTRACT, NOT_A_COPY, HARNESS_CHECK, NO_SEED],
     "nyayasiddhi-open-O2": [OPEN_RUNON, OPEN_NOT_SERVED, OPEN_SEED],
+    "nyayasiddhi-open-O1": [OPEN_RUNON, O1_STRAY, OPEN_NOT_SERVED, OPEN_SEED, O1_HOURS],
 }
 API_SYSTEMS = {"nyayasiddhi-ref-S-direct", "nyayasiddhi-ref-S-harness"}
 
@@ -131,7 +134,8 @@ def about_run(row, manifests):
         if system in API_SYSTEMS:
             if row.get("split") not in EXPOSURE: return None, None, f"{row['row_id']}: split {row.get('split')!r} has no exposure sentence"
             exposure = [EXPOSURE[row["split"]]]
-        want = ABOUT_ALL + [TRAINED] + exposure + ABOUT_BY_SYSTEM[system]
+        spec = [x for x in ABOUT_BY_SYSTEM[system] if x != O1_STRAY or "stray line" in notes]   # the stray-line sentence is required exactly when the notes mention a stray line
+        want = ABOUT_ALL + [TRAINED] + exposure + spec
         got, errs = {}, []
         for sentence in want:
             if sentence == NO_SEED:
@@ -150,8 +154,8 @@ def about_run(row, manifests):
         ov = m.get('overlap_check')
         if not isinstance(ov, str) or not ov.strip() or not balanced(ov): errs.append(f"{row['row_id']}: manifest overlap_check missing or unbalanced")
         if errs: return None, None, "; ".join(errs)
-        arm = [got[x] for x in ABOUT_BY_SYSTEM[system] if x != NO_SEED]
-        seed = [got[NO_SEED]] if NO_SEED in ABOUT_BY_SYSTEM[system] else []
+        arm = [got[x] for x in spec if x != NO_SEED]
+        seed = [got[NO_SEED]] if NO_SEED in spec else []
         if system in API_SYSTEMS:
             # R1 (15 Oct): exposure, smoke, the arm's own lines (rerun / contract limits), preamble count, trained flag + overlap_check, then the no-seed line
             ordered = [got[exposure[0]], got[SMOKE]] + arm + [got[PREFACE], got[TRAINED], ov] + seed
