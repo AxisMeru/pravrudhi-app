@@ -29,7 +29,8 @@ test("/matters still renders, and its memo is the screening memo: R1's disclaime
   await expect(page.locator("main").getByRole("heading", { name: "Offence rules", exact: true })).toBeVisible();
   await page.getByLabel("Facts (one per line)").fill(FACT);
   await page.locator(`label[data-contract-id="${KNOWN}"]`).click();
-  await page.locator(`label[data-contract-id="${OUTSIDE}"]`).click();
+  // the picker no longer offers an id the app cannot name (#233); the engine's answer can still carry one, so the mocked answer does, and the memo heading is checked below
+  await expect(page.locator(`label[data-contract-id="${OUTSIDE}"]`)).toHaveCount(0);
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download memo (.md)" }).click()]);

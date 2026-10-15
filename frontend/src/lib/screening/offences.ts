@@ -58,6 +58,11 @@ export function blockTitle(contractId: string): string {
   return CONTRACT_BLOCK_TITLES[contractId] ?? offenceOf(contractId)?.title ?? "Offence";
 }
 
+/** The registry ids this app can name: the ones with a block title or an offence of their own. Offered in the Offence rules picker only (Screening's rule), so no two rows read alike and none reads "Offence" (#233, R2). */
+export function offerableContracts(ids: readonly string[]): string[] {
+  return ids.filter((id) => CONTRACT_BLOCK_TITLES[id] !== undefined || offenceOf(id) !== null);
+}
+
 /** True for the second (or later) way of an offence that has a block title of its own: it carries the alternate-limb note. */
 export function isAlternateLimb(contractId: string): boolean {
   const o = offenceOf(contractId);

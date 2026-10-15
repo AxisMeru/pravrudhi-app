@@ -32,7 +32,7 @@ import { NAV_LABELS } from "@/lib/navCopy";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { StatuteBeside } from "@/components/StatuteBeside";
 import { displayElementName, referenceOf } from "@/lib/screening/reference";
-import { blockTitle } from "@/lib/screening/offences";
+import { blockTitle, offerableContracts } from "@/lib/screening/offences";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { exampleById, exampleFactsText, type DemoExample } from "@/lib/demo/example";
 import Link from "next/link";
@@ -332,10 +332,11 @@ export default function MattersPage() {
       .then((cs) => {
         if (off) return;
         setContractsError(null);
-        setContracts(cs);
+        const offered = offerableContracts(cs);
+        setContracts(offered);
         setContractsLoaded(true);
         const found = exampleById(new URLSearchParams(window.location.search).get("example"));
-        if (found !== null) setSelected(new Set(found.contracts.filter((id) => cs.includes(id))));
+        if (found !== null) setSelected(new Set(found.contracts.filter((id) => offered.includes(id))));
       })
       .catch((e: unknown) => {
         if (off) return;

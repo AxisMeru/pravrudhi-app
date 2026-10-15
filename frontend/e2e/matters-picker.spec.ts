@@ -129,13 +129,14 @@ test("an older engine (no quote_source) on the house path: the page says it cite
 });
 
 // #233: the picker and the result show the offence's name, never a contract id, and the page has its own title.
-test("the old Offence rules page has its own title and shows offence names, not contract ids", async ({ page }) => {
+test("the old Offence rules page has its own title and shows offence names, not contract ids, and offers only ids it can name", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc182_abuse_of_power", "unknown_invented_id"], entries: [] } }));
   await page.goto("/matters");
   await expect(page).toHaveTitle("Offence rules · Pravrudhi-Nyaya");
   const group = page.getByRole("group", { name: "Contracts to check against" });
   await expect(group).toContainText("False information to a public servant");
-  await expect(group).toContainText("Offence");
   await expect(group).not.toContainText("ipc182_abuse_of_power");
+  // an id the app has no title for is not offered (it would read "Offence", like every other such id)
+  await expect(group.locator("label")).toHaveCount(1);
   await expect(group).not.toContainText("unknown_invented_id");
 });
