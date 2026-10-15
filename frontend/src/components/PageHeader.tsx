@@ -1,6 +1,6 @@
 export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="border-b border-[var(--color-border)] py-6 pl-16 pr-4 sm:pr-8 md:pl-8">
+    <div className="border-b border-[var(--color-border)] py-6 pl-4 pr-4 sm:pr-8 md:pl-8">
       <h1 className="text-xl font-semibold text-[var(--color-text)]">{title}</h1>
       {subtitle && <p className="mt-1 text-sm text-[var(--color-text-dim)]">{subtitle}</p>}
     </div>
