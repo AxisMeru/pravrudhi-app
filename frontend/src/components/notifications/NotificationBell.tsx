@@ -132,7 +132,7 @@ export function NotificationBell() {
         type="button"
         onClick={toggleOpen}
         aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"
+        className="relative flex h-8 w-8 max-md:h-11 max-md:w-11 items-center justify-center rounded-md text-[var(--color-text-dim)] transition-colors hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"
       >
         <Bell size={16} />
         {unread > 0 && (

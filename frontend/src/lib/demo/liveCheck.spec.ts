@@ -6,7 +6,7 @@ import test from "node:test";
 import { createHash } from "node:crypto";
 
 import { withFactText, type AnalyseFactsWire as AnalyseFactsResult } from "../api";
-import { buildMemo } from "../memo";
+import { buildScreeningMemo } from "../screening/memo";
 import { checkDemoResult, checkMemoText, expectationBinds, type DemoFixture } from "./liveCheck";
 
 const FIXTURES = (JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "e2e", "fixtures", "demoFixtures.json"), "utf8")) as {
@@ -143,11 +143,11 @@ test("the recorded expectation binds only after 3 recorded runs, then a differin
   assert.deepEqual(checkDemoResult(resultFor(f, facts), facts, f), []);
 });
 
-test("the memo check passes against the real buildMemo() and catches a memo missing a quote or the run id", async () => {
+test("the memo check passes against the real buildScreeningMemo() and catches a memo missing a quote or the run id", async () => {
   const f = byId("proof-path");
   const facts = f.wordings.plain;
   const r = await withFactText(resultFor(f, facts), facts);
-  const memo = buildMemo(r, { engineVersion: "0.0.0", generatedAt: "2026-01-01T00:00:00Z" });
+  const memo = buildScreeningMemo(r, { engineVersion: "0.0.0", generatedAt: "2026-01-01T00:00:00Z" });
   assert.deepEqual(checkMemoText(memo, r), []);
   assert.ok(checkMemoText(memo.replace(r.run_id, "x"), r).some((v) => /run id/.test(v)));
   assert.ok(checkMemoText(memo.replaceAll(r.contracts[0].elements[0].quote as string, "REMOVED"), r).some((v) => /quote is missing/.test(v)));
