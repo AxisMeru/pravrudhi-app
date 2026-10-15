@@ -139,7 +139,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Once a screening result is shown, the menu Download the memo holds Word (.docx) and Markdown (.md); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and the standing line that this is a screening aid. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
+    text: "Once a screening result is shown, the menu Download the memo holds Word (.docx) and Markdown (.md); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and a disclaimer that this is a screening aid, not legal advice. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
     image: GUIDE_IMAGES.memo,
   },
 ];
