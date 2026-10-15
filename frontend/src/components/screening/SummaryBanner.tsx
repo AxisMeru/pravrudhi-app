@@ -1,12 +1,13 @@
 import { AGENDA_BANNER_TEXT, BANNER_STANDING_LINE, STRUCTURE_NOTE, type Chip } from "@/lib/screening/copy";
 import type { ScreeningSummary } from "@/lib/screening/model";
 
-export function SummaryBanner({ summary, agenda = false }: { summary: ScreeningSummary; agenda?: boolean }) {
+/** `live`: only ONE block of a result announces itself (R6, 15 Oct): with five blocks each a role=status region, the standing line was read six times. */
+export function SummaryBanner({ summary, agenda = false, live = true }: { summary: ScreeningSummary; agenda?: boolean; live?: boolean }) {
   return (
     <div
       className={`rounded-md border p-3 ${summary.allSupported ? "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)]" : "border-[var(--color-border)] bg-[var(--color-bg)]"}`}
       data-testid="summary-banner"
-      role="status"
+      role={live ? "status" : undefined}
     >
       <p className="text-sm font-medium text-[var(--color-text)]" data-testid="summary-text">{summary.text}</p>
       {agenda && <p className="mt-1 text-sm text-[var(--color-text)]" data-testid="agenda-banner">{AGENDA_BANNER_TEXT}</p>}

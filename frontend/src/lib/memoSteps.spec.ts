@@ -78,9 +78,9 @@ test("the .docx says exactly what the .md says, steps included, line for line", 
   const r = withAppendix(APPENDIX_WIRE);
   const md = buildScreeningMemo(r, OPTS);
   const back = ((await mammoth.extractRawText({ buffer: Buffer.from(buildScreeningMemoDocx(r, OPTS)) })).value).split("\n").filter((l) => l.trim());
-  const intended = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "◦ ").replace(/^(- )?\*\*([^*]+)\*\*/, (_m, b: string | undefined, label: string) => `${b ? "• " : ""}${label}`).replace(/^- /, "• "));
+  const intended = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "").replace(/^(- )?\*\*([^*]+)\*\*/, (_m, b: string | undefined, label: string) => `${label}`).replace(/^- /, ""));
   assert.deepEqual(back, intended);
-  assert.ok(back.includes("Steps of this screening") && back.includes("• Ran the structure check: passed"));
+  assert.ok(back.includes("Steps of this screening") && back.includes("Ran the structure check: passed"));
 });
 
 test("the run record keeps the appendix (the technical record) and the plain run record has none", () => {

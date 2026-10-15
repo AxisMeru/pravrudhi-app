@@ -34,7 +34,7 @@ import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/fac
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
-import { OFFENCES, offenceOf } from "@/lib/screening/offences";
+import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
@@ -232,7 +232,7 @@ export default function ScreeningPage() {
   }
 
   const version = svc?.kind === "ok" ? svc.status.engine_version : null;
-  const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString() });
+  const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: example ? { label: example.label, citation: example.citation } : null });
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -365,6 +365,8 @@ export default function ScreeningPage() {
                         <input
                           type="checkbox"
                           className="mt-1"
+                          aria-label={offenceCheckboxName(o)}
+                          aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                           checked={on}
                           onChange={() => setPicked((prev) => {
                             const next = new Set(prev);
@@ -379,10 +381,10 @@ export default function ScreeningPage() {
                           <span className="text-[var(--color-text)]">{o.title}</span>
                           {o.sections && <span className="ml-2 text-xs text-[var(--color-text-dim)]">{o.sections}</span>}
                           {o.notValidated && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
+                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-not-validated`} data-testid="not-validated-note">{NOT_VALIDATED_OFFENCE_NOTE}</span>
                           )}
                           {o.ipcChecked && (
-                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
+                            <span className="mt-0.5 block text-xs text-[var(--color-text-dim)]" id={`offence-${o.id}-ipc`} data-testid="ipc-disclosure">{ipcDisclosure(o.ipcChecked)}</span>
                           )}
                           {ids.some((i) => validationLabel(validationMark(validated, i))) && (
                             <span className="ml-2 text-xs text-[var(--color-warn)]">({validationLabel(validationMark(validated, ids[0]))})</span>
@@ -472,20 +474,21 @@ export default function ScreeningPage() {
                 <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
                   {EXPORT_LABELS.memo}
                 </button>
-                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => window.print()}>
-                  {EXPORT_LABELS.print}
-                </button>
                 <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
                   {MEMO_DOCX_LABEL}
                 </button>
               </div>
+              {/* R1 (15 Oct): "Print / save as PDF" opens the browser's print window and downloads nothing, so it sits BESIDE the "Download the memo" group, not under it. */}
+              <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-print" onClick={() => window.print()}>
+                {EXPORT_LABELS.print}
+              </button>
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
                 {EXPORT_LABELS.runRecord}
               </button>
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
-            {result.contracts.map((c) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
+            {result.contracts.map((c, i) => (
+              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
             <StatuteNotice />

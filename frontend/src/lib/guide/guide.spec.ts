@@ -104,7 +104,7 @@ test("the guide for firm users: R1's two lines, the covered offences (the valida
 });
 
 test("the guide names the three export buttons with the exact text the screening page shows (R1, 13 Oct)", () => {
-  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Markdown (.md)", print: "PDF", runRecord: "Download run record (.json)" });
+  assert.deepEqual({ ...EXPORT_LABELS }, { memo: "Markdown (.md)", print: "Print / save as PDF", runRecord: "Download run record (.json)" });
   const page = readFileSync(join(root, "src", "app", "screening", "page.tsx"), "utf8");
   for (const k of ["memo", "print", "runRecord"]) assert.ok(page.includes(`{EXPORT_LABELS.${k}}`), `the page renders EXPORT_LABELS.${k}`);
   for (const label of Object.values(EXPORT_LABELS)) assert.ok(GUIDE_IMAGES.memo.alt.includes(label), `the guide names "${label}"`);
@@ -137,7 +137,7 @@ test("P16: R1's four-marks sentence, the No fact cited description, the banner d
   assert.ok(text.includes("Each ingredient shows one of four marks: Supported by a fact, Suggested by the screening judge; check it, Needs your review, or No fact cited."));
   assert.ok(GUIDE_STATUSES.some((s) => s.label === "No fact cited" && s.meaning === "No fact cited means the screening found no fact in your papers that supports this ingredient. It is a prompt to look for one, not a finding about your matter."));
   assert.ok(c.GUIDE_BANNER_TEXT.startsWith("On a result where no ingredient has a cited fact, a review agenda is shown first: what each ingredient needs, and which facts to look for. Nothing there is a finding about your matter."));
-  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md), PDF and Word (.docx); Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid."));
+  assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.startsWith("Under the checklist, the group Download the memo holds Markdown (.md) and Word (.docx); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button beside it. The memo carries the run, the versions and the standing line that this is a screening aid."));
   assert.ok(GUIDE_STEPS.find((x) => x.id === "export")!.text.endsWith("Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file."));
   assert.doesNotMatch(c.GUIDE_BANNER_TEXT + text, /\b\d+ of \d+\b|0 of 3/);
 });
