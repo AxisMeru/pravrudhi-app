@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { verifyCitation } from "@/lib/api";
 import { CITATION_PLACEHOLDER, PREVIEW_LABEL } from "@/lib/citationCheck";
-import { CITATION_EXISTENCE_ONLY, COVERAGE_LIMITS_TEXT, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT, SIGNED_OUT_BEFORE_TEXT } from "@/lib/citationExistence";
+import { CITATION_EXISTENCE_ONLY, COVERAGE_LIMITS_TEXT, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT, SIGNED_OUT_BEFORE_TEXT, lineCountText } from "@/lib/citationExistence";
 import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, coverageLine, overCapText, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
 import { CitationCheckResult } from "./CitationCheck";
 import { useSignedOut } from "./useSignedOut";
@@ -65,9 +65,9 @@ export function CitationsPanelView({ rows, skipped, coverage, existenceOnly = CI
 
 /**
  * Case citations the user pastes, one per line (`citation` or `citation | quote`), checked against the engine's index one at a time. Self-contained:
- * it holds its own text and results. `initial` pre-fills the lines.
+ * it holds its own text and results. `initial` pre-fills the lines. `embedded` (the /citations page, which already says the title, the preview label, the limits, the coverage and the signed-out line above) leaves those out.
  */
-export function CitationsPanel({ initial }: { initial?: string[] }) {
+export function CitationsPanel({ initial, embedded = false }: { initial?: string[]; embedded?: boolean }) {
   const [text, setText] = useState((initial ?? []).join("\n"));
   const [rows, setRows] = useState<PanelRow[]>([]);
   const [skipped, setSkipped] = useState(0);
@@ -76,6 +76,7 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
   const abortRef = useRef<AbortController | null>(null);
   useEffect(() => () => abortRef.current?.abort(), []);
   const signedOut = useSignedOut(CITATION_EXISTENCE_ONLY);
+  const lineCount = text.split("\n").filter((l) => l.trim() !== "").length;
 
   async function run() {
     const parsed = parseCitationLines(text);
@@ -97,12 +98,16 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
   }
 
   return (
-    <section className="space-y-2" aria-labelledby="citations-panel-title" data-testid="citations-panel">
-      <h2 id="citations-panel-title" className="text-sm font-medium text-[var(--color-text)]">
-        Case citations
-      </h2>
-      <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]">{PREVIEW_LABEL}</p>
-      {CITATION_EXISTENCE_ONLY && signedOut && (
+    <section className="space-y-2" aria-labelledby={embedded ? undefined : "citations-panel-title"} aria-label={embedded ? "Case citations" : undefined} data-testid="citations-panel">
+      {!embedded && (
+        <>
+          <h2 id="citations-panel-title" className="text-sm font-medium text-[var(--color-text)]">
+            Case citations
+          </h2>
+          <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]">{PREVIEW_LABEL}</p>
+        </>
+      )}
+      {!embedded && CITATION_EXISTENCE_ONLY && signedOut && (
         <p className="text-sm text-[var(--color-text)]" data-testid="citations-panel-signed-out">
           {SIGNED_OUT_BEFORE_TEXT}
         </p>
@@ -112,12 +117,15 @@ export function CitationsPanel({ initial }: { initial?: string[] }) {
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          rows={4}
+          rows={CITATION_EXISTENCE_ONLY ? MAX_CITATIONS_EXISTENCE : 4}
           className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm"
           placeholder={CITATION_EXISTENCE_ONLY ? CITATION_PLACEHOLDER : `${CITATION_PLACEHOLDER} | the words to look for`}
         />
       </label>
-      {CITATION_EXISTENCE_ONLY && (
+      {CITATION_EXISTENCE_ONLY && lineCount > 0 && (
+        <p className="text-xs text-[var(--color-text-dim)]" aria-live="polite" data-testid="citations-panel-count">{lineCountText(lineCount, MAX_CITATIONS_EXISTENCE)}</p>
+      )}
+      {!embedded && CITATION_EXISTENCE_ONLY && (
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citations-panel-limits">
           {COVERAGE_LIMITS_TEXT}
         </p>

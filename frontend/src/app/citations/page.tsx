@@ -4,6 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+import { CitationsPanel } from "@/components/citations/CitationsPanel";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
@@ -93,6 +94,10 @@ export default function CitationsPage() {
         {CITATION_EXISTENCE_ONLY && signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="citation-signed-out">{SIGNED_OUT_BEFORE_TEXT}</p>
         )}
+        {CITATION_EXISTENCE_ONLY ? (
+          /* #263: a pasted LIST, like the Screening panel (same component, same limit text, the line count under the box); nothing is cut without being said. */
+          <CitationsPanel embedded />
+        ) : (
         <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
@@ -163,6 +168,7 @@ export default function CitationsPage() {
         )}
         </div>
         </>
+        )}
       </div>
     </div>
   );
