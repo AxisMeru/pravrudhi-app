@@ -12,12 +12,12 @@ import { isAlternateLimb } from "./offences";
 export const HEARING_PREP_STRINGS = {
   heading: "Hearing preparation",
   openHeading: "Ingredients still open",
-  noneOpen: "Every ingredient in this block is supported by a fact the screening found.",
+  noneOpen: "Every ingredient under this heading has a fact cited by the screening.",
   citationsHeading: "Citations to check",
-  noCitations: "The screening and intake found no citations to check.",
+  noCitations: "No citations to check were found.",
   citationFromScreening: "Provision the screening applied",
   citationFromIntake: "Found in the text you pasted",
-  allSupportedNote: "Nothing is open in any block. This checklist is a screening aid: read the supported facts yourself before you rely on them.",
+  allSupportedNote: "Nothing is open under any heading. This checklist is a screening aid: read the cited facts yourself before you rely on them.",
   checkLabel: WHAT_TO_CHECK_LABEL,
   standingLine: BANNER_STANDING_LINE,
 } as const;
