@@ -67,7 +67,7 @@ export function FactSelector({
         <span className="text-sm text-[var(--color-text)]" data-testid="selector-counter" aria-live="polite">{selectorCounter(state.count)}</span>
         <button
           type="button"
-          className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm"
+          className="inline-flex items-center rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm max-md:min-h-11"
           data-testid="selector-screen"
           onClick={() => {
             if (!state.canScreen) return setTriedEmpty(true);

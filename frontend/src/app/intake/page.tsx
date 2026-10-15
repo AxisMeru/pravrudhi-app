@@ -83,7 +83,7 @@ export default function IntakePage() {
             {INTAKE_CAVEATS.map((c) => <li key={c}>{c}</li>)}
           </ul>
           <div className="flex items-center gap-3">
-            <button type="button" className="rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm" data-testid="intake-run" disabled={loading || !text.trim()} onClick={run}>
+            <button type="button" className="inline-flex items-center rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm max-md:min-h-11" data-testid="intake-run" disabled={loading || !text.trim()} onClick={run}>
               {loading ? <Loader2 size={14} className="animate-spin" aria-hidden /> : INTAKE_RUN_BUTTON}
             </button>
           </div>

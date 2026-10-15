@@ -165,3 +165,18 @@ test("app#342: a 503 agent_at_capacity keeps the general line (R1: no change), w
   expect(text).not.toContain("at capacity");
   expect(text).not.toMatch(/\b503\b|HTTP/);
 });
+
+// app#348 (explorer's gap review of deploy 17): at 390 px the Run intake and Screen buttons are phone-size targets (44 px), like the other buttons.
+test("app#348: at 390 px the Run intake and Screen the chosen facts buttons are at least 44 px high", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ json: ANSWER }));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [] } }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill(FACTS.map((f) => f.text).join("\n\n"));
+  const run = (await page.getByTestId("intake-run").boundingBox())!;
+  expect(run.height, `Run intake ${run.height}px`).toBeGreaterThanOrEqual(44);
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("fact-selector")).toBeVisible();
+  const screen = (await page.getByTestId("selector-screen").boundingBox())!;
+  expect(screen.height, `Screen ${screen.height}px`).toBeGreaterThanOrEqual(44);
+});
