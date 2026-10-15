@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CONTRACT_BLOCK_TITLES, OFFENCES, blockTitle, offenceOf } from "./offences";
+import { CONTRACT_BLOCK_TITLES, OFFENCES, blockTitle, offenceOf, offerableContracts } from "./offences";
 
 // R2 (8 Oct): the BNS/IPC pair strings are pinned exactly. R1 read all eight pairs as correct and R2 checked them against the corpus; a changed digit fails here.
 test("the nine offence titles (eight validated, one not), their BNS/IPC pair lines and contracts are exactly the ones R1 and R2 checked", () => {
@@ -49,4 +49,17 @@ test("every way of every multi-way offence has a title of its own, built on that
   for (const id of Object.keys(CONTRACT_BLOCK_TITLES)) assert.ok(ways.has(id), `${id} is a block title for a contract that is not a way of a multi-way offence`);
   // single-way offences keep the plain offence name
   for (const o of OFFENCES.filter((x) => x.contracts.length === 1)) assert.equal(blockTitle(o.contracts[0]), o.title);
+});
+
+// #233 (R2): the Offence rules picker offers only registry ids the app can name, and over the registry's own ids every offered label is distinct and none is the neutral "Offence".
+test("offerableContracts: over the registry fixture ids, every offered label is distinct and none is the neutral fallback", async () => {
+  const { default: fixture } = await import("../fixtures/contractElements.json");
+  const ids = Object.keys(fixture.contracts);
+  assert.ok(ids.length >= 18);
+  const offered = offerableContracts(ids);
+  assert.ok(offered.length > 0 && offered.length < ids.length, "some registry ids have no title and are not offered");
+  const labels = offered.map(blockTitle);
+  assert.equal(new Set(labels).size, labels.length, "no two offered rows read alike");
+  assert.ok(!labels.includes("Offence"));
+  assert.deepEqual(offerableContracts(["invented_unknown_id"]), []);
 });

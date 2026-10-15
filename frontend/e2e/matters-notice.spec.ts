@@ -28,7 +28,7 @@ test("the engine's own retention_notice is not shown under a result", async ({ p
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText("bns69").click();
+  await page.locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   await expect(page.locator("body")).not.toContainText("ENGINE-NOTICE-MARKER");
@@ -53,7 +53,7 @@ async function analyse(page: import("@playwright/test").Page) {
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText("bns69").click();
+  await page.locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
 }

@@ -55,7 +55,7 @@ test("Matters renders the decide result and none of the agent's free text", asyn
   await route(page);
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText(CID).click();
+  await page.locator(`label[data-contract-id="${CID}"]`).click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("memo-actions")).toBeVisible();
   await expect(page.locator("body")).not.toContainText(MARKER);

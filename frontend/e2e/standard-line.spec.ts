@@ -25,7 +25,7 @@ async function runWith(page: import("@playwright/test").Page, standard: unknown)
   await page.goto("/matters");
   // The checkbox itself is visually hidden (sr-only); its label wraps it, so the click goes to the label.
   const group = page.getByRole("group", { name: "Contracts to check against" });
-  await group.locator("label").filter({ hasText: "bns69" }).first().click({ force: true });
+  await group.locator("label").filter({ hasText: "BNS 69" }).first().click({ force: true });
   await expect(group.getByRole("checkbox").first()).toBeChecked();
   await page.getByLabel("Facts (one per line)").fill(FACTS.join("\n"));
   await page.getByRole("button", { name: "Analyse" }).click();

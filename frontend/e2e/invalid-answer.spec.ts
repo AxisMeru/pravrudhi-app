@@ -45,7 +45,7 @@ async function screen(page: import("@playwright/test").Page) {
 async function analyse(page: import("@playwright/test").Page) {
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText(CID).click();
+  await page.locator(`label[data-contract-id="${CID}"]`).click();
   await page.getByRole("button", { name: "Analyse" }).click();
 }
 

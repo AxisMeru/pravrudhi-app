@@ -25,7 +25,7 @@ test("a registry that fails shows the error as an alert with a retry, and the re
   await expect(page.getByTestId("contracts-error")).toBeVisible();
   await expect(page.getByRole("alert").filter({ hasText: "registry" })).toBeVisible();
   await page.getByTestId("contracts-retry").click();
-  await expect(page.getByRole("group", { name: "Contracts to check against" }).getByText("bns69")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Contracts to check against" }).locator('label[data-contract-id="bns69"]')).toBeVisible();
   await expect(page.getByTestId("contracts-error")).toHaveCount(0);
 });
 
@@ -45,11 +45,11 @@ test("the results table has a caption, column headers with scope, and sits in a 
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByRole("group", { name: "Contracts to check against" }).getByText("bns69").click();
+  await page.getByRole("group", { name: "Contracts to check against" }).locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   const table = page.locator("article table").first();
   await expect(table).toBeVisible();
-  await expect(table.locator("caption")).toHaveText(/Elements of bns69: status and the cited fact/);
+  await expect(table.locator("caption")).toHaveText(/Elements of BNS 69: status and the cited fact/);
   await expect(table.locator("th[scope=col]")).toHaveCount(3);
   await expect(table.locator("xpath=..")).toHaveClass(/overflow-x-auto/);
 });
@@ -67,11 +67,11 @@ test("a referral is listed before the other results, whatever order the engine a
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText("bns69").click();
-  await page.getByText("bns85").click();
+  await page.locator('label[data-contract-id="bns69"]').click();
+  await page.locator('label[data-contract-id="bns85"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
-  await expect(page.locator("article").first()).toContainText("bns85");
-  await expect(page.locator("article").nth(1)).toContainText("bns69");
+  await expect(page.locator("article").first()).toContainText("Cruelty by the husband or his relatives");
+  await expect(page.locator("article").nth(1)).toContainText("BNS 69");
 });
 
 test("the cited-fact cell branches on quote_source: a whole fact says so and shows no quote, the engine's citation_note is shown when sent", async ({ page }) => {
@@ -94,7 +94,7 @@ test("the cited-fact cell branches on quote_source: a whole fact says so and sho
   await page.goto("/matters");
   // the engine echoes exactly the facts submitted, so two echoed facts need two submitted lines
   await page.getByLabel("Facts (one per line)").fill(`${FACT}\nMeena kept it.`);
-  await page.getByText("bns69").click();
+  await page.locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   const notes = page.getByTestId("cited-fact-note");
   await expect(notes.nth(0)).toHaveText("— INVENTED ENGINE SENTENCE");
@@ -121,9 +121,22 @@ test("an older engine (no quote_source) on the house path: the page says it cite
   );
   await page.goto("/matters");
   await page.getByLabel("Facts (one per line)").fill(FACT);
-  await page.getByText("bns69").click();
+  await page.locator('label[data-contract-id="bns69"]').click();
   await page.getByRole("button", { name: "Analyse" }).click();
   await expect(page.getByTestId("cited-fact-note")).toHaveText("— cites the supporting fact");
   await expect(page.getByText("INVENTED OLDER QUOTE")).toHaveCount(0);
   await expect(page.getByTestId("quote-check-cause")).toHaveCount(0);
+});
+
+// #233: the picker and the result show the offence's name, never a contract id, and the page has its own title.
+test("the old Offence rules page has its own title and shows offence names, not contract ids, and offers only ids it can name", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc182_abuse_of_power", "unknown_invented_id"], entries: [] } }));
+  await page.goto("/matters");
+  await expect(page).toHaveTitle("Offence rules · Pravrudhi-Nyaya");
+  const group = page.getByRole("group", { name: "Contracts to check against" });
+  await expect(group).toContainText("False information to a public servant");
+  await expect(group).not.toContainText("ipc182_abuse_of_power");
+  // an id the app has no title for is not offered (it would read "Offence", like every other such id)
+  await expect(group.locator("label")).toHaveCount(1);
+  await expect(group).not.toContainText("unknown_invented_id");
 });
