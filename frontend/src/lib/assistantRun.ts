@@ -133,12 +133,12 @@ export function assistantViolations(v: unknown): string[] {
   }
   if (v.summary !== undefined && v.summary !== null && typeof v.summary !== "string") out.push("assistant.summary: expected text or null");
   if (v.session_id !== undefined && v.session_id !== null && typeof v.session_id !== "string") out.push("assistant.session_id: expected text or null");
-  // `progress` (engine #432, 0.6.7+): sent on a timed-out run (used false, outcome timed_out) so the caller can see how far it got. The app does not show or keep it; it only must not make the answer unreadable.
+  // `progress` (engine #432, 0.6.7+): sent on a timed-out run (used false, outcome timed_out) so the caller can see how far it got. The app does not show or keep it; it only must not make the answer unreadable. A counter may be null (a future engine that has no value for it): that is not a violation (#176).
   if (v.progress !== undefined && v.progress !== null) {
     const p = v.progress;
     if (!isObj(p)) out.push("assistant.progress: expected an object or null");
     else {
-      for (const k of ["tool_calls", "refused_calls", "events", "max_events", "elapsed_s", "wall_limit_s"]) if (p[k] !== undefined && (typeof p[k] !== "number" || !Number.isFinite(p[k] as number))) out.push(`assistant.progress.${k}: expected a number`);
+      for (const k of ["tool_calls", "refused_calls", "events", "max_events", "elapsed_s", "wall_limit_s"]) if (p[k] !== undefined && p[k] !== null && (typeof p[k] !== "number" || !Number.isFinite(p[k] as number))) out.push(`assistant.progress.${k}: expected a number or null`);
       if (p.last_tool !== undefined && p.last_tool !== null && typeof p.last_tool !== "string") out.push("assistant.progress.last_tool: expected text or null");
     }
   }

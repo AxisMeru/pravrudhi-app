@@ -94,6 +94,8 @@ export default function ScreeningPage() {
   const [retrying, setRetrying] = useState(false);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Leaving the page cancels the run in flight (#176): the request and its ticker no longer run on until the engine answers or the 320 s timeout.
+  useEffect(() => () => abortRef.current?.abort(), []);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
   const resultRef = useRef<HTMLDivElement>(null);

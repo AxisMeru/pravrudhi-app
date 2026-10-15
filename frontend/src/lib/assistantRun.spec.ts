@@ -146,3 +146,15 @@ test("progress is checked loosely, and any OTHER unknown assistant key still mak
   assert.ok(assistantViolations({ ...TIMED_OUT, progress: { ...TIMED_OUT.progress, events: "many" } }).some((m) => /progress\.events/.test(m)));
   assert.ok(assistantViolations({ ...TIMED_OUT, surprise: 1 }).some((m) => /surprise: not in the contract/.test(m)));
 });
+
+// #176 (R2): a null in any of the six progress counters (an engine with no value for one) still reads as a valid timed-out block; a non-number, non-null counter is still a violation.
+test("a null in any progress counter is not a violation; a string or NaN still is", async () => {
+  const { assistantViolations, parseAssistantBlock } = await import("./assistantRun");
+  for (const k of ["tool_calls", "refused_calls", "events", "max_events", "elapsed_s", "wall_limit_s"]) {
+    const block = { ...TIMED_OUT, progress: { ...TIMED_OUT.progress, [k]: null } };
+    assert.deepEqual(assistantViolations(block), [], `${k}: null`);
+    assert.doesNotThrow(() => parseAssistantBlock(block, () => { throw new Error("unreadable"); }), k);
+    assert.ok(assistantViolations({ ...TIMED_OUT, progress: { ...TIMED_OUT.progress, [k]: "many" } }).some((m) => m.includes(`progress.${k}`)), `${k}: a string is a violation`);
+    assert.ok(assistantViolations({ ...TIMED_OUT, progress: { ...TIMED_OUT.progress, [k]: NaN } }).some((m) => m.includes(`progress.${k}`)), `${k}: NaN is a violation`);
+  }
+});
