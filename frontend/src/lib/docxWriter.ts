@@ -1,4 +1,5 @@
-// A minimal .docx (Word) writer for the screening memo (MVP: law firms work in Word). No dependency: a .docx is a ZIP of three XML parts, written here in STORE mode (no compression), so the bytes are
+// A minimal .docx (Word) writer for the screening memo (MVP: law firms work in Word). No dependency: a .docx is a ZIP of a few XML parts (the document, its styles and list numbering, and the
+// document properties), written here in STORE mode (no compression), so the bytes are
 // deterministic and nothing is inflated on the way back in. The content is NOT built separately: the document is made FROM THE MARKDOWN MEMO (lib/screening/memo.ts), reading the small subset of
 // markdown that memo uses (# ## ### headings, > quotes, - bullets one level deep, **bold**), so the Word memo says exactly what the .md memo says: the same facts, banner, review items and versions.
 
@@ -99,45 +100,82 @@ function runsOf(s: string): Run[] {
   return rest.length > 0 ? [{ text: lead[1], bold: true }, { text: rest, bold: false }] : [{ text: lead[1], bold: true }];
 }
 
-function run(r: Run, size?: number, italic = false): string {
-  const props = `${r.bold ? "<w:b/>" : ""}${italic ? "<w:i/>" : ""}${size ? `<w:sz w:val="${size}"/>` : ""}`;
-  return `<w:r>${props ? `<w:rPr>${props}</w:rPr>` : ""}<w:t xml:space="preserve">${esc(r.text)}</w:t></w:r>`;
+function run(r: Run): string {
+  return `<w:r>${r.bold ? "<w:rPr><w:b/></w:rPr>" : ""}<w:t xml:space="preserve">${esc(r.text)}</w:t></w:r>`;
 }
 
-function paragraph(runs: string, opts: { indent?: number; hanging?: number; spaceAfter?: number } = {}): string {
-  const ind = opts.indent ? `<w:ind w:left="${opts.indent}"${opts.hanging ? ` w:hanging="${opts.hanging}"` : ""}/>` : "";
-  return `<w:p><w:pPr><w:spacing w:after="${opts.spaceAfter ?? 120}"/>${ind}</w:pPr>${runs}</w:p>`;
+/** A paragraph: a named style (the headings, the quote, the list) rather than direct formatting, so Word's navigation pane, outline and list tools work. */
+function paragraph(runs: string, opts: { style?: string; list?: 0 | 1 } = {}): string {
+  const style = opts.style ? `<w:pStyle w:val="${opts.style}"/>` : "";
+  const num = opts.list === undefined ? "" : `<w:numPr><w:ilvl w:val="${opts.list}"/><w:numId w:val="1"/></w:numPr>`;
+  const ppr = style || num ? `<w:pPr>${style}${num}</w:pPr>` : "";
+  return `<w:p>${ppr}${runs}</w:p>`;
 }
-
-const HEADING_SIZE: Record<number, number> = { 1: 36, 2: 28, 3: 24 };
 
 /** One markdown line of the memo's subset as a Word paragraph, or null for a blank line. */
 export function paragraphOf(line: string): string | null {
   if (!line.trim()) return null;
   const h = /^(#{1,3}) (.*)$/.exec(line);
-  if (h) return paragraph(runsOf(h[2]).map((r) => run({ ...r, bold: true }, HEADING_SIZE[h[1].length])).join(""), { spaceAfter: 160 });
+  if (h) return paragraph(runsOf(h[2]).map((r) => run(r)).join(""), { style: `Heading${h[1].length}` });
   const q = /^> (.*)$/.exec(line);
-  if (q) return paragraph(runsOf(q[1]).map((r) => run(r, undefined, true)).join(""), { indent: 360 });
+  if (q) return paragraph(runsOf(q[1]).map((r) => run(r)).join(""), { style: "Quote" });
   const b2 = /^ {2}- (.*)$/.exec(line);
-  if (b2) return paragraph("<w:r><w:t xml:space=\"preserve\">◦ </w:t></w:r>" + runsOf(b2[1]).map((r) => run(r)).join(""), { indent: 1080, hanging: 280, spaceAfter: 60 });
+  if (b2) return paragraph(runsOf(b2[1]).map((r) => run(r)).join(""), { style: "ListBullet", list: 1 });
   const b1 = /^- (.*)$/.exec(line);
-  if (b1) return paragraph("<w:r><w:t xml:space=\"preserve\">• </w:t></w:r>" + runsOf(b1[1]).map((r) => run(r)).join(""), { indent: 720, hanging: 280, spaceAfter: 60 });
+  if (b1) return paragraph(runsOf(b1[1]).map((r) => run(r)).join(""), { style: "ListBullet", list: 0 });
   return paragraph(runsOf(line).map((r) => run(r)).join(""));
 }
 
 const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
 const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
 
+const LANG = "en-IN";
+
+const STYLES = `${XML}<w:styles ${NS}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:lang w:val="${LANG}" w:eastAsia="${LANG}" w:bidi="ar-SA"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120"/></w:pPr></w:pPrDefault></w:docDefaults>`
+  + `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>`
+  + [[1, 36, 160], [2, 28, 160], [3, 24, 120]]
+    .map(([n, sz, after]) => `<w:style w:type="paragraph" w:styleId="Heading${n}"><w:name w:val="heading ${n}"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="${n === 1 ? 0 : 200}" w:after="${after}"/><w:outlineLvl w:val="${Number(n) - 1}"/></w:pPr><w:rPr><w:b/><w:sz w:val="${sz}"/></w:rPr></w:style>`)
+    .join("")
+  + `<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:ind w:left="360"/></w:pPr><w:rPr><w:i/></w:rPr></w:style>`
+  + `<w:style w:type="paragraph" w:styleId="ListBullet"><w:name w:val="List Bullet"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr></w:style></w:styles>`;
+
+// One bullet list, two levels (the memo's "- " and "  - " lines), as real Word list numbering rather than typed bullet characters.
+const NUMBERING = `${XML}<w:numbering ${NS}><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>`
+  + `<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="\u2022"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="720" w:hanging="280"/></w:pPr></w:lvl>`
+  + `<w:lvl w:ilvl="1"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="\u25e6"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="1080" w:hanging="280"/></w:pPr></w:lvl>`
+  + `</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+
+const DOC_RELS = `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/></Relationships>`;
+
+const APP_PROPS = `${XML}<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Pravrudhi-Nyaya</Application></Properties>`;
+
+/** The document title: the memo's first heading (its text, without the markup), else "Screening memo". Not a timestamp: the same memo gives the same bytes. */
+function titleOf(markdown: string): string {
+  const h = /^# (.*)$/m.exec(markdown);
+  return (h ? h[1].replace(/\*\*/g, "").trim() : "") || "Screening memo";
+}
+
 /** The .docx bytes for a markdown memo (the subset above). Same input, same bytes. */
 export function buildDocx(markdown: string): Uint8Array {
   const body = markdown.split(/\r?\n/).map(paragraphOf).filter((p): p is string => p !== null).join("");
   const doc = `${XML}<w:document ${NS}><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
-  const types = `${XML}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`;
-  const rels = `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`;
+  const types = `${XML}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>`
+    + `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>`
+    + `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>`
+    + `<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>`
+    + `<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>`
+    + `<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`;
+  const rels = `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`;
+  const core = `${XML}<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${esc(titleOf(markdown))}</dc:title><dc:language>${LANG}</dc:language></cp:coreProperties>`;
   return zipStore([
     { name: "[Content_Types].xml", data: enc.encode(types) },
     { name: "_rels/.rels", data: enc.encode(rels) },
     { name: "word/document.xml", data: enc.encode(doc) },
+    { name: "word/_rels/document.xml.rels", data: enc.encode(DOC_RELS) },
+    { name: "word/styles.xml", data: enc.encode(STYLES) },
+    { name: "word/numbering.xml", data: enc.encode(NUMBERING) },
+    { name: "docProps/core.xml", data: enc.encode(core) },
+    { name: "docProps/app.xml", data: enc.encode(APP_PROPS) },
   ]);
 }
 

@@ -109,7 +109,7 @@ test("the Word memo downloads and carries the same text as the .md memo (#830 DO
   const { value } = await (await import("mammoth")).extractRawText({ buffer: buf });
   const lines = value.split("\n").filter((l: string) => l.trim());
   // every visible line of the .md memo (markup removed) is in the Word memo, in order
-  const plain = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "\u25e6 ").replace(/^- /, "\u2022 ").replace(/\*\*/g, ""));
+  const plain = md.split(/\r?\n/).filter((l) => l.trim()).map((l) => l.replace(/^#{1,3} /, "").replace(/^> /, "").replace(/^ {2}- /, "").replace(/^- /, "").replace(/\*\*/g, ""));
   const noStamp = (l: string) => l.replace(/Generated: .*/, "Generated: <time>"); // each download stamps its own generation time
   expect(lines.map(noStamp)).toEqual(plain.map(noStamp));
   expect(value).toContain(F1);

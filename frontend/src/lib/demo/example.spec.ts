@@ -116,3 +116,22 @@ test("initialFactsFor: an example link starts with its facts (a copy), anything 
   assert.deepEqual(initialFactsFor("?example=no-such-example"), [""]);
   assert.deepEqual(initialFactsFor("?other=1"), [""]);
 });
+
+// R2 (#216): the example label and citation belong to the example's own facts only.
+test("isUnchangedExample / memoExample: only the example's facts, word for word and in order, carry the label", async () => {
+  const { EXAMPLES, isUnchangedExample, memoExample } = await import("./example");
+  const ex = EXAMPLES[0];
+  const same = [...ex.facts];
+  assert.equal(isUnchangedExample(same, ex), true);
+  assert.equal(isUnchangedExample([...same, "", "  "], ex), true, "blank boxes are not a change");
+  assert.equal(isUnchangedExample(same.map((f) => f.replace(/ /, "\n")), ex), true, "a line break inside a fact is not a change (the page cleans it before sending)");
+  assert.equal(isUnchangedExample(["My own client's fact about a loan."], ex), false);
+  assert.equal(isUnchangedExample([same[0] + " x", ...same.slice(1)], ex), false, "one edited fact");
+  assert.equal(isUnchangedExample(same.slice(1), ex), false, "a fact removed");
+  assert.equal(isUnchangedExample([...same, "another fact"], ex), false, "a fact added");
+  assert.equal(isUnchangedExample([...same].reverse(), ex), false, "reordered");
+  assert.equal(isUnchangedExample(same, null), false);
+  assert.deepEqual(memoExample(same, ex), { label: ex.label, citation: ex.citation });
+  assert.equal(memoExample(["My own client's fact about a loan."], ex), null);
+  assert.equal(memoExample(same, null), null);
+});

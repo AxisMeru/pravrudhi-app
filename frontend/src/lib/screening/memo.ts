@@ -24,6 +24,8 @@ function rowLines(r: ScreeningRow): string[] {
 export interface ScreeningMemoOptions {
   engineVersion: string | null;
   generatedAt: string;
+  /** R3 (15 Oct): a run of a public example carries the page's label and the order's citation into the memo, so a memo shared on its own says the facts are a court's recited allegations, not findings. */
+  example?: { label: string; citation: string } | null;
 }
 
 /** The memo's heading for a block: a way of a multi-way offence carries its own title, any other known offence its label with sections, and a contract the app does not know the neutral "Offence", NEVER the contract id (R2, #210). */
@@ -36,6 +38,7 @@ export function buildScreeningMemo(result: AnalyseFactsResult, opts: ScreeningMe
   const out = ["# Screening memo", "", `> ${MEMO_DISCLAIMER}`, "", `> ${BANNER_STANDING_LINE}`, ""];
   out.push(`- Run id: ${result.run_id}`, `- Engine version: ${opts.engineVersion ?? "unknown"}`, `- Score sha256: ${result.score_sha256}`);
   out.push(`- Contract checker pin (sha256): ${contractElements._binary_sha256}`, `- Generated: ${opts.generatedAt}`, "", "## Facts", "");
+  if (opts.example) out.push(`> ${line(opts.example.label)}`, `> ${line(opts.example.citation)}`, "");
   for (const f of result.facts) out.push(f.text ? `- **${f.id}**: ${line(f.text)}` : `- **${f.id}** (sha256 ${f.sha256})`);
   out.push("");
   for (const c of result.contracts) {
