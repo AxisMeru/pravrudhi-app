@@ -51,6 +51,12 @@ for (const [name, t] of [["dark", DARK], ["light", LIGHT]] as const) {
     const r = ratio(t["on-accent"], t.accent);
     assert.ok(r >= 4.5, `${name}: on-accent ${t["on-accent"]} on accent ${t.accent} is ${r.toFixed(2)}:1`);
   });
+  test(`${name}: the first-run panel's text and dim text reach 4.5:1 on the hero fill (canvas onhero / herodim)`, () => {
+    for (const fg of ["on-hero", "on-hero-dim"]) {
+      const r = ratio(t[fg], t.hero);
+      assert.ok(r >= 4.5, `${name}: ${fg} ${t[fg]} on hero ${t.hero} is ${r.toFixed(2)}:1`);
+    }
+  });
   test(`${name}: the border of a control reaches 3:1 against the page`, () => {
     const r = ratio(t["control-border"], t.bg);
     assert.ok(r >= 3, `${name}: control-border ${t["control-border"]} on bg ${t.bg} is ${r.toFixed(2)}:1`);
