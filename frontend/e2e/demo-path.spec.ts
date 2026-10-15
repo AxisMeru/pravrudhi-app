@@ -6,7 +6,8 @@ test.skip(process.env.DEMO_PATH_BUILD !== "1", "needs a NEXT_PUBLIC_DEMO_PATH=1 
 test("the default demo navigation offers the demo path and no US-case content", async ({ page }) => {
   await page.goto("/matters");
   const offered = await page.locator("nav a[href]").evaluateAll((ls) => ls.map((a) => new URL((a as HTMLAnchorElement).href).pathname));
-  expect(offered).toContain("/matters");
+  expect(offered).toContain("/screening");
+  expect(offered).not.toContain("/matters"); // Offence rules is not in the product nav (Lead-2, 14 Oct); the route still opens by URL (this test opens it)
   expect(offered).not.toContain("/nyaya");
 });
 

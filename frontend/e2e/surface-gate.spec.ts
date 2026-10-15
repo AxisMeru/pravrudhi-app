@@ -50,7 +50,7 @@ test("a member's navigation offers only the kept pages", async ({ page }) => {
   await page.goto("/matters");
   const offered = await page.locator("nav a[href]").evaluateAll((ls) => ls.map((a) => new URL((a as HTMLAnchorElement).href).pathname));
   for (const hidden of LOOP.filter((p) => p !== "/")) expect(offered).not.toContain(hidden);
-  expect(offered).toContain("/matters");
+  expect(offered).not.toContain("/matters"); // not offered in the nav (Lead-2, 14 Oct); the page itself still opens (this test goes to it)
   expect(offered).toContain("/screening");
 });
 

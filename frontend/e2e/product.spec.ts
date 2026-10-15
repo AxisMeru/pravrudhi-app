@@ -47,9 +47,12 @@ test("the interface offers only the product's pages", async ({ page }) => {
     expect(offered.has(studio), `${studio} is Studio's and must not be offered`).toBe(false);
   }
   // Sign-in is reached from the account control in the sidebar header, not from the navigation list.
-  for (const own of PAGES.map(([p]) => p).filter((p) => p !== "/signin")) {
+  for (const own of PAGES.map(([p]) => p).filter((p) => p !== "/signin" && p !== "/matters")) {
     expect(offered.has(own), `${own} is the product's and must be offered`).toBe(true);
   }
+  // Lead-2, 14 Oct (#177): "Offence rules" (/matters) shows raw contract ids and is not offered in the nav; the page itself still renders (the PAGES walk above opens it by URL).
+  expect(offered.has("/matters"), "/matters is not offered in the product nav").toBe(false);
+  expect(offered.has("/screening"), "Screening is").toBe(true);
   expect(offered.has("/signin") || (await page.locator("a[href='/signin']").count()) > 0, "sign-in is reachable").toBe(true);
 });
 
