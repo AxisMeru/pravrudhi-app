@@ -55,6 +55,7 @@ test("dropping a text file on the drop zone fills the paste box", async ({ page 
 
 test("a file dropped just outside the drop zone is refused by the page, so the browser does not open it in place of the page", async ({ page }) => {
   await page.goto("/screening");
+  await expect(page.getByTestId("fact-list")).toBeVisible(); // hydrated: the page's listeners are registered
   const prevented = await page.evaluate(() => {
     const dt = new DataTransfer();
     dt.items.add(new File(["x"], "facts.txt", { type: "text/plain" }));

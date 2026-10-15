@@ -5,7 +5,6 @@
 import { Loader2, ScanSearch } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { flushSync } from "react-dom";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
@@ -112,15 +111,6 @@ export default function ScreeningPage() {
     window.addEventListener("dragover", stop);
     window.addEventListener("drop", stop);
     return () => { window.removeEventListener("dragover", stop); window.removeEventListener("drop", stop); };
-  }, []);
-  // A printed result is ALL of it (globals.css): the fact filter is a screen aid, so printing clears it first (flushSync, so the paper is drawn from the full list) and puts it back afterwards.
-  const filterBeforePrint = useRef<FactFilterState | null>(null);
-  useEffect(() => {
-    const before = () => flushSync(() => setFactFilterState((cur) => { filterBeforePrint.current = cur; return null; }));
-    const after = () => { if (filterBeforePrint.current) setFactFilterState(filterBeforePrint.current); filterBeforePrint.current = null; };
-    window.addEventListener("beforeprint", before);
-    window.addEventListener("afterprint", after);
-    return () => { window.removeEventListener("beforeprint", before); window.removeEventListener("afterprint", after); };
   }, []);
   const closed = svc?.kind === "ok" && isClosed(svc.status);
   const offline = svc?.kind === "offline";
