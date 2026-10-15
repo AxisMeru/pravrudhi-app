@@ -1,3 +1,4 @@
+import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError, apiBase, engineFetch, hasWebSession, health, isAbortError, isHostedEngine, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 import { INVALID_ENGINE_ANSWER_TEXT, NOT_SIGNED_IN_TEXT, SIGN_IN_UNVERIFIED_TEXT } from "./surfaceCopy";
@@ -127,7 +128,7 @@ export interface ClassifiedError {
   runId?: string | null;
 }
 
-export function classifyAnalyseError(e: unknown): ClassifiedError {
+export function classifyAnalyseError(e: unknown, internalLine: string | null = INTERNAL_ERROR_LINE): ClassifiedError {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") {
     return { kind: "timeout", message: "The analysis models did not answer in time, so we stopped waiting. They may be switched off at the moment. No result was returned. Try again later." };
@@ -165,7 +166,8 @@ export function classifyAnalyseError(e: unknown): ClassifiedError {
     if (e.status === 503 && e.code === "service_config_missing") {
       return { kind: "service_config_missing", message: SERVICE_ERROR_TEXT.service_config_missing };
     }
-    return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). Nothing was scored.` };
+    const generic = `The engine answered with an error (HTTP ${e.status}). Nothing was scored.`;
+    return { kind: "server", message: isInternalError(e) ? internalErrorLine(generic, internalLine) : generic };
   }
   return { kind: "network", message: "Could not reach the engine. Check your connection and try again." };
 }

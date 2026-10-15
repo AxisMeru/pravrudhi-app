@@ -1,6 +1,7 @@
 // The citation check (#539): POST /api/v1/verify-citations answers one of five fixed statuses and a fixed note. The status is shown VERBATIM as the
 // engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
 
+import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
 import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
@@ -128,7 +129,7 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
 export type VerifyErrorKind = "quote_not_served" | "invalid_request" | "timeout" | "cancelled" | "rate_limited" | "signed_out" | "index_unavailable" | "at_capacity" | "server" | "network";
 
 /** The page's message for a failed check: the signed sentence for each coded refusal, the existing wording for the generic cases. */
-export function classifyVerifyError(e: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): { kind: VerifyErrorKind; message: string } {
+export function classifyVerifyError(e: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, internalLine: string | null = INTERNAL_ERROR_LINE): { kind: VerifyErrorKind; message: string } {
   const name = (e as { name?: string } | null)?.name;
   if (name === "TimeoutError") return { kind: "timeout", message: CITATION_ERROR_TEXT.verify_timeout };
   if (name === "AbortError") return { kind: "cancelled", message: "Citation check cancelled." };
@@ -145,7 +146,8 @@ export function classifyVerifyError(e: unknown, existenceOnly: boolean = CITATIO
       // quote_not_served (a quote reached the existence-only index) or a validation detail (blank citation, over length): plain words, never the code
       return e.code === "quote_not_served" ? { kind: "quote_not_served", message: QUOTE_NOT_SERVED_TEXT } : { kind: "invalid_request", message: DETAIL_422_TEXT };
     }
-    return { kind: "server", message: `The engine answered with an error (HTTP ${e.status}). No result was returned.` };
+    const generic = `The engine answered with an error (HTTP ${e.status}). No result was returned.`;
+    return { kind: "server", message: isInternalError(e) ? internalErrorLine(generic, internalLine) : generic };
   }
   return { kind: "network", message: "Could not reach the engine. Check your connection and try again." };
 }
