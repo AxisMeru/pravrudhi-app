@@ -243,7 +243,7 @@ export default function ScreeningPage() {
         {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         <CaveatStrip warming={warming} />
         <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
-          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)]">{ABOUT_SCREENING_LABEL}</summary>
+          <summary className="cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
             <p className="text-sm" data-testid="guide-link">
@@ -285,7 +285,7 @@ export default function ScreeningPage() {
               accept=".txt,.pdf,.docx"
               aria-label="Load facts from a file"
               data-testid="facts-file"
-              className="text-sm"
+              className="text-sm max-md:min-h-11"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
@@ -331,7 +331,7 @@ export default function ScreeningPage() {
                 />
                 <button
                   type="button"
-                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline"
+                  className="mt-1 inline-flex min-h-6 min-w-6 items-center justify-center px-1 text-xs text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11"
                   aria-label={`Remove fact F${i + 1}`}
                   onClick={() => setFacts((prev) => (prev.length > 1 ? prev.filter((_, j) => j !== i) : [""]))}
                 >
@@ -340,7 +340,7 @@ export default function ScreeningPage() {
               </li>
             ))}
           </ol>
-          <button type="button" className="w-fit text-sm text-[var(--color-text-dim)] underline" onClick={() => setFacts((p) => [...p, ""])}>
+          <button type="button" className="inline-flex w-fit items-center text-sm text-[var(--color-text-dim)] underline max-md:min-h-11 max-md:min-w-11" onClick={() => setFacts((p) => [...p, ""])}>
             Add a fact
           </button>
 
@@ -363,10 +363,10 @@ export default function ScreeningPage() {
                   const on = ids.every((i) => picked.has(i));
                   return (
                     <li key={o.id}>
-                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
+                      <label className={`flex cursor-pointer items-start gap-2 rounded-md border p-2 text-sm max-md:min-h-11 ${on ? "border-[var(--color-accent)]" : "border-[var(--color-border)]"}`}>
                         <input
                           type="checkbox"
-                          className="mt-1"
+                          className="mt-1 max-md:h-5 max-md:w-5"
                           aria-label={offenceCheckboxName(o)}
                           aria-describedby={offenceNoteIds(o).join(" ") || undefined}
                           checked={on}
