@@ -31,13 +31,15 @@ export function FilmPlayer({ id }: { id: FilmId }) {
     if (t) t.mode = captions ? "showing" : "disabled";
   }, [captions, showVideo]);
   useEffect(() => { if (video.current) video.current.muted = muted; }, [muted, showVideo]);
+  // under reduced motion the "Play the film" button unmounts when the video appears: the focus goes to the video (not to the page) so a keyboard visitor stays at the film
+  useEffect(() => { if (asked) video.current?.focus(); }, [asked]);
   return (
     <figure className="space-y-3" data-testid={`film-${id}`}>
       <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-black">
         {showVideo ? (
           <video
             ref={video}
-            className="block aspect-video w-full"
+            className="block aspect-video w-full text-white"
             controls
             muted
             playsInline
@@ -65,10 +67,10 @@ export function FilmPlayer({ id }: { id: FilmId }) {
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {showVideo && (
           <>
-            <button type="button" onClick={() => setMuted((m) => !m)} aria-pressed={!muted} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
+            <button type="button" onClick={() => setMuted((m) => !m)} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
               {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
             </button>
-            <button type="button" onClick={() => setCaptions((c) => !c)} aria-pressed={captions} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
+            <button type="button" onClick={() => setCaptions((c) => !c)} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
               {captions ? FILM_CAPTIONS_HIDE : FILM_CAPTIONS_SHOW}
             </button>
           </>
