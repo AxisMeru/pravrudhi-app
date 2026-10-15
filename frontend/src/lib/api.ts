@@ -1521,8 +1521,9 @@ async function sessionState(signal?: AbortSignal): Promise<SessionState> {
  * of times (the first retry after a 401 renews the web session inside engineFetch), calling `onSigningIn` once, and then throws NotSignedInError (401) or
  * SignInUnverifiedError (no answer). Facts are never sent before this resolves, and an unverified check never falls back to the anonymous demo.
  *
- * KNOWN LIMIT (R2, 12 Oct): this checks the session BEFORE the request. If the credential expires between a 200 here and the POST, the engine can still serve the call
- * anonymously (the production call D of 12 Oct). The check cannot close that; the fix belongs to the engine: answering 401 to a failing identity header.
+ * KNOWN LIMIT (R2, 12 Oct; reworded 15 Oct, #103): this checks the session BEFORE the request. An expired bearer is not the gap: the engine already answers it 401 and the first retry renews the
+ * session. The real residue is a session CLEARED between the 200 here and the POST (another tab signs out, or a refresh fails): the POST then carries no identity header at all and the engine can
+ * still serve it anonymously (the production call D of 12 Oct). The check cannot close that window.
  */
 export async function requireSession(opts: { onSigningIn?: () => void; signal?: AbortSignal; attempts?: number; pauseMs?: number } = {}): Promise<void> {
   const attempts = opts.attempts ?? signInPolicy.attempts;
