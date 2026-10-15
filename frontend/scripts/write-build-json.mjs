@@ -1,4 +1,4 @@
-// Writes frontend/public/build.json = {"sha": "<40 hex>", "flags": {four booleans}} so a deployed build says which commit it is and which flags it was built with (the pre-deploy gate reads /build.json on the deployment and on the alias and requires both
+// Writes frontend/public/build.json = {"sha": "<40 hex>", "flags": {five booleans}} so a deployed build says which commit it is and which flags it was built with (the pre-deploy gate reads /build.json on the deployment and on the alias and requires both
 // to equal the gated sha). The sha is BUILD_SHA (passed with `vercel deploy --prod --build-env BUILD_SHA=<sha>`), else VERCEL_GIT_COMMIT_SHA, else "unknown"; anything that is not exactly 40
 // lowercase hex characters is "unknown". Nothing else is written: no timestamp, no secrets, no other env. Wired as the "prebuild" step in package.json; the file is generated and gitignored.
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -12,12 +12,13 @@ export function buildSha(env) {
 }
 
 // The flags the build used, read back by the pre-deploy gate from the live alias and compared with the gated record (a remote `vercel deploy --prod` builds with the Vercel project's
-// Production env vars, not the ones the gate ran with). Booleans only: each is true only if the build env is EXACTLY "1"; no other env and no value but these four booleans is written.
+// Production env vars, not the ones the gate ran with). Booleans only: each is true only if the build env is EXACTLY "1"; no other env and no value but these five booleans is written.
 export const FLAG_ENV = {
   assistant_entry: "NEXT_PUBLIC_ASSISTANT_ENTRY",
   delete_confirmed: "NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED",
   intake: "NEXT_PUBLIC_INTAKE",
   citation_nav: "NEXT_PUBLIC_CITATION_NAV",
+  citation_existence_only: "NEXT_PUBLIC_CITATION_EXISTENCE_ONLY", // the Screening citations panel needs BOTH this and citation_nav (#190)
 };
 
 export function buildFlags(env) {
