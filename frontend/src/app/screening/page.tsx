@@ -10,6 +10,7 @@ import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
+import { CITATIONS_PANEL_ENABLED } from "@/lib/citationNav";
 import { PageHeader } from "@/components/PageHeader";
 import { runAgainState } from "@/lib/runAgain";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
@@ -466,7 +467,7 @@ export default function ScreeningPage() {
             {result.contracts.map((c) => (
               <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}
-            <CitationsPanel />
+            {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
             <StatuteNotice />
             {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
             <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="font-mono">{result.score_sha256}</span></div>
