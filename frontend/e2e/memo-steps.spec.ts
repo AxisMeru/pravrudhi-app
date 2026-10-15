@@ -38,6 +38,7 @@ async function open(page: import("@playwright/test").Page, assisted: boolean, an
   await page.getByText("Cheating", { exact: false }).first().click();
 }
 async function memo(page: import("@playwright/test").Page): Promise<string> {
+  await page.getByTestId("memo-menu-button").click();
   const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   return readFileSync((await dl.path()) as string, "utf8");
 }
