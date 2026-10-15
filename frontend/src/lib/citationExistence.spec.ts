@@ -4,7 +4,7 @@ import test from "node:test";
 import { ApiError } from "./api";
 import { NOT_IN_INDEX_LABEL, classifyVerifyError, statusLabel, verifyView } from "./citationCheck";
 import {
-  CONFLICT_TEXT, DETAIL_422_TEXT, EXISTENCE_LIMITS, EXISTENCE_PANEL_LINE, EXISTENCE_SUBTITLE, NOT_IN_INDEX_NOTE, QUOTE_NOT_CHECKED_TEXT, QUOTE_NOT_SERVED_TEXT,
+  CONFLICT_HEADING, CONFLICT_TEXT, DETAIL_422_TEXT, MALFORMED_HEADING, EXISTENCE_LIMITS, EXISTENCE_PANEL_LINE, EXISTENCE_SUBTITLE, NOT_IN_INDEX_NOTE, QUOTE_NOT_CHECKED_TEXT, QUOTE_NOT_SERVED_TEXT,
 } from "./citationExistence";
 import { parseCitationLines } from "./citationsPanel";
 import { CITATION_ERROR_TEXT } from "./signedStrings";
@@ -15,7 +15,7 @@ test("R1's existence-only strings are exact (14 Oct)", () => {
   assert.equal(EXISTENCE_PANEL_LINE, "The citation is looked up in our index; quotes are not checked.");
   assert.equal(QUOTE_NOT_CHECKED_TEXT, "Only the citation was looked up; the quote was not checked.");
   assert.equal(NOT_IN_INDEX_NOTE, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.");
-  assert.equal(CONFLICT_TEXT, "The citation matches more than one case in our index, so we cannot tell which you mean.");
+  assert.equal(CONFLICT_TEXT, "The index lists this citation under more than one entry, so we cannot tell which case you mean. Put the case name before the citation and check again."); // #223 D1 (R1, 15 Oct), replaces the 14 Oct sentence
   assert.equal(QUOTE_NOT_SERVED_TEXT, "This check cannot look at quotes. It can only tell you whether we can match the citation to a case in our index.");
   assert.equal(DETAIL_422_TEXT, "Enter one citation, and leave the quote empty.");
   assert.doesNotMatch([EXISTENCE_LIMITS, QUOTE_NOT_SERVED_TEXT, NOT_IN_INDEX_NOTE].join(" "), /\b(fake|false|invalid|verified|yet)\b(?! served)/i);
@@ -32,10 +32,12 @@ test("the not-in-index result: the engine's note is replaced by R1's only while 
   assert.equal(verifyView({ result: "IN_INDEX", note: "A fixed note." }, false, true).note, "A fixed note.");
 });
 
-test("a conflict reads as R1's sentence only while existence-only (both arms); other tokens are untouched", () => {
-  assert.equal(statusLabel("CONFLICT", true), CONFLICT_TEXT);
+test("a conflict and a malformed line read as R1's headings only while existence-only (both arms); other tokens are untouched (#223 D2a)", () => {
+  assert.equal(statusLabel("CONFLICT", true), CONFLICT_HEADING);
   assert.equal(statusLabel("CONFLICT", false), "CONFLICT");
-  for (const s of ["MALFORMED", "VERIFIED"]) assert.equal(statusLabel(s, true), s);
+  assert.equal(statusLabel("MALFORMED", true), MALFORMED_HEADING);
+  assert.equal(statusLabel("MALFORMED", false), "MALFORMED");
+  assert.equal(statusLabel("VERIFIED", true), "VERIFIED");
 });
 
 test("a 422 reads in plain words while existence-only, never the code; flag off keeps the generic text; 429 and 503 keep the signed texts (both arms)", () => {
@@ -74,12 +76,12 @@ test("IN_INDEX heading: 'Found in our index' while existence-only, the raw token
   assert.equal(verifyView({ result: "IN_INDEX", note }, false, false).note, note);
 });
 
-test("CONFLICT: only the signed sentence while existence-only (the engine's note is suppressed, not 'withheld'); flag off shows the engine's note as before", () => {
+test("CONFLICT: R1's heading and sentence while existence-only (the engine's note is replaced, not 'withheld'); flag off shows the engine's note as before", () => {
   const reply = { result: "CONFLICT", note: "The citation maps to conflicting indexed cases; verify by hand." };
   const on = verifyView(reply, false, true);
-  assert.equal(on.note, null);
+  assert.equal(on.note, CONFLICT_TEXT);
   assert.equal(on.noteWithheld, false);
-  assert.equal(statusLabel("CONFLICT", true), CONFLICT_TEXT);
+  assert.equal(statusLabel("CONFLICT", true), CONFLICT_HEADING);
   const off = verifyView(reply, false, false);
   assert.equal(off.note, reply.note);
   assert.equal(statusLabel("CONFLICT", false), "CONFLICT");

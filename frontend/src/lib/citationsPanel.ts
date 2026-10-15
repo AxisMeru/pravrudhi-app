@@ -7,6 +7,14 @@ import { CITATION_EXISTENCE_ONLY } from "./citationExistence";
 import { runCitationCheck, type CitationCheckState } from "./citationCheckRun";
 
 export const MAX_CITATIONS = 10;
+/** #223 D5: the engine allows about six lookups a minute, so with the existence-only arm ON a batch takes at most five lines per try (the box says so). */
+export const MAX_CITATIONS_EXISTENCE = 5;
+/** The engine's rate window in seconds, used when a 429 carries no Retry-After. */
+export const DEFAULT_BATCH_WAIT_S = 60;
+
+/** #223 D5 (R1): the one sentence shown when a batch stops at the engine's rate limit. */
+export const batchStopText = (checked: number, total: number, wait: number): string =>
+  `Checked ${checked} of ${total} lines. The check allows only a few lookups a minute; try the rest in ${wait} seconds.`;
 
 /** Shown instead of a result when the engine answers VERIFIED to a line sent WITHOUT a quote: that cannot be true (nothing was looked up in the text), so nothing is shown as verified. */
 export const VERIFIED_WITHOUT_QUOTE_TEXT = "The engine answered verified to a citation sent without a quote, which cannot be right, so no result is shown for it.";
@@ -25,7 +33,7 @@ export interface CitationLine {
 
 export interface ParsedCitations {
   items: CitationLine[];
-  /** Non-empty lines beyond MAX_CITATIONS: not checked, and said so. */
+  /** Non-empty lines beyond the cap (MAX_CITATIONS, or MAX_CITATIONS_EXISTENCE with the arm ON): not checked, and said so. */
   skipped: number;
 }
 
@@ -35,7 +43,7 @@ export function parseCitationLines(text: string, existenceOnly: boolean = CITATI
   text.split(/\r?\n/).forEach((raw, i) => {
     const line = raw.trim();
     if (!line) return;
-    if (items.length >= MAX_CITATIONS) {
+    if (items.length >= (existenceOnly ? MAX_CITATIONS_EXISTENCE : MAX_CITATIONS)) {
       skipped += 1;
       return;
     }
@@ -73,6 +81,7 @@ export async function checkCitations(
   items: readonly CitationLine[],
   signal?: AbortSignal,
   onRow?: (rows: PanelRow[]) => void,
+  existenceOnly: boolean = CITATION_EXISTENCE_ONLY,
 ): Promise<PanelRow[]> {
   const rows: PanelRow[] = items.map((item) => ({ item, state: { phase: "idle" } as RowState }));
   for (let i = 0; i < rows.length; i += 1) {
@@ -82,6 +91,9 @@ export async function checkCitations(
     onRow?.([...rows]);
     rows[i] = { item, state: failClosed(item, await runCitationCheck(verify, item.citation, item.quote, signal)) };
     onRow?.([...rows]);
+    // #223 D5: with the arm ON the first 429 ends the run (the rest stay unchecked and are said so ONCE, by the view); the OFF arm goes on as before
+    const st = rows[i].state;
+    if (existenceOnly && st.phase === "error" && st.kind === "rate_limited") break;
   }
   return rows;
 }
