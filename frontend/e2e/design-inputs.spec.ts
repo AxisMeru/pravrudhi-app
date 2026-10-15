@@ -63,7 +63,9 @@ test("on a phone the menu button clears the page title; Sign in is a secondary l
   await page.goto("/screening");
   const menu = (await page.getByRole("button", { name: "Open navigation" }).boundingBox())!;
   const title = (await page.getByRole("heading", { level: 1 }).boundingBox())!;
-  expect(menu.x + menu.width).toBeLessThanOrEqual(title.x + 1);
+  // #325: the layout reserves a 56 px band for the button (layout.tsx pt-14), so the title is below the button and starts at the content edge: the clearance is vertical, not an indent
+  expect(menu.y + menu.height).toBeLessThanOrEqual(title.y);
+  expect(title.x, "the title starts at the 16 px content edge").toBeLessThanOrEqual(17);
   await page.setViewportSize({ width: 1280, height: 800 });
   const signIn = page.getByRole("link", { name: "Sign in", exact: true }).first();
   await expect(signIn).toBeVisible();
