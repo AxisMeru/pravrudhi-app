@@ -1,13 +1,13 @@
 "use client";
 
 import { Loader2, SearchCheck } from "lucide-react";
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { CITATION_RETENTION } from "@/lib/surfaceCopy";
-import { CITATION_ERROR_TEXT } from "@/lib/signedStrings";
 import { verifyCitation } from "@/lib/api";
-import { CITATION_NAV_ENABLED } from "@/lib/citationNav";
+import { CITATION_NAV_ENABLED, CITATION_NOT_OFFERED_LINK, CITATION_NOT_OFFERED_TEXT } from "@/lib/citationNav";
 import { CITATION_EXISTENCE_ONLY, EXISTENCE_LIMITS, EXISTENCE_SUBTITLE } from "@/lib/citationExistence";
 import {
   CITATION_MAX,
@@ -56,6 +56,18 @@ export default function CitationsPage() {
     }
   }
 
+  if (!served) {
+    return (
+      <div>
+        <PageHeader title={CITATION_CHECK_TITLE} subtitle="" />
+        <div className="mx-auto max-w-3xl space-y-3 p-4 sm:p-8">
+          <p className="text-sm text-[var(--color-text)]" data-testid="citation-not-offered">{CITATION_NOT_OFFERED_TEXT}</p>
+          <Link href="/screening" className="text-sm text-[var(--color-text-dim)] underline" data-testid="citation-not-offered-link">{CITATION_NOT_OFFERED_LINK}</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader title={CITATION_CHECK_TITLE} subtitle={CITATION_EXISTENCE_ONLY ? EXISTENCE_SUBTITLE : "Look up one citation and check that a quote appears in its text."} />
@@ -72,10 +84,7 @@ export default function CitationsPage() {
           )}
         </p>
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="citation-retention">{CITATION_RETENTION}</p>
-        {!served ? (
-          <p className="text-sm text-[var(--color-text)]" data-testid="citation-not-served">{CITATION_ERROR_TEXT.citation_index_unavailable}</p>
-        ) : (
-          <>
+        <>
         <label className="block text-sm text-[var(--color-text)]">
           Citation (one)
           <input
@@ -142,8 +151,7 @@ export default function CitationsPage() {
             )}
           </section>
         )}
-          </>
-        )}
+        </>
       </div>
     </div>
   );

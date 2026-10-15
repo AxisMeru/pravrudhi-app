@@ -29,6 +29,7 @@ async function run(page: import("@playwright/test").Page): Promise<void> {
 }
 
 test("the page carries the preview label and says what the check is not", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   await page.goto("/citations");
   await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
   await expect(page.getByTestId("citation-limits")).toHaveText(
@@ -97,7 +98,7 @@ test("the citation check is not in the nav until the build turns it on, and the 
   await expect(page.getByRole("link", { name: "Screening", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Citation check" })).toHaveCount(0);
   await page.goto("/citations");
-  await expect(page.getByTestId("citation-preview-label")).toBeVisible();
+  await expect(page.getByTestId("citation-not-offered")).toBeVisible(); // the gated state (Lead-2, 15 Oct): a notice, not the form
 });
 
 test("the product status fields are wired but OFF: an engine that sends them changes nothing on the page in this build", async ({ page }) => {
@@ -111,13 +112,17 @@ test("the product status fields are wired but OFF: an engine that sends them cha
   await expect(page.getByTestId("citation-product-status")).toHaveCount(0);
 });
 
-test("flag off (the hosted build): /citations has no form, only the signed 'index not available' sentence, and the explanation is kept", async ({ page }) => {
+test("flag off (the hosted build): /citations is a notice and a way back to Screening: no form, no preview label, no 'not yet served'", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD === "1", "the flag-on build has the form");
   await page.goto("/citations");
-  await expect(page.getByTestId("citation-not-served")).toHaveText("The citation index is not available, so this citation was not checked.");
+  await expect(page.getByTestId("citation-not-offered")).toHaveText("A citation check is not offered in this version of the app.");
+  await expect(page.getByTestId("citation-not-offered-link")).toHaveAttribute("href", "/screening");
   await expect(page.getByLabel("Citation (one)")).toHaveCount(0);
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Check" })).toHaveCount(0);
-  await expect(page.getByTestId("citation-limits")).toContainText("This check is not yet served in the hosted deployment.");
-  await expect(page.getByTestId("citation-retention")).toBeVisible();
+  await expect(page.getByTestId("citation-preview-label")).toHaveCount(0);
+  await expect(page.getByTestId("citation-limits")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/not yet served|index is not available/i);
+  await page.getByTestId("citation-not-offered-link").click();
+  await expect(page).toHaveURL(/\/screening\/?$/);
 });
