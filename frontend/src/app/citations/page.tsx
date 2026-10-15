@@ -66,7 +66,7 @@ export default function CitationsPage() {
         <PageHeader title={CITATION_CHECK_TITLE} subtitle="" />
         <div className="mx-auto max-w-3xl space-y-3 p-4 sm:p-8">
           <p className="text-sm text-[var(--color-text)]" data-testid="citation-not-offered">{CITATION_NOT_OFFERED_TEXT}</p>
-          <Link href="/screening" className="text-sm text-[var(--color-text-dim)] underline" data-testid="citation-not-offered-link">{CITATION_NOT_OFFERED_LINK}</Link>
+          <Link href="/screening" className="inline-flex min-h-6 items-center text-sm text-[var(--color-text-dim)] underline" data-testid="citation-not-offered-link">{CITATION_NOT_OFFERED_LINK}</Link>
         </div>
       </div>
     );

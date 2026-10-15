@@ -41,7 +41,7 @@ export default function DataHandlingPage() {
               <div key={b.id} data-testid={`dh-glance-${b.id}`}>
                 <h3 className="text-sm font-medium text-[var(--color-text)]">{b.heading}</h3>
                 {b.texts.map((t) => <p key={t} className="mt-1 text-sm text-[var(--color-text-dim)]">{t}</p>)}
-                <a href={b.href} className="mt-1 inline-block text-sm text-[var(--color-accent)] underline" data-testid={`dh-glance-link-${b.id}`} aria-label={`${glance.linkText}: ${b.heading}`}>{glance.linkText}</a>
+                <a href={b.href} className="mt-1 inline-flex min-h-6 items-center text-sm text-[var(--color-accent)] underline" data-testid={`dh-glance-link-${b.id}`} aria-label={`${glance.linkText}: ${b.heading}`}>{glance.linkText}</a>
               </div>
             ))}
           </div>

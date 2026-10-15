@@ -194,7 +194,7 @@ export default function SignInPage() {
           </div>
 
           <div className="text-center text-sm text-[var(--color-text-dim)]">
-            <Link href="/" className="hover:text-[var(--color-text)]">
+            <Link href="/" className="inline-flex min-h-6 items-center hover:text-[var(--color-text)]">
               Back to home
             </Link>
           </div>
