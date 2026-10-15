@@ -19,3 +19,22 @@ test("anonymous visit to Screening: no request to /api/v1/status or /api/me, no 
   expect(asked.filter((a) => a.includes("/api/me")), "the identity probe is not asked for an anonymous visitor of a hosted engine (#137)").toEqual([]);
   expect(refused, "no 401/403 from the status, app-token or identity calls").toEqual([]);
 });
+
+// #259 (explorer gap review, citations ON): signed out on a hosted engine, Check on /citations sends NOTHING: no app-token request, no verify-citations request carrying the citation (it used to send both and get two red 401s).
+// Needs the citations-ON build as well (CITATION_EXISTENCE_BUILD=1).
+test("anonymous Check on /citations: no app-token and no verify request is sent, the signed-out sentence is shown", async ({ page }) => {
+  test.skip(process.env.CITATION_EXISTENCE_BUILD !== "1", "needs the citations-ON build");
+  const CITATION = "(2099) 1 SCC 1";
+  const sent: string[] = [];
+  page.on("request", (r) => { if (/\/api\/(app-token|v1\/verify-citations)/.test(r.url())) sent.push(`${r.method()} ${new URL(r.url()).pathname}`); });
+  page.on("request", (r) => { if ((r.postData() ?? "").includes(CITATION)) sent.push(`body carries the citation: ${r.url()}`); });
+  await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthenticated" } }));
+  await page.route("**/api/v1/status**", (r) => r.fulfill({ status: 401, json: { error: "unauthenticated" } }));
+  await page.route("**/api/app-token", (r) => r.fulfill({ status: 401, json: { detail: "unauthenticated" } }));
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ status: 401, json: { detail: "unauthenticated" } }));
+  await page.goto("/citations");
+  await page.getByRole("textbox").fill(CITATION);
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-error")).toContainText("Nothing was looked up");
+  expect(sent, "nothing was sent for an anonymous visitor").toEqual([]);
+});

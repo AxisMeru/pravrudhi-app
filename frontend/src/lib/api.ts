@@ -1689,6 +1689,9 @@ export async function verifyCitation(
 ): Promise<{ result: string; note: string; status?: string; label?: string; preview?: boolean; verified?: boolean; coverage?: unknown }> {
   const path = "/api/v1/verify-citations";
   if (IS_DEMO) throw new ApiError(501, path);
+  // #259: an anonymous visitor of a HOSTED engine has no session to present, so the check is not sent at all: no app-token request, no verify request, the citation text never leaves the browser.
+  // The 401 is the engine's own answer for this case, raised here so the page shows the same signed-out sentence as before.
+  if (isHostedEngine() && !(await hasWebSession())) throw new ApiError(401, path);
   const localTok = await localToken();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), VERIFY_CITATION_TIMEOUT_MS);
