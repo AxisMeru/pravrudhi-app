@@ -3,7 +3,7 @@
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
-import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
+import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -73,6 +73,8 @@ export interface VerifyView {
   /** The engine's note, or null when it is withheld. */
   note: string | null;
   noteWithheld: boolean;
+  /** #509: the sentence shown after the note when a found citation carried a case name the index did not compare; null otherwise (a bare citation, any other status, the arm off). */
+  nameNote: string | null;
 }
 
 /**
@@ -119,6 +121,11 @@ export function citationHasCaseName(line: unknown): boolean {
   return /\s(?:v\.?|vs\.?|versus)\s/i.test(line.slice(0, year.index) + " ");
 }
 
+/** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
+export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): string | null {
+  return existenceOnly && (status === "IN_INDEX" || status === "VERIFIED") && citationHasCaseName(citation) ? CASE_NAME_NOT_COMPARED : null;
+}
+
 export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, citation?: string): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";
@@ -133,6 +140,7 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
     known: (VERIFY_STATUSES as readonly string[]).includes(status),
     note: override ? NOT_IN_INDEX_NOTE : explained ? explanation : withheld ? null : note,
     noteWithheld: !override && !explained && withheld && !!note,
+    nameNote: caseNameNote(status, citation, existenceOnly),
     product: productStatus(reply, enabled),
   };
 }
