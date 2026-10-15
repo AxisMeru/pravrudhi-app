@@ -5,12 +5,14 @@
 export const STATUSES = ["self-reported", "re-scored", "reproduced", "third-party verified"] as const;
 export const SPLITS = ["obj1_dev", "obj1b_minus_cruelty"] as const;
 export const UNITS = ["whole_item", "element"] as const;
+export const ENTRY_KINDS = ["product", "reference_arm"] as const;
 export const MEASURES = ["false_proof", "coverage"] as const;
 export const ALL_GROUP = "ALL";
 
 export type Status = (typeof STATUSES)[number];
 export type Split = (typeof SPLITS)[number];
 export type Unit = (typeof UNITS)[number];
+export type EntryKind = (typeof ENTRY_KINDS)[number];
 export type Measure = (typeof MEASURES)[number];
 
 export interface Metric {
@@ -32,8 +34,10 @@ export interface ResultRow {
   systemName: string;
   systemVersion: string;
   runDate: string;
-  /** organiser_entry in the schema: a row entered by the organisers (not a submitter). */
+  /** organiser_entry in the schema: a row entered by the organisers (not an outside entrant). */
   organiserEntry: boolean;
+  /** For an organiser entry only, set in the data file by the data build step from the organisers' own list (never inferred from a system name): our product, or a reference arm (a frontier or open model run by the organisers). */
+  entryKind: EntryKind | null;
   metrics: Metric[];
 }
 
@@ -70,12 +74,17 @@ export function parseRow(x: unknown): ResultRow | null {
   const ms = metrics as Metric[];
   // BOTH measures appear in every row (a row without both is invalid)
   for (const name of MEASURES) if (!ms.some((m) => m.name === name)) return null;
+  // an organiser entry must say which kind it is (the page words the two kinds differently); an outside entrant row carries no kind
+  const organiser = x.organiser_entry === true;
+  const entryKind = oneOf(ENTRY_KINDS, x.entry_kind) ? x.entry_kind : null;
+  if (organiser && entryKind === null) return null;
+  if (!organiser && x.entry_kind !== undefined) return null;
   // a superseded row is never shown
   if (typeof x.superseded_by === "string" && x.superseded_by) return null;
   return {
     rowId: x.row_id, status: x.status, benchmarkVersion: x.benchmark_version as string, split: x.split, unit: x.unit,
     systemName: x.system_name as string, systemVersion: x.system_version as string, runDate: x.run_date as string,
-    organiserEntry: x.organiser_entry === true, metrics: ms,
+    organiserEntry: organiser, entryKind, metrics: ms,
   };
 }
 

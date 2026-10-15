@@ -42,7 +42,7 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
   const s = strings;
   const activeUnit = unit ?? units[0];
   const shown = rows.filter((r) => r.unit === activeUnit);
-  const groups = groupsOf(rows, activeUnit);
+  const groups = groupsOf(rows, activeUnit).filter((g) => g === ALL_GROUP || s.family[g]); // a group R1 has not worded is not offered
   const activeGroup = groups.includes(group) ? group : ALL_GROUP;
   return (
     <section className="space-y-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="nyayasiddhi-results">
@@ -57,24 +57,23 @@ export function NyayaSiddhiResultsView({ rows, strings }: { rows: readonly Resul
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-[var(--color-text)]">{s.groupHeading}</legend>
         <div className="flex flex-wrap gap-2" data-testid="ns-groups">
-          {groups.map((g) => <Radio key={g} name="ns-group" value={g} checked={g === activeGroup} onChange={() => setGroup(g)} label={g === ALL_GROUP ? s.groupAll : g} />)}
+          {groups.map((g) => <Radio key={g} name="ns-group" value={g} checked={g === activeGroup} onChange={() => setGroup(g)} label={g === ALL_GROUP ? s.groupAll : s.family[g]} />)}
         </div>
       </fieldset>
       <ul className="space-y-3" aria-label={s.tableCaption} data-testid="ns-rows">
         {shown.map((r) => (
-          <li key={r.rowId} className="space-y-3 rounded-md border border-[var(--color-border)] p-3" data-testid="ns-row" data-status={r.status}>
+          <li key={r.rowId} className="space-y-3 rounded-md border border-[var(--color-border)] p-3" data-testid="ns-row">
             <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colSystem}</dt><dd className="text-[var(--color-text)]">{r.systemName} {r.systemVersion}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colStatus}</dt><dd className="text-[var(--color-text)]" data-testid="ns-status">{s.status[r.status]}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colSplit}</dt><dd className="text-[var(--color-text)]">{s.split[r.split]}</dd></div>
               <div><dt className="text-xs text-[var(--color-text-dim)]">{s.colRunDate}</dt><dd className="text-[var(--color-text)]">{r.runDate}</dd></div>
               <div><dd className="text-[var(--color-text)]" data-testid="ns-stack">{s.stackLabel}</dd></div>
-              <div><dd className="text-[var(--color-text)]" data-testid="ns-conflict">{s.conflictLabel}</dd></div>
-              {r.organiserEntry && <div><dd className="text-[var(--color-text)]" data-testid="ns-organiser">{s.organiserEntry}</dd></div>}
+              {r.organiserEntry && r.entryKind && <div><dd className="text-[var(--color-text)]" data-testid="ns-organiser">{s.organiserEntry[r.entryKind]}</dd></div>}
             </dl>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {MEASURES.map((name) => (
-                <div key={name} className="space-y-1" data-testid={`ns-measure-${name}`}>
+                <div key={name} className="space-y-1" data-testid={`ns-measure-${name === "coverage" ? "coverage" : "wrongly-supported"}`}>
                   <h3 className="text-sm font-medium text-[var(--color-text)]">{s.measure[name]}</h3>
                   <p className="text-xs text-[var(--color-text-dim)]">{s.measureNote[name]}</p>
                   <Figure m={metricOf(r, name, activeGroup)} measure={name} s={s} />
