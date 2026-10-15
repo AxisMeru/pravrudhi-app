@@ -55,3 +55,34 @@ export async function readAssistantState(read: () => Promise<unknown>, timeoutMs
     return "unreachable";
   }
 }
+
+export interface TierPollerDeps {
+  read: () => Promise<AssistantState>;
+  onState: (s: AssistantState) => void;
+  setTimer?: (fn: () => void, ms: number) => unknown;
+  clearTimer?: (t: unknown) => void;
+  random?: () => number;
+}
+
+/**
+ * The polling loop behind useAssistantState, written without React so it can be tested (R2, #311): one read, then the next after nextTierPollDelay(answer, consecutive failures, jitter); the failure
+ * count starts over on a read that answers; stop() cancels the pending timer and ignores a read still in flight. Returns stop.
+ */
+export function startTierPoller({ read, onState, setTimer = (fn, ms) => setTimeout(fn, ms), clearTimer = (t) => clearTimeout(t as ReturnType<typeof setTimeout>), random = Math.random }: TierPollerDeps): () => void {
+  let off = false;
+  let timer: unknown;
+  let failures = 0;
+  const poll = () =>
+    read().then((s) => {
+      if (off) return;
+      onState(s);
+      failures = s === "unreachable" ? failures + 1 : 0;
+      timer = setTimer(poll, nextTierPollDelay(s, failures, random()));
+    });
+  poll();
+  return () => {
+    off = true;
+    if (timer !== undefined) clearTimer(timer);
+  };
+}
+

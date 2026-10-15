@@ -74,3 +74,47 @@ test("#309/#311: an unreachable read is retried soon, then backs off 5, 10, 20, 
   for (const s of ["available", "paused", "not_configured"] as const) assert.equal(nextTierPollDelay(s, 3, 0.9), TIER_POLL_MS);
   assert.ok(TIER_RETRY_MS < TIER_POLL_MS);
 });
+
+// R2 (#311): the loop that useAssistantState runs, tested without React and without real timers.
+import { startTierPoller, type AssistantState } from "./assistantTier";
+function harness(answers: AssistantState[]) {
+  const timers: Array<{ fn: () => void; ms: number; cancelled: boolean }> = [];
+  const seen: AssistantState[] = [];
+  let reads = 0;
+  const stop = startTierPoller({
+    read: async () => answers[Math.min(reads++, answers.length - 1)],
+    onState: (s) => seen.push(s),
+    setTimer: (fn, ms) => { const t = { fn, ms, cancelled: false }; timers.push(t); return t; },
+    clearTimer: (t) => { (t as { cancelled: boolean }).cancelled = true; },
+    random: () => 0.5,
+  });
+  const tick = async () => { await Promise.resolve(); await Promise.resolve(); };
+  return { timers, seen, stop, tick, reads: () => reads };
+}
+
+test("the poller backs off 5, 10, 20 s while the read fails and starts over at 5 s after one that answers", async () => {
+  const h = harness(["unreachable", "unreachable", "unreachable", "available", "unreachable"]);
+  await h.tick();
+  assert.deepEqual(h.timers.map((t) => t.ms), [5_000]);
+  h.timers[0].fn(); await h.tick();
+  h.timers[1].fn(); await h.tick();
+  assert.deepEqual(h.timers.map((t) => t.ms), [5_000, 10_000, 20_000]);
+  h.timers[2].fn(); await h.tick(); // answers: the slow poll
+  assert.equal(h.timers[3].ms, 60_000);
+  h.timers[3].fn(); await h.tick(); // fails again: the count started over
+  assert.equal(h.timers[4].ms, 5_000);
+  assert.deepEqual(h.seen, ["unreachable", "unreachable", "unreachable", "available", "unreachable"]);
+  h.stop();
+});
+
+test("stop() cancels the pending timer, and a read still in flight does nothing after it", async () => {
+  const h = harness(["unreachable"]);
+  await h.tick();
+  h.stop();
+  assert.equal(h.timers[0].cancelled, true);
+  const h2 = harness(["available"]);
+  h2.stop(); // stopped before the first read answers
+  await h2.tick();
+  assert.deepEqual(h2.seen, []);
+  assert.deepEqual(h2.timers, []);
+});

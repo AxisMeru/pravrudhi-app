@@ -3,29 +3,12 @@
 import { useEffect, useState } from "react";
 
 import { assistantProvider, health, isSignedIn } from "@/lib/api";
-import { nextTierPollDelay, readAssistantState, type AssistantState } from "@/lib/assistantTier";
+import { readAssistantState, startTierPoller, type AssistantState } from "@/lib/assistantTier";
 
 /** The assistant state for this page. Until the first read lands it is "not_configured" (nothing new is shown); a failed or timed-out read is "unreachable" (greyed, no line). */
 export function useAssistantState(): AssistantState {
   const [state, setState] = useState<AssistantState>("not_configured");
-  useEffect(() => {
-    let off = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let failures = 0; // consecutive "unreachable" reads; a read that answers starts the count over
-    // one read, then the next after a delay that depends on the answer (a failed read is retried in seconds, not a minute)
-    const poll = () =>
-      readAssistantState(health).then((s) => {
-        if (off) return;
-        setState(s);
-        failures = s === "unreachable" ? failures + 1 : 0;
-        timer = setTimeout(poll, nextTierPollDelay(s, failures, Math.random()));
-      });
-    poll();
-    return () => {
-      off = true;
-      if (timer !== undefined) clearTimeout(timer);
-    };
-  }, []);
+  useEffect(() => startTierPoller({ read: () => readAssistantState(health), onState: setState }), []);
   return state;
 }
 
