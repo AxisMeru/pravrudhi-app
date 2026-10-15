@@ -5,7 +5,7 @@
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { CITATIONS_PANEL_ENABLED } from "../citationNav";
 import { OFFENCES, offenceLabel } from "../screening/offences";
-import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL } from "../screening/copy";
+import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE} from "../screening/copy";
 
 export const GUIDE_PATH = "/guide";
 export const GUIDE_NAV_LABEL = "User guide";
