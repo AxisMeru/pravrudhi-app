@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, HelpCircle, Loader2, Scale, XCircle } from "lucide-react";
 import { analyseFacts, IS_DEMO, nyayaRegistryContracts, nyayaRegistryEntries, ApiError, type AnalyseFactsContract, type AnalyseFactsResult } from "@/lib/api";
 import { elementStatusPresentation } from "@/lib/elementStatus";
-import { buildMemo } from "@/lib/memo";
+import { buildScreeningMemo } from "@/lib/screening/memo";
 import { REFERRED_HEADING, referReasonPresentation, UNKNOWN_REASON_TEXT } from "@/lib/referReason";
 import { bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
@@ -253,7 +253,8 @@ function ContractResult({ c, mark, facts }: { c: AnalyseFactsContract; mark?: Va
 
 // Built in the browser from the result already on screen; nothing is sent anywhere.
 function downloadMemo(result: AnalyseFactsResult, engineVersion: string | null): void {
-  const md = buildMemo(result, { engineVersion, generatedAt: new Date().toISOString() });
+  // #214: the same memo as Screening (R1's disclaimer, no internal token, headings by the offence's label, never a raw contract id).
+  const md = buildScreeningMemo(result, { engineVersion, generatedAt: new Date().toISOString() });
   const url = URL.createObjectURL(new Blob([md], { type: "text/markdown;charset=utf-8" }));
   const a = document.createElement("a");
   a.href = url;
