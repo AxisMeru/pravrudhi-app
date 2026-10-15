@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { useSignedIn } from "@/components/useAssistantTier";
 import { FactSelector } from "@/components/FactSelector";
 import { PageHeader } from "@/components/PageHeader";
 import { ApiError, postIntake } from "@/lib/api";
@@ -32,6 +33,7 @@ export default function IntakePage() {
   const [view, setView] = useState<IntakeView | null>(null);
   const [selected, setSelected] = useState<readonly number[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const signedIn = useSignedIn();
 
   useEffect(() => {
     if (!INTAKE_ENABLED) router.replace("/workflows");
@@ -66,6 +68,8 @@ export default function IntakePage() {
       <PageHeader title={INTAKE_PAGE_TITLE} subtitle={INTAKE_PAGE_SUBTITLE} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="intake">
         <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+          {/* R1 (15 Oct, #247): a signed-out visitor is told up front, above the paste box, in R1's existing sentence. */}
+          {signedIn === false && <p className="text-sm text-[var(--color-text)]" role="status" data-testid="intake-signed-in-only-upfront">{INTAKE_SIGNED_IN_ONLY}</p>}
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="intake-text">{INTAKE_PASTE_LABEL}</label>
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="intake-data-line">{INTAKE_DATA_LINE}</p>
           <textarea
