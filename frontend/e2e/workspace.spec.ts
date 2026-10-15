@@ -76,13 +76,17 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
   expect(n).toBeGreaterThan(0);
   for (let i = 0; i < n; i++) {
     const row = rows.nth(i);
-    const badge = (await row.locator("span").last().textContent())?.trim();
+    const badge = await row.getAttribute("data-status");
     const link = row.getByTestId("workflow-open");
     if (badge === "Built") {
       await expect(link).toHaveCount(1);
       if (/^Intake/.test((await row.locator("div > div").first().textContent()) ?? "")) {
         await expect(link).toHaveAttribute("href", "/intake");
         await expect(link).toHaveText("Open Intake");
+      } else if (/^Citation check/.test((await row.locator("div > div").first().textContent()) ?? "")) {
+        await expect(link).toHaveAttribute("href", "/citations");
+        await expect(link).toHaveText("Open Citation check");
+        await expect(row).toContainText("preview: existence check only");
       } else {
         await expect(link).toHaveAttribute("href", /^\/screening#step-(screen|memo|hearing)$/);
         await expect(link).toHaveText("Open in Matter workspace");

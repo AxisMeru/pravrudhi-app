@@ -111,6 +111,6 @@ for (const [name, answer] of [...PAUSED_STATES, ["unreachable", { status: 503 }]
     await expect(page.getByTestId("assistant-paused")).toHaveCount(0);
     await expect(page.locator('[data-paused="true"]')).toHaveCount(0);
     await expect(page.getByTestId("workflow-row").first()).toContainText("Screening orchestration");
-    await expect(page.getByTestId("workflow-status").first()).toHaveText("Building");
+    await expect(page.getByTestId("workflow-status").first()).toHaveText("Not yet offered");
   });
 }

@@ -65,6 +65,6 @@ test("the step bar links to it and /workflows shows Hearing preparation as Built
   await expect(page.locator("#step-hearing")).toBeVisible();
   await page.goto("/workflows");
   const row = page.getByTestId("workflow-row").filter({ hasText: "Hearing preparation" });
-  await expect(row.locator("span").last()).toHaveText("Built");
+  await expect(row).toHaveAttribute("data-status", "Built");
   await expect(row.getByTestId("workflow-open")).toHaveAttribute("href", /\/screening\/?#step-hearing$/);
 });

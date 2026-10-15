@@ -3,7 +3,9 @@
 import Link from "next/link";
 
 import { ASSISTANT_PAUSED_TEXT } from "@/lib/assistantTier";
-import { WORKFLOWS, WORKFLOWS_CLOSING, workflowLink } from "@/lib/workflowsCopy";
+import { WORKFLOWS, WORKFLOWS_CLOSING, WORKFLOW_NOT_OFFERED, workflowLink } from "@/lib/workflowsCopy";
+import { START_PANEL_HEADING } from "@/lib/screening/copy";
+import { WORKSPACE_PATH } from "@/lib/workspace";
 import { useAssistantState } from "@/components/useAssistantTier";
 import { pausedTreatment } from "@/lib/assistantTier";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
@@ -17,21 +19,20 @@ export function WorkflowRows() {
       {paused && (
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="assistant-paused">{ASSISTANT_PAUSED_TEXT}</p>
       )}
-      <ul className="divide-y divide-[var(--color-border)] rounded-md border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <Link href={WORKSPACE_PATH} className="inline-flex min-h-6 w-fit items-center rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] max-md:min-h-11" data-testid="workflows-start">{START_PANEL_HEADING}</Link>
+      <ul className="grid gap-4 md:grid-cols-2">
         {WORKFLOWS.map((w, i) => {
           const greyed = anyGreyed && i === 0;
-          return (
-            <li key={w.name} className={`flex flex-wrap items-baseline justify-between gap-2 p-3 ${greyed ? "opacity-60" : ""}`} data-testid="workflow-row" data-paused={greyed ? "true" : undefined}>
-              <div>
-                <div className="text-sm font-medium text-[var(--color-text)]">{w.name}</div>
-                {w.note && <div className="mt-0.5 text-xs text-[var(--color-text-dim)]">{w.note}</div>}
+                    return (
+            <li key={w.name} className={`flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 ${greyed ? "opacity-60" : ""}`} data-testid="workflow-row" data-paused={greyed ? "true" : undefined} data-status={w.status}>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div><h2 className="text-base font-semibold text-[var(--color-text)]">{w.name}</h2>{w.label && <span className="ml-2 text-xs text-[var(--color-text-dim)]" data-testid="workflow-label">{w.label}</span>}</div>
+                {w.status === "Building" && <span className="text-xs font-medium text-[var(--color-text-dim)]" data-testid="workflow-status">{WORKFLOW_NOT_OFFERED}</span>}
               </div>
+              {w.note && <p className="text-sm text-[var(--color-text-dim)]">{w.note}</p>}
               {w.status === "Built" && workflowLink(w.name) && (
-                <Link href={workflowLink(w.name)!.href} className="inline-flex min-h-6 items-center text-xs text-[var(--color-accent)] underline max-md:min-h-11" data-testid="workflow-open">{workflowLink(w.name)!.label}</Link>
+                <Link href={workflowLink(w.name)!.href} className="mt-auto inline-flex min-h-6 w-fit items-center rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-accent)] underline max-md:min-h-11" data-testid="workflow-open">{workflowLink(w.name)!.label}</Link>
               )}
-              <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${w.status === "Building" ? "border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] text-[var(--color-warn)]" : "border-[var(--color-ok-border)] bg-[var(--color-ok-bg)] text-[var(--color-ok)]"}`} data-testid="workflow-status">
-                {w.status}
-              </span>
             </li>
           );
         })}
