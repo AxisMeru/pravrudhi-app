@@ -97,8 +97,8 @@ test("R1's block titles (#134): never the contract id; every way of every multi-
   assert.equal(o.blockTitle("ipc405_misappropriation"), "Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property");
   assert.equal(o.blockTitle("ipc405_use_or_disposal"), "Criminal breach of trust · BNS 316 · IPC 405: by using or disposing of the property against a legal direction or a contract");
   assert.equal(o.blockTitle("ipc405_wilfully_suffers"), "Criminal breach of trust · BNS 316 · IPC 405: by wilfully allowing another person to do either");
-  assert.equal(o.blockTitle("ipc182_misdirected_act"), "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to do or omit something they ought not to, if the true facts were known");
-  assert.equal(o.blockTitle("ipc182_abuse_of_power"), "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to use their lawful power to the injury or annoyance of any person");
+  assert.equal(o.blockTitle("ipc182_misdirected_act"), "False information to a public servant · BNS 217 · IPC 182: by false information given intending, or knowing it likely, that the public servant will do or omit something they ought not to, if the true facts were known");
+  assert.equal(o.blockTitle("ipc182_abuse_of_power"), "False information to a public servant · BNS 217 · IPC 182: by false information given intending, or knowing it likely, that the public servant will use their lawful power to the injury or annoyance of any person");
   assert.equal(o.blockTitle("bns46_instigation"), "Abetment · BNS 45, 46 · IPC 107, 108: by instigation");
   assert.equal(o.blockTitle("bns46_conspiracy"), "Abetment · BNS 45, 46 · IPC 107, 108: by conspiracy");
   assert.equal(o.blockTitle("bns46_intentional_aid"), "Abetment · BNS 45, 46 · IPC 107, 108: by intentionally aiding the doing of the thing");

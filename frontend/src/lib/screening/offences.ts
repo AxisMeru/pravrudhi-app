@@ -45,9 +45,9 @@ export const CONTRACT_BLOCK_TITLES: Readonly<Record<string, string>> = {
   ipc415_property: "Cheating · BNS 318 · IPC 415: by delivery of property",
   ipc415_damaging_act: "Cheating · BNS 318 · IPC 415: by an act or omission causing damage or harm",
   ipc182_misdirected_act:
-    "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to do or omit something they ought not to, if the true facts were known",
+    "False information to a public servant · BNS 217 · IPC 182: by false information given intending, or knowing it likely, that the public servant will do or omit something they ought not to, if the true facts were known",
   ipc182_abuse_of_power:
-    "False information to a public servant · BNS 217 · IPC 182: by false information that leads the public servant to use their lawful power to the injury or annoyance of any person",
+    "False information to a public servant · BNS 217 · IPC 182: by false information given intending, or knowing it likely, that the public servant will use their lawful power to the injury or annoyance of any person",
   bns46_instigation: "Abetment · BNS 45, 46 · IPC 107, 108: by instigation",
   bns46_conspiracy: "Abetment · BNS 45, 46 · IPC 107, 108: by conspiracy",
   bns46_intentional_aid: "Abetment · BNS 45, 46 · IPC 107, 108: by intentionally aiding the doing of the thing",
