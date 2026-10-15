@@ -54,3 +54,15 @@ test("a ticked offence stays visible, above the matches, while the search hides 
   expect(names.some((n) => n.includes("Criminal breach of trust"))).toBe(true);
   await expect(list.getByRole("checkbox", { name: /Cheating by personation/ })).toBeChecked();
 });
+
+test("with a ticked row pinned and nothing matching the search, the empty line still shows", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: LIST, entries: LIST.map((id) => ({ id, validated: true })) } }));
+  await page.goto("/screening");
+  const list = page.getByTestId("offence-list");
+  await expect(list.locator("li").first()).toBeVisible();
+  await list.getByRole("checkbox", { name: /Cheating by personation/ }).check();
+  await page.getByLabel("Search by name or section").fill("zzzz");
+  await expect(page.getByTestId("offence-search-empty")).toHaveText("No offence matches that search.");
+  await expect(list.locator("li")).toHaveCount(1);
+  await expect(list.getByRole("checkbox", { name: /Cheating by personation/ })).toBeChecked();
+});
