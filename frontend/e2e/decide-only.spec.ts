@@ -38,6 +38,7 @@ test("Screening renders the decide result and none of the agent's free text, in 
   await expect(page.getByTestId("checklist")).toBeVisible();
   await expect(page.locator("body")).not.toContainText(MARKER);
   for (const name of ["Markdown (.md)", "Download run record (.json)"]) {
+    if (name.startsWith("Markdown")) await page.getByTestId("memo-menu-button").click(); // the memo formats live in the "Download the memo" menu
     const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name }).click()]);
     const body = readFileSync((await dl.path())!, "utf8");
     expect(body, name).not.toContain(MARKER);

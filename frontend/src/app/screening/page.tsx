@@ -12,6 +12,7 @@ import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StartPanel } from "@/components/screening/StartPanel";
 import { FactFilter } from "@/components/screening/FactFilter";
+import { MemoMenu } from "@/components/screening/MemoMenu";
 import { activeFactFilter, resultKey, type FactFilterState } from "@/lib/screening/factFilter";
 import { RetentionBefore } from "@/components/RetentionBefore";
 import { CitationsPanel } from "@/components/citations/CitationsPanel";
@@ -43,7 +44,7 @@ import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/screening/offences";
-import { EXPORT_GROUP_LABEL, EXPORT_LABELS, MEMO_DOCX_LABEL, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
+import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
 import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, offenceMark } from "@/lib/surfaceCopy";
@@ -591,15 +592,10 @@ export default function ScreeningPage() {
               </ol>
             </section>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions" id="step-memo">
-              <div role="group" aria-labelledby="memo-group-label" className="flex flex-wrap items-center gap-2" data-testid="memo-group">
-                <span id="memo-group-label" className="text-sm font-medium text-[var(--color-text)]">{EXPORT_GROUP_LABEL}</span>
-                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}>
-                  {EXPORT_LABELS.memo}
-                </button>
-                <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-docx" onClick={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}>
-                  {MEMO_DOCX_LABEL}
-                </button>
-              </div>
+              <MemoMenu
+                onDocx={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}
+                onMarkdown={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}
+              />
               {/* R1 (15 Oct): "Print / save as PDF" opens the browser's print window and downloads nothing, so it sits BESIDE the "Download the memo" group, not under it. */}
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="memo-print" onClick={() => window.print()}>
                 {EXPORT_LABELS.print}

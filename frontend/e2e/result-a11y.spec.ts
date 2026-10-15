@@ -24,11 +24,12 @@ async function result(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("checklist")).toHaveCount(5);
 }
 
-test("R5: 'Print / save as PDF' is beside the 'Download the memo' group, not inside it", async ({ page }) => {
+test("R5: 'Print / save as PDF' is beside the 'Download the memo' menu, not inside it", async ({ page }) => {
   await result(page);
   const group = page.getByTestId("memo-group");
+  await group.getByTestId("memo-menu-button").click();
   await expect(group.getByRole("button", { name: "Print / save as PDF" })).toHaveCount(0);
-  await expect(group.getByRole("button")).toHaveText(["Markdown (.md)", "Word (.docx)"]);
+  await expect(group.getByRole("button")).toHaveText(["Download the memo", "Word (.docx)", "Markdown (.md)"]);
   await expect(page.getByTestId("memo-actions").getByRole("button", { name: "Print / save as PDF", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "PDF", exact: true })).toHaveCount(0);
 });

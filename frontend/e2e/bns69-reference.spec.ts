@@ -43,6 +43,7 @@ test("BNS 69: the picker row, the checklist rows and the memo carry the referenc
   await expect(rows.nth(0).getByTestId("what-to-check")).toContainText("Check the cited fact against the section.");
   await expect(rows.nth(0).getByTestId("cited-fact-text")).toContainText(FACT);
   expect(await page.getByTestId("screening-result").innerText()).not.toMatch(EXPLICIT);
+  await page.getByTestId("memo-menu-button").click();
   const [memoDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Markdown (.md)", exact: true }).click()]);
   const memo = readFileSync(await memoDl.path(), "utf8");
   expect(memo).not.toMatch(EXPLICIT);
