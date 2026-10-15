@@ -145,7 +145,7 @@ export function Sidebar() {
         aria-label={navOpen ? "Close navigation" : "Open navigation"}
         aria-expanded={navOpen}
         aria-controls="primary-navigation"
-        className="fixed left-3 top-3 z-[60] rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-[var(--color-text)] shadow-lg md:hidden print:hidden"
+        className="fixed left-3 top-3 z-[60] flex h-11 w-11 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-lg md:hidden print:hidden"
       >
         {navOpen ? <X size={18} aria-hidden /> : <Menu size={18} aria-hidden />}
       </button>
@@ -169,9 +169,9 @@ export function Sidebar() {
           navOpen ? "translate-x-0" : "-translate-x-full max-md:invisible"
         }`}
       >
-      <div className="border-b border-[var(--color-border)] px-5 py-5">
+      <div className="border-b border-[var(--color-border)] px-5 py-5 max-md:pl-[68px]">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
+          <div data-testid="drawer-brand" className="text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
           {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
         </div>
         {/* The product's line is long (it is read on the Screening page and the guide); the sidebar keeps the name, and the Studio edition its short tagline. */}
@@ -195,7 +195,7 @@ export function Sidebar() {
           if (items.length === 0) return null;
           return (
             <div key={group} className="mb-1" data-testid={`nav-group-${group}`}>
-              <div className="px-3 pb-1 pt-2 text-[11px] uppercase tracking-wide text-[var(--color-text-dim)]">{NAV_GROUP_LABELS[group]}</div>
+              <div className="px-3 pb-1 pt-2 text-xs uppercase tracking-wide text-[var(--color-text-dim)]">{NAV_GROUP_LABELS[group]}</div>
               {items.map(({ href, label, icon: Icon }) => {
                 const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
                 return (
@@ -203,7 +203,7 @@ export function Sidebar() {
                     key={href}
                     href={href}
                     aria-current={active ? "page" : undefined}
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors max-md:min-h-11 ${
                       active
                         ? "bg-[var(--color-surface-raised)] text-[var(--color-text)]"
                         : "text-[var(--color-text-dim)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"

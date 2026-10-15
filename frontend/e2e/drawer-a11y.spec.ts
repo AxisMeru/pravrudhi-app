@@ -69,3 +69,67 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await page.getByRole("link", { name: "Screening", exact: true }).first().focus();
   await expect(page.getByRole("link", { name: "Screening", exact: true }).first()).toBeFocused();
 });
+
+// Deploy 3 #203 (explorer review of the live alias: D3, D7, D8). At a phone width the close button must not cover the product name, every control a thumb has to hit is at least 44 px
+// high (and wide, for the ones that are only a word), and the sidebar's section labels are not smaller than 12 px.
+const SIZE_MIN = 44;
+const OFFENCES = { contracts: ["ipc415_property", "ipc405_misappropriation"], entries: [{ id: "ipc415_property", validated: true }, { id: "ipc405_misappropriation", validated: true }] };
+
+test.describe("phone touch targets and drawer header", () => {
+  test.use({ viewport: { width: 400, height: 800 } });
+
+  test("D3: with the drawer open the close button does not cover the product name", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.goto("/screening");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    const toggle = await page.getByRole("button", { name: "Close navigation" }).boundingBox();
+    const brand = await page.getByTestId("drawer-brand").boundingBox();
+    expect(toggle && brand).toBeTruthy();
+    const overlap = !(toggle!.x + toggle!.width <= brand!.x || brand!.x + brand!.width <= toggle!.x || toggle!.y + toggle!.height <= brand!.y || brand!.y + brand!.height <= toggle!.y);
+    expect(overlap, `the close button (${JSON.stringify(toggle)}) overlaps the product name (${JSON.stringify(brand)})`).toBe(false);
+  });
+
+  test("D7: the controls on Screening and the navigation toggle are at least 44 px high and wide", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: OFFENCES }));
+    await page.goto("/screening");
+    await expect(page.getByTestId("offence-list").locator("label").first()).toBeVisible();
+    const targets: Array<[string, ReturnType<typeof page.locator>]> = [
+      ["navigation toggle", page.getByRole("button", { name: "Open navigation" })],
+      ["Add a fact", page.getByRole("button", { name: "Add a fact" })],
+      ["About this screening", page.getByTestId("about-screening").locator("summary")],
+      ["file picker", page.getByTestId("facts-file")],
+      ["first Remove", page.getByRole("button", { name: /^Remove fact F1$/ })],
+      ["first offence row", page.getByTestId("offence-list").locator("label").first()],
+      ["last offence row", page.getByTestId("offence-list").locator("label").last()],
+    ];
+    for (const [name, loc] of targets) {
+      const b = await loc.boundingBox();
+      expect(b, `${name} has a box`).toBeTruthy();
+      expect(b!.height, `${name} is ${Math.round(b!.height)} px high`).toBeGreaterThanOrEqual(SIZE_MIN);
+      expect(b!.width, `${name} is ${Math.round(b!.width)} px wide`).toBeGreaterThanOrEqual(SIZE_MIN);
+    }
+  });
+
+  test("D7: every link and button inside the open drawer is at least 44 px high", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.goto("/screening");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    const drawer = page.getByRole("dialog", { name: "Navigation" });
+    await expect(drawer).toBeVisible();
+    const items = await drawer.locator("a, button").evaluateAll((els) => els.map((e) => { const b = e.getBoundingClientRect(); return { name: (e.getAttribute("aria-label") ?? e.textContent ?? "").trim().slice(0, 30), h: b.height, w: b.width }; }));
+    expect(items.length).toBeGreaterThan(5);
+    for (const it of items) expect(it.h, `${it.name} is ${Math.round(it.h)} px high`).toBeGreaterThanOrEqual(SIZE_MIN);
+  });
+});
+
+test("D8: the sidebar's section labels (WORK, REFERENCE, ACCOUNT, APPEARANCE) are at least 12 px", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/screening");
+  const sizes = await page.locator("#primary-navigation").evaluate((nav) => {
+    const labels = [...nav.querySelectorAll('[data-testid^="nav-group-"] > div:first-child')].concat([...nav.querySelectorAll('[data-testid="theme-switch"] > div:first-child')]);
+    return labels.map((l) => ({ text: (l.textContent ?? "").trim(), px: parseFloat(getComputedStyle(l).fontSize) }));
+  });
+  expect(sizes.length).toBeGreaterThanOrEqual(3);
+  for (const s of sizes) expect(s.px, `${s.text} is ${s.px} px`).toBeGreaterThanOrEqual(12);
+});
