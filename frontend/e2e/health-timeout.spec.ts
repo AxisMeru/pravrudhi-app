@@ -9,6 +9,19 @@ test("a health read that never answers is aborted and the connection banner says
   await page.goto("/workflows");
   await expect(page.getByText(/No engine reachable|The hosted engine is not answering/)).toBeVisible({ timeout: 20_000 });
   expect(aborted, "the hung health request was aborted by its own timeout").toBeGreaterThanOrEqual(1);
+  // #332: the message sits inside a polite live region that is always in the page, so it is announced when it appears
+  const region = page.getByTestId("connection-banner-region");
+  await expect(region).toHaveAttribute("role", "status");
+  await expect(region).toHaveAttribute("aria-live", "polite");
+  await expect(region).toContainText(/No engine reachable|The hosted engine is not answering/);
+});
+
+test("#332: the live region is in the page while the engine answers, empty", async ({ page }) => {
+  await page.route("**/api/health", (r) => r.fulfill({ json: { ok: true, version: "x", kernel: "x", ledger: true } }));
+  await page.goto("/workflows");
+  const region = page.getByTestId("connection-banner-region");
+  await expect(region).toHaveAttribute("role", "status");
+  await expect(region).toBeEmpty();
 });
 
 test("a hidden tab does not poll health, and checks again when it is shown", async ({ page }) => {

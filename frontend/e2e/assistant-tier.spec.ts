@@ -131,3 +131,32 @@ test("a hidden tab makes no health read; showing it reads again", async ({ page 
   await page.evaluate(() => (window as unknown as { __show: () => void }).__show());
   await expect.poll(() => calls, { message: "a read when the tab is shown" }).toBeGreaterThanOrEqual(1);
 });
+
+// Track-B G1 (deploy-15 attack): a greyed Workflows card keeps its text and link at full colour (no opacity on the whole card), so every line of it meets 4.5:1 in both themes.
+for (const scheme of ["light", "dark"] as const) {
+  test(`Workflows, paused (${scheme}): the greyed card's heading, note and link are at least 4.5:1 on their background`, async ({ page }) => {
+    test.skip(!ON, NEEDS_ON);
+    await page.emulateMedia({ colorScheme: scheme });
+    await mockHealth(page, { json: health({ assistant_tier: { state: "unavailable", reason: "quota" } }) });
+    await page.goto("/workflows");
+    const card = page.getByTestId("workflow-row").first();
+    await expect(card).toHaveAttribute("data-paused", "true");
+    const found = await card.evaluate((el) => {
+      const rgb = (c: string) => (c.match(/[\d.]+/g) ?? []).map(Number);
+      const lum = (c: number[]) => { const f = (v: number) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }; return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+      let bg: number[] = [255, 255, 255];
+      for (let n: Element | null = el; n; n = n.parentElement) { const c = rgb(getComputedStyle(n).backgroundColor); if (c.length >= 3 && (c[3] ?? 1) > 0.99) { bg = c; break; } }
+      const out: Record<string, number> = {};
+      const parts: Record<string, Element | null> = { heading: el.querySelector("h2"), note: el.querySelector("p"), link: el.querySelector("a") };
+      for (const [k, node] of Object.entries(parts)) {
+        if (!node) continue;
+        let op = 1; for (let n: Element | null = node; n; n = n.parentElement) op *= Number(getComputedStyle(n).opacity);
+        const fg = rgb(getComputedStyle(node).color);
+        const a = lum(fg), b = lum(bg);
+        out[k] = op < 1 ? 0 : (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      }
+      return out;
+    });
+    for (const [k, ratio] of Object.entries(found)) expect(ratio, `${k} ${ratio.toFixed(2)}:1 (0 means an element opacity is below 1)`).toBeGreaterThanOrEqual(4.5);
+  });
+}

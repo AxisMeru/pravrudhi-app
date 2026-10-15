@@ -35,7 +35,7 @@ export function FilmPlayer({ id }: { id: FilmId }) {
   useEffect(() => { if (asked) video.current?.focus(); }, [asked]);
   return (
     <figure className="space-y-3" data-testid={`film-${id}`}>
-      <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-black has-[video:focus-visible]:outline-2 has-[video:focus-visible]:outline-offset-2 has-[video:focus-visible]:outline-[color:var(--color-accent)]" data-testid="film-frame">
+      <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-black focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-accent)]" data-testid="film-frame">
         {showVideo ? (
           <video
             ref={video}
