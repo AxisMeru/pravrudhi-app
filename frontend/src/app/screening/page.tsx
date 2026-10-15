@@ -27,8 +27,10 @@ import { PRODUCT_LINE } from "@/lib/productCopy";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
 import { IS_DEMO } from "@/lib/api";
 import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
-import { takeHandoff } from "@/lib/handoff";
+import { takeHandoff, takeHandoffCitations } from "@/lib/handoff";
+import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
+import { HEARING_PREP_BUILT } from "@/lib/workspace";
 import { EXAMPLES, exampleById, initialFactsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, EXAMPLE_ENTRY_LABEL } from "@/lib/screening/copy";
 import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
@@ -54,6 +56,7 @@ function download(name: string, body: string | Uint8Array, type: string): void {
 
 export default function ScreeningPage() {
   const [paste, setPaste] = useState("");
+  const [intakeCitations, setIntakeCitations] = useState<Array<{ text: string }>>([]);
   // An example link's facts are the first state (read from the URL on the client), so no empty box shows and then fills. The list itself is drawn only
   // after hydration (the static page cannot know the URL): until then a same-height placeholder stands where the boxes will be.
   const [facts, setFacts] = useState<string[]>(() => (typeof window === "undefined" ? [""] : initialFactsFor(window.location.search)));
@@ -127,7 +130,8 @@ export default function ScreeningPage() {
   // Facts chosen on the Intake page arrive through a one-time in-memory hand-off (lib/handoff.ts): taken once, never stored.
   useEffect(() => {
     const handed = takeHandoff();
-    if (handed && handed.length > 0) void Promise.resolve().then(() => setFacts(handed));
+    const found = takeHandoffCitations();
+    if (handed && handed.length > 0) void Promise.resolve().then(() => { setFacts(handed); setIntakeCitations(found); });
   }, []);
 
   // /screening?example=<id> loads a demo example: the allegations of one public court order as numbered facts (read in the browser, as the page is a
@@ -494,6 +498,7 @@ export default function ScreeningPage() {
             {result.contracts.map((c, i) => (
               <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} />
             ))}
+            {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitations} />}
             {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
             <StatuteNotice />
             {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}

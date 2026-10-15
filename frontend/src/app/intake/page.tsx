@@ -8,7 +8,7 @@ import { FactSelector } from "@/components/FactSelector";
 import { PageHeader } from "@/components/PageHeader";
 import { ApiError, postIntake } from "@/lib/api";
 import { chosenFacts, initialSelection } from "@/lib/factSelection";
-import { setHandoff } from "@/lib/handoff";
+import { setHandoff, setHandoffCitations } from "@/lib/handoff";
 import {
   INTAKE_DUPLICATE,
   INTAKE_LIMIT_SENTENCE,
@@ -94,6 +94,7 @@ export default function IntakePage() {
               onChange={setSelected}
               onScreen={() => {
                 setHandoff(chosenFacts(view.facts.map((f) => f.text), selected).map((c) => c.text));
+                setHandoffCitations(view.citations);
                 router.push("/screening");
               }}
             />

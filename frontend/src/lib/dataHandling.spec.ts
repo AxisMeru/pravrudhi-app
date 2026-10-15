@@ -44,7 +44,7 @@ test("the sentences new to this page carry no banned word (the citation check's 
 
 test("/workflows: one status word each, R1's closing line, no figure or id", () => {
   const OFF = workflowRows({ assistantOn: false, intakeOn: false }); // the default (flags-off) rows; a flagged build is pinned by the next test
-  assert.deepEqual(OFF.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Building"], ["Memo preparation", "Built"], ["Hearing preparation", "Building"]]);
+  assert.deepEqual(OFF.map((w) => [w.name, w.status]), [["Screening orchestration", "Building"], ["Intake", "Building"], ["Memo preparation", "Built"], ["Hearing preparation", "Built"]]);
   assert.equal(OFF[0].note, "The step-by-step screening assistant is being built. You would see the engine's own decision result, never the assistant's wording of it. Not yet offered in the product.");
   // R1's exact notes (14 Oct): paste-only intake, memo built by fixed rules, hearing checklist; no row says Planned and the removed row is gone
   assert.equal(OFF[1].note, "Intake turns text you paste into numbered facts, each a passage of your own words, and lists the citations it finds. It works on pasted text only.");
@@ -208,12 +208,12 @@ test("R1's fallback-processing sentence is in 'Where it is processed' in every s
 });
 
 // R1, 14 Oct: the Workflows rows follow the build's flags; four arms.
-test("workflowRows: Screening orchestration and Intake read Built only when their flag is on; the other two rows never change", () => {
+test("workflowRows: Screening orchestration and Intake read Built only when their flag is on; Memo and Hearing preparation are Built (hearing: the workspace step 4 is wired)", () => {
   const status = (a: boolean, i: boolean) => workflowRows({ assistantOn: a, intakeOn: i }).map((w) => w.status);
-  assert.deepEqual(status(false, false), ["Building", "Building", "Built", "Building"]);
-  assert.deepEqual(status(true, false), ["Built", "Building", "Built", "Building"]);
-  assert.deepEqual(status(false, true), ["Building", "Built", "Built", "Building"]);
-  assert.deepEqual(status(true, true), ["Built", "Built", "Built", "Building"]);
+  assert.deepEqual(status(false, false), ["Building", "Building", "Built", "Built"]);
+  assert.deepEqual(status(true, false), ["Built", "Building", "Built", "Built"]);
+  assert.deepEqual(status(false, true), ["Building", "Built", "Built", "Built"]);
+  assert.deepEqual(status(true, true), ["Built", "Built", "Built", "Built"]);
   const on = workflowRows({ assistantOn: true, intakeOn: false });
   assert.equal(on[0].note, "An optional step-by-step screening assistant, offered to signed-in users, with a consent box you tick for each run. You see the engine's own decision result, never the assistant's wording of it.");
   assert.equal(on[0].note, SCREENING_ASSISTANT_LIVE_NOTE);

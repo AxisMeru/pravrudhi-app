@@ -30,7 +30,7 @@ test("the step bar: states before facts, with facts, and with a result; the lock
   await expect(state("memo")).toHaveText("Not yet");
   await expect(page.getByTestId("step-note-memo")).toHaveText("Available after a screening result.");
   await expect(state("hearing")).toHaveText("Not yet");
-  await expect(page.getByTestId("step-note-hearing")).toHaveText("Not offered in this version of the app.");
+  await expect(page.getByTestId("step-note-hearing")).toHaveText("Available after a screening result.");
   await expect(page.getByTestId("step-link-memo")).toHaveCount(0); // a step that is not available is not a link
   // facts typed
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
@@ -45,7 +45,9 @@ test("the step bar: states before facts, with facts, and with a result; the lock
   await expect(page.getByTestId("step-note-memo")).toHaveCount(0);
   await expect(page.getByTestId("step-link-memo")).toHaveAttribute("href", "#step-memo");
   await expect(page.locator("#step-memo")).toBeVisible();
-  await expect(page.getByTestId("step-state-hearing")).toHaveText("Not yet"); // not built in this version
+  await expect(page.getByTestId("step-state-hearing")).toHaveText("Available");
+  await expect(page.getByTestId("step-link-hearing")).toHaveAttribute("href", "#step-hearing");
+  await expect(page.locator("#step-hearing")).toBeVisible();
 });
 
 test("every old address still works: /screening, /screening?example=…, and anonymous (no session) visits", async ({ page }) => {
@@ -122,4 +124,19 @@ test("the /workflows link is a next/link (base-path aware)", async () => {
   expect(src).toContain('import Link from "next/link"');
   expect(src).toMatch(/<Link href=\{`\$\{WORKSPACE_PATH\}#/);
   expect(src).not.toMatch(/<a href=\{`\$\{WORKSPACE_PATH\}/);
+});
+
+// R2 (#216 note): the example banner (a court's name, "example only") shows only while the facts are the loaded example, unchanged.
+test("the example banner is shown while the facts are the example's, gone once a fact is edited, back if restored", async ({ page }) => {
+  await setup(page);
+  await page.goto("/screening?example=madras-public-order-2024");
+  const f1 = page.getByRole("textbox", { name: "Fact F1", exact: true });
+  await expect(f1).not.toHaveValue("");
+  const original = await f1.inputValue();
+  await expect(page.getByTestId("example-banner")).toBeVisible();
+  await f1.fill(`${original} (edited)`);
+  await expect(page.getByTestId("example-banner")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("A public court order, example only.");
+  await f1.fill(original);
+  await expect(page.getByTestId("example-banner")).toBeVisible();
 });

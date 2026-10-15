@@ -43,7 +43,7 @@ test("/workflows: five rows with a status word each, no start button, and the cl
   // R1, 14 Oct: Screening orchestration reads "Built" only in a build that offers the assistant (NEXT_PUBLIC_ASSISTANT_ENTRY=1); Intake only in a build with NEXT_PUBLIC_INTAKE=1 (INTAKE_BUILD=1 here).
   const assistantOn = process.env.NEXT_PUBLIC_ASSISTANT_ENTRY === "1";
   const intakeOn = process.env.INTAKE_BUILD === "1";
-  await expect(page.getByTestId("workflow-status")).toHaveText([assistantOn ? "Built" : "Building", intakeOn ? "Built" : "Building", "Built", "Building"]);
+  await expect(page.getByTestId("workflow-status")).toHaveText([assistantOn ? "Built" : "Building", intakeOn ? "Built" : "Building", "Built", "Built"]);
   if (assistantOn) await expect(page.getByTestId("workflow-row").first()).not.toContainText("Not yet offered");
   await expect(page.getByTestId("workflows").getByRole("button")).toHaveCount(0);
   await expect(page.getByTestId("workflows-closing")).toHaveText("A workflow runs only when you start it, and only on the matter you give it.");

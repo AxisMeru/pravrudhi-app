@@ -33,15 +33,16 @@ test("the nav entry, the palette entry, the page heading, the tab title and the 
 
 test("the step states: before facts, with facts, with a result; Hearing preparation stays 'Not yet' with its note until it is built", () => {
   const W = WORKSPACE_STATE_WORDS;
-  const states = (a: { hasFacts: boolean; hasResult: boolean }, built = false) => workspaceSteps(a, built).map((s) => `${s.key}:${s.state}`).join(" ");
+  const states = (a: { hasFacts: boolean; hasResult: boolean }, built = true) => workspaceSteps(a, built).map((s) => `${s.key}:${s.state}`).join(" ");
+  // Hearing preparation is built (the default); with it off the step says it is not offered.
   assert.equal(states({ hasFacts: false, hasResult: false }), "facts:Available screen:Available memo:Not yet hearing:Not yet");
   assert.equal(states({ hasFacts: true, hasResult: false }), "facts:Done screen:Available memo:Not yet hearing:Not yet");
-  assert.equal(states({ hasFacts: true, hasResult: true }), "facts:Done screen:Done memo:Available hearing:Not yet");
-  assert.equal(states({ hasFacts: true, hasResult: true }, true), "facts:Done screen:Done memo:Available hearing:Available");
+  assert.equal(states({ hasFacts: true, hasResult: true }), "facts:Done screen:Done memo:Available hearing:Available");
+  assert.equal(states({ hasFacts: true, hasResult: true }, false), "facts:Done screen:Done memo:Available hearing:Not yet");
   const none = workspaceSteps({ hasFacts: true, hasResult: false });
   assert.equal(none[2].note, WORKSPACE_LOCKED_TEXT);
-  assert.equal(none[3].note, HEARING_NOT_OFFERED_TEXT);
-  assert.equal(workspaceSteps({ hasFacts: true, hasResult: false }, true)[3].note, WORKSPACE_LOCKED_TEXT);
+  assert.equal(none[3].note, WORKSPACE_LOCKED_TEXT, "built: locked until a result");
+  assert.equal(workspaceSteps({ hasFacts: true, hasResult: false }, false)[3].note, HEARING_NOT_OFFERED_TEXT);
   assert.equal(workspaceSteps({ hasFacts: true, hasResult: true })[2].note, null);
   // a step that is not available has no link; an available one links to its anchor
   for (const s of workspaceSteps({ hasFacts: true, hasResult: false })) assert.equal(s.href, s.state === W.notYet ? null : `#${WORKSPACE_ANCHORS[s.key]}`);
