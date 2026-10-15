@@ -204,8 +204,8 @@ async function getJSON<T>(path: string, opts: { authOptional?: boolean } = {}): 
 // when the engine serves it. It is fetched once and kept in memory; it is never stored anywhere a script on
 // another page could reach.
 let cachedToken: string | null = null;
-// The probe is answered "no token" (401, 403, 404...) by every engine that is not a local desktop one. That answer does not change during a visit, so it is remembered: the next write does not
-// ask again (and a visitor's console shows one failed probe, not one per write). A network failure is NOT remembered (the engine may simply have been unreachable a moment ago).
+// The probe is answered "no token" (401, 403, 404) by every engine that is not a local desktop one. That answer does not change during a visit, so it is remembered: the next write does not
+// ask again (and a visitor's console shows one failed probe, not one per write). A network failure, a 429 or a 5xx is NOT remembered (the engine may simply have been unreachable or busy a moment ago).
 let noLocalToken = false;
 
 /** Forget what the token probe answered (a test, or a change of engine): the next write asks again. */
@@ -228,7 +228,8 @@ export async function localToken(): Promise<string | null> {
     // enough.
     const res = await engineFetch(`${detectBase()}/api/app-token`, { cache: "no-store", authOptional: true });
     if (!res.ok) {
-      noLocalToken = true;
+      // Only the answers that mean "this engine has no local write guard" are remembered; a 429 or a 5xx may pass (a desktop engine that served the token a moment ago), so it is asked again, like a network failure.
+      if (res.status === 401 || res.status === 403 || res.status === 404) noLocalToken = true;
       return null;
     }
     cachedToken = ((await res.json()) as { token: string }).token;

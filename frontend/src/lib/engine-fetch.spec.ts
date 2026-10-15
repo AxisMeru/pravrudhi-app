@@ -122,3 +122,43 @@ test("localToken: a refused probe (403) is asked once; a network failure is aske
     }
   });
 });
+
+// R2 (#212): a transient answer (429, 5xx) on the first write must not make a local desktop engine lose its token for the whole visit: only 401/403/404 are remembered.
+test("localToken: 429 and 5xx are not remembered: the next call asks again and gets the token", async () => {
+  const { localToken, forgetLocalToken } = await import("./api");
+  for (const status of [503, 502, 500, 429]) {
+    await withAnonymousBrowser(async () => {
+      const originalFetch = globalThis.fetch;
+      let calls = 0;
+      try {
+        forgetLocalToken();
+        globalThis.fetch = (async () => {
+          calls += 1;
+          return calls === 1 ? new Response(JSON.stringify({ detail: "busy" }), { status }) : new Response(JSON.stringify({ token: "local-token" }), { status: 200 });
+        }) as typeof fetch;
+        assert.equal(await localToken(), null, `${status}: no token this time`);
+        assert.equal(await localToken(), "local-token", `${status}: asked again, token received`);
+        assert.equal(calls, 2);
+      } finally {
+        globalThis.fetch = originalFetch;
+        forgetLocalToken();
+      }
+    });
+  }
+  for (const status of [401, 403, 404]) {
+    await withAnonymousBrowser(async () => {
+      const originalFetch = globalThis.fetch;
+      let calls = 0;
+      try {
+        forgetLocalToken();
+        globalThis.fetch = (async () => { calls += 1; return new Response(JSON.stringify({ detail: "no" }), { status }); }) as typeof fetch;
+        await localToken();
+        await localToken();
+        assert.equal(calls, 1, `${status} is remembered`);
+      } finally {
+        globalThis.fetch = originalFetch;
+        forgetLocalToken();
+      }
+    });
+  }
+});
