@@ -4,12 +4,16 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import { FilmPlayer } from "../../components/films/FilmPlayer";
 import { filmFile, type FilmManifest } from "./films";
 import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
-import { FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
+import { FILM_CAPTIONS_SHOW, FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_SILENT_LABEL, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
@@ -23,7 +27,7 @@ test("the film id is registered, its files are named like the other films', and 
   const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted captionsOn \/>/);
+  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted \/>/);
   assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
   assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
   assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
@@ -143,4 +147,41 @@ test("vercel.json: /films/nyayasiddhi* gets X-Robots-Tag noindex, nofollow, and 
   const re = new RegExp(`^${robots[0].source}$`);
   for (const p of ["/films/nyayasiddhi/film.mp4", "/films/nyayasiddhi-loop/poster.png", "/films/nyayasiddhi-firm/captions.vtt", "/films/nyayasiddhi-narrated/film.mp4", "/films/nyayasiddhi-firm-narrated/manifest.json"]) assert.match(p, re, p);
   for (const p of ["/films/client/film.mp4", "/films/technical/film.mp4", "/benchmarks", "/"]) assert.doesNotMatch(p, re, p);
+});
+
+// The operator's report (16 Oct): the sound button on a SILENT cut does nothing (the film has no audio track); captions must be off until asked; one click turns the voice on.
+const SILENT_MANIFEST: FilmManifest = { title: "T", durationS: 10, width: 1280, height: 720, audio: false, scenes: [] };
+const VOICE_MANIFEST: FilmManifest = { ...SILENT_MANIFEST, audio: true };
+const html = (id: Parameters<typeof FilmPlayer>[0]["id"], manifest: FilmManifest, extra: Record<string, unknown> = {}) => renderToStaticMarkup(createElement(FilmPlayer, { id, manifest, ...extra }));
+
+test("a silent film has NO sound button; a narrated one has it; captions start off with the Show captions button and no default track", () => {
+  const silent = html("nyayasiddhi", SILENT_MANIFEST, { autoplayMuted: true });
+  assert.ok(!silent.includes('data-testid="film-sound"'), "no sound button on a film with no audio track");
+  const voice = html("nyayasiddhi-narrated", VOICE_MANIFEST);
+  assert.ok(voice.includes('data-testid="film-sound"') && voice.includes("Turn on sound"));
+  for (const h of [silent, voice]) {
+    assert.ok(h.includes(`>${FILM_CAPTIONS_SHOW}<`), "captions off until asked: the button offers Show captions");
+    assert.doesNotMatch(h, /<track[^>]*\sdefault/, "the captions track is never `default`");
+  }
+});
+
+test("the WebM source comes first (VP9, with Opus for a narrated film) when the manifest lists film.webm; the mp4 follows; without a webm file only the mp4", () => {
+  const withWebm = (m: FilmManifest): FilmManifest => ({ ...m, files: [{ name: "film.mp4" }, { name: "film.webm" }] });
+  const n = html("nyayasiddhi-narrated", withWebm(VOICE_MANIFEST));
+  assert.ok(n.indexOf("film.webm") > 0 && n.indexOf("film.webm") < n.indexOf("film.mp4"), "webm before mp4");
+  assert.ok(n.includes('type="video/webm; codecs=&quot;vp9, opus&quot;"') || n.includes("vp9, opus"));
+  const sil = html("nyayasiddhi", withWebm(SILENT_MANIFEST));
+  assert.ok(sil.includes("vp9") && !sil.includes("opus"), "a silent film's webm is VP9 only");
+  assert.ok(!html("nyayasiddhi-narrated", VOICE_MANIFEST).includes("film.webm"), "no webm file listed: no webm source");
+  assert.match(filmFile("nyayasiddhi", "film.webm"), /\/films\/nyayasiddhi\/film\.webm$/);
+});
+
+test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, shown above each of the three silent cuts and nowhere else", () => {
+  assert.equal(NYAYASIDDHI_SILENT_LABEL, "Silent cut: no voice. Press Show captions to read it.");
+  assert.ok(NYAYASIDDHI_SILENT_LABEL.includes(`Press ${FILM_CAPTIONS_SHOW} to`), "derived from the captions button text");
+  assert.doesNotMatch(NYAYASIDDHI_SILENT_LABEL, BARRED);
+  const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
+  const silentBlock = page.slice(page.indexOf("{CUTS.map"), page.indexOf("{VOICE.map"));
+  assert.match(silentBlock, /NYAYASIDDHI_SILENT_LABEL/);
+  assert.doesNotMatch(page.slice(page.indexOf("{VOICE.map")), /NYAYASIDDHI_SILENT_LABEL/);
 });
