@@ -145,6 +145,13 @@ export function Sidebar() {
   // changes (https://react.dev/reference/react/useState#storing-information-from-previous-renders) — comparing
   // against the previous pathname and calling setState directly in the render body avoids the extra commit an
   // effect would cause.
+  // Layout B: an in-page link in the drawer changes only the hash, not the path, so it closes the drawer too (the jump would otherwise land behind the scrim, with the page inert).
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    const close = () => setNavOpen(false);
+    window.addEventListener("hashchange", close);
+    return () => window.removeEventListener("hashchange", close);
+  }, []);
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
