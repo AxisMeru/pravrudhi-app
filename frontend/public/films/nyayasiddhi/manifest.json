@@ -40,7 +40,7 @@
       "endS": 59.3
     },
     {
-      "name": "System",
+      "name": "The system cards",
       "text": "",
       "startS": 59.3,
       "endS": 90.3
@@ -52,7 +52,7 @@
       "endS": 135.7
     },
     {
-      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure",
       "text": "",
       "startS": 135.7,
       "endS": 152
@@ -72,8 +72,8 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 4055,
-      "sha256": "a019f0404638a7acf761989b41e3eb1e1008735a2afe56399f411b6470902cd9"
+      "bytes": 505,
+      "sha256": "a5192e03ad1aeb77b31cfca6f2eadad65dc9c9cf8af3e8862604e760c89d11d3"
     }
   ]
 }

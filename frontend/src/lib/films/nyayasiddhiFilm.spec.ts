@@ -31,7 +31,7 @@ test("the film id is registered, its files are named like the other films', and 
   assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
   assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
   assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
-  assert.match(FILM_SILENT_NOTE, /silent/);
+  assert.equal(FILM_SILENT_NOTE, "The film is silent; the captions name each scene, and the list below sums up each scene.");
   assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
 });
 
@@ -105,7 +105,8 @@ for (const id of FILMS) {
       assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
       const text = norm(m[3]);
       // the silent cuts: every cue is a v4 string (or the app's own signed text). The narrated previews' captions are the narration script (v4 strings joined into spoken sentences and split at spoken pauses), so they are pinned by R1's confirmed HASH below instead
-      if (!narrated) assert.ok(allowed.has(text), `${id}: a cue that is not a STRINGS_948_v4 string: ${text}`);
+      // out_v8: a silent cut's cue is its scene name (one cue per scene; R1 reads those names as strings), which is the manifest's own scene name, or still a v4 string / signed app text
+      if (!narrated) assert.ok(allowed.has(text) || man.scenes.some((sc) => norm(sc.name) === text), `${id}: a cue that is neither a STRINGS_948_v4 string nor one of the film's own scene names: ${text}`);
       assert.doesNotMatch(text, BARRED, text);
       cues += 1;
     }
@@ -179,8 +180,8 @@ test("the WebM source comes first (VP9, with Opus for a narrated film) for every
 });
 
 test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, shown above each of the three silent cuts and nowhere else", () => {
-  assert.equal(NYAYASIDDHI_SILENT_LABEL, "Silent cut: no voice. Press Show captions to read it.");
-  assert.ok(NYAYASIDDHI_SILENT_LABEL.includes(`Press ${FILM_CAPTIONS_SHOW} to`), "derived from the captions button text");
+  assert.equal(NYAYASIDDHI_SILENT_LABEL, "Silent cut: no voice. While it plays, press Show captions to see the scene titles.");
+  assert.ok(NYAYASIDDHI_SILENT_LABEL.includes(`press ${FILM_CAPTIONS_SHOW} to`), "derived from the captions button text");
   assert.doesNotMatch(NYAYASIDDHI_SILENT_LABEL, BARRED);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
   const silentBlock = page.slice(page.indexOf("{CUTS.map"), page.indexOf("{VOICE.map"));

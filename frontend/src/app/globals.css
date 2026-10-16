@@ -98,6 +98,14 @@
   --color-hover: color-mix(in srgb, var(--color-text) 7%, transparent);
   --color-accent-hover: color-mix(in srgb, var(--color-accent) 88%, var(--color-text));
   --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  /* Look patch (spec 3e0b13c4bdc8): built from existing tokens, so they follow the active theme; used only under html[data-look="tonal"] below. */
+  --tone-ground-top: color-mix(in srgb, var(--color-accent) 4.5%, var(--color-bg));
+  --tone-glow: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  --tone-band: color-mix(in srgb, var(--color-surface) 65%, var(--color-bg));
+  --shadow-card: 0 1px 2px color-mix(in srgb, var(--color-text) 9%, transparent), 0 14px 24px -16px color-mix(in srgb, var(--color-text) 35%, transparent);
+  --tint-supported: color-mix(in srgb, var(--color-ok) 6%, var(--color-surface));
+  --tint-review: color-mix(in srgb, var(--color-warn) 8%, var(--color-surface));
+  --tint-nofact: color-mix(in srgb, var(--color-text-dim) 6%, var(--color-surface));
 }
 
 html,
@@ -189,6 +197,64 @@ table,
   body {
     height: auto !important;
     overflow: visible !important;
+  }
+}
+
+/* Look patch (spec 3e0b13c4bdc8): ONLY under html[data-look="tonal"] (build flag NEXT_PUBLIC_LOOK_TONAL=1, off by default). No transition, animation or hover lift: nothing to gate for reduced motion.
+   Every rule changes a colour or a shadow, never a box size (the left state rule is an inset shadow, not a border), so no layout moves. The print block below forces a white page and no shadows. */
+html[data-look="tonal"] body {
+  background: linear-gradient(180deg, var(--tone-ground-top) 0, var(--color-bg) 460px), var(--color-bg);
+}
+html[data-look="tonal"] main#main {
+  background: radial-gradient(900px 360px at 88% -90px, var(--tone-glow), transparent 72%);
+}
+html[data-look="tonal"] main#main > div > div:first-child {
+  background: var(--tone-band);
+  border-bottom: 1px solid var(--color-border);
+}
+html[data-look="tonal"] #primary-navigation {
+  background: var(--color-surface);
+  box-shadow: 1px 0 0 var(--color-border);
+}
+html[data-look="tonal"] #primary-navigation nav a[aria-current="page"] {
+  background: var(--color-accent-dim);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+  font-weight: 600;
+}
+html[data-look="tonal"] #primary-navigation [data-testid^="nav-group-"] > div:first-child {
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-size: 12px; /* the spec says 11 px; the app's own D8 check (drawer-a11y) holds section labels at 12 px or more, so 12 px */
+}
+html[data-look="tonal"] [data-testid="ingredient-row"] {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="supported"] {
+  box-shadow: inset 4px 0 0 var(--color-ok), var(--shadow-card);
+  background: var(--tint-supported);
+}
+html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="review"] {
+  box-shadow: inset 4px 0 0 var(--color-warn), var(--shadow-card);
+  background: var(--tint-review);
+}
+html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="not_supported"] {
+  box-shadow: inset 4px 0 0 var(--color-text-dim), var(--shadow-card);
+  background: var(--tint-nofact);
+}
+html[data-look="tonal"] [data-testid="summary-banner"] {
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-card);
+}
+@media print {
+  html[data-look="tonal"] body,
+  html[data-look="tonal"] main#main {
+    background: #fff !important;
+  }
+  html[data-look="tonal"] [data-testid="ingredient-row"],
+  html[data-look="tonal"] [data-testid="summary-banner"],
+  html[data-look="tonal"] #primary-navigation {
+    box-shadow: none;
   }
 }
 
