@@ -1,14 +1,19 @@
 import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { NyayaSiddhiResults } from "@/components/benchmarks/NyayaSiddhiResults";
+import { FilmPlayer } from "@/components/films/FilmPlayer";
 import { PageHeader } from "@/components/PageHeader";
 import rowsFile from "@/data/nyayasiddhi/rows.json";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARRATED, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "@/lib/films/copy";
+import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
 import { BENCHMARK_STATEMENTS, FOOTER_TEXT, HOW_WE_TEST, HOW_WE_TEST_HEADING, PAGE_SUBTITLE, PAGE_TITLE } from "@/lib/benchmarks";
 
 const NYAYASIDDHI_ROWS = parseRows(rowsFile); // signed rows only, from the build-time data file; empty until the signed rows are supplied
 
 // A short, static page in R1's words (lib/benchmarks.ts): what we check, how we test, and what the checks do and do not show. No figure.
-export default function BenchmarksPage() {
+export default async function BenchmarksPage() {
+  // the narrated cut A (the manifest is loaded by a dynamic import, on this page only), poster first: no film file is requested until the visitor presses Play
+  const filmManifest = await loadNyayasiddhiManifest("nyayasiddhi-narrated");
   return (
     <div>
       <PageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
@@ -23,6 +28,11 @@ export default function BenchmarksPage() {
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-nyayasiddhi">
           <h2 className="text-base font-medium text-[var(--color-text)]">NyayaSiddhi</h2>
           <NyayaSiddhiLink />
+        </section>
+        <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
+          <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
+          <p className="text-sm text-[var(--color-text)]" data-testid="benchmarks-film-label">{NYAYASIDDHI_VOICE_PREVIEW_LABEL}</p>
+          <FilmPlayer id="nyayasiddhi-narrated" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} />
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-how">

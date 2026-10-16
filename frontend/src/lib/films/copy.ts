@@ -18,6 +18,10 @@ export const FILM_SOUND_OFF = "Turn off sound";
 export const FILM_CAPTIONS_SHOW = "Show captions";
 export const FILM_CAPTIONS_HIDE = "Hide captions";
 export const FILM_DOWNLOAD_LINK = "Download the film";
+/** The film on the Benchmarks page (R1, 16 Oct; strings hash 9f41ebf6cbd5): its heading, the narrated cut's download link (labelled by what it is) and the poster's alt text (the poster only). */
+export const BENCHMARKS_FILM_HEADING = "NyayaSiddhi film";
+export const FILM_DOWNLOAD_NARRATED = "Download the narrated film";
+export const BENCHMARKS_FILM_POSTER_ALT = "Poster of the NyayaSiddhi film";
 export const FILM_VIDEO_UNSUPPORTED = "Your browser cannot play this video.";
 
 /** The guide's section, and the links to the films. */
