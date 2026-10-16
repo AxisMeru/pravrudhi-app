@@ -101,3 +101,9 @@ test("build.json flags: layout_matter_b is its own flag, independent of look_ton
   for (const v of ["true", "0", "", " 1", "1 ", "yes", "TRUE", "matter-b"]) assert.equal(buildFlags({ NEXT_PUBLIC_LAYOUT_MATTER_B: v }).layout_matter_b, false, JSON.stringify(v));
   assert.equal(buildFlags({ NEXT_PUBLIC_LOOK_TONAL: "1" }).layout_matter_b, false);
 });
+
+// R2's LOW on the ON switch: the key ORDER of build.json's flags is part of the contract (the gate harness and Track A's cut read it), so it is pinned, not just the set.
+test("build.json flags: the seven keys come in this exact order, look_tonal before layout_matter_b", async () => {
+  const { buildJson } = await import("../../scripts/write-build-json.mjs");
+  assert.deepEqual(Object.keys(JSON.parse(buildJson({ BUILD_SHA: SHA })).flags), ["assistant_entry", "delete_confirmed", "intake", "citation_nav", "citation_existence_only", "look_tonal", "layout_matter_b"]);
+});
