@@ -1,70 +1,70 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 158.5,
+  "durationS": 154.70000000000002,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": true,
   "narration": {
-    "voice": "hm_omega (Kokoro-82M f3ff3571, lang b), a synthetic voice",
-    "narrationJsonSha256": "50c07d7482eff648bffdbfc1f3ac8c280048895396964e95890774d0329d34a6",
-    "timingsSha256": "2d2b6771d93e990174dd71fbe1357d907ef0364354e0d89371e2dae568b1bcf2",
+    "voice": "bf_emma (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "5914d425078348ed60213c4ad9a754acfe21c9cbf06475c24020ef2830e41ce2",
+    "timingsSha256": "605d9dd2881509e8b1873dd56f05cefc8d5673a536a6d2a3ab99a6d11dbffa70",
     "scenes": [
       {
         "id": "title",
-        "audioS": 5.08,
+        "audioS": 4.3,
         "durS": 7.2,
         "origDurS": 7.2,
         "stretch": 1,
-        "wavSha256": "691e7ee4f573067c70905267382bfa8f536d08d9be76294c307f381000e2387b"
+        "wavSha256": "582d96ed29cbf1509d12aee26771ad3f53f537552718fd6e0951734712849226"
       },
       {
         "id": "example",
-        "audioS": 33.95,
-        "durS": 35.5,
-        "origDurS": 35.5,
+        "audioS": 31.63,
+        "durS": 33.2,
+        "origDurS": 33.2,
         "stretch": 1,
-        "wavSha256": "c64c3ea77df15a6528c557ea8189077fb25dc3400fd80d0a74d154ef98379fcd"
+        "wavSha256": "f53f39cab74944cb12e10ef92ba95b4a8863639d7a7d777ccef62c099ab4fda7"
       },
       {
         "id": "splits",
-        "audioS": 11.38,
-        "durS": 12.9,
-        "origDurS": 12.9,
+        "audioS": 10.3,
+        "durS": 11.8,
+        "origDurS": 11.8,
         "stretch": 1,
-        "wavSha256": "21f5506740c830312951326ed79063ebe0995679cd84450c1ff02e86fe8bea08"
+        "wavSha256": "2ad79199bdd62874addeba51271868fcad063e7de157411eb0ccba928c3aaa72"
       },
       {
         "id": "unit",
-        "audioS": 6.5,
+        "audioS": 5.85,
         "durS": 9.8,
         "origDurS": 9.8,
         "stretch": 1,
-        "wavSha256": "d1e2743df4afc9ff39b801b788db6270f5163ee52886bbc84cc76362b29364c2"
+        "wavSha256": "42dc900af7bd2bbac84fa6b4d8bb652aa26dd4a79601c31e9ab7f96c27069421"
       },
       {
         "id": "cards",
-        "audioS": 22.65,
+        "audioS": 19.63,
         "durS": 31,
         "origDurS": 31,
         "stretch": 1,
-        "wavSha256": "56729ad084d9fdf0312e40b76fda2088d1a1015d3508093968b9f8d6d342b253"
+        "wavSha256": "ce0fc5e86e3c0125d419ca15fb9b4bef7d5aaac9698d8f45663533d1355267d6"
       },
       {
         "id": "nofact",
-        "audioS": 44.25,
-        "durS": 45.8,
-        "origDurS": 45.8,
+        "audioS": 40.38,
+        "durS": 45.4,
+        "origDurS": 45.4,
         "stretch": 1,
-        "wavSha256": "db2ea402df6e5839fbfd400663d7d367446f61113b38b5ae00e738494f293999"
+        "wavSha256": "9d0519996de9e49d4242faa42a6282b7de89eb44d1516a8ad29914db2fb24aad"
       },
       {
         "id": "close",
-        "audioS": 10.18,
+        "audioS": 8.73,
         "durS": 16.3,
         "origDurS": 16.3,
         "stretch": 1,
-        "wavSha256": "f9b01b27d950e7db481f570401872ba4d1973ee5d3b7dce3385bc765f396b2c7"
+        "wavSha256": "619822b7c34e8b4bcf90a5353ebf294465611265a6c21db3321797a19a741527"
       }
     ],
     "mix": {
@@ -72,17 +72,17 @@
       "scoreDb": -7,
       "duckDb": -11,
       "voiceRmsDb": -19,
-      "voiceGain": 1.021,
-      "speechRmsDb": -19.2,
-      "peakBeforeLimit": 0.764,
-      "limiterGain": 1,
-      "scoreSeconds": 159.5,
+      "voiceGain": 1.595,
+      "speechRmsDb": -23.1,
+      "peakBeforeLimit": 1.131,
+      "limiterGain": 0.857,
+      "scoreSeconds": 155.70002083333333,
       "scoreLufs": -18.99
     },
     "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
   },
   "sources": {
-    "filmSha256": "8b1063e91fd450084982dc0ba58788738a706259fc0a15b96c84b5c65aae6bb7",
+    "filmSha256": "9d9c3e3499ac1cc0715b4e4d6393e0c6c3ebdd615b5de64aeb2c4652901d2fe2",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
     "gateTokenReplaced": 1,
@@ -103,45 +103,45 @@
       "name": "Madras High Court, order of 12 June 2024",
       "text": "",
       "startS": 7.2,
-      "endS": 42.7
+      "endS": 40.400000000000006
     },
     {
       "name": "Development items; used to design fixes, so seen by us",
       "text": "",
-      "startS": 42.7,
-      "endS": 55.6
+      "startS": 40.400000000000006,
+      "endS": 52.2
     },
     {
       "name": "How the system decides each item",
       "text": "",
-      "startS": 55.6,
-      "endS": 65.4
+      "startS": 52.2,
+      "endS": 62
     },
     {
       "name": "System",
       "text": "",
-      "startS": 65.4,
-      "endS": 96.4
+      "startS": 62,
+      "endS": 93
     },
     {
       "name": "Ingredients with no fact cited",
       "text": "",
-      "startS": 96.4,
-      "endS": 142.2
+      "startS": 93,
+      "endS": 138.4
     },
     {
       "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
       "text": "",
-      "startS": 142.2,
-      "endS": 158.5
+      "startS": 138.4,
+      "endS": 154.70000000000002
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 4849085,
-      "sha256": "53c22a51e16b6928a6433799db20c0322f744f95a803f148ac508fef05ef7674"
+      "bytes": 4803147,
+      "sha256": "b4b605a3e5d089d80c18d170c62c7e2f0ede7483214b2032c29ed2fa3d501185"
     },
     {
       "name": "poster.png",
@@ -150,8 +150,9 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 2582,
-      "sha256": "c35ef3d5c85767e9dbe0a050d64d49be788d7408a911df64603d9addcb4be374"
+      "bytes": 3103,
+      "sha256": "783827b1e51e614d4fb841581b5ed2e116f2010a9036d9b4b000cacd82019445"
     }
-  ]
+  ],
+  "captionsNote": "captions.vtt regenerated by make_narr_captions.py (whole v4 strings, one cue per string over the scene's voice window); the video/audio files are exactly the renderer's"
 }

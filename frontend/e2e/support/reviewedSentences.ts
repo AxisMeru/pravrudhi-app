@@ -3,9 +3,9 @@
 // Every entry is a sentence the app already ships; adding one here is a copy decision for R1. A stale entry fails the scan.
 export const REVIEWED: Readonly<Record<string, { reason: string; sentences: readonly string[] }>> = {
   "public/films/nyayasiddhi-firm-narrated/captions.vtt": {
-    reason: "the R1-confirmed bridge caption of the narrated firm cut (the voice-review preview; captions sha256 a1333fb2af9c..., read by R1 by hash): the organisers' own models; not a statement about submissions. Lapses with a new bridge text or hash",
+    reason: "the R1-confirmed bridge caption of the narrated firm cut (the voice-review preview, bf_emma voice; captions sha256 f9e50fa65f20..., to be confirmed by R1 by hash; the scan reads the cue number and times with it): the organisers' own models; not a statement about submissions. Lapses with a new bridge text or hash",
     sentences: [
-      "Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+      "15 00:00:53.157 --> 00:00:59.050 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
   "public/films/nyayasiddhi-firm/captions.vtt": {

@@ -8,7 +8,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { FilmPlayer } from "../../components/films/FilmPlayer";
-import { filmFile, type FilmManifest } from "./films";
+import { WEBM_FILMS, filmFile, type FilmManifest } from "./films";
 import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
@@ -35,10 +35,10 @@ test("the film id is registered, its files are named like the other films', and 
   assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
 });
 
-test("public/films holds only the film's five cuts (three silent, two narrated previews for the voice review): four files each, no script or log, no host path (R2)", () => {
+test("public/films holds only the film's five cuts (three silent, two narrated previews for the voice review): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
   const films = readdirSync(join(root, "public", "films")).filter((n) => n.startsWith("nyayasiddhi")).sort();
   assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
-  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "manifest.json", "poster.png"], f);
+  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
@@ -82,7 +82,7 @@ test("the vendored film strings are STRINGS_948_v4 (sha256 65282a5a...), carry n
   for (const t of added) assert.doesNotMatch(t, COUNT_WORD, t);
 });
 
-const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "c35ef3d5c85767e9dbe0a050d64d49be788d7408a911df64603d9addcb4be374", "nyayasiddhi-firm-narrated": "a1333fb2af9ca0db16069a7670ebb4d1f95fb6414fdbd368a9f99ce14b97a879" } as const;
+const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "783827b1e51e614d4fb841581b5ed2e116f2010a9036d9b4b000cacd82019445", "nyayasiddhi-firm-narrated": "f9e50fa65f20a5a4823345d58ac2ba636ceee980e414a549621b406f873f3ce5" } as const;
 const FILMS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"] as const;
 const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
 const sentences = (x: string): string[] => x.split(/(?<=[.!?])\s+/).map(norm).filter(Boolean);
@@ -165,15 +165,17 @@ test("a silent film has NO sound button; a narrated one has it; captions start o
   }
 });
 
-test("the WebM source comes first (VP9, with Opus for a narrated film) when the manifest lists film.webm; the mp4 follows; without a webm file only the mp4", () => {
-  const withWebm = (m: FilmManifest): FilmManifest => ({ ...m, files: [{ name: "film.mp4" }, { name: "film.webm" }] });
-  const n = html("nyayasiddhi-narrated", withWebm(VOICE_MANIFEST));
+test("the WebM source comes first (VP9, with Opus for a narrated film) for every film that ships a film.webm; the mp4 follows; a film without one lists only the mp4", () => {
+  const n = html("nyayasiddhi-narrated", VOICE_MANIFEST);
   assert.ok(n.indexOf("film.webm") > 0 && n.indexOf("film.webm") < n.indexOf("film.mp4"), "webm before mp4");
-  assert.ok(n.includes('type="video/webm; codecs=&quot;vp9, opus&quot;"') || n.includes("vp9, opus"));
-  const sil = html("nyayasiddhi", withWebm(SILENT_MANIFEST));
-  assert.ok(sil.includes("vp9") && !sil.includes("opus"), "a silent film's webm is VP9 only");
-  assert.ok(!html("nyayasiddhi-narrated", VOICE_MANIFEST).includes("film.webm"), "no webm file listed: no webm source");
+  assert.ok(n.includes("vp9, opus"));
+  const sil = html("nyayasiddhi", SILENT_MANIFEST);
+  assert.ok(sil.includes("film.webm") && sil.includes("vp9") && !sil.includes("opus"), "a silent film's webm is VP9 only");
+  assert.ok(!html("client", VOICE_MANIFEST).includes("film.webm"), "the client film has no webm: mp4 only");
   assert.match(filmFile("nyayasiddhi", "film.webm"), /\/films\/nyayasiddhi\/film\.webm$/);
+  // the set the player uses is exactly the folders that hold a film.webm
+  const withWebm = readdirSync(join(root, "public", "films")).filter((d) => existsSync(join(root, "public", "films", d, "film.webm"))).sort();
+  assert.deepEqual([...WEBM_FILMS].sort(), withWebm);
 });
 
 test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, shown above each of the three silent cuts and nowhere else", () => {

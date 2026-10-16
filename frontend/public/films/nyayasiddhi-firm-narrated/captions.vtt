@@ -5,37 +5,69 @@ WEBVTT
 The narration is a synthetic voice.
 
 2
-00:00:00.600 --> 00:00:05.675
-NyayaSiddhi. our benchmark for screening under Indian criminal law
+00:00:00.600 --> 00:00:03.100
+NyayaSiddhi
 
 3
-00:00:07.800 --> 00:00:18.834
-Madras High Court, order of 12 June 2024. The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr. No.
+00:00:01.078 --> 00:00:04.900
+our benchmark for screening under Indian criminal law
 
 4
-00:00:18.834 --> 00:00:29.372
-[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC. Public court order, example only. Allegations as recited, not findings.
+00:00:07.800 --> 00:00:11.044
+Madras High Court, order of 12 June 2024
 
 5
-00:00:29.372 --> 00:00:38.709
-Crime number and date replaced. Illustrative, not evidence. Shown on an example order. Marked as supported. Not marked as supported.
+00:00:11.044 --> 00:00:24.021
+The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
 
 6
-00:00:38.709 --> 00:00:41.750
-Here, an error is counted as not supported.
+00:00:24.021 --> 00:00:31.320
+Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
 
 7
-00:00:43.300 --> 00:00:49.800
-How the system decides each item. Whole item at once. Ingredient by ingredient.
+00:00:31.320 --> 00:00:33.820
+Shown on an example order.
 
 8
-00:00:53.100 --> 00:01:02.475
-Pravrudhi-Nyaya is the product you open. Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.
+00:00:33.347 --> 00:00:35.847
+Marked as supported
 
 9
-00:01:04.000 --> 00:01:14.175
-Rows are listed in a fixed order, by split and system name, never by a figure. This is a screening aid, not legal advice. A lawyer decides.
+00:00:34.564 --> 00:00:37.064
+Not marked as supported
 
 10
-00:01:16.700 --> 00:01:19.700
+00:00:36.186 --> 00:00:39.430
+Here, an error is counted as not supported.
+
+11
+00:00:41.000 --> 00:00:43.700
+How the system decides each item
+
+12
+00:00:43.700 --> 00:00:46.200
+Whole item at once
+
+13
+00:00:45.500 --> 00:00:48.000
+Ingredient by ingredient
+
+14
+00:00:50.800 --> 00:00:53.300
+Pravrudhi-Nyaya is the product you open.
+
+15
+00:00:53.157 --> 00:00:59.050
+Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.
+
+16
+00:01:00.600 --> 00:01:05.933
+Rows are listed in a fixed order, by split and system name, never by a figure.
+
+17
+00:01:05.773 --> 00:01:09.440
+This is a screening aid, not legal advice. A lawyer decides.
+
+18
+00:01:13.300 --> 00:01:16.300
 The narration is a synthetic voice.

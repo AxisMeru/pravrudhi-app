@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
-import { FILM_MANIFESTS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
+import { FILM_MANIFESTS, WEBM_FILMS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
   const m = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -27,7 +27,7 @@ export function FilmPlayer({ id, manifest, autoplayMuted = false }: { id: FilmId
   const showVideo = !reduced || asked;
   // a film with no audio track (the manifest says audio:false) has no sound button: pressing it could only do nothing
   const hasAudio = film.audio !== false;
-  const hasWebm = film.files?.some((f) => f.name === "film.webm") === true;
+  const hasWebm = WEBM_FILMS.has(id);
   // one click turns the voice on: muted off, volume up, and play() in the SAME click if the film is paused; turning it off mutes again
   const toggleSound = () => {
     const v = video.current;
