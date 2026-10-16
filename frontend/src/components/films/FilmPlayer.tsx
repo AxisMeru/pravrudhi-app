@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
-import { FILM_MANIFESTS, clock, filmFile } from "@/lib/films/films";
+import { FILM_MANIFESTS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
   const m = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -17,8 +17,8 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion the poster stays until the visitor asks for the film with the button. The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id, autoplayMuted = false, captionsOn = false }: { id: FilmId; autoplayMuted?: boolean; captionsOn?: boolean }) {
-  const film = FILM_MANIFESTS[id];
+export function FilmPlayer({ id, manifest, autoplayMuted = false, captionsOn = false }: { id: FilmId; manifest?: FilmManifest; autoplayMuted?: boolean; captionsOn?: boolean }) {
+  const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
   const [muted, setMuted] = useState(true);

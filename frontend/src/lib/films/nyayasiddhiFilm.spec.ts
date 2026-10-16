@@ -4,7 +4,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 
-import { FILM_MANIFESTS, filmFile } from "./films";
+import { filmFile, type FilmManifest } from "./films";
 import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
@@ -13,7 +13,8 @@ import { FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_VOIC
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
-const manifest = FILM_MANIFESTS.nyayasiddhi as typeof FILM_MANIFESTS.nyayasiddhi & { placeholder?: boolean };
+const readManifest = (id: string): FilmManifest & { placeholder?: boolean } => JSON.parse(readFileSync(join(root, "public", "films", id, "manifest.json"), "utf8"));
+const manifest = readManifest("nyayasiddhi");
 
 test("the film id is registered, its files are named like the other films', and the review route is noindex", () => {
   assert.ok((FILM_IDS as readonly string[]).includes("nyayasiddhi"));
@@ -22,7 +23,7 @@ test("the film id is registered, its files are named like the other films', and 
   const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id=\{id\} autoplayMuted captionsOn \/>/);
+  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted captionsOn \/>/);
   assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
   assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
   assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
@@ -87,7 +88,7 @@ const allowed = new Set([...strings.strings.flatMap((x) => [norm(x), ...sentence
 
 for (const id of FILMS) {
   const dir = join(root, "public", "films", id);
-  const man = FILM_MANIFESTS[id] as typeof FILM_MANIFESTS.nyayasiddhi & { placeholder?: boolean };
+  const man = readManifest(id);
   const rendered = existsSync(join(dir, "captions.vtt")) && man.placeholder !== true;
   test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v4 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
     const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
@@ -112,3 +113,34 @@ for (const id of FILMS) {
     if (narrated) assert.match(vtt, /\n1\n[^\n]*-->[^\n]*\nThe narration is a synthetic voice\.\n/, "the synthetic-voice line is the first cue");
   });
 }
+
+// Track B's P3s on the review route (16 Oct): the film manifests are loaded by DYNAMIC import on the route only, and /films/nyayasiddhi* is served with X-Robots-Tag: noindex, nofollow from the repo's vercel.json.
+test("the NyayaSiddhi manifests are imported by one module, dynamically; no other source file imports them (their scene text stays off other pages' chunks)", () => {
+  const SKIP = new Set(["node_modules", ".next", "out", "test-results"]);
+  const importers: string[] = [];
+  (function walk(d: string): void {
+    for (const n of readdirSync(d)) {
+      if (SKIP.has(n)) continue;
+      const p = join(d, n);
+      if (statSync(p).isDirectory()) { walk(p); continue; }
+      if (!/\.(ts|tsx)$/.test(n) || /\.spec\.ts$/.test(n)) continue;
+      if (/films\/nyayasiddhi[a-z-]*\/manifest\.json/.test(readFileSync(p, "utf8"))) importers.push(relative(root, p).replace(/\\/g, "/"));
+    }
+  })(join(root, "src"));
+  assert.deepEqual(importers, ["src/lib/films/nyayasiddhiFilms.ts"]);
+  const src = readFileSync(join(root, "src", "lib", "films", "nyayasiddhiFilms.ts"), "utf8");
+  assert.equal((src.match(/import\("\.\.\/\.\.\/\.\.\/public\/films\/nyayasiddhi[a-z-]*\/manifest\.json"\)/g) ?? []).length, 5, "five dynamic imports");
+  assert.doesNotMatch(src, /^import .* from ".*manifest\.json"/m, "no static import of a manifest");
+});
+
+test("vercel.json: /films/nyayasiddhi* gets X-Robots-Tag noindex, nofollow, and the site-wide headers are unchanged (repo code, not a project setting)", () => {
+  const cfg = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8")) as { headers: { source: string; headers: { key: string; value: string }[] }[] };
+  const all = cfg.headers.find((h) => h.source === "/(.*)");
+  assert.deepEqual(all?.headers.map((h) => h.key), ["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options"]);
+  const robots = cfg.headers.filter((h) => h.headers.some((x) => x.key === "X-Robots-Tag"));
+  assert.equal(robots.length, 1);
+  assert.deepEqual(robots[0].headers, [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]);
+  const re = new RegExp(`^${robots[0].source}$`);
+  for (const p of ["/films/nyayasiddhi/film.mp4", "/films/nyayasiddhi-loop/poster.png", "/films/nyayasiddhi-firm/captions.vtt", "/films/nyayasiddhi-narrated/film.mp4", "/films/nyayasiddhi-firm-narrated/manifest.json"]) assert.match(p, re, p);
+  for (const p of ["/films/client/film.mp4", "/films/technical/film.mp4", "/benchmarks", "/"]) assert.doesNotMatch(p, re, p);
+});
