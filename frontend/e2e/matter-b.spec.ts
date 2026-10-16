@@ -49,7 +49,7 @@ base.describe("flag OFF (the live layout)", () => {
     await arrange(page);
     expect(await page.evaluate(() => document.documentElement.hasAttribute("data-layout"))).toBe(false);
     await screen(page);
-    for (const id of ["mb-skip", "mb-announce", "mb-body", "mb-dock", "mb-screening-group", "mb-group-general", "breadcrumb", "mb-edit-facts", "mb-new-screening"]) await expect(page.getByTestId(id)).toHaveCount(0);
+    for (const id of ["mb-skip", "mb-announce", "mb-body", "mb-dock", "mb-screening-group", "mb-group-general", "breadcrumb", "mb-edit-facts", "mb-new-screening", "mb-also"]) await expect(page.getByTestId(id)).toHaveCount(0);
     await expect(page.getByTestId("nav-group-work")).toHaveCount(1);
     await expect(page.locator("#step-facts")).toBeVisible();
     await expect(page.getByTestId("workspace-steps")).toBeVisible();
@@ -286,6 +286,26 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       }
     });
 
+    base("the line under the standing line links Safety record and Benchmarks (and the film), to /safety and /benchmarks only; the command palette names the page 'This screening'", async ({ page }) => {
+      await arrange(page);
+      const standing = page.getByTestId("standing-line");
+      const line = page.getByTestId("mb-also");
+      await expect(line).toBeVisible();
+      await expect(line).toHaveText("Also: Safety record · Benchmarks and the NyayaSiddhi film");
+      const sb = (await standing.boundingBox())!, lb = (await line.boundingBox())!;
+      expect(lb.y, "the line stands below the standing line").toBeGreaterThan(sb.y);
+      await expect(page.getByTestId("mb-also-safety")).toHaveAttribute("href", "/safety");
+      await expect(page.getByTestId("mb-also-benchmarks")).toHaveAttribute("href", "/benchmarks");
+      await expect(page.locator('a[href*="benchmarks-film-preview"]'), "no anchor to the review route").toHaveCount(0);
+      if (phone) for (const id of ["mb-also-safety", "mb-also-benchmarks"]) expect((await page.getByTestId(id).boundingBox())!.height, `${id} is a thumb-sized target`).toBeGreaterThanOrEqual(44);
+      await screen(page);
+      await expect(page.getByTestId("mb-also"), "only before a result").toHaveCount(0);
+      await page.keyboard.press("Control+k");
+      await expect(page.getByPlaceholder(/pages, actions/)).toBeVisible();
+      await expect(page.getByRole("button", { name: /^This screening/ })).toBeVisible();
+      await expect(page.getByRole("button", { name: /^Matter\b/ })).toHaveCount(0);
+    });
+
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
       await arrange(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
@@ -293,8 +313,16 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(nav.getByRole("group", { name: MB.screeningLabel })).toBeVisible();
       await expect(nav.getByRole("link", { name: MB.resultLabel, exact: true })).toHaveCount(0);
       await expect(nav.getByTestId("mb-group-reference")).toBeVisible();
+      // Reference is OPEN by default at both widths (Interim lead, 16 Oct: Safety record and Benchmarks within two taps of home); the summary still closes and reopens it
+      const refLinks = nav.getByTestId("mb-group-reference").getByRole("link");
+      await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Safety record", exact: true })).toBeVisible();
+      await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Benchmarks", exact: true })).toBeVisible();
+      await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Data handling" })).toBeVisible();
+      const openCount = await refLinks.count();
+      await nav.getByTestId("mb-group-reference").locator("summary").click();
       await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Data handling" })).toBeHidden();
       await nav.getByTestId("mb-group-reference").locator("summary").click();
+      await expect(refLinks).toHaveCount(openCount);
       await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Data handling" })).toBeVisible();
       await expect(nav.getByRole("link", { name: "Citation check" })).toHaveAttribute("href", /\/citations/);
       await expect(nav.getByRole("link", { name: "Matter", exact: true }), "the General item Matter is hidden under the flag").toHaveCount(0);
