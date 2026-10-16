@@ -26,6 +26,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { MatterBNav } from "@/components/MatterBNav";
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { AccountControl } from "@/components/AccountControl";
 import { citationNavOffered } from "@/lib/citationNav";
@@ -97,6 +99,18 @@ export function Sidebar() {
     const main = document.getElementById("main");
     main?.setAttribute("inert", "");
     const onKey = (e: KeyboardEvent) => {
+      // Layout B (matter-b): the open drawer is a proper dialog, so Tab and Shift+Tab stay inside it (the menu button, which closes it, counts as inside).
+      if (LAYOUT_MATTER_B && e.key === "Tab") {
+        const inside = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), summary, input, [tabindex]:not([tabindex='-1'])") ?? []).filter((el) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== "hidden" && (el.tagName === "SUMMARY" || !el.closest("details:not([open])")));
+        const edge = [toggleRef.current, ...inside].filter((el): el is HTMLElement => !!el);
+        if (edge.length > 0) {
+          const first = edge[0], last = edge[edge.length - 1];
+          const active = document.activeElement;
+          if (e.shiftKey && (active === first || !edge.includes(active as HTMLElement))) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && (active === last || !edge.includes(active as HTMLElement))) { e.preventDefault(); first.focus(); }
+        }
+        return;
+      }
       if (e.key !== "Escape") return;
       e.preventDefault();
       setNavOpen(false);
@@ -187,7 +201,13 @@ export function Sidebar() {
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
-        {NAV_GROUP_ORDER.map((group) => {
+        {LAYOUT_MATTER_B ? (
+          <MatterBNav
+            pathname={pathname}
+            items={NAV.filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))}
+            studio={NAV.filter((n) => n.group === "studio").filter(({ href }) => whoami.edition === STUDIO && (href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO)))}
+          />
+        ) : NAV_GROUP_ORDER.map((group) => {
           const items = NAV.filter((n) => n.group === group)
             .filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
             .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO));

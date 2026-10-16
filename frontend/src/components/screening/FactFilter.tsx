@@ -6,10 +6,10 @@ import { FACTS_HEADING, FACT_FILTER_CLEAR, FACT_FILTER_HINT, factFilterStatus } 
  * The facts of a result as a list of buttons: selecting one narrows the ingredient rows below to the rows that cite it (the filter lives in the page, per result; nothing is stored).
  * Keyboard: each fact is a button (aria-pressed); "Show all rows" clears. The status line is a polite live region.
  */
-export function FactFilter({ facts, selected, onSelect }: { facts: ReadonlyArray<{ id: string; text: string }>; selected: string | null; onSelect: (id: string | null) => void }) {
+export function FactFilter({ facts, selected, onSelect, matterB }: { facts: ReadonlyArray<{ id: string; text: string }>; selected: string | null; onSelect: (id: string | null) => void; matterB?: { heading: string; cited: Readonly<Record<string, number>>; citedBy: (n: number) => string; none: string } }) {
   return (
-    <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-labelledby="fact-filter-heading" data-testid="fact-filter">
-      <h2 id="fact-filter-heading" className="font-serif text-lg font-semibold text-[var(--color-text)]">{FACTS_HEADING}</h2>
+    <section className={`space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden${matterB ? " lg:sticky lg:top-4" : ""}`} aria-labelledby="fact-filter-heading" data-testid="fact-filter">
+      <h2 id="fact-filter-heading" className="font-serif text-lg font-semibold text-[var(--color-text)]">{matterB ? matterB.heading : FACTS_HEADING}</h2>
       <p className="text-sm text-[var(--color-text-dim)]" data-testid="fact-filter-hint">{FACT_FILTER_HINT}</p>
       <ul className="space-y-2">
         {facts.map((f) => (
@@ -22,7 +22,14 @@ export function FactFilter({ facts, selected, onSelect }: { facts: ReadonlyArray
               data-testid={`fact-filter-${f.id}`}
             >
               <span className="mt-0.5 w-8 shrink-0 font-mono text-xs text-[var(--color-text-dim)]">{f.id}</span>
-              <span className="whitespace-pre-wrap">{f.text}</span>
+              {matterB ? (
+                <span className="flex flex-col">
+                  <span className="whitespace-pre-wrap">{f.text}</span>
+                  <span className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid={`fact-cited-${f.id}`}>{(matterB.cited[f.id] ?? 0) > 0 ? matterB.citedBy(matterB.cited[f.id]) : matterB.none}</span>
+                </span>
+              ) : (
+                <span className="whitespace-pre-wrap">{f.text}</span>
+              )}
             </button>
           </li>
         ))}

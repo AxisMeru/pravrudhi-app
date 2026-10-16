@@ -2,18 +2,30 @@ import { ALTERNATE_LIMB_NOTE, CHIP_LABEL, ipcDisclosure, DEFENCE_HEADING, NO_CHE
 import { contractReferral, rowsFor, summarize, type ScreeningRow } from "@/lib/screening/model";
 import { contractListLabel, isAlternateLimb, offenceOf } from "@/lib/screening/offences";
 import type { AnalyseFactsContract, AnalyseFactsResult } from "@/lib/api";
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
+import { MB } from "@/lib/screening/matterB";
 import { CHIP_TONE, SummaryBanner } from "./SummaryBanner";
 
 /** offScreen: the fact filter hides this row on the SCREEN only; it stays in the page and prints (a printed result is all of it, by construction: no event needed). */
-function Row({ row, offScreen = false }: { row: ScreeningRow; offScreen?: boolean }) {
+function Row({ row, offScreen = false, selected = false }: { row: ScreeningRow; offScreen?: boolean; selected?: boolean }) {
+  const chip = (
+    <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[13px] font-semibold ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
+      {CHIP_LABEL[row.chip]}
+    </span>
+  );
   return (
-    <li className={`space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 ${offScreen ? "hidden print:block" : ""}`} data-testid="ingredient-row" data-chip={row.chip} data-filtered-out={offScreen || undefined}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
-        <span className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-[13px] font-semibold ${CHIP_TONE[row.chip]}`} data-testid="ingredient-chip">
-          {CHIP_LABEL[row.chip]}
-        </span>
-      </div>
+    <li className={`space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 ${offScreen ? "hidden print:block" : ""}`} style={selected ? { outline: "2px solid var(--color-accent)", outlineOffset: "2px" } : undefined} data-testid="ingredient-row" data-chip={row.chip} data-filtered-out={offScreen || undefined}>
+      {LAYOUT_MATTER_B ? (
+        <div className="flex flex-wrap items-start gap-3">
+          {chip}
+          <p className="min-w-0 flex-1 basis-60 text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <p className="text-base font-medium leading-6 text-[var(--color-text)]" data-testid="ingredient-text">{row.element}</p>
+          {chip}
+        </div>
+      )}
       {row.reason && (
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="ingredient-reason">
           {row.reason}
@@ -76,6 +88,31 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
           {referral.unknown && <p className="mt-1 text-xs text-[var(--color-warn)]" data-testid="contract-review-code">{REASON_CODE_LABEL}: {referral.code}</p>}
         </div>
       )}
+      {LAYOUT_MATTER_B ? (
+        // layout B: rows grouped by chip state, each group headed by the chip's own words with its live row count (a group with no rows is not shown); the chip leads each row.
+        <>
+          {([
+            ["review", MB.groupReview],
+            ["supported", MB.groupSupported],
+            ["suggested", (n: number) => `${CHIP_LABEL.suggested} (${n})`],
+            ["not_supported", MB.groupNoFact],
+          ] as const).map(([chipKey, heading]) => {
+            const group = rows.ingredients.filter((r) => r.chip === chipKey);
+            if (group.length === 0) return null;
+            return (
+              <div key={chipKey} className={`space-y-2 ${group.some(matches) ? "" : "hidden print:block"}`} data-testid={`mb-group-${chipKey}`}>
+                <h3 className="text-sm font-medium text-[var(--color-text)]">{heading(group.length)}</h3>
+                <ul className="space-y-2" aria-label={heading(group.length)}>
+                  {group.map((r, i) => (
+                    <Row key={`${r.element}-${i}`} row={r} offScreen={!matches(r)} selected={factFilter !== null && r.factId === factFilter} />
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </>
+      ) : (
+        <>
       {/* #206 R8: no empty list for a screen reader to announce (a block whose ingredients are all in the group below, or that has none). */}
       {rows.ingredients.some((r) => r.chip !== "not_supported") && (
         <ul className={`space-y-2 ${rows.ingredients.filter((r) => r.chip !== "not_supported").some(matches) ? "" : "hidden print:block"}`} aria-label="Ingredients">
@@ -93,6 +130,8 @@ export function IngredientChecklist({ contract, facts, agenda = false, live = tr
             ))}
           </ul>
         </div>
+      )}
+        </>
       )}
       {rows.defences.length > 0 && (
         <div className={`space-y-2 ${rows.defences.some(matches) ? "" : "hidden print:block"}`}>
