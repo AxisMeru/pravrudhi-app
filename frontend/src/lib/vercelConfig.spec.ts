@@ -47,18 +47,18 @@ test("build.json is wired as the prebuild step and the generated file is gitigno
 });
 
 // A2/A3 (R2, gate v6): the flags the build used, as booleans, true only for the exact string "1".
-const FLAGS_ENV_NAMES = { a: "NEXT_PUBLIC_ASSISTANT_ENTRY", d: "NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED", i: "NEXT_PUBLIC_INTAKE", c: "NEXT_PUBLIC_CITATION_NAV", e: "NEXT_PUBLIC_CITATION_EXISTENCE_ONLY" };
-const FLAGS_ENV = { NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1", NEXT_PUBLIC_INTAKE: "1", NEXT_PUBLIC_CITATION_NAV: "1", NEXT_PUBLIC_CITATION_EXISTENCE_ONLY: "1" };
+const FLAGS_ENV_NAMES = { a: "NEXT_PUBLIC_ASSISTANT_ENTRY", d: "NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED", i: "NEXT_PUBLIC_INTAKE", c: "NEXT_PUBLIC_CITATION_NAV", e: "NEXT_PUBLIC_CITATION_EXISTENCE_ONLY", l: "NEXT_PUBLIC_LOOK_TONAL" };
+const FLAGS_ENV = { NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1", NEXT_PUBLIC_INTAKE: "1", NEXT_PUBLIC_CITATION_NAV: "1", NEXT_PUBLIC_CITATION_EXISTENCE_ONLY: "1", NEXT_PUBLIC_LOOK_TONAL: "1" };
 
-test("build.json flags: all five set to '1' are all true; all unset are all false; exactly two top-level keys and exactly five flag keys", async () => {
+test("build.json flags: all six set to '1' are all true; all unset are all false; exactly two top-level keys and exactly six flag keys", async () => {
   const { buildJson } = await import("../../scripts/write-build-json.mjs");
   const on = JSON.parse(buildJson({ BUILD_SHA: SHA, ...FLAGS_ENV }));
-  assert.deepEqual(on.flags, { assistant_entry: true, delete_confirmed: true, intake: true, citation_nav: true, citation_existence_only: true });
+  assert.deepEqual(on.flags, { assistant_entry: true, delete_confirmed: true, intake: true, citation_nav: true, citation_existence_only: true, look_tonal: true });
   const off = JSON.parse(buildJson({ BUILD_SHA: SHA }));
-  assert.deepEqual(off.flags, { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: false });
+  assert.deepEqual(off.flags, { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: false, look_tonal: false });
   for (const j of [on, off]) {
     assert.deepEqual(Object.keys(j).sort(), ["flags", "sha"]);
-    assert.deepEqual(Object.keys(j.flags).sort(), ["assistant_entry", "citation_existence_only", "citation_nav", "delete_confirmed", "intake"]);
+    assert.deepEqual(Object.keys(j.flags).sort(), ["assistant_entry", "citation_existence_only", "citation_nav", "delete_confirmed", "intake", "look_tonal"]);
     assert.ok(Object.values(j.flags).every((v) => typeof v === "boolean"));
   }
   assert.equal(on.sha, SHA, "the sha rule is unchanged");
@@ -69,8 +69,8 @@ test("build.json flags: only the exact string '1' is true ('true', '0', '', ' 1'
   for (const v of ["true", "0", "", " 1", "1 ", "yes", "TRUE", "on", "11", "1\n"]) {
     for (const name of Object.values(FLAGS_ENV_NAMES)) assert.equal(Object.values(buildFlags({ [name]: v })).some(Boolean), false, `${name}=${JSON.stringify(v)}`);
   }
-  assert.deepEqual(buildFlags({ NEXT_PUBLIC_INTAKE: "1" }), { assistant_entry: false, delete_confirmed: false, intake: true, citation_nav: false, citation_existence_only: false });
-  assert.deepEqual(buildFlags({ NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "true" }), { assistant_entry: true, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: false });
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_INTAKE: "1" }), { assistant_entry: false, delete_confirmed: false, intake: true, citation_nav: false, citation_existence_only: false, look_tonal: false });
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_ASSISTANT_ENTRY: "1", NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "true" }), { assistant_entry: true, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: false, look_tonal: false });
 });
 
 test("build.json carries no other env: unrelated variables, including secret-looking ones, never appear", async () => {
@@ -82,6 +82,14 @@ test("build.json carries no other env: unrelated variables, including secret-loo
 // A3 (R2, 15 Oct): the Screening citations panel needs BOTH citation flags, so the marker records the existence-only flag too, independently of the nav flag.
 test("build.json flags: citation_existence_only is its own flag, independent of citation_nav", async () => {
   const { buildFlags } = await import("../../scripts/write-build-json.mjs");
-  assert.deepEqual(buildFlags({ NEXT_PUBLIC_CITATION_EXISTENCE_ONLY: "1" }), { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: true });
-  assert.deepEqual(buildFlags({ NEXT_PUBLIC_CITATION_NAV: "1" }), { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: true, citation_existence_only: false });
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_CITATION_EXISTENCE_ONLY: "1" }), { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: true, look_tonal: false });
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_CITATION_NAV: "1" }), { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: true, citation_existence_only: false, look_tonal: false });
+});
+
+// The look patch flag is its own key and, like every flag, true only for the exact string "1".
+test("build.json flags: look_tonal is its own flag, independent of the others", async () => {
+  const { buildFlags } = await import("../../scripts/write-build-json.mjs");
+  assert.deepEqual(buildFlags({ NEXT_PUBLIC_LOOK_TONAL: "1" }), { assistant_entry: false, delete_confirmed: false, intake: false, citation_nav: false, citation_existence_only: false, look_tonal: true });
+  assert.equal(buildFlags({ NEXT_PUBLIC_LOOK_TONAL: "tonal" }).look_tonal, false);
+  assert.equal(buildFlags({ NEXT_PUBLIC_INTAKE: "1" }).look_tonal, false);
 });

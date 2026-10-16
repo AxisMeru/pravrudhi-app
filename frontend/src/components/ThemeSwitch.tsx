@@ -34,6 +34,7 @@ export function ThemeSwitch() {
       type="button"
       aria-label={THEME_ICON_ARIA[choice]}
       title={THEME_ICON_TOOLTIP[choice]}
+      id="theme-button"
       data-testid="theme-button"
       data-theme-choice={choice}
       onClick={() => {

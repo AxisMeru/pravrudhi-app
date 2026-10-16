@@ -7,6 +7,7 @@ import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
 import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/lib/productCopy";
+import { LOOK_ATTRIBUTE } from "@/lib/look";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme";
 import "./globals.css";
 
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-look={LOOK_ATTRIBUTE}>
       <head>
         {/* Sets data-theme from the stored choice before first paint (no flash of the wrong theme). */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

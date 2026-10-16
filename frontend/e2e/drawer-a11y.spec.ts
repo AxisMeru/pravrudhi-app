@@ -52,6 +52,24 @@ test.describe("phone drawer", () => {
     await page.getByRole("heading", { level: 1 }).first().click(); // the page behind answers clicks again
   });
 
+  test("with the drawer open the theme button is inert and never a Tab stop; it is focusable again after close (Track B, A1)", async ({ page }) => {
+    await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+    await page.goto("/screening");
+    const theme = page.getByTestId("theme-button");
+    await page.getByRole("button", { name: "Open navigation" }).click();
+    await expect(theme).toHaveAttribute("inert", "");
+    await expect(theme).toHaveAttribute("aria-hidden", "true");
+    for (let i = 0; i < 30; i++) {
+      await page.keyboard.press("Tab");
+      expect(await page.evaluate(() => document.activeElement?.getAttribute("data-testid")), `Tab stop ${i + 1}`).not.toBe("theme-button");
+    }
+    await page.keyboard.press("Escape");
+    await expect(theme).not.toHaveAttribute("inert", "");
+    await expect(theme).not.toHaveAttribute("aria-hidden", "true");
+    await theme.focus();
+    await expect(theme).toBeFocused();
+  });
+
   test("opening moves focus into the dialog", async ({ page }) => {
     await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
     await page.goto("/screening");

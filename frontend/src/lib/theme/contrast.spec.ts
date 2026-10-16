@@ -70,3 +70,30 @@ test('"system" follows the light set exactly: the prefers-color-scheme block car
 test("every token the dark theme defines is defined in the light theme too (and the reverse)", () => {
   assert.deepEqual(Object.keys(LIGHT).sort(), Object.keys(DARK).sort());
 });
+
+// Look patch (spec 3e0b13c4bdc8): the new backgrounds are mixed from existing tokens exactly as the CSS mixes them (color-mix in srgb), and text, dim text and the accent link must reach 4.5:1 on each.
+for (const [name, t] of [["dark", DARK], ["light", LIGHT]] as const) {
+  test(`${name}: text, dim text and the accent link reach 4.5:1 on every tonal-look background (ground top, glow peak, band, state tints)`, () => {
+    const grounds: Record<string, string> = {
+      "ground-top": mix(t.accent, 4.5, t.bg),
+      "glow-peak": mix(t.accent, 8, t.bg),
+      band: mix(t.surface, 65, t.bg),
+      "tint-supported": mix(t.ok, 6, t.surface),
+      "tint-review": mix(t.warn, 8, t.surface),
+      "tint-nofact": mix(t["text-dim"], 6, t.surface),
+    };
+    for (const [g, bg] of Object.entries(grounds)) for (const fg of ["text", "text-dim", "accent"]) {
+      const r = ratio(t[fg], bg);
+      assert.ok(r >= 4.5, `${name}: ${fg} ${t[fg]} on ${g} ${bg} is ${r.toFixed(2)}:1`);
+    }
+  });
+}
+
+test("the look patch is off by default: every rule is scoped to html[data-look=\"tonal\"] and the flag is NEXT_PUBLIC_LOOK_TONAL=1", () => {
+  const i = css.indexOf("/* Look patch (spec 3e0b13c4bdc8): ONLY under");
+  assert.ok(i > 0);
+  const rules = css.slice(i).split("\n").filter((l) => /\{\s*$/.test(l) && !l.trim().startsWith("@media") && !l.trim().startsWith("/*"));
+  assert.ok(rules.length >= 10);
+  for (const l of rules) assert.ok(l.includes('html[data-look="tonal"]'), `unscoped look rule: ${l}`);
+  assert.match(readFileSync(join(__dirname, "..", "look.ts"), "utf8"), /NEXT_PUBLIC_LOOK_TONAL === "1"/);
+});
