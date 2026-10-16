@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
+import { isLayoutB } from "./support/layout";
 
 /**
  * The Screening view against RECORDED engine answers (page.route) with invented facts: the checklist, the chips and their reasons, the cited fact
@@ -55,8 +56,27 @@ test("the pasted facts become numbered, editable facts F1..Fn", async ({ page })
 
 test("the checklist: a chip and plain reason per ingredient, the cited fact in full, what to check, and the banner; no row says proved", async ({ page }) => {
   await run(page);
-  const rows = page.getByTestId("ingredient-row");
-  await expect(rows).toHaveCount(3);
+  const all = page.getByTestId("ingredient-row");
+  await expect(all).toHaveCount(3);
+  // layout B groups the rows by chip (review, supported, no fact), so a row is found by its chip there and by its place in the answer on the live layout
+  const b = await isLayoutB(page);
+  const CHIPS = ["Supported by a fact", "Needs your review", "No fact cited"];
+  if (b) {
+    // grouped rows lose nothing: all three ingredients exactly once, in statute order within each group, and the group headings' counts add up to the total
+    const texts = await all.getByTestId("ingredient-text").allInnerTexts();
+    expect([...texts].sort(), "each ingredient appears exactly once").toEqual([...EL].sort());
+    let total = 0;
+    for (const chip of CHIPS) {
+      const group = all.filter({ has: page.getByTestId("ingredient-chip").filter({ hasText: chip }) });
+      const n = await group.count();
+      total += n;
+      const order = (await group.getByTestId("ingredient-text").allInnerTexts()).map((t) => EL.indexOf(t));
+      expect(order, `${chip}: statute order inside the group`).toEqual([...order].sort((x, y) => x - y));
+      await expect(page.getByText(new RegExp(`^${chip} \\(${n}\\)$`)), `${chip}: the group heading carries its count`).toHaveCount(1);
+    }
+    expect(total, "the group counts add up to the contract's elements").toBe(EL.length);
+  }
+  const rows = { nth: (i: number) => (b ? all.filter({ has: page.getByTestId("ingredient-chip").filter({ hasText: CHIPS[i] }) }) : all.nth(i)) };
   await expect(rows.nth(0).getByTestId("ingredient-chip")).toHaveText("Supported by a fact");
   await expect(rows.nth(1).getByTestId("ingredient-chip")).toHaveText("Needs your review");
   await expect(rows.nth(2).getByTestId("ingredient-chip")).toHaveText("No fact cited");

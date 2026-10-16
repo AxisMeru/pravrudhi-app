@@ -1,5 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
+import { expectOffPageScreeningItem, expectResultViewNav, isLayoutB } from "./support/layout";
 
 // The Matter workspace (Lead-2, 15 Oct; R1's strings): /screening has a step bar (Facts, Screen, Memo, Hearing preparation) with states; the nav says "Matter"; every old URL still works.
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -40,6 +41,14 @@ test("the step bar: states before facts, with facts, and with a result; the lock
   await page.getByText("Cheating", { exact: false }).first().click();
   await page.getByRole("button", { name: "Screen these facts" }).click();
   await expect(page.getByTestId("checklist")).toBeVisible();
+  if (await isLayoutB(page)) {
+    // layout B: the result-first view has no step bar (by design); the memo actions and Hearing preparation are on the page, and the "This screening" group links to them
+    // (the before-facts and with-facts assertions above ran unchanged; once a result exists there is no step state or locked-step note left to assert, because the steps are not shown)
+    await expectResultViewNav(page, { hearing: true, citations: process.env.CITATION_NAV_BUILD === "1" && process.env.CITATION_EXISTENCE_BUILD === "1" });
+    await expect(page.locator("#step-memo")).toBeVisible();
+    await expect(page.locator("#step-hearing")).toBeVisible();
+    return;
+  }
   await expect(state("screen")).toHaveText("Done");
   await expect(state("memo")).toHaveText("Available");
   await expect(page.getByTestId("step-note-memo")).toHaveCount(0);
@@ -64,9 +73,14 @@ test("every old address still works: /screening, /screening?example=…, and ano
 
 test("the nav entry and the command palette say 'Matter' and go to /screening", async ({ page }) => {
   await page.goto("/guide");
-  const link = page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Matter", exact: true });
-  await expect(link).toHaveAttribute("href", "/screening");
-  await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Screening", exact: true })).toHaveCount(0);
+  const nav = page.getByRole("navigation", { name: "Primary" });
+  if (await isLayoutB(page)) {
+    // layout B (R1's ruling for app#393): no "Matter" item; off /screening the group is one "This screening" link to the page, and there is no "Screening" link
+    await expectOffPageScreeningItem(page);
+  } else {
+    await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveAttribute("href", "/screening");
+  }
+  await expect(nav.getByRole("link", { name: "Screening", exact: true })).toHaveCount(0);
 });
 
 test("/workflows: each Built row links to its step in the workspace; a Building row has no link; the rows keep their structure", async ({ page }) => {

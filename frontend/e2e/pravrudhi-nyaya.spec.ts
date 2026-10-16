@@ -1,5 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { promiseHits } from "./support/noTrainingPromise";
+import { expectOffPageScreeningItem, isLayoutB, openReference } from "./support/layout";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
 const LINE_START = "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC";
@@ -16,9 +17,21 @@ test("the name and the line: the title, the sidebar name, and the line on the Sc
 test("the grouped navigation: Work, Reference and Account, labels changed and paths kept; none of Studio's pages", async ({ page }) => {
   await page.goto("/guide");
   const nav = page.getByRole("navigation", { name: "Primary" });
-  for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
+  const b = await isLayoutB(page);
+  if (b) {
+    // layout B: This screening (one link off /screening), General, Reference (a disclosure); no Matter item
+    await expectOffPageScreeningItem(page);
+    // the live layout's Account group held the sign-in control; layout B keeps it in the sidebar header
+    await expect(page.locator("#primary-navigation").getByRole("link", { name: "Sign in" }).or(page.locator("#primary-navigation").getByRole("button", { name: "Sign out" }))).toHaveCount(1);
+    await expect(nav.getByTestId("mb-screening-group")).toBeVisible();
+    await expect(nav.getByTestId("mb-group-general")).toBeVisible();
+    await expect(nav.getByTestId("mb-group-reference")).toBeVisible();
+    await openReference(page);
+  } else {
+    for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
+  }
   await expect(nav.getByTestId("nav-group-studio")).toHaveCount(0);
-  const hrefs: Record<string, string> = { Matter: "/screening", Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
+  const hrefs: Record<string, string> = { ...(b ? {} : { Matter: "/screening" }), Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
   for (const [name, href] of Object.entries(hrefs)) await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", new RegExp(`${href}/?$`));
   await expect(nav.getByRole("link", { name: "User guide", exact: true })).toHaveAttribute("aria-current", "page");
   for (const studio of ["Objectives", "Progress", "Memory", "Catalogue", "Chat", "Runs", "Models", "Install"]) await expect(nav.getByRole("link", { name: studio, exact: true })).toHaveCount(0);

@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { isLayoutB } from "./support/layout";
 
 // D1 + D2 (explorer review of the live alias): on a phone the closed drawer must not leave controls in the tab order; the open drawer is a modal dialog that Escape closes, and the page behind is inert.
 test.describe("phone drawer", () => {
@@ -84,8 +85,11 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await page.goto("/screening");
   await expect(page.locator("#primary-navigation")).toBeVisible();
   await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
-  await page.getByRole("link", { name: "Matter", exact: true }).first().focus();
-  await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeFocused();
+  // layout B has no "Matter" item (R1's ruling for app#393): on /screening its first link is the page's own "Facts" anchor
+  const first = (await isLayoutB(page)) ? page.getByRole("navigation", { name: "Primary" }).locator("a").first() : page.getByRole("link", { name: "Matter", exact: true }).first();
+  if (await isLayoutB(page)) await expect(first).toHaveText("Facts");
+  await first.focus();
+  await expect(first).toBeFocused();
 });
 
 // Deploy 3 #203 (explorer review of the live alias: D3, D7, D8). At a phone width the close button must not cover the product name, every control a thumb has to hit is at least 44 px
@@ -140,9 +144,25 @@ test.describe("phone touch targets and drawer header", () => {
     expect(style.listStyleType).not.toBe("none");
     expect(style.h).toBeGreaterThanOrEqual(SIZE_MIN);
     // no other control this PR sized was turned into a flex summary / lost a marker: every <summary> on the page is a list-item
-    const displays = await page.locator("summary").evaluateAll((els) => els.map((e) => getComputedStyle(e).display));
+    // (layout B's Reference disclosure draws its own chevron, a flex summary, so it is the one exemption)
+    const displays = await page.locator('summary:not([data-testid="mb-group-reference"] > summary)').evaluateAll((els) => els.map((e) => getComputedStyle(e).display));
     expect(displays.length).toBeGreaterThan(0);
     for (const d of displays) expect(d).toBe("list-item");
+    // layout B's Reference disclosure replaces the marker with a chevron: it must be there, thumb-sized (opened in the drawer), and toggle the disclosure
+    if (await isLayoutB(page)) {
+      await page.getByRole("button", { name: "Open navigation" }).click();
+      const ref = page.getByTestId("mb-group-reference");
+      const sum = ref.locator("summary");
+      await expect(sum).toBeVisible();
+      await expect(ref.getByTestId("mb-reference-chevron")).toBeVisible();
+      expect((await sum.boundingBox())!.height, "the Reference summary is at least 44 px high").toBeGreaterThanOrEqual(SIZE_MIN);
+      const isOpen = () => ref.evaluate((el) => (el as HTMLDetailsElement).open);
+      const before = await isOpen();
+      await sum.click();
+      await expect.poll(isOpen).toBe(!before);
+      await sum.click();
+      await expect.poll(isOpen).toBe(before);
+    }
   });
 
   test("D7: every link and button inside the open drawer is at least 44 px high", async ({ page }) => {
@@ -162,7 +182,8 @@ test("D8: the sidebar's section labels (WORK, REFERENCE, ACCOUNT) are at least 1
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
   const sizes = await page.locator("#primary-navigation").evaluate((nav) => {
-    const labels = [...nav.querySelectorAll('[data-testid^="nav-group-"] > div:first-child')];
+    // live layout: the label div of each nav-group-*; layout B: the group heading <p>s and the Reference summary
+    const labels = [...nav.querySelectorAll('[data-testid^="nav-group-"] > div:first-child, #mb-screening-heading, #mb-general-heading, [data-testid="mb-group-reference"] > summary')];
     return labels.map((l) => ({ text: (l.textContent ?? "").trim(), px: parseFloat(getComputedStyle(l).fontSize) }));
   });
   expect(sizes.length).toBeGreaterThanOrEqual(3);

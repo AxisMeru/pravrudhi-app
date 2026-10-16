@@ -52,7 +52,8 @@ test("the result is brought into view and the run identifiers are the last line 
   const result = page.getByTestId("screening-result");
   await expect(result).toBeVisible();
   await expect.poll(async () => (await result.boundingBox())!.y, { timeout: 5000 }).toBeLessThan(400); // in view in the 600 px window (a result with no panel under it is shorter, so it cannot always reach the very top)
-  const last = await result.locator(":scope > *").last().getAttribute("data-testid");
+  // layout B keeps the phone dock (mb-dock, fixed, hidden from 768 px) as the result's last child; the identifiers are last in the content
+  const last = await result.locator(':scope > *:not([data-testid="mb-dock"])').last().getAttribute("data-testid");
   expect(last).toBe("run-ids");
 });
 

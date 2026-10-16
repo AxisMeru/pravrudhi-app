@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { isLayoutB } from "./support/layout";
 
 // Intake (#414/#430) against a recorded engine answer with INVENTED text: paste, facts come back, choose up to 8, send to Screening. Runs only in the intake-flag build
 // (NEXT_PUBLIC_INTAKE=1, INTAKE_BUILD=1); the normal build sends this route back to Workflows.
@@ -108,6 +109,13 @@ test("Hearing preparation lists Intake's citations only while the facts are the 
   await expect(rows.first()).toContainText("Invented v. Sample (2000) 1 SCC 1");
   await expect(rows.first()).toContainText("Found in the text you pasted");
   // another matter's fact replaces one of them: the first matter's citations are not listed beside the new checklist
+  const b = await isLayoutB(page);
+  // layout B shows the result alone: "Edit facts" brings the facts back (the textboxes are hidden until then) and they must be exactly the facts that were screened
+  const screenedFacts = async () => page.getByRole("textbox", { name: /^Fact F\d+$/ }).evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value));
+  const editFacts = async () => { if (b) await page.getByTestId("mb-edit-facts").click(); };
+  const screened = b ? FACTS.slice(0, 2).map((f) => f.text) : [];
+  await editFacts();
+  if (b) expect(await screenedFacts(), "Edit facts shows the facts that were screened").toEqual(screened);
   const f1 = page.getByRole("textbox", { name: "Fact F1", exact: true });
   const original = await f1.inputValue();
   await f1.fill("My own client's fact about a loan.");
@@ -115,6 +123,7 @@ test("Hearing preparation lists Intake's citations only while the facts are the 
   await expect(page.getByTestId("hearing-citation")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText("Found in the text you pasted");
   // restored: they come back
+  await editFacts();
   await f1.fill(original);
   await run();
   await expect(page.getByTestId("hearing-citation")).toHaveCount(1);
