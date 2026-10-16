@@ -96,6 +96,10 @@ export function Sidebar() {
     if (!navOpen) return;
     const main = document.getElementById("main");
     main?.setAttribute("inert", "");
+    // The fixed theme button lives outside both the dialog and #main, so it would stay a Tab stop under the scrim (Track B, A1): it is inert and hidden from the accessibility tree while the drawer is open.
+    const themeButton = document.getElementById("theme-button");
+    themeButton?.setAttribute("inert", "");
+    themeButton?.setAttribute("aria-hidden", "true");
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       e.preventDefault();
@@ -117,6 +121,8 @@ export function Sidebar() {
       document.removeEventListener("keydown", onKey);
       wide.removeEventListener("change", onWide);
       main?.removeAttribute("inert");
+      themeButton?.removeAttribute("inert");
+      themeButton?.removeAttribute("aria-hidden");
     };
   }, [navOpen]);
 
