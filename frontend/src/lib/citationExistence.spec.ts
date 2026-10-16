@@ -147,7 +147,7 @@ const NAMED = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
 const BARE = "(2000) 4 SCC 168";
 const FOUND = { result: "IN_INDEX", note: "Found in the index (existence only): no quote was checked, so this is not a verification.", status: "in_index", label: "found", verified: false };
 test("#509: the sentence is R1's, exactly, neutral, and none of the banned words", () => {
-  assert.equal(CASE_NAME_NOT_COMPARED, "Only the citation was looked up; the case name you typed was not compared with the index.");
+  assert.equal(CASE_NAME_NOT_COMPARED, "Only the citation was looked up; the case name you typed was not confirmed against the index.");
   assert.doesNotMatch(CASE_NAME_NOT_COMPARED, /verified|\breal\b|fake|correct|wrong/i);
 });
 test("#509 /citations and the Citations panel (verifyView): a named found line gets the sentence AFTER the existing note, which stays; a bare line, any other status and the arm off get none", () => {
@@ -168,25 +168,21 @@ test("#509 Intake's citation line (caseNameNote): the same rule on the citation 
 });
 
 // pravrudhi#509 NAME_MISMATCH (R1, 16 Oct, byte-exact; engine 0.6.19). Per surface: (a) matched, (b) mismatch, (c) field absent, (d) unknown status.
-import { NAME_COMPARED_EXCEPT_COMMON, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT } from "./citationExistence";
+import { NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT } from "./citationExistence";
 import { citationExtra, citationLine } from "./intake";
 const MISMATCH = { result: "NAME_MISMATCH", note: "engine note that R1 replaces", status: "name_mismatch", label: "Case name did not match", verified: false, name_compared: true };
-test("#509 R1's 'compared, except common words' sentence is byte-exact and is its own constant", () => {
-  assert.equal(NAME_COMPARED_EXCEPT_COMMON, "The case name you typed was compared with the index, except a party named only by common words (such as a State or the Union of India), which is not compared.");
-  assert.doesNotMatch(NAME_COMPARED_EXCEPT_COMMON, /verified|\breal\b|fake/i);
-});
 test("#509 NAME_MISMATCH: R1's heading and note are byte-exact", () => {
   assert.equal(NAME_MISMATCH_HEADING, "Case name did not match");
   assert.equal(NAME_MISMATCH_TEXT, "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.");
 });
 test("#509 /citations and the panel (verifyView, statusLabel): (a) matched drops the 'not compared' sentence; (b) mismatch shows the heading and R1's note, never the raw token or the engine's note; (c) the field absent is today's behaviour; (d) unknown is neutral", () => {
-  // (a) IN_INDEX + name_compared true + a named line: R1's "compared, except common words" sentence REPLACES the "not compared" one (the note stays); a bare line gets none
+  // (a) IN_INDEX + name_compared true (EVERY typed party matched) + a named line: no addition (the note stays); a bare line gets none
   const matched = verifyView({ ...FOUND, name_compared: true }, false, true, NAMED);
-  assert.equal(matched.nameNote, NAME_COMPARED_EXCEPT_COMMON); assert.notEqual(matched.nameNote, CASE_NAME_NOT_COMPARED); assert.equal(matched.note, FOUND.note); assert.equal(matched.known, true);
+  assert.equal(matched.nameNote, null); assert.equal(matched.note, FOUND.note); assert.equal(matched.known, true);
   assert.equal(verifyView({ ...FOUND, name_compared: true }, false, true, BARE).nameNote, null, "(b) bare line: none");
   assert.equal(verifyView({ ...FOUND, name_compared: true }, false, true).nameNote, null, "no citation given: none");
   assert.equal(verifyView({ ...FOUND, name_compared: true }, false, false, NAMED).nameNote, null, "arm off: none");
-  assert.equal(verifyView({ ...FOUND, result: "VERIFIED", status: "verified", name_compared: true }, false, true, NAMED).nameNote, null, "only IN_INDEX gets the new sentence");
+  assert.equal(verifyView({ ...FOUND, result: "VERIFIED", status: "verified", name_compared: true }, false, true, NAMED).nameNote, null);
   // (b) mismatch
   const mm = verifyView(MISMATCH, false, true, NAMED);
   assert.equal(mm.known, true); assert.equal(mm.note, NAME_MISMATCH_TEXT); assert.equal(mm.nameNote, null);
@@ -203,7 +199,7 @@ test("#509 /citations and the panel (verifyView, statusLabel): (a) matched drops
 });
 test("#509 Intake (citationLine, citationExtra): (a) matched drops the sentence; (b) mismatch heading + R1's note; (c) absent = today's; (d) unknown is neutral and not 'Not checked.'", () => {
   const c = (verifierStatus: string, text = NAMED, nameCompared = false) => ({ verifierStatus, text, nameCompared });
-  assert.equal(citationExtra(c("IN_INDEX", NAMED, true)), NAME_COMPARED_EXCEPT_COMMON); // (a) compared + matched, named line: R1's sentence in place of the "not compared" one
+  assert.equal(citationExtra(c("IN_INDEX", NAMED, true)), null); // (a) every party matched, named line: nothing added
   assert.equal(citationExtra(c("IN_INDEX", BARE, true)), null); // (b) bare line: none
   assert.equal(citationLine("IN_INDEX"), "Found in our index");
   assert.equal(citationLine("NAME_MISMATCH"), NAME_MISMATCH_HEADING); assert.equal(citationExtra(c("NAME_MISMATCH", NAMED, true)), NAME_MISMATCH_TEXT); // (b)
