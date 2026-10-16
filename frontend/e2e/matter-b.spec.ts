@@ -232,6 +232,44 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       }
     });
 
+    base("the Facts link from a result at the top reveals the Facts section in view, below the top bar, with focus on its heading (app#399)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      await page.evaluate(() => document.querySelector("main#main")?.scrollTo(0, 0));
+      if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
+      await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: MB.factsLabel, exact: true }).click();
+      await page.waitForTimeout(500);
+      await expect(page.locator("#step-facts")).toBeVisible();
+      const box = (await page.locator("#step-facts").boundingBox())!;
+      const barBottom = phone ? (await page.getByTestId("mb-topbar").boundingBox())!.y + (await page.getByTestId("mb-topbar").boundingBox())!.height : 0;
+      expect(box.y, "the section starts below the top bar").toBeGreaterThanOrEqual(barBottom - 1);
+      expect(box.y, "and inside the viewport").toBeLessThan(viewport.height - 100);
+      expect(await page.evaluate(() => document.activeElement?.id), "focus is on the Facts heading").toBe("facts-heading");
+    });
+
+    base("Facts, screen again, Facts again: the second jump works too (the fragment is cleared when the result shows)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      const open = async () => {
+        await page.evaluate(() => document.querySelector("main#main")?.scrollTo(0, 0));
+        if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
+        await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: MB.factsLabel, exact: true }).click();
+        await page.waitForTimeout(500);
+      };
+      await open();
+      await expect(page.locator("#step-facts")).toBeVisible();
+      await page.getByRole("button", { name: "Screen these facts" }).click();
+      await page.getByTestId("screening-result").waitFor({ timeout: 20000 });
+      await expect(page.locator("#step-facts")).toBeHidden();
+      await open();
+      await expect(page.locator("#step-facts")).toBeVisible();
+      const box = (await page.locator("#step-facts").boundingBox())!;
+      const barBottom = phone ? (await page.getByTestId("mb-topbar").boundingBox())!.y + (await page.getByTestId("mb-topbar").boundingBox())!.height : 0;
+      expect(box.y, "below the top bar").toBeGreaterThanOrEqual(barBottom - 1);
+      expect(box.y, "inside the viewport").toBeLessThan(viewport.height - 100);
+      expect(await page.evaluate(() => document.activeElement?.id), "focus on the Facts heading").toBe("facts-heading");
+    });
+
     if (phone) base("a focused rail fact and the citations textarea are never under the dock or the top bar (Track B d26 finding 3)", async ({ page }) => {
       await arrange(page);
       await screen(page);

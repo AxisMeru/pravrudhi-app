@@ -336,14 +336,23 @@ export default function ScreeningPage() {
     if (!LAYOUT_MATTER_B) return;
     if (mbFirst.current) { mbFirst.current = false; return; }
     setAnnounce(mbResultView ? MB.resultLabel : MB.factsLabel);
+    // A stale #step-facts would make the next Facts click a no-op (hashchange does not fire for an unchanged fragment).
+    if (mbResultView && window.location.hash === "#step-facts") window.history.replaceState(null, "", window.location.pathname + window.location.search);
     document.getElementById("page-title")?.focus({ preventScroll: true });
   }, [mbResultView]);
+  const [factsJump, setFactsJump] = useState(0);
   useEffect(() => {
     if (!LAYOUT_MATTER_B) return;
-    const go = () => { if (window.location.hash === "#step-facts") setView("intake"); };
+    const go = () => { if (window.location.hash === "#step-facts") { setView("intake"); setFactsJump((n) => n + 1); } };
     window.addEventListener("hashchange", go);
     return () => window.removeEventListener("hashchange", go);
   }, []);
+  // The Facts link: the section was hidden when the browser tried to jump to it, so once it is shown scroll it in (below the top bar, via main's scroll padding) and put focus on its heading.
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B || factsJump === 0) return;
+    document.getElementById("step-facts")?.scrollIntoView({ block: "start" });
+    document.getElementById("facts-heading")?.focus({ preventScroll: true });
+  }, [factsJump]);
   // The dock's overflow: Escape closes it and returns focus to its trigger.
   const moreRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -456,7 +465,7 @@ export default function ScreeningPage() {
               <Link href={INTAKE_PATH} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="intake-link">{INTAKE_OPEN_LABEL}</Link>
             </p>
           )}
-          <h2 className="font-serif text-lg font-semibold text-[var(--color-text)]">{FACTS_HEADING}</h2>
+          <h2 {...(LAYOUT_MATTER_B ? { id: "facts-heading", tabIndex: -1 } : {})} className="font-serif text-lg font-semibold text-[var(--color-text)]">{FACTS_HEADING}</h2>
           <RetentionBefore />
           <label className="text-sm font-medium text-[var(--color-text)]" htmlFor="screening-paste">Paste the FIR, complaint or narrative</label>
           <AutoGrowTextarea
