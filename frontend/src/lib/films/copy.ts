@@ -10,7 +10,7 @@ export const FILM_PLAY_BUTTON = "Play the film";
 export const FILM_TRANSCRIPT_HEADING = "What the film shows";
 export const FILM_NARRATED_NOTE = "The film is narrated; the captions carry the narration, and the list below sums up each scene.";
 /** PROPOSED for R1 (NyayaSiddhi film, 16 Oct): the note under a silent film (its manifest says audio false); it replaces the narrated note and the synthetic-voice line. */
-export const FILM_SILENT_NOTE = "The film is silent; the captions carry its words, and the list below sums up each scene.";
+export const FILM_SILENT_NOTE = "The film is silent; the captions name each scene, and the list below sums up each scene.";
 export const FILM_SYNTHETIC_VOICE = "The narration is a synthetic voice.";
 // New controls (Web, 15 Oct; proposed wording, for R1 to confirm when built). The film starts muted so it can start anywhere; the visible button turns the narration on.
 export const FILM_SOUND_ON = "Turn on sound";
@@ -37,4 +37,4 @@ export const NYAYASIDDHI_CUT_HEADINGS = { "nyayasiddhi": "Cut A: the main film",
 export const NYAYASIDDHI_VOICE_PREVIEW_LABEL = "Preview for voice review";
 export const NYAYASIDDHI_VOICE_HEADINGS = { "nyayasiddhi-narrated": "Cut A, narrated", "nyayasiddhi-firm-narrated": "Cut C, narrated" } as const;
 /** R1 (16 Oct, byte-exact): one line above each SILENT player on the review page; styled like the voice label. Its button name is FILM_CAPTIONS_SHOW (captions are off by default): if that text changes, this line changes with it (a unit test derives it). */
-export const NYAYASIDDHI_SILENT_LABEL = "Silent cut: no voice. Press Show captions to read it.";
+export const NYAYASIDDHI_SILENT_LABEL = "Silent cut: no voice. While it plays, press Show captions to see the scene titles.";

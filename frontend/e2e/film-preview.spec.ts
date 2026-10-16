@@ -15,7 +15,7 @@ test("/benchmarks-film-preview: noindex, the three silent cuts with their captio
     expect(await film.locator("track").evaluate((t: HTMLTrackElement) => t.hasAttribute("default"))).toBe(false);
     // a silent cut has no sound button and says it is silent (R1's line, above the player)
     await expect(film.getByTestId("film-sound")).toHaveCount(0);
-    await expect(page.getByTestId(`film-${id}`).locator("xpath=preceding-sibling::p[@data-testid='silent-label']")).toHaveText("Silent cut: no voice. Press Show captions to read it.");
+    await expect(page.getByTestId(`film-${id}`).locator("xpath=preceding-sibling::p[@data-testid='silent-label']")).toHaveText("Silent cut: no voice. While it plays, press Show captions to see the scene titles.");
   }
   const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(sw).toBeLessThanOrEqual(iw);

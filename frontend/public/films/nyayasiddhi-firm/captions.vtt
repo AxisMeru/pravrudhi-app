@@ -1,77 +1,21 @@
 WEBVTT
 
 1
-00:00:00.300 --> 00:00:07.200
+00:00:00.300 --> 00:00:07.100
 NyayaSiddhi
 
 2
-00:00:03.400 --> 00:00:07.200
-our benchmark for screening under Indian criminal law
-
-3
-00:00:07.500 --> 00:00:39.800
+00:00:07.500 --> 00:00:39.700
 Madras High Court, order of 12 June 2024
 
-4
-00:00:10.767 --> 00:00:39.800
-The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
-
-5
-00:00:22.033 --> 00:00:39.800
-Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
-
-6
-00:00:29.633 --> 00:00:39.800
-Shown on an example order.
-
-7
-00:00:33.233 --> 00:00:39.800
-Marked as supported
-
-8
-00:00:33.233 --> 00:00:39.800
-Not marked as supported
-
-9
-00:00:36.333 --> 00:00:39.800
-Here, an error is counted as not supported.
-
-10
-00:00:40.100 --> 00:00:49.600
+3
+00:00:40.100 --> 00:00:49.500
 How the system decides each item
 
-11
-00:00:43.200 --> 00:00:49.600
-Whole item at once
+4
+00:00:49.900 --> 00:00:58.700
+Pravrudhi-Nyaya is the product you open
 
-12
-00:00:46.300 --> 00:00:49.600
-Ingredient by ingredient
-
-13
-00:00:49.900 --> 00:00:58.800
-Pravrudhi-Nyaya is the product you open.
-
-14
-00:00:53.000 --> 00:00:58.800
-Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.
-
-15
-00:00:59.100 --> 00:01:15.100
-Rows are listed in a fixed order, by split and system name, never by a figure.
-
-16
-00:01:05.033 --> 00:01:15.100
-https://huggingface.co/datasets/AxisMeru/nyayasiddhi
-
-17
-00:01:05.033 --> 00:01:15.100
-https://github.com/AxisMeru/pravrudhi
-
-18
-00:01:05.033 --> 00:01:15.100
-https://pravrudhi-app.vercel.app/benchmarks
-
-19
-00:01:10.633 --> 00:01:15.100
-This is a screening aid, not legal advice. A lawyer decides.
+5
+00:00:59.100 --> 00:01:15.000
+Rows are listed in a fixed order, by split and system name, never by a figure
