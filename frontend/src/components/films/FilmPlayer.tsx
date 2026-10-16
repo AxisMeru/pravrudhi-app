@@ -15,16 +15,16 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
 /**
  * One film, played by the browser's own <video>: narrated but STARTING MUTED (so it can start anywhere; a visible button turns the sound on), captions OFF until the visitor asks (a visible button), controls on,
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
- * Under prefers-reduced-motion the poster stays until the visitor asks for the film with the button. The scene text below is the film's own and is always on the page.
+ * Under prefers-reduced-motion, and for a film marked `posterFirst`, the poster stays until the visitor asks for the film with the button (no film bytes, no autoplay). The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id, manifest, autoplayMuted = false }: { id: FilmId; manifest?: FilmManifest; autoplayMuted?: boolean }) {
+export function FilmPlayer({ id, manifest, posterFirst = false }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean }) {
   const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
   const [muted, setMuted] = useState(true);
   const [captions, setCaptions] = useState(false); // captions are OFF until asked, on every film (the operator, 16 Oct); the button and the browser's own CC menu turn them on
   const video = useRef<HTMLVideoElement>(null);
-  const showVideo = !reduced || asked;
+  const showVideo = (!reduced && !posterFirst) || asked;
   // a film with no audio track (the manifest says audio:false) has no sound button: pressing it could only do nothing
   const hasAudio = film.audio !== false;
   const hasWebm = WEBM_FILMS.has(id);
@@ -53,11 +53,11 @@ export function FilmPlayer({ id, manifest, autoplayMuted = false }: { id: FilmId
             controls
             muted
             playsInline
-            preload={autoplayMuted && !reduced ? "metadata" : "none"}
+            preload="none"
             poster={filmFile(id, "poster.png")}
             aria-label={film.title}
             data-testid="film-video"
-            autoPlay={reduced ? asked : autoplayMuted}
+            autoPlay={asked}
             onVolumeChange={(e) => setMuted(e.currentTarget.muted || e.currentTarget.volume === 0)}
           >
             {/* WebM first (VP9, with Opus when the film has a voice) for a client without H.264/AAC; the mp4 second (Safari) */}
@@ -81,16 +81,16 @@ export function FilmPlayer({ id, manifest, autoplayMuted = false }: { id: FilmId
         {showVideo && (
           <>
             {hasAudio && (
-              <button type="button" onClick={toggleSound} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
+              <button type="button" onClick={toggleSound} className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
                 {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
               </button>
             )}
-            <button type="button" onClick={() => setCaptions((c) => !c)} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
+            <button type="button" onClick={() => setCaptions((c) => !c)} className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
               {captions ? FILM_CAPTIONS_HIDE : FILM_CAPTIONS_SHOW}
             </button>
           </>
         )}
-        <a href={filmFile(id, "film.mp4")} download className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="film-download">{FILM_DOWNLOAD_LINK}</a>
+        <a href={filmFile(id, "film.mp4")} download className="inline-flex min-h-11 items-center text-[var(--color-accent)] underline" data-testid="film-download">{FILM_DOWNLOAD_LINK}</a>
       </div>
       <section aria-label={FILM_TRANSCRIPT_HEADING} data-testid="film-scenes">
         <h3 className="text-sm font-medium text-[var(--color-text)]">{FILM_TRANSCRIPT_HEADING}</h3>
