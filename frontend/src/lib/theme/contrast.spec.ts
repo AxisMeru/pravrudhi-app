@@ -76,7 +76,7 @@ for (const [name, t] of [["dark", DARK], ["light", LIGHT]] as const) {
   test(`${name}: text, dim text and the accent link reach 4.5:1 on every tonal-look background (ground top, glow peak, band, state tints)`, () => {
     const grounds: Record<string, string> = {
       "ground-top": mix(t.accent, 4.5, t.bg),
-      "glow-peak": mix(t.accent, 8, t.bg),
+      "glow-peak": mix(t.accent, name === "dark" ? 14 : 8, t.bg), // the dark glow is raised to 14 % (d25 P3-4)
       band: mix(t.surface, 65, t.bg),
       "tint-supported": mix(t.ok, 6, t.surface),
       "tint-review": mix(t.warn, 8, t.surface),
@@ -96,4 +96,16 @@ test("the look patch is off by default: every rule is scoped to html[data-look=\
   assert.ok(rules.length >= 10);
   for (const l of rules) assert.ok(l.includes('html[data-look="tonal"]'), `unscoped look rule: ${l}`);
   assert.match(readFileSync(join(__dirname, "..", "look.ts"), "utf8"), /NEXT_PUBLIC_LOOK_TONAL === "1"/);
+});
+
+test("print keeps only the inset state rule on the result cards: no outer drop shadow (d25 P3-1), and the dark glow is raised while light keeps 8 %", () => {
+  const print = css.slice(css.lastIndexOf("@media print"));
+  for (const chip of ["supported", "review", "not_supported"]) {
+    const m = print.match(new RegExp(`\\[data-chip="${chip}"\\]\\s*\\{\\s*box-shadow:([^;]+);`));
+    assert.ok(m, `a print rule for ${chip}`);
+    assert.doesNotMatch(m[1], /shadow-card|,/, `${chip}: the print rule is the inset rule alone`);
+    assert.match(m[1], /^\s*inset 4px 0 0 /);
+  }
+  assert.match(css, /:root\[data-theme="dark"\]\s*\{\s*--tone-glow: color-mix\(in srgb, var\(--color-accent\) 14%, transparent\);/);
+  assert.match(css, /--tone-glow: color-mix\(in srgb, var\(--color-accent\) 8%, transparent\);/, "light keeps 8 %");
 });
