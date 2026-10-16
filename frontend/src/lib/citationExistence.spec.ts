@@ -270,3 +270,21 @@ test("#373 over the engine's real citation keys (11,164): no bare key carries a 
   const missed = doc.keys.filter((k) => !citationHasTypedName(`Totally Invented Pvt Ltd v/s Nobody ${k}`) || !citationHasTypedName(`${k} Nobody`) || !citationHasTypedName(`1. Nobody ${k}`));
   assert.deepEqual(missed.slice(0, 10), [], `${missed.length} keys where a typed name was not caught`);
 });
+
+// R2's performance finding (16 Oct): the citation core must be LINEAR: a pasted junk line of CITATION_MAX (500) characters, in any of these shapes, must be judged in well under 50 ms (the check runs in the browser on /citations, the Screening panel and Intake).
+test("#373 time budget: worst-case 500-character shapes and a seeded fuzz of 500-character inputs are each judged in under 50 ms", () => {
+  const N = 500;
+  const shapes: Record<string, string> = {
+    letters_after_year: "(2014) " + "a".repeat(N - 7), letters_upper: "(2014) " + "A".repeat(N - 7), repeated_short_words: "(2014) " + "a ".repeat(N / 2), repeated_Supp: "(2014) " + "Supp ".repeat(N / 5),
+    repeated_Supp_parens: "(2014) " + "Supp (1) ".repeat(N / 9), long_digits: "(2014) " + "1".repeat(N - 7), digits_then_letters: "(2014) " + "1a".repeat(N / 2), unclosed_parens: "(2014) 8 SCC (" + "(".repeat(N),
+    unclosed_year_parens: "(".repeat(N), paren_spaces: "(" + " ".repeat(N), repeated_year_open: "( ".repeat(N / 2), many_reporter_words: "(2014) " + "SCC OnLine SC Cri LJ AIR ".repeat(N / 25), words_12_chars: "(2014) " + "abcdefghijkl ".repeat(N / 13),
+    mixed_scripts: "(2014) " + "अनाम a ".repeat(N / 7), markers: "1. ".repeat(N / 3) + "(2014) 8 SCC 273", quotes_see: "See Ref Cf Citation: ".repeat(N / 21) + "(2014) 8 SCC 273", spaces_then_cite: " ".repeat(N - 20) + "(2014) 8 SCC 273", many_years: "(2014) ".repeat(N / 7),
+  };
+  const timed = (s: string): number => { const t = performance.now(); citationHasTypedName(s); return performance.now() - t; };
+  for (const [name, line] of Object.entries(shapes)) assert.ok(timed(line) < 50, `${name} took too long`);
+  let seed = 12345; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const alphabet = ["(", ")", " ", "1", "2", "a", "B", "S", "C", ".", "&", "-", "[", "]", "अ", "Supp", "SCC", "AIR", "\"", "'"];
+  let worst = 0;
+  for (let i = 0; i < 300; i++) { let s = ""; while (s.length < N) s += alphabet[Math.floor(rnd() * alphabet.length)]; worst = Math.max(worst, timed(s.slice(0, N))); }
+  assert.ok(worst < 50, `a random 500-character input took ${worst.toFixed(1)} ms`);
+});
