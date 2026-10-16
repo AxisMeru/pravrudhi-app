@@ -1,0 +1,157 @@
+WEBVTT
+
+1
+00:00:00.200 --> 00:00:04.800
+NyayaSiddhi
+
+2
+00:00:01.400 --> 00:00:04.800
+our benchmark for screening under Indian criminal law
+
+3
+00:00:05.300 --> 00:00:13.800
+Madras High Court, order of 12 June 2024
+
+4
+00:00:05.900 --> 00:00:13.800
+The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
+
+5
+00:00:07.200 --> 00:00:13.800
+Later, when the defacto complainant demanded money the first and the second accused who were husband and wife threatened as if they got separated and not responsible for repayment. At the same time, the first petitioner has transferred the house property in the name of the second petitioner in order to dispose it of to third parties and cheat the complainant.
+
+6
+00:00:08.600 --> 00:00:13.800
+A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+
+7
+00:00:14.000 --> 00:00:20.800
+Shown on an example order, not on a benchmark item.
+
+8
+00:00:14.500 --> 00:00:20.800
+Marked as supported
+
+9
+00:00:14.800 --> 00:00:20.800
+Not marked as supported
+
+10
+00:00:14.000 --> 00:00:20.800
+A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+
+11
+00:00:21.000 --> 00:00:25.800
+Shown on an example order, not on a benchmark item.
+
+12
+00:00:21.600 --> 00:00:25.800
+Here, an error is counted as not supported.
+
+13
+00:00:21.000 --> 00:00:25.800
+A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+
+14
+00:00:26.300 --> 00:00:33.800
+Development items; used to design fixes, so seen by us
+
+15
+00:00:29.800 --> 00:00:33.800
+Second development set, cruelty items left out; exposed to Anthropic in an earlier study
+
+16
+00:00:34.200 --> 00:00:40.800
+How the system decides each item
+
+17
+00:00:35.000 --> 00:00:40.800
+Whole item at once
+
+18
+00:00:37.000 --> 00:00:40.800
+Ingredient by ingredient
+
+19
+00:00:41.300 --> 00:00:45.800
+nyayasiddhi-ref-S-direct claude-sonnet-5-5-cfg-1bb53647
+
+20
+00:00:41.300 --> 00:00:45.800
+Anthropic API; not our dev stack or production stack
+
+21
+00:00:41.300 --> 00:00:45.800
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+22
+00:00:46.300 --> 00:00:50.800
+nyayasiddhi-open-O2 Qwen3-14B-AWQ-31c69efc
+
+23
+00:00:46.300 --> 00:00:50.800
+dev stack (local)
+
+24
+00:00:46.300 --> 00:00:50.800
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+25
+00:00:51.300 --> 00:00:55.800
+Not run: this system was not given dishonoured-cheque items, which are outside its contracts.
+
+26
+00:00:56.200 --> 00:01:15.800
+Ingredients with no fact cited
+
+27
+00:00:56.800 --> 00:01:01.900
+Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property
+
+28
+00:00:57.400 --> 00:01:01.900
+Madras High Court, order of 12 June 2024
+
+29
+00:00:58.000 --> 00:01:01.900
+A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+
+30
+00:01:02.400 --> 00:01:09.900
+No fact cited: entrusted with property, or with dominion over property
+
+31
+00:01:02.400 --> 00:01:09.900
+Check what the facts say was handed over, to whom, and on what terms.
+
+32
+00:01:06.000 --> 00:01:09.900
+No fact cited: dishonestly misappropriates or converts the property to his own use
+
+33
+00:01:06.000 --> 00:01:09.900
+Check what the accused is said to have done with the property, and whether the facts show dishonest intent.
+
+34
+00:01:10.600 --> 00:01:15.800
+Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.
+
+35
+00:01:16.200 --> 00:01:23.800
+Rows are listed in a fixed order, by split and system name, never by a figure.
+
+36
+00:01:17.600 --> 00:01:23.800
+https://huggingface.co/datasets/AxisMeru/nyayasiddhi
+
+37
+00:01:18.100 --> 00:01:23.800
+https://github.com/AxisMeru/pravrudhi
+
+38
+00:01:18.600 --> 00:01:23.800
+https://pravrudhi-app.vercel.app/benchmarks
+
+39
+00:01:19.600 --> 00:01:23.800
+This is a screening aid, not legal advice. A lawyer decides.

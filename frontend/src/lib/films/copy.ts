@@ -1,6 +1,6 @@
 // The motion films (#251). Every word the pages add around a film is here, for R1 to read; the film's own text (scene names and descriptions) comes from its manifest, written by scripts/render-films.mjs
 // from the film itself. R1 confirmed these nine lines byte-exact (15 Oct, #273). Nothing here is a claim about results.
-export const FILM_IDS = ["client", "technical", "nyayasiddhi"] as const;
+export const FILM_IDS = ["client", "technical", "nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"] as const;
 export type FilmId = (typeof FILM_IDS)[number];
 
 /** Where the rendered files live (public/films/<id>/): the page adds the build's base path. */
@@ -30,3 +30,5 @@ export const TECHNICAL_FILM_SUBTITLE = "How a screening is built and checked, as
 /** PROPOSED for R1: the unlisted review page of the NyayaSiddhi film (/benchmarks-film-preview): noindex, no link to it anywhere on the site. */
 export const NYAYASIDDHI_FILM_TITLE = "NyayaSiddhi film: review copy";
 export const NYAYASIDDHI_FILM_SUBTITLE = "A review copy of the film for the NyayaSiddhi benchmark. This page is not linked from the site.";
+/** PROPOSED for R1: the three cuts' headings on the review page only (review labels, not public copy). */
+export const NYAYASIDDHI_CUT_HEADINGS = { "nyayasiddhi": "Cut A: the main film", "nyayasiddhi-loop": "Cut D: the short loop", "nyayasiddhi-firm": "Cut C: the firm cut" } as const;

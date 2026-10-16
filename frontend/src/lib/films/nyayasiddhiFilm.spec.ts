@@ -4,11 +4,12 @@ import { join, relative } from "node:path";
 import test from "node:test";
 
 import { FILM_MANIFESTS, filmFile } from "./films";
+import { EXAMPLES } from "../demo/example";
+import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
 import { FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
-const DIR = join(root, "public", "films", "nyayasiddhi");
 const manifest = FILM_MANIFESTS.nyayasiddhi as typeof FILM_MANIFESTS.nyayasiddhi & { placeholder?: boolean };
 
 test("the film id is registered, its files are named like the other films', and the review route is noindex", () => {
@@ -18,9 +19,18 @@ test("the film id is registered, its files are named like the other films', and 
   const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id="nyayasiddhi" autoplayMuted captionsOn \/>/);
+  assert.match(page, /<FilmPlayer id=\{id\} autoplayMuted captionsOn \/>/);
+  assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
+  assert.doesNotMatch(page, /narrated|preview-narrated|\.aac|Kokoro/i, "the narrated previews are not on the route");
   assert.match(FILM_SILENT_NOTE, /silent/);
   assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
+});
+
+test("public/films holds only the silent cuts of this film: no narrated preview, no audio file, no script or log (R2: no host paths)", () => {
+  const films = readdirSync(join(root, "public", "films")).filter((n) => n.startsWith("nyayasiddhi")).sort();
+  assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-firm", "nyayasiddhi-loop"]);
+  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "manifest.json", "poster.png"], f);
+  for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
 test("the review route is linked from nowhere: only the surface route list and a comment in the film copy name it", () => {
@@ -56,22 +66,32 @@ test("the vendored film strings are STRINGS_948_v3 (sha256 0d2a1fe6...), carry n
   for (const t of added) assert.doesNotMatch(t, COUNT_WORD, t);
 });
 
-const rendered = existsSync(join(DIR, "captions.vtt")) && manifest.placeholder !== true;
-test("captions.vtt: WEBVTT, ordered cues inside the duration, every cue is a STRINGS_948_v3 string, no barred word", { skip: !rendered }, () => {
-  const vtt = readFileSync(join(DIR, "captions.vtt"), "utf8");
-  assert.match(vtt, /^WEBVTT/);
-  const t = (s: string): number => { const [h, m, sec] = s.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
-  const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
-  const allowed = new Set(strings.strings.map(norm));
-  let last = 0; let cues = 0;
-  for (const m of vtt.matchAll(/(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})[^\n]*\n([\s\S]*?)(?:\n\n|$)/g)) {
-    const a = t(m[1]), b = t(m[2]);
-    assert.ok(a >= last - 1e-6 && b > a && b <= manifest.durationS + 0.5, `cue ${m[1]}`);
-    const text = norm(m[3]);
-    assert.ok(allowed.has(text), `a cue that is not a STRINGS_948_v3 string: ${text}`);
-    assert.doesNotMatch(text, BARRED, text);
-    last = b; cues += 1;
-  }
-  assert.ok(cues > 0);
-  assert.ok(existsSync(join(DIR, "film.mp4")) && existsSync(join(DIR, "poster.png")));
-});
+const FILMS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"] as const;
+const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
+const sentences = (x: string): string[] => x.split(/(?<=[.!?])\s+/).map(norm).filter(Boolean);
+// the cue set: the film's own strings (v3) and each of their sentences (a long string is captioned sentence by sentence), plus text the film takes unchanged from the APP's signed sources: the example order's allegation paragraphs (lib/demo/example.ts), the page's stack labels (lib/nyayasiddhi.ts) and a row's system name + version as the page prints it (rows.json)
+const rows = (JSON.parse(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"), "utf8")) as { rows: { system_name: string; system_version: string }[] }).rows;
+const allowed = new Set([...strings.strings.flatMap((x) => [norm(x), ...sentences(x)]), ...EXAMPLES.flatMap((e) => [...e.facts].map(norm)), ...Object.values(NYAYASIDDHI_STRINGS.stackLabel).filter((x): x is string => typeof x === "string").map(norm), ...rows.map((r) => norm(`${r.system_name} ${r.system_version}`))]);
+
+for (const id of FILMS) {
+  const dir = join(root, "public", "films", id);
+  const man = FILM_MANIFESTS[id] as typeof FILM_MANIFESTS.nyayasiddhi & { placeholder?: boolean };
+  const rendered = existsSync(join(dir, "captions.vtt")) && man.placeholder !== true;
+  test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v3 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
+    const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
+    assert.match(vtt, /^WEBVTT/);
+    const t = (x: string): number => { const [h, m, sec] = x.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
+    let cues = 0;
+    for (const m of vtt.matchAll(/(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})[^\n]*\n([\s\S]*?)(?:\n\n|$)/g)) {
+      // cues may overlap and need not be listed by start (a caption can stack under the one before it); each must start before it ends and end inside the film
+      assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
+      const text = norm(m[3]);
+      assert.ok(allowed.has(text), `${id}: a cue that is not a STRINGS_948_v3 string: ${text}`);
+      assert.doesNotMatch(text, BARRED, text);
+      cues += 1;
+    }
+    assert.ok(cues > 0);
+    assert.ok(existsSync(join(dir, "film.mp4")) && existsSync(join(dir, "poster.png")));
+    assert.equal(man.audio, false, "silent cuts only: the narrated previews stay off the site until the operator has heard them");
+  });
+}

@@ -2,6 +2,12 @@
 // scoring or improving a model must be listed here, EXACTLY as the scan splits it, with the reason it is not a statement about what happens to a submission.
 // Every entry is a sentence the app already ships; adding one here is a copy decision for R1. A stale entry fails the scan.
 export const REVIEWED: Readonly<Record<string, { reason: string; sentences: readonly string[] }>> = {
+  "public/films/nyayasiddhi-firm/captions.vtt": {
+    reason: "the same R1-confirmed bridge caption (STRINGS_948_v3) as in the film strings file, as the firm cut's caption cue (the scan reads the cue number and times with it): the organisers' own models; not a statement about submissions",
+    sentences: [
+      "18 00:00:33.600 --> 00:00:38.800 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+    ],
+  },
   "src/lib/films/nyayasiddhiStrings.json": {
     reason: "the NyayaSiddhi film's own R1-ruled caption strings (STRINGS_948_v2): the sentence says what Prabh\u0101sa-Ny\u0101ya is (the organisers' own models); it is not a statement about what happens to a submission. R1 reads it with the film",
     sentences: [

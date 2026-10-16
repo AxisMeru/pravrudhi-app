@@ -1,11 +1,97 @@
 {
-  "title": "NyayaSiddhi film (review copy)",
-  "durationS": 0,
+  "title": "NyayaSiddhi",
+  "durationS": 84,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
-  "placeholder": true,
-  "note": "PLACEHOLDER until Studio's render replaces this folder (film.mp4, poster.png, captions.vtt, manifest.json written by scripts/render-films.mjs). Nothing here is a claim about results.",
-  "scenes": []
+  "sources": {
+    "filmSha256": "94011b4a8214f63937321abff6c2ce3acffbeac73f23769387cec9354d41021e",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 5
+    },
+    {
+      "name": "Madras High Court, order of 12 June 2024",
+      "text": "",
+      "startS": 5,
+      "endS": 14
+    },
+    {
+      "name": "Shown on an example order, not on a benchmark item.",
+      "text": "",
+      "startS": 14,
+      "endS": 21
+    },
+    {
+      "name": "Shown on an example order, not on a benchmark item.",
+      "text": "",
+      "startS": 21,
+      "endS": 26
+    },
+    {
+      "name": "Development items; used to design fixes, so seen by us",
+      "text": "",
+      "startS": 26,
+      "endS": 34
+    },
+    {
+      "name": "How the system decides each item",
+      "text": "",
+      "startS": 34,
+      "endS": 41
+    },
+    {
+      "name": "nyayasiddhi-ref-S-direct claude-sonnet-5-5-cfg-1bb53647",
+      "text": "",
+      "startS": 41,
+      "endS": 51
+    },
+    {
+      "name": "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.",
+      "text": "",
+      "startS": 51,
+      "endS": 56
+    },
+    {
+      "name": "Ingredients with no fact cited",
+      "text": "",
+      "startS": 56,
+      "endS": 76
+    },
+    {
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "text": "",
+      "startS": 76,
+      "endS": 84
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 3601640,
+      "sha256": "9d1f11ae94b31e2a217880e296069577f7e07825a6e643d60dcc81b3cededd2d"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 69037,
+      "sha256": "d5d6a99cfdd3701927df280d3fa09fb13aa0d09b40e325cc732c4aeaef7a49ca"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 4843,
+      "sha256": "faf0d6ccab12cd82b3184add6088a2e8f28fd622a7b7084389bb6729e0a67b50"
+    }
+  ]
 }
