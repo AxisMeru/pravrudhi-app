@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { openReference } from "./support/layout";
 
 // A build with both citation flags (the panel) describes the panel (R1's flip text) and shows the retaken frame 05 with its caption; any other build says the check is not offered and has
 // no frame 05 (five screenshots).
@@ -40,5 +41,6 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
 
 test("the guide is in the nav", async ({ page }) => {
   await page.goto("/guide");
+  await openReference(page); // layout B keeps Reference closed
   await expect(page.getByRole("link", { name: "User guide" }).first()).toBeVisible();
 });

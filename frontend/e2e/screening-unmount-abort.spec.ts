@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { openReference } from "./support/layout";
 
 // #176 (R2): leaving /screening while a run is in flight cancels the request (no ticker or request running on after the page is gone).
 test("leaving the page cancels the run in flight", async ({ page }) => {
@@ -16,6 +17,7 @@ test("leaving the page cancels the run in flight", async ({ page }) => {
   await expect(page.getByTestId("screening-cancel")).toBeVisible();
   await expect.poll(() => seen).toBe(true);
   // leave by client-side navigation (the page unmounts)
+  await openReference(page); // layout B keeps Reference closed
   await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "User guide", exact: true }).click();
   await expect(page).toHaveURL(/\/guide\/?$/);
   await expect.poll(() => aborted, { timeout: 5000 }).toBe(true);

@@ -1,6 +1,7 @@
 import { expect, test } from "./support/engineTest";
 import contractElements from "../src/lib/fixtures/contractElements.json";
 import { sha } from "./support/sha";
+import { isLayoutB } from "./support/layout";
 
 // Hearing preparation (#197) as step 4 of the Matter workspace: rendered from the module's output (lib/screening/hearingPrep.ts); the page adds no word of its own.
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -60,8 +61,14 @@ test("hearing preparation: absent before a result, then step 4 with a block per 
 
 test("the step bar links to it and /workflows shows Hearing preparation as Built with a link to it", async ({ page }) => {
   await result(page);
-  await expect(page.getByTestId("step-state-hearing")).toHaveText("Available");
-  await expect(page.getByTestId("step-link-hearing")).toHaveAttribute("href", "#step-hearing");
+  if (await isLayoutB(page)) {
+    // layout B: the result-first view has no step bar (by design); the "This screening" group's Hearing preparation anchor replaces its link
+    await expect(page.getByTestId("workspace-steps")).toHaveCount(0);
+    await expect(page.getByTestId("mb-screening-group").getByRole("link", { name: "Hearing preparation", exact: true })).toHaveAttribute("href", "#step-hearing");
+  } else {
+    await expect(page.getByTestId("step-state-hearing")).toHaveText("Available");
+    await expect(page.getByTestId("step-link-hearing")).toHaveAttribute("href", "#step-hearing");
+  }
   await expect(page.locator("#step-hearing")).toBeVisible();
   await page.goto("/workflows");
   const row = page.getByTestId("workflow-row").filter({ hasText: "Hearing preparation" });
