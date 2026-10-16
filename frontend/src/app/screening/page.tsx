@@ -344,13 +344,14 @@ export default function ScreeningPage() {
     window.addEventListener("hashchange", go);
     return () => window.removeEventListener("hashchange", go);
   }, []);
-  // Layout B: while this page is mounted the page's own skip link is the only one (the layout's "Skip to main content" is hidden and restored on leaving).
+  // The dock's overflow: Escape closes it and returns focus to its trigger.
+  const moreRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!LAYOUT_MATTER_B) return;
-    const global = document.querySelector<HTMLAnchorElement>('a.sr-only[href="#main"]');
-    global?.setAttribute("hidden", "");
-    return () => global?.removeAttribute("hidden");
-  }, []);
+    if (!LAYOUT_MATTER_B || !dockMore) return;
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); setDockMore(false); moreRef.current?.focus(); } };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, [dockMore]);
   const mbCited: Record<string, number> = {};
   if (LAYOUT_MATTER_B && result) for (const c of result.contracts) { const rs = rowsFor(c, result.facts); for (const r of [...rs.ingredients, ...rs.defences]) if (r.factId) mbCited[r.factId] = (mbCited[r.factId] ?? 0) + 1; }
   function mbRequestNew() {
@@ -749,14 +750,6 @@ export default function ScreeningPage() {
             <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="break-all font-mono">{result.score_sha256}</span></div>
             {LAYOUT_MATTER_B && (
               <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)] p-3 md:hidden print:hidden" data-testid="mb-dock">
-                {dockMore && (
-                  <div className="mb-2 flex flex-col gap-2" id="mb-dock-more" data-testid="mb-dock-more">
-                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => window.print()}>{EXPORT_LABELS.print}</button>
-                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>{EXPORT_LABELS.runRecord}</button>
-                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => setView("intake")}>{MB.editFacts}</button>
-                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={mbRequestNew}>{MB.newScreening}</button>
-                  </div>
-                )}
                 <div className="flex items-start justify-between gap-3">
                   <MemoMenu
                     prefix="dock-"
@@ -764,8 +757,16 @@ export default function ScreeningPage() {
                     onDocx={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}
                     onMarkdown={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}
                   />
-                  <button type="button" className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 text-sm" aria-expanded={dockMore} aria-controls="mb-dock-more" aria-label={MB.moreActions} data-testid="mb-dock-more-button" onClick={() => setDockMore((o) => !o)}>…</button>
+                  <button type="button" className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 text-sm" ref={moreRef} aria-expanded={dockMore} aria-controls="mb-dock-more" aria-label={MB.moreActions} data-testid="mb-dock-more-button" onClick={() => setDockMore((o) => !o)}>…</button>
                 </div>
+                {dockMore && (
+                  <div className="absolute bottom-full right-3 mb-2 flex w-60 flex-col gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-lg" id="mb-dock-more" data-testid="mb-dock-more">
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => window.print()}>{EXPORT_LABELS.print}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>{EXPORT_LABELS.runRecord}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => setView("intake")}>{MB.editFacts}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={mbRequestNew}>{MB.newScreening}</button>
+                  </div>
+                )}
               </div>
             )}
           </div>

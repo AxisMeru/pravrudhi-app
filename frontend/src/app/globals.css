@@ -216,13 +216,14 @@ table,
   }
 }
 
-/* Layout B "matter-b" (#144, spec v3 bb1b62b1c51a): ONLY under html[data-layout="matter-b"] (build flag NEXT_PUBLIC_LAYOUT_MATTER_B=1, off by default). The sidebar is 208 px from md up, and a focused control on a phone is
-   never left under the bottom dock. Colours and shadows are the look patch's (deploy 25); nothing here changes a colour. */
+/* Layout B "matter-b" (#144, spec v3 bb1b62b1c51a): ONLY under html[data-layout="matter-b"] (build flag NEXT_PUBLIC_LAYOUT_MATTER_B=1, off by default). The sidebar is 208 px from md up. On a phone the fixed top bar (56 px) and
+   the bottom dock sit over the page, so the SCROLLING box (main, not html) keeps scroll padding for them: a focused control or an in-page jump is scrolled clear of both. Colours and shadows are the look patch's (deploy 25). */
 html[data-layout="matter-b"] #primary-navigation {
   width: 13rem;
 }
 @media (max-width: 767px) {
-  html[data-layout="matter-b"] {
+  html[data-layout="matter-b"] main#main {
+    scroll-padding-top: 4.5rem;
     scroll-padding-bottom: 6.5rem;
   }
 }

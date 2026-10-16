@@ -14,7 +14,16 @@ test("/benchmarks-film-preview: noindex, the three silent cuts are poster + Play
     await expect(page.getByTestId(`film-${id}`).getByTestId("film-video")).toHaveCount(0);
   }
   expect(filmRequests, "no film file before a Play press").toEqual([]);
+  // the Play button sits in the lower part of the poster, not over its title (d26 read-back P3): lower third, at least 44 px
+  for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) {
+    const poster = (await page.getByTestId(`film-${id}`).getByTestId("film-poster").boundingBox())!;
+    const play = (await page.getByTestId(`film-${id}`).getByTestId("film-play").boundingBox())!;
+    expect(play.y, `${id}: Play is in the lower third of the poster`).toBeGreaterThanOrEqual(poster.y + poster.height * 0.6);
+    expect(play.height).toBeGreaterThanOrEqual(44);
+    expect(play.width).toBeGreaterThanOrEqual(44);
+  }
   for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) await page.getByTestId(`film-${id}`).getByTestId("film-play").click();
+  for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) await expect(page.getByTestId(`film-${id}`).getByTestId("film-video"), "preload stays none after Play (app#394)").toHaveAttribute("preload", "none");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) {
     const film = page.getByTestId(`film-${id}`);

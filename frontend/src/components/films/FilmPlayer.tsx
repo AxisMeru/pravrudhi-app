@@ -70,7 +70,7 @@ export function FilmPlayer({ id, manifest, posterFirst = false }: { id: FilmId; 
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element -- a static export; the poster is a plain file in public/films */}
             <img src={filmFile(id, "poster.png")} alt={film.title} className="block aspect-video w-full object-cover" data-testid="film-poster" />
-            <button type="button" onClick={() => setAsked(true)} className="absolute inset-0 m-auto h-fit w-fit rounded-md bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text)] min-h-11" data-testid="film-play">
+            <button type="button" onClick={() => setAsked(true)} className="absolute bottom-3 left-3 h-fit w-fit rounded-md bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text)] min-h-11" data-testid="film-play">
               {FILM_PLAY_BUTTON}
             </button>
           </div>

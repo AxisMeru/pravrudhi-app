@@ -46,25 +46,26 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
     if (mb.hasResult) anchors.push({ href: "#screening-result", label: MB.resultLabel, current: mb.view === "result" });
     if (mb.hasResult && HEARING_PREP_BUILT) anchors.push({ href: `#${WORKSPACE_ANCHORS.hearing}`, label: WORKSPACE_STEP_LABELS.hearing, current: false });
     if (mb.hasResult && CITATIONS_PANEL_ENABLED) anchors.push({ href: "#step-citations", label: "Case citations", current: false });
-  } else {
-    anchors.push({ href: `/screening#${WORKSPACE_ANCHORS.facts}`, label: MB.factsLabel, current: false });
   }
   return (
     <>
-      <div className="mb-1" data-testid="mb-screening-group" aria-labelledby="mb-screening-heading" role="group">
-        <h2 id="mb-screening-heading" className={heading}>{MB.screeningLabel}</h2>
-        {onScreening && mb.exampleName && <p className="px-3 pb-1 text-sm text-[var(--color-text)]" data-testid="mb-screening-name">{mb.exampleName} {MB.exampleSuffix}</p>}
-        {onScreening && mb.hasResult && mb.runRecord && !mb.exampleName && <p className="px-3 pb-1 text-xs text-[var(--color-text-dim)]" data-testid="mb-retention">{MB.retention}</p>}
-        {anchors.map((a) => (
-          onScreening ? (
+      {onScreening ? (
+        <div className="mb-1" data-testid="mb-screening-group" aria-labelledby="mb-screening-heading" role="group">
+          <p id="mb-screening-heading" className={heading}>{MB.screeningLabel}</p>
+          {mb.exampleName && <p className="px-3 pb-1 text-sm text-[var(--color-text)]" data-testid="mb-screening-name">{mb.exampleName} {MB.exampleSuffix}</p>}
+          {mb.hasResult && mb.runRecord && !mb.exampleName && <p className="px-3 pb-1 text-xs text-[var(--color-text-dim)]" data-testid="mb-retention">{MB.retention}</p>}
+          {anchors.map((a) => (
             <a key={a.href} href={a.href} aria-current={a.current ? "location" : undefined} className={`${LINK} ${a.current ? ACTIVE : IDLE}`}>{a.label}</a>
-          ) : (
-            <Link key={a.href} href={a.href} className={`${LINK} ${IDLE}`}>{a.label}</Link>
-          )
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        // R1's ruling for app#393: off /screening the group is ONE item, "This screening", and it is the link to the page (no separate "Facts" link: "Facts" names a view, not the page).
+        <div className="mb-1" data-testid="mb-screening-group">
+          <Link href="/screening" className={`${LINK} ${IDLE}`} data-testid="mb-screening-link">{MB.screeningLabel}</Link>
+        </div>
+      )}
       <div className="mb-1" role="group" aria-labelledby="mb-general-heading" data-testid="mb-group-general">
-        <h2 id="mb-general-heading" className={heading}>{MB.groupGeneral}</h2>
+        <p id="mb-general-heading" className={heading}>{MB.groupGeneral}</p>
         {general.map(link)}
       </div>
       <details className="group mb-1" data-testid="mb-group-reference">

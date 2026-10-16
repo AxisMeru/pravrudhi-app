@@ -194,3 +194,12 @@ test("a posterFirst film is its poster and a Play the film button: no <video>, n
   assert.ok(h.includes('data-testid="film-poster"') && h.includes('data-testid="film-play"'));
   assert.doesNotMatch(h, /<video|film\.webm|autoplay/i);
 });
+
+test("the video's preload attribute is pinned: none for every film (nothing is fetched before the visitor asks), also after Play (app#394)", () => {
+  for (const [id, m] of [["nyayasiddhi", SILENT_MANIFEST], ["nyayasiddhi-narrated", VOICE_MANIFEST]] as const) {
+    assert.match(html(id, m), /<video[^>]*\spreload="none"/, `${id}: preload none`);
+  }
+  const player = readFileSync(join(root, "src", "components", "films", "FilmPlayer.tsx"), "utf8");
+  assert.match(player, /preload="none"/);
+  assert.doesNotMatch(player, /preload=\{/, "preload is not computed: it is always none");
+});

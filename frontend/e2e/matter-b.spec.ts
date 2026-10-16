@@ -168,7 +168,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await arrange(page);
       await expect(page.getByTestId("mb-topbar-title")).toBeVisible();
       await expect(page.getByTestId("mb-facts-chip")).toHaveCount(0);
-      await expect(page.locator('a.sr-only[href="#main"]'), "the layout's skip link is hidden while the page's own is mounted").toBeHidden();
+      await expect(page.locator('a.sr-only[href="#main"]'), "the layout's skip link stays").toHaveCount(1);
       await expect(page.getByTestId("mb-skip")).toHaveCount(1);
       await screen(page);
       const chip = page.getByTestId("mb-facts-chip");
@@ -177,20 +177,82 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(page.getByTestId("fact-filter")).toBeInViewport();
     });
 
-    base("another page: the This screening group still reaches the page (Facts), and there is no Matter item", async ({ page }) => {
+    base("another page: This screening is the one link to the page (R1, app#393), and there is no Matter item", async ({ page }) => {
       await page.route("**/api/me", (r) => r.fulfill({ json: { edition: "Pravrudhi", tagline: "t", access: "member" } }));
       await page.goto("/workflows");
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
       const nav = page.getByRole("navigation", { name: "Primary" });
-      await expect(nav.getByTestId("mb-screening-group").getByRole("link", { name: MB.factsLabel })).toHaveAttribute("href", /\/screening#step-facts$/);
+      await expect(nav.getByTestId("mb-screening-group").getByRole("link", { name: MB.screeningLabel, exact: true })).toHaveAttribute("href", /\/screening\/?$/);
+      await expect(nav.getByTestId("mb-screening-group").getByRole("link", { name: MB.factsLabel }), "no separate Facts link off the page (R1, app#393)").toHaveCount(0);
       await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveCount(0);
+    });
+
+    base("the layout's Skip to main content is the FIRST Tab stop on /screening and goes past the sidebar; the page's own link is a second; the page's first heading is its h1 (Track B d26 findings 1 and 4)", async ({ page }) => {
+      await arrange(page);
+      await page.keyboard.press("Tab");
+      const first = await page.evaluate(() => { const a = document.activeElement as HTMLAnchorElement | null; return { text: (a?.textContent ?? "").trim(), href: a?.getAttribute("href") }; });
+      expect(first).toEqual({ text: "Skip to main content", href: "#main" });
+      await page.keyboard.press("Enter");
+      expect(await page.evaluate(() => document.activeElement?.id), "the link moves focus to main, past the sidebar").toBe("main");
+      expect(await page.getByTestId("mb-skip").count()).toBe(1);
+      expect(await page.evaluate(() => document.querySelector("h1, h2, h3, h4")?.tagName), "no heading precedes the page h1").toBe("H1");
+    });
+
+    if (phone) base("the dock's More actions: the revealed buttons follow the trigger, Escape closes and returns focus (Track B d26 finding 2)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      const trigger = page.getByTestId("mb-dock-more-button");
+      await trigger.click();
+      await expect(trigger).toHaveAttribute("aria-expanded", "true");
+      const order = await page.evaluate(() => { const t = document.querySelector('[data-testid="mb-dock-more-button"]')!, p = document.querySelector('[data-testid="mb-dock-more"]')!; return !!(t.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING); });
+      expect(order, "the panel follows the trigger in the DOM").toBe(true);
+      await trigger.focus();
+      await page.keyboard.press("Tab");
+      expect(await page.evaluate(() => document.activeElement?.closest('[data-testid="mb-dock-more"]') !== null), "Tab from the trigger lands in the revealed buttons").toBe(true);
+      await page.keyboard.press("Escape");
+      await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      await expect(trigger).toBeFocused();
+    });
+
+    if (phone) base("in-page jumps land below the top bar: the Facts chip and the nav anchors (app#393, R2's LOW)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      const barBottom = (await page.getByTestId("mb-topbar").boundingBox())!.y + (await page.getByTestId("mb-topbar").boundingBox())!.height;
+      await page.getByTestId("mb-facts-chip").click();
+      await page.waitForTimeout(400);
+      expect((await page.locator("#mb-facts-rail").boundingBox())!.y, "the rail is below the top bar after the chip").toBeGreaterThanOrEqual(barBottom - 1);
+      await page.getByRole("button", { name: "Open navigation" }).click();
+      for (const name of [MB.resultLabel, "Hearing preparation"]) {
+        await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name, exact: true }).click();
+        await page.waitForTimeout(400);
+        await expect(page.getByRole("button", { name: "Open navigation" }), "the drawer closed on the in-page link").toBeVisible();
+        const id = name === MB.resultLabel ? "#screening-result" : "#step-hearing";
+        expect((await page.locator(id).boundingBox())!.y, `${name} lands below the top bar`).toBeGreaterThanOrEqual(barBottom - 1);
+        await page.getByRole("button", { name: "Open navigation" }).click();
+      }
+    });
+
+    if (phone) base("a focused rail fact and the citations textarea are never under the dock or the top bar (Track B d26 finding 3)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      const bar = (await page.getByTestId("mb-topbar").boundingBox())!;
+      const dock = (await page.getByTestId("mb-dock").boundingBox())!;
+      const targets = [page.getByTestId("fact-filter-F1"), page.locator("#step-citations textarea").first()];
+      for (const t of targets) {
+        if ((await t.count()) === 0) continue;
+        await t.focus();
+        await page.waitForTimeout(300);
+        const b = (await t.boundingBox())!;
+        expect(b.y, "not under the top bar").toBeGreaterThanOrEqual(bar.y + bar.height - 1);
+        expect(b.y + b.height, "not under the dock").toBeLessThanOrEqual(dock.y + 1);
+      }
     });
 
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
       await arrange(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
       const nav = page.getByRole("navigation", { name: "Primary" });
-      await expect(nav.getByRole("heading", { name: MB.screeningLabel })).toBeVisible();
+      await expect(nav.getByRole("group", { name: MB.screeningLabel })).toBeVisible();
       await expect(nav.getByRole("link", { name: MB.resultLabel, exact: true })).toHaveCount(0);
       await expect(nav.getByTestId("mb-group-reference")).toBeVisible();
       await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Data handling" })).toBeHidden();
