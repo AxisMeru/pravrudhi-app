@@ -86,3 +86,24 @@ test("the filled accent button is readable in both themes (text colour is on-acc
     expect(colours).toEqual(choice === "light" ? { fg: "rgb(255, 255, 255)", bgc: "rgb(31, 78, 121)" } : { fg: "rgb(14, 22, 34)", bgc: "rgb(127, 177, 232)" });
   }
 });
+
+// The sign-in page is not in this list: its heading is the fixed words "Sign in" in a vertically centred column, so a title cannot reach the top corner there.
+test("a very long page title never runs under the theme button (390, 768 and 1280 px)", async ({ page }) => {
+  for (const width of [390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of ["/guide", "/citations", "/screening"]) {
+      await page.goto(path);
+      const r = await page.evaluate(() => {
+        const h1 = document.querySelector("h1")!;
+        h1.textContent = Array.from({ length: 60 }, (_, i) => `Longtitleword${i}`).join(" ");
+        const btn = document.querySelector('[data-testid="theme-button"]')!.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(h1);
+        const hits = [...range.getClientRects()].filter((q) => q.left < btn.right && q.right > btn.left && q.top < btn.bottom && q.bottom > btn.top).length;
+        return { hits, lines: range.getClientRects().length };
+      });
+      expect(r.lines, `${path} at ${width}`).toBeGreaterThan(1);
+      expect(r.hits, `${path} at ${width}: title lines under the button`).toBe(0);
+    }
+  }
+});

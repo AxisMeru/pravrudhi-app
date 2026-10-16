@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 
 import { THEME_ICON_ARIA, THEME_ICON_TOOLTIP } from "../navCopy";
@@ -21,4 +23,10 @@ test("R1's strings are pinned byte for byte (app#378)", () => {
     light: "Colour theme: light",
     dark: "Colour theme: dark",
   });
+});
+
+test("every page header keeps its text clear of the fixed theme button from md up (right padding md:pr-20)", () => {
+  for (const f of ["src/components/PageHeader.tsx", "src/components/run/RunHeader.tsx", "src/components/objective/ObjectiveDetailView.tsx"]) {
+    assert.match(readFileSync(join(process.cwd(), f), "utf8"), /md:pr-20/, `${f} reserves the space under the theme button`);
+  }
 });

@@ -97,7 +97,7 @@ function Detail({ id }: { id: string }) {
   return (
     <div>
       <BackBar />
-      <div className="border-b border-[var(--color-border)] px-6 py-6">
+      <div className="border-b border-[var(--color-border)] px-6 py-6 md:pr-20">
         <div className="flex flex-wrap items-center gap-2">
           <Target size={18} className="text-[var(--color-text-dim)]" />
           <h1 className="text-lg font-semibold text-[var(--color-text)]">{obj.id}</h1>
