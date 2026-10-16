@@ -110,9 +110,12 @@ test("Hearing preparation lists Intake's citations only while the facts are the 
   await expect(rows.first()).toContainText("Found in the text you pasted");
   // another matter's fact replaces one of them: the first matter's citations are not listed beside the new checklist
   const b = await isLayoutB(page);
-  // layout B shows the result alone: "Edit facts" brings the facts back (the textbox is hidden until then)
+  // layout B shows the result alone: "Edit facts" brings the facts back (the textboxes are hidden until then) and they must be exactly the facts that were screened
+  const screenedFacts = async () => page.getByRole("textbox", { name: /^Fact F\d+$/ }).evaluateAll((els) => els.map((e) => (e as HTMLTextAreaElement).value));
   const editFacts = async () => { if (b) await page.getByTestId("mb-edit-facts").click(); };
+  const screened = b ? FACTS.slice(0, 2).map((f) => f.text) : [];
   await editFacts();
+  if (b) expect(await screenedFacts(), "Edit facts shows the facts that were screened").toEqual(screened);
   const f1 = page.getByRole("textbox", { name: "Fact F1", exact: true });
   const original = await f1.inputValue();
   await f1.fill("My own client's fact about a loan.");

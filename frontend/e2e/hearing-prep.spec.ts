@@ -1,7 +1,7 @@
 import { expect, test } from "./support/engineTest";
 import contractElements from "../src/lib/fixtures/contractElements.json";
 import { sha } from "./support/sha";
-import { isLayoutB } from "./support/layout";
+import { expectResultViewNav, isLayoutB } from "./support/layout";
 
 // Hearing preparation (#197) as step 4 of the Matter workspace: rendered from the module's output (lib/screening/hearingPrep.ts); the page adds no word of its own.
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -38,6 +38,8 @@ test("hearing preparation: absent before a result, then step 4 with a block per 
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: IDS, entries: IDS.map((id) => ({ id, validated: true })) } }));
   await page.goto("/screening");
   await expect(page.getByTestId("hearing-prep")).toHaveCount(0);
+  // layout B: before a result the "This screening" group has no Hearing preparation item (available only after a result)
+  if (await isLayoutB(page)) await expect(page.getByTestId("mb-screening-group").getByRole("link", { name: "Hearing preparation", exact: true })).toHaveCount(0);
   await result(page);
   const prep = page.getByTestId("hearing-prep");
   await expect(prep.getByRole("heading", { name: "Hearing preparation", level: 2 })).toBeVisible();
@@ -63,8 +65,7 @@ test("the step bar links to it and /workflows shows Hearing preparation as Built
   await result(page);
   if (await isLayoutB(page)) {
     // layout B: the result-first view has no step bar (by design); the "This screening" group's Hearing preparation anchor replaces its link
-    await expect(page.getByTestId("workspace-steps")).toHaveCount(0);
-    await expect(page.getByTestId("mb-screening-group").getByRole("link", { name: "Hearing preparation", exact: true })).toHaveAttribute("href", "#step-hearing");
+    await expectResultViewNav(page, { hearing: true, citations: process.env.CITATION_NAV_BUILD === "1" && process.env.CITATION_EXISTENCE_BUILD === "1" });
   } else {
     await expect(page.getByTestId("step-state-hearing")).toHaveText("Available");
     await expect(page.getByTestId("step-link-hearing")).toHaveAttribute("href", "#step-hearing");

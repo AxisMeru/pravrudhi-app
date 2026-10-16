@@ -87,6 +87,7 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
   // layout B has no "Matter" item (R1's ruling for app#393): on /screening its first link is the page's own "Facts" anchor
   const first = (await isLayoutB(page)) ? page.locator("#primary-navigation a").first() : page.getByRole("link", { name: "Matter", exact: true }).first();
+  if (await isLayoutB(page)) await expect(first).toHaveText("Facts");
   await first.focus();
   await expect(first).toBeFocused();
 });
@@ -147,6 +148,21 @@ test.describe("phone touch targets and drawer header", () => {
     const displays = await page.locator('summary:not([data-testid="mb-group-reference"] > summary)').evaluateAll((els) => els.map((e) => getComputedStyle(e).display));
     expect(displays.length).toBeGreaterThan(0);
     for (const d of displays) expect(d).toBe("list-item");
+    // layout B's Reference disclosure replaces the marker with a chevron: it must be there, thumb-sized (opened in the drawer), and toggle the disclosure
+    if (await isLayoutB(page)) {
+      await page.getByRole("button", { name: "Open navigation" }).click();
+      const ref = page.getByTestId("mb-group-reference");
+      const sum = ref.locator("summary");
+      await expect(sum).toBeVisible();
+      await expect(ref.getByTestId("mb-reference-chevron")).toBeVisible();
+      expect((await sum.boundingBox())!.height, "the Reference summary is at least 44 px high").toBeGreaterThanOrEqual(SIZE_MIN);
+      const isOpen = () => ref.evaluate((el) => (el as HTMLDetailsElement).open);
+      const before = await isOpen();
+      await sum.click();
+      await expect.poll(isOpen).toBe(!before);
+      await sum.click();
+      await expect.poll(isOpen).toBe(before);
+    }
   });
 
   test("D7: every link and button inside the open drawer is at least 44 px high", async ({ page }) => {

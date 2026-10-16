@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { promiseHits } from "./support/noTrainingPromise";
-import { isLayoutB, openReference } from "./support/layout";
+import { expectOffPageScreeningItem, isLayoutB, openReference } from "./support/layout";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
 const LINE_START = "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC";
@@ -20,7 +20,10 @@ test("the grouped navigation: Work, Reference and Account, labels changed and pa
   const b = await isLayoutB(page);
   if (b) {
     // layout B: This screening (one link off /screening), General, Reference (a disclosure); no Matter item
-    await expect(nav.getByTestId("mb-screening-link")).toHaveAttribute("href", /\/screening\/?$/);
+    await expectOffPageScreeningItem(page);
+    // the live layout's Account group held the sign-in control; layout B keeps it in the sidebar header
+    await expect(page.locator("#primary-navigation").getByRole("link", { name: "Sign in" }).or(page.locator("#primary-navigation").getByRole("button", { name: "Sign out" }))).toHaveCount(1);
+    await expect(nav.getByTestId("mb-screening-group")).toBeVisible();
     await expect(nav.getByTestId("mb-group-general")).toBeVisible();
     await expect(nav.getByTestId("mb-group-reference")).toBeVisible();
     await openReference(page);

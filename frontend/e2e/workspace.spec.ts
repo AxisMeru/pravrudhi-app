@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
-import { isLayoutB } from "./support/layout";
+import { expectOffPageScreeningItem, expectResultViewNav, isLayoutB } from "./support/layout";
 
 // The Matter workspace (Lead-2, 15 Oct; R1's strings): /screening has a step bar (Facts, Screen, Memo, Hearing preparation) with states; the nav says "Matter"; every old URL still works.
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -43,10 +43,10 @@ test("the step bar: states before facts, with facts, and with a result; the lock
   await expect(page.getByTestId("checklist")).toBeVisible();
   if (await isLayoutB(page)) {
     // layout B: the result-first view has no step bar (by design); the memo actions and Hearing preparation are on the page, and the "This screening" group links to them
-    await expect(page.getByTestId("workspace-steps")).toHaveCount(0);
+    // (the before-facts and with-facts assertions above ran unchanged; once a result exists there is no step state or locked-step note left to assert, because the steps are not shown)
+    await expectResultViewNav(page, { hearing: true, citations: process.env.CITATION_NAV_BUILD === "1" && process.env.CITATION_EXISTENCE_BUILD === "1" });
     await expect(page.locator("#step-memo")).toBeVisible();
     await expect(page.locator("#step-hearing")).toBeVisible();
-    await expect(page.getByTestId("mb-screening-group").getByRole("link", { name: "Hearing preparation", exact: true })).toHaveAttribute("href", "#step-hearing");
     return;
   }
   await expect(state("screen")).toHaveText("Done");
@@ -76,8 +76,7 @@ test("the nav entry and the command palette say 'Matter' and go to /screening", 
   const nav = page.getByRole("navigation", { name: "Primary" });
   if (await isLayoutB(page)) {
     // layout B (R1's ruling for app#393): no "Matter" item; off /screening the group is one "This screening" link to the page, and there is no "Screening" link
-    await expect(nav.getByRole("link", { name: "This screening", exact: true })).toHaveAttribute("href", "/screening");
-    await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveCount(0);
+    await expectOffPageScreeningItem(page);
   } else {
     await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveAttribute("href", "/screening");
   }
