@@ -5,6 +5,8 @@ import test from "node:test";
 
 import { FILM_MANIFESTS, filmFile } from "./films";
 import { EXAMPLES } from "../demo/example";
+import contractElements from "../fixtures/contractElements.json";
+import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
 import { FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE } from "./copy";
 
@@ -48,13 +50,13 @@ test("the review route is linked from nowhere: only the surface route list and a
   assert.deepEqual(hits.sort(), ["src/lib/demoPath.ts", "src/lib/films/copy.ts"], "only the route allow-list and a copy comment name the route; no nav, link, sitemap or page does");
 });
 
-// captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v3 (the stronger pin: sha256 0d2a1fe6..., vendored as nyayasiddhiStrings.json); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
+// captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v4 (the stronger pin: sha256 65282a5a..., vendored as nyayasiddhiStrings.json); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
 const strings = JSON.parse(readFileSync(join(__dirname, "nyayasiddhiStrings.json"), "utf8")) as { sourceSha256: string; refusalStrings: string[]; strings: string[] };
 const BARRED = /\b(accuracy|accurate|verified|verify|proved|proves|proof|best|beats?|outperform|caught|stopped|protects|saved|prevented)\b|state of the art/i;
 const COUNT_WORD = /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|dozens?|many|several|few|most|all)\b/i;
 
-test("the vendored film strings are STRINGS_948_v3 (sha256 0d2a1fe6...), carry no barred word, and the refusal strings carry no count word", () => {
-  assert.match(strings.sourceSha256, /^0d2a1fe6f5c2870f3e770395c6ceb7e60e199afce887c8aba20599c1de9c2e87$/);
+test("the vendored film strings are STRINGS_948_v4 (sha256 65282a5a...), carry no barred word, and the refusal strings carry no count word", () => {
+  assert.match(strings.sourceSha256, /^65282a5af3d2f41c43d561f1dbbd768418c6fa8c6ab83b3b3ef04b381f7417fa$/);
   assert.ok(strings.strings.length > 20 && strings.refusalStrings.length > 0);
   for (const t of strings.strings) {
     assert.doesNotMatch(t, BARRED, t);
@@ -69,15 +71,15 @@ test("the vendored film strings are STRINGS_948_v3 (sha256 0d2a1fe6...), carry n
 const FILMS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"] as const;
 const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
 const sentences = (x: string): string[] => x.split(/(?<=[.!?])\s+/).map(norm).filter(Boolean);
-// the cue set: the film's own strings (v3) and each of their sentences (a long string is captioned sentence by sentence), plus text the film takes unchanged from the APP's signed sources: the example order's allegation paragraphs (lib/demo/example.ts), the page's stack labels (lib/nyayasiddhi.ts) and a row's system name + version as the page prints it (rows.json)
-const rows = (JSON.parse(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"), "utf8")) as { rows: { system_name: string; system_version: string }[] }).rows;
-const allowed = new Set([...strings.strings.flatMap((x) => [norm(x), ...sentences(x)]), ...EXAMPLES.flatMap((e) => [...e.facts].map(norm)), ...Object.values(NYAYASIDDHI_STRINGS.stackLabel).filter((x): x is string => typeof x === "string").map(norm), ...rows.map((r) => norm(`${r.system_name} ${r.system_version}`))]);
+// the cue set: the film's own strings (v3) and each of their sentences (a long string is captioned sentence by sentence), plus text the film takes unchanged from the APP's signed sources: the example order's allegation paragraphs (lib/demo/example.ts), the chip labels (lib/screening/copy.ts), the contracts' element wording (fixtures/contractElements.json), the page's stack labels (lib/nyayasiddhi.ts) and a row's system name + version and run date as the page prints them (rows.json)
+const rows = (JSON.parse(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"), "utf8")) as { rows: { system_name: string; system_version: string; run_date: string }[] }).rows;
+const allowed = new Set([...strings.strings.flatMap((x) => [norm(x), ...sentences(x)]), ...EXAMPLES.flatMap((e) => [...e.facts].map(norm)), ...Object.values(CHIP_LABEL).map(norm), ...Object.values((contractElements as { contracts: Record<string, { elements: string[]; denials: string[] }> }).contracts).flatMap((c) => [...c.elements, ...c.denials].map(norm)), ...Object.values(NYAYASIDDHI_STRINGS.stackLabel).filter((x): x is string => typeof x === "string").map(norm), ...rows.flatMap((r) => [norm(`${r.system_name} ${r.system_version}`), r.run_date])]);
 
 for (const id of FILMS) {
   const dir = join(root, "public", "films", id);
   const man = FILM_MANIFESTS[id] as typeof FILM_MANIFESTS.nyayasiddhi & { placeholder?: boolean };
   const rendered = existsSync(join(dir, "captions.vtt")) && man.placeholder !== true;
-  test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v3 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
+  test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v4 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
     const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
     assert.match(vtt, /^WEBVTT/);
     const t = (x: string): number => { const [h, m, sec] = x.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
@@ -86,7 +88,7 @@ for (const id of FILMS) {
       // cues may overlap and need not be listed by start (a caption can stack under the one before it); each must start before it ends and end inside the film
       assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
       const text = norm(m[3]);
-      assert.ok(allowed.has(text), `${id}: a cue that is not a STRINGS_948_v3 string: ${text}`);
+      assert.ok(allowed.has(text), `${id}: a cue that is not a STRINGS_948_v4 string: ${text}`);
       assert.doesNotMatch(text, BARRED, text);
       cues += 1;
     }

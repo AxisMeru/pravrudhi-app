@@ -1,9 +1,8 @@
 {
- "source": "worklogs/studio-on-seat2/film948/STRINGS_948_v3.json (Studio-on-seat2, 16 Oct; R1-confirmed strings of the NyayaSiddhi film)",
- "sourceSha256": "0d2a1fe6f5c2870f3e770395c6ceb7e60e199afce887c8aba20599c1de9c2e87",
+ "source": "worklogs/studio-on-seat2/film948/STRINGS_948_v4.json (Studio-on-seat2, 16 Oct; R1-confirmed strings of the NyayaSiddhi film)",
+ "sourceSha256": "65282a5af3d2f41c43d561f1dbbd768418c6fa8c6ab83b3b3ef04b381f7417fa",
  "note": "Every caption cue of the film must equal one of these strings (test: nyayasiddhiFilm.spec.ts). Vendored: the film's own strings only, no figure.",
  "refusalStrings": [
-  "A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.",
   "Check what the accused is said to have done with the property, and whether the facts show dishonest intent.",
   "Check what the facts say was handed over, to whom, and on what terms.",
   "Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property",
@@ -11,10 +10,10 @@
   "Madras High Court, order of 12 June 2024",
   "No fact cited: dishonestly misappropriates or converts the property to his own use",
   "No fact cited: entrusted with property, or with dominion over property",
-  "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter."
+  "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.",
+  "Shown on an example order."
  ],
  "strings": [
-  "A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.",
   "About this run",
   "Anthropic API; not our dev stack or production stack  [API rows S-direct, S-harness]",
   "Check what the accused is said to have done with the property, and whether the facts show dishonest intent.",
@@ -32,16 +31,16 @@
   "No fact cited: dishonestly misappropriates or converts the property to his own use",
   "No fact cited: entrusted with property, or with dominion over property",
   "Not marked as supported",
-  "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.",
   "NyayaSiddhi",
   "Pravrudhi-Nyaya is the product you open. Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.",
+  "Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.",
   "Reported by the entrant",
   "Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.",
   "Rows are listed in a fixed order, by split and system name, never by a figure.",
   "Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry",
   "Run date",
   "Second development set, cruelty items left out; exposed to Anthropic in an earlier study",
-  "Shown on an example order, not on a benchmark item.",
+  "Shown on an example order.",
   "Status",
   "System",
   "The narration is a synthetic voice.",

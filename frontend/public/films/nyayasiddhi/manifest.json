@@ -1,12 +1,12 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 84,
+  "durationS": 152,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "94011b4a8214f63937321abff6c2ce3acffbeac73f23769387cec9354d41021e",
+    "filmSha256": "f3a4723320a5f8ff8a48b8edc6d3037d44f96c0a0c50ef61e32790d792a777a3",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -19,79 +19,61 @@
       "name": "NyayaSiddhi",
       "text": "",
       "startS": 0,
-      "endS": 5
+      "endS": 7.2
     },
     {
       "name": "Madras High Court, order of 12 June 2024",
       "text": "",
-      "startS": 5,
-      "endS": 14
-    },
-    {
-      "name": "Shown on an example order, not on a benchmark item.",
-      "text": "",
-      "startS": 14,
-      "endS": 21
-    },
-    {
-      "name": "Shown on an example order, not on a benchmark item.",
-      "text": "",
-      "startS": 21,
-      "endS": 26
+      "startS": 7.2,
+      "endS": 39.800000000000004
     },
     {
       "name": "Development items; used to design fixes, so seen by us",
       "text": "",
-      "startS": 26,
-      "endS": 34
+      "startS": 39.800000000000004,
+      "endS": 49.5
     },
     {
       "name": "How the system decides each item",
       "text": "",
-      "startS": 34,
-      "endS": 41
+      "startS": 49.5,
+      "endS": 59.3
     },
     {
-      "name": "nyayasiddhi-ref-S-direct claude-sonnet-5-5-cfg-1bb53647",
+      "name": "System",
       "text": "",
-      "startS": 41,
-      "endS": 51
-    },
-    {
-      "name": "Not run: this system was not given dishonoured-cheque items, which are outside its contracts.",
-      "text": "",
-      "startS": 51,
-      "endS": 56
+      "startS": 59.3,
+      "endS": 90.3
     },
     {
       "name": "Ingredients with no fact cited",
       "text": "",
-      "startS": 56,
-      "endS": 76
+      "startS": 90.3,
+      "endS": 135.7
     },
     {
       "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
       "text": "",
-      "startS": 76,
-      "endS": 84
+      "startS": 135.7,
+      "endS": 152
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 3601640,
-      "sha256": "9d1f11ae94b31e2a217880e296069577f7e07825a6e643d60dcc81b3cededd2d"
+      "bytes": 3674472,
+      "sha256": "74e2a8d444c6fad41264c15ee8efc09fc924e999bacd6ca648eb73108cf26a56"
     },
     {
       "name": "poster.png",
-      "bytes": 69037,
-      "sha256": "d5d6a99cfdd3701927df280d3fa09fb13aa0d09b40e325cc732c4aeaef7a49ca"
+      "bytes": 47176,
+      "sha256": "28b72f1dac7f86ed652d350f540b25cbd363a2f70761881d97c462400da0ffb0"
     },
     {
       "name": "captions.vtt",
-      "bytes": 4843,
-      "sha256": "faf0d6ccab12cd82b3184add6088a2e8f28fd622a7b7084389bb6729e0a67b50"
+      "bytes": 4055,
+      "sha256": "a019f0404638a7acf761989b41e3eb1e1008735a2afe56399f411b6470902cd9"
     }
   ]
 }

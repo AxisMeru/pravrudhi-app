@@ -1,12 +1,12 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 47,
+  "durationS": 75.10000000000001,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "ace444354bc8850ed53ae360c46b6c66547dfb65c111bba09b41243ea623eeed",
+    "filmSha256": "f295cc4098978abab29c27b11e079c308e2ce2efda8a3e2a59ecc48410253328",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -19,61 +19,49 @@
       "name": "NyayaSiddhi",
       "text": "",
       "startS": 0,
-      "endS": 5
+      "endS": 7.2
     },
     {
       "name": "Madras High Court, order of 12 June 2024",
       "text": "",
-      "startS": 5,
-      "endS": 13
-    },
-    {
-      "name": "Shown on an example order, not on a benchmark item.",
-      "text": "",
-      "startS": 13,
-      "endS": 19
-    },
-    {
-      "name": "Shown on an example order, not on a benchmark item.",
-      "text": "",
-      "startS": 19,
-      "endS": 24
+      "startS": 7.2,
+      "endS": 39.800000000000004
     },
     {
       "name": "How the system decides each item",
       "text": "",
-      "startS": 24,
-      "endS": 31
+      "startS": 39.800000000000004,
+      "endS": 49.60000000000001
     },
     {
       "name": "Pravrudhi-Nyaya is the product you open.",
       "text": "",
-      "startS": 31,
-      "endS": 39
+      "startS": 49.60000000000001,
+      "endS": 58.80000000000001
     },
     {
       "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
       "text": "",
-      "startS": 39,
-      "endS": 47
+      "startS": 58.80000000000001,
+      "endS": 75.10000000000001
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 2974467,
-      "sha256": "e97c53d427879a1af9a7ae51f23f325e1f19740da3a6191e81dc69e7f1f1b403"
+      "bytes": 1739980,
+      "sha256": "02795fb5e735026a7497791d40550e4b3c6022ec6704acc65a15446d7bffbef0"
     },
     {
       "name": "poster.png",
-      "bytes": 65295,
-      "sha256": "8439dc720ed111eb9a3557f1a6c03135fe8074223a9107167ebd65163abd14d4"
+      "bytes": 47176,
+      "sha256": "28b72f1dac7f86ed652d350f540b25cbd363a2f70761881d97c462400da0ffb0"
     },
     {
       "name": "captions.vtt",
-      "bytes": 2964,
-      "sha256": "5aadb6db833fec8f721fdcd067a66c51acfcf18e60212271c0ff1a58dd2227f7"
+      "bytes": 1675,
+      "sha256": "bca93c7dbdc3b1ee17196f15e09b0cf82434fd5609c13acf8b23cd70bfe9ab57"
     }
   ]
 }

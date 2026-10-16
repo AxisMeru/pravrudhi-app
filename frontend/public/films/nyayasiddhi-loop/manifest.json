@@ -1,12 +1,12 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 26,
+  "durationS": 33.5,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "e164456f522e215381716e4008cbaa277207bdabdf2f46a5037d7882893c6e11",
+    "filmSha256": "877c8d2d4601501f6053c7ae66c631fd9aaf15fa6a8bb6ff097852428c71a9e7",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -19,37 +19,31 @@
       "name": "Madras High Court, order of 12 June 2024",
       "text": "",
       "startS": 0,
-      "endS": 6
+      "endS": 18.1
     },
     {
-      "name": "Shown on an example order, not on a benchmark item.",
+      "name": "System",
       "text": "",
-      "startS": 6,
-      "endS": 14
-    },
-    {
-      "name": "nyayasiddhi-open-O2 Qwen3-14B-AWQ-31c69efc",
-      "text": "",
-      "startS": 14,
-      "endS": 26
+      "startS": 18.1,
+      "endS": 33.5
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 1483836,
-      "sha256": "53029285004922c7e9a93ded50bc4a8bf223521d8bd3ecc7539244d028f678cc"
+      "bytes": 802713,
+      "sha256": "d13eb780f23f76838bd97d8acde78ba61cba24ee9d5a44422ad8b2176e8fdba4"
     },
     {
       "name": "poster.png",
-      "bytes": 87874,
-      "sha256": "7f7824338d4fe86321e7159dc42b7b47b303a6dcaa59af4611b3a17b7d6776cf"
+      "bytes": 87823,
+      "sha256": "1a5da6bc0a79113653de0c89770a126ea9e7774656651a9175af3e2630ee72ee"
     },
     {
       "name": "captions.vtt",
-      "bytes": 1767,
-      "sha256": "a8d29f23d9b19534460dca98bc52a7c376a78c0f11fe99eede0601f665cdcbf9"
+      "bytes": 1064,
+      "sha256": "3265944f57ff51bb1dfd6f6b5e74ada2439240ca85c3705369e3a5c766962cb5"
     }
   ]
 }

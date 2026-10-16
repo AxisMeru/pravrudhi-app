@@ -5,7 +5,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
   "public/films/nyayasiddhi-firm/captions.vtt": {
     reason: "the same R1-confirmed bridge caption (STRINGS_948_v3) as in the film strings file, as the firm cut's caption cue (the scan reads the cue number and times with it): the organisers' own models; not a statement about submissions",
     sentences: [
-      "18 00:00:33.600 --> 00:00:38.800 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+      "14 00:00:53.000 --> 00:00:58.800 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
   "src/lib/films/nyayasiddhiStrings.json": {

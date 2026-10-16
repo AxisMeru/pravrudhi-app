@@ -1,93 +1,77 @@
 WEBVTT
 
 1
-00:00:00.200 --> 00:00:04.800
+00:00:00.300 --> 00:00:07.200
 NyayaSiddhi
 
 2
-00:00:01.400 --> 00:00:04.800
+00:00:03.400 --> 00:00:07.200
 our benchmark for screening under Indian criminal law
 
 3
-00:00:05.300 --> 00:00:12.800
+00:00:07.500 --> 00:00:39.800
 Madras High Court, order of 12 June 2024
 
 4
-00:00:05.900 --> 00:00:12.800
+00:00:10.767 --> 00:00:39.800
 The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
 
 5
-00:00:07.200 --> 00:00:12.800
-Later, when the defacto complainant demanded money the first and the second accused who were husband and wife threatened as if they got separated and not responsible for repayment. At the same time, the first petitioner has transferred the house property in the name of the second petitioner in order to dispose it of to third parties and cheat the complainant.
+00:00:22.033 --> 00:00:39.800
+Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
 
 6
-00:00:08.600 --> 00:00:12.800
-A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+00:00:29.633 --> 00:00:39.800
+Shown on an example order.
 
 7
-00:00:13.000 --> 00:00:18.800
-Shown on an example order, not on a benchmark item.
-
-8
-00:00:13.500 --> 00:00:18.800
+00:00:33.233 --> 00:00:39.800
 Marked as supported
 
-9
-00:00:13.800 --> 00:00:18.800
+8
+00:00:33.233 --> 00:00:39.800
 Not marked as supported
 
-10
-00:00:13.000 --> 00:00:18.800
-A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
-
-11
-00:00:19.000 --> 00:00:23.800
-Shown on an example order, not on a benchmark item.
-
-12
-00:00:19.600 --> 00:00:23.800
+9
+00:00:36.333 --> 00:00:39.800
 Here, an error is counted as not supported.
 
-13
-00:00:19.000 --> 00:00:23.800
-A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
-
-14
-00:00:24.200 --> 00:00:30.800
+10
+00:00:40.100 --> 00:00:49.600
 How the system decides each item
 
-15
-00:00:25.000 --> 00:00:30.800
+11
+00:00:43.200 --> 00:00:49.600
 Whole item at once
 
-16
-00:00:27.000 --> 00:00:30.800
+12
+00:00:46.300 --> 00:00:49.600
 Ingredient by ingredient
 
-17
-00:00:31.300 --> 00:00:33.500
+13
+00:00:49.900 --> 00:00:58.800
 Pravrudhi-Nyaya is the product you open.
 
-18
-00:00:33.600 --> 00:00:38.800
+14
+00:00:53.000 --> 00:00:58.800
 Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.
 
-19
-00:00:39.200 --> 00:00:46.800
+15
+00:00:59.100 --> 00:01:15.100
 Rows are listed in a fixed order, by split and system name, never by a figure.
 
-20
-00:00:40.600 --> 00:00:46.800
+16
+00:01:05.033 --> 00:01:15.100
 https://huggingface.co/datasets/AxisMeru/nyayasiddhi
 
-21
-00:00:41.100 --> 00:00:46.800
+17
+00:01:05.033 --> 00:01:15.100
 https://github.com/AxisMeru/pravrudhi
 
-22
-00:00:41.600 --> 00:00:46.800
+18
+00:01:05.033 --> 00:01:15.100
 https://pravrudhi-app.vercel.app/benchmarks
 
-23
-00:00:42.600 --> 00:00:46.800
+19
+00:01:10.633 --> 00:01:15.100
 This is a screening aid, not legal advice. A lawyer decides.

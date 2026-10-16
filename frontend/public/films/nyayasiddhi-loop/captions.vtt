@@ -1,45 +1,65 @@
 WEBVTT
 
 1
-00:00:00.300 --> 00:00:05.800
+00:00:00.300 --> 00:00:18.100
 Madras High Court, order of 12 June 2024
 
 2
-00:00:00.900 --> 00:00:05.800
-The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
+00:00:03.567 --> 00:00:18.100
+Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
 
 3
-00:00:02.200 --> 00:00:05.800
-Later, when the defacto complainant demanded money the first and the second accused who were husband and wife threatened as if they got separated and not responsible for repayment. At the same time, the first petitioner has transferred the house property in the name of the second petitioner in order to dispose it of to third parties and cheat the complainant.
+00:00:11.167 --> 00:00:18.100
+Shown on an example order.
 
 4
-00:00:03.600 --> 00:00:05.800
-A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
-
-5
-00:00:06.000 --> 00:00:13.800
-Shown on an example order, not on a benchmark item.
-
-6
-00:00:06.500 --> 00:00:13.800
+00:00:14.767 --> 00:00:18.100
 Marked as supported
 
-7
-00:00:06.800 --> 00:00:13.800
+5
+00:00:14.767 --> 00:00:18.100
 Not marked as supported
 
-8
-00:00:06.000 --> 00:00:13.800
-A public court order, example only. These are the allegations as the court recited them, not findings, and not a view on the case. A crime number and a date have been replaced by placeholders. The output of this demo is illustrative, not evidence, and no measure is quoted from it.
+6
+00:00:18.400 --> 00:00:32.667
+System
 
-9
-00:00:14.300 --> 00:00:25.800
+7
+00:00:18.400 --> 00:00:32.667
 nyayasiddhi-open-O2 Qwen3-14B-AWQ-31c69efc
 
+8
+00:00:18.400 --> 00:00:32.667
+Status
+
+9
+00:00:18.400 --> 00:00:32.667
+Reported by the entrant
+
 10
-00:00:14.300 --> 00:00:25.800
-dev stack (local)
+00:00:18.400 --> 00:00:32.667
+Material
 
 11
-00:00:14.300 --> 00:00:25.800
+00:00:18.400 --> 00:00:32.667
+Development items; used to design fixes, so seen by us
+
+12
+00:00:18.400 --> 00:00:32.667
+Run date
+
+13
+00:00:18.400 --> 00:00:32.667
+2026-10-15
+
+14
+00:00:18.400 --> 00:00:32.667
+dev stack (local)
+
+15
+00:00:18.400 --> 00:00:32.667
 Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+16
+00:00:18.400 --> 00:00:32.667
+About this run
