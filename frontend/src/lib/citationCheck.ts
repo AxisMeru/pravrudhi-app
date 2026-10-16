@@ -130,30 +130,30 @@ export function citationHasCaseName(line: unknown): boolean {
 }
 
 /**
- * pravrudhi-app#373 (P1; Interim lead; amended 16 Oct): true when the typed line carries a NAME beside its bracketed-year citation: any text before OR after the citation ("(year) volume REPORTER page"), however it is written (v/s, -vs-, "In re", "and", no separator, a single party, any script).
- * The engine reads a typed name only before the citation and only in some forms (pravrudhi#510), so for every other form the page must not give "Found in our index" with no caveat. Text that is NOT a name is ignored: leading list markers ("1.", "(1)", "[1]", "-", bullets), quotes,
- * the words See / Ref / Cf / Citation (case-insensitive, with trailing punctuation), and trailing punctuation; at least one LETTER must remain. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
- * No bracketed "(year)" part (so "AIR 1950 SC 27"), an empty line and a non-string: false (the page makes no claim there).
+ * pravrudhi-app#373 (P1; Interim lead; amended 16 Oct, FAIL-CLOSED): true unless the typed line is PROVABLY BARE. A line is bare only when, after trimming leading list markers ("1.", "(1)", "[1]", "-", bullets), quotes, leading See / Ref / Cf / Citation and trailing punctuation, the WHOLE line is
+ * one citation of the engine's own forms (a year, bracketed or plain, then "volume SCC page", "Supp [(N)] SCC page", "SCC (Supp) volume page" or "volume SCC (Supp) page"). Anything else that contains a letter (a name before or after, in any separator or script, a reporter the index does not hold) counts as a typed name:
+ * the engine reads a typed name only before the citation and only in some forms (pravrudhi#510), so for every line that is not provably bare the page must not give "Found in our index" with no caveat. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
+ * LINEAR on purpose (R2): a small alternation of fixed tokens joined by \s*, no nested quantifiers; a pasted junk line of CITATION_MAX characters cannot freeze the tab. A non-string or an empty or letter-free line is false (the page makes no claim there).
  */
-// the citation itself: "(year)", then an optional volume (a number, or "Supp" / "Supp (3)"), then one to four reporter words (SCC, "SCC (L&S)", "SCC OnLine SC", "Cri LJ", "AIR SC"), then the page number.
-// LINEAR on purpose (R2, 16 Oct): each reporter word is 1-12 characters and MUST end at whitespace, so a run of letters can be split only one way (no nested quantifiers); a pasted junk line of CITATION_MAX characters cannot freeze the tab.
-const CITATION_CORE = /\(\s*\d{4}\s*\)\s*(?:(?:\d+|Supp(?:\s*\(\s*\d+\s*\))?)\s*)?(?:[A-Za-z][A-Za-z.&]{0,11}(?:\s*\([A-Za-z&. ]{1,12}\))?\s+){1,4}\d+/;
-const LEADING_MARKER = /^\s*(?:\(\s*\d+\s*\)|\[\s*\d+\s*\]|\d+\s*[.)\]:]|[-*\u2022\u2013\u2014]+)\s*/;
+const SUPP = String.raw`Supp?l?\.?`;
+const YEAR = String.raw`(?:\(\s*\d{4}\s*\)|\d{4})`;
+const BARE_CITATION = new RegExp(
+  `^${YEAR}\\s*(?:\\d+\\s*SCC\\s*\\d+|${SUPP}(?:\\s*\\(\\s*\\d+\\s*\\))?\\s*SCC\\s*\\d+|SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+\\s*\\d+|\\d+\\s*SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+)$`,
+  "i",
+);
+const LEADING_MARKER = /^\s*(?:\(\s*\d{1,2}\s*\)|\[\s*\d{1,3}\s*\]|\d{1,3}\s*[.)\]:]|[-*•–—]+)\s*/; // a list marker is 1-3 digits: a four-digit year in brackets is NOT a marker
+const LEADING_WORD = /^\s*(?:see|ref|cf|citation)\b[:.,;-]?\s*/i;
 export function citationHasTypedName(line: unknown): boolean {
   if (typeof line !== "string") return false;
-  const year = /\(\s*\d{4}\s*\)/.exec(line);
-  if (!year) return false;
-  const core = CITATION_CORE.exec(line);
-  // what is left beside the citation: before it, and after it (the core is cut out; a line whose core does not parse keeps everything after the year's bracket)
-  let rest = core ? `${line.slice(0, core.index)} ${line.slice(core.index + core[0].length)}` : `${line.slice(0, year.index)} ${line.slice(year.index + year[0].length)}`;
-  rest = rest.replace(/["'\u201C\u201D\u2018\u2019]/g, " ");
-  for (let i = 0; i < 4; i++) rest = rest.replace(LEADING_MARKER, "");
-  rest = rest.replace(/\b(?:see|ref|cf|citation)\b[:.,;-]?/gi, " ");
-  return /\p{L}/u.test(rest);
+  let rest = line.replace(/["'“”‘’]/g, " ");
+  for (let i = 0; i < 4; i++) rest = rest.replace(LEADING_MARKER, "").replace(LEADING_WORD, "");
+  rest = rest.replace(/[\s.,;:]+$/, "").trim();
+  if (!/\p{L}/u.test(rest)) return false;
+  return !BARE_CITATION.test(rest);
 }
 
 /**
- * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, whenever a name is typed beside the citation (citationHasTypedName: text before OR after it, list markers and See/Ref/Cf/Citation ignored) and the engine did NOT say it confirmed every typed party
+ * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, unless the typed line is provably bare (citationHasTypedName: fail-closed; list markers, quotes and leading See/Ref/Cf/Citation ignored) and the engine did NOT say it confirmed every typed party
  * (name_compared absent or not true). Existence-only arm, IN_INDEX (or VERIFIED) only. One rule for /citations, the Citations panel and Intake.
  */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
