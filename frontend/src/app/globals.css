@@ -108,6 +108,16 @@
   --tint-nofact: color-mix(in srgb, var(--color-text-dim) 6%, var(--color-surface));
 }
 
+/* Look patch, dark ground (explorer's live read, d25 P3-4): the dark theme's glow is raised so /benchmarks and /guide are less flat; the tints are unchanged. Light keeps 8 %. */
+:root[data-theme="dark"] {
+  --tone-glow: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --tone-glow: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  }
+}
+
 html,
 body {
   height: 100%;
@@ -255,5 +265,14 @@ html[data-look="tonal"] [data-testid="summary-banner"] {
   html[data-look="tonal"] [data-testid="summary-banner"],
   html[data-look="tonal"] #primary-navigation {
     box-shadow: none;
+  }  /* The state rules above out-rank the line before by specificity, so on paper they would keep their two outer drop shadows: print keeps only the inset state rule (useful on paper) and drops the shadows. */
+  html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="supported"] {
+    box-shadow: inset 4px 0 0 var(--color-ok);
+  }
+  html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="review"] {
+    box-shadow: inset 4px 0 0 var(--color-warn);
+  }
+  html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="not_supported"] {
+    box-shadow: inset 4px 0 0 var(--color-text-dim);
   }
 }
