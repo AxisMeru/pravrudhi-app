@@ -224,7 +224,7 @@ html[data-look="tonal"] #primary-navigation nav a[aria-current="page"] {
 html[data-look="tonal"] #primary-navigation [data-testid^="nav-group-"] > div:first-child {
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: 12px; /* the spec says 11 px; the app's own D8 check (drawer-a11y) holds section labels at 12 px or more, so 12 px */
 }
 html[data-look="tonal"] [data-testid="ingredient-row"] {
   background: var(--color-surface);
