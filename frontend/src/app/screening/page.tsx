@@ -430,6 +430,14 @@ export default function ScreeningPage() {
           />
         )}
         {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
+        {LAYOUT_MATTER_B && !result && (
+          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] print:hidden" data-testid="mb-also">
+            {MB.alsoLead}
+            <Link href="/safety" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-safety">{MB.alsoSafety}</Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/benchmarks" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-benchmarks">{MB.alsoBenchmarks}</Link>
+          </p>
+        )}
         <CaveatStrip warming={warming} />
         {!mbResultView && <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
           <summary className="min-h-6 cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>

@@ -68,7 +68,7 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
         <p id="mb-general-heading" className={heading}>{MB.groupGeneral}</p>
         {general.map(link)}
       </div>
-      <details className="group mb-1" data-testid="mb-group-reference">
+      <details className="group mb-1" data-testid="mb-group-reference" open>
         <summary className={`${heading} flex cursor-pointer list-none items-center justify-between max-md:min-h-11 max-md:py-3`}>
           {MB.groupReference}
           <ChevronDown size={14} aria-hidden="true" className="transition-transform group-open:rotate-180" data-testid="mb-reference-chevron" />
