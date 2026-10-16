@@ -86,7 +86,7 @@ test("desktop: the sidebar is a normal column: visible, its links focusable, no 
   await expect(page.locator("#primary-navigation")).toBeVisible();
   await expect(page.locator("#primary-navigation")).not.toHaveAttribute("role", "dialog");
   // layout B has no "Matter" item (R1's ruling for app#393): on /screening its first link is the page's own "Facts" anchor
-  const first = (await isLayoutB(page)) ? page.locator("#primary-navigation a").first() : page.getByRole("link", { name: "Matter", exact: true }).first();
+  const first = (await isLayoutB(page)) ? page.getByRole("navigation", { name: "Primary" }).locator("a").first() : page.getByRole("link", { name: "Matter", exact: true }).first();
   if (await isLayoutB(page)) await expect(first).toHaveText("Facts");
   await first.focus();
   await expect(first).toBeFocused();
