@@ -264,3 +264,23 @@ plain("#509 /citations: matched adds nothing; a mismatch reads R1's heading and 
   await expect(page.getByTestId("citation-check-note")).toHaveText(NEUTRAL);
   await expect(page.locator("body")).not.toContainText(/SOMETHING_NEW|engine note/);
 });
+
+// pravrudhi-app#373 (P1): the caveat shows for any text before the citation's year, not only a recognised separator; name_compared true shows none.
+const NOT_CONFIRMED = "Only the citation was looked up; the case name you typed was not confirmed against the index.";
+test("#373 /citations: a v/s name, no separator and a Devanagari name get R1's caveat; a bare citation and name_compared true get none", async ({ page }) => {
+  let answer: Record<string, unknown> = { ...IN };
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
+  await page.goto("/citations");
+  const check = async (line: string) => { await page.getByRole("textbox").fill(line); await page.getByRole("button", { name: "Check citations" }).click(); await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index"); };
+  for (const line of ["(2014) 8 SCC 273 Totally Invented Pvt Ltd v. Nobody", "Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273", "Totally Invented Pvt Ltd (2014) 8 SCC 273", "अनाम कंपनी (2014) 8 SCC 273"]) {
+    await check(line);
+    await expect(page.getByTestId("citation-check-name-note")).toHaveText(NOT_CONFIRMED);
+  }
+  for (const bare of ["(2014) 8 SCC 273", "1. (2014) 8 SCC 273", "See (2014) 8 SCC 273"]) {
+    await check(bare);
+    await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+  }
+  answer = { ...IN, name_compared: true };
+  await check("Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273");
+  await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+});

@@ -129,10 +129,42 @@ export function citationHasCaseName(line: unknown): boolean {
   return /\s(?:v\.?|vs\.?|versus)\s/i.test(line.slice(0, year.index) + " ");
 }
 
-/** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
+/**
+ * pravrudhi-app#373 (P1; Interim lead; amended 16 Oct, FAIL-CLOSED): true unless the typed line is PROVABLY BARE. A line is bare only when, after trimming leading list markers ("1.", "(1)", "[1]", "-", bullets), quotes, leading See / Ref / Cf / Citation and trailing punctuation, the WHOLE line is
+ * one citation of the engine's own forms (a year, bracketed or plain, then "volume SCC page", "Supp [(N)] SCC page", "SCC (Supp) volume page" or "volume SCC (Supp) page", the volume bare or in parentheses). Anything else that contains a letter (a name before or after, in any separator or script, a reporter the index does not hold) counts as a typed name:
+ * the engine reads a typed name only before the citation and only in some forms (pravrudhi#510), so for every line that is not provably bare the page must not give "Found in our index" with no caveat. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
+ * LINEAR on purpose (R2): a small alternation of fixed tokens joined by \s*, no nested quantifiers; a pasted junk line of CITATION_MAX characters cannot freeze the tab. A non-string or an empty or letter-free line is false (the page makes no claim there).
+ */
+const SUPP = String.raw`Supp?l?\.?`;
+const YEAR = String.raw`(?:\(\s*\d{4}\s*\)|\d{4})`;
+/** The bare-citation matcher. `parenVolumes` (true in the app): the engine reads the volume bare or in parentheses after a bracketed OR a plain year. Exported with the flag so a mutant test can drop the parenthesised branch and watch the differential fail. */
+export const buildBareCitation = (parenVolumes: boolean): RegExp => {
+  const vol = parenVolumes ? String.raw`(?:\d+|\(\s*\d+\s*\))` : String.raw`\d+`;
+  const volPage = parenVolumes ? String.raw`(?:\d+\s+|\(\s*\d+\s*\)\s*)\d+` : String.raw`\d+\s+\d+`; // volume then page, unambiguous
+  return new RegExp(
+    `^${YEAR}\\s*(?:${vol}\\s*SCC\\s*\\d+|${SUPP}(?:\\s*\\(\\s*\\d+\\s*\\))?\\s*SCC\\s*\\d+|SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*${volPage}|${vol}\\s*SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+|SCC\\s*${SUPP}\\s*(?:${volPage}|\\d+)|${vol}\\s*SCC\\s*${SUPP}\\s*\\d+)$`,
+    "i",
+  );
+};
+const BARE_CITATION = buildBareCitation(true);
+const LEADING_MARKER = /^\s*(?:\(\s*\d{1,2}\s*\)|\[\s*\d{1,3}\s*\]|\d{1,3}\s*[.)\]:]|[-*•–—]+)\s*/; // a list marker is 1-3 digits: a four-digit year in brackets is NOT a marker
+const LEADING_WORD = /^\s*(?:see|ref|cf|citation)\b[:.,;-]?\s*/i;
+export function citationHasTypedName(line: unknown): boolean {
+  if (typeof line !== "string") return false;
+  let rest = line.replace(/["'“”‘’]/g, " ");
+  for (let i = 0; i < 4; i++) rest = rest.replace(LEADING_MARKER, "").replace(LEADING_WORD, "");
+  rest = rest.replace(/[\s.,;:]+$/, "").trim();
+  if (!/\p{L}/u.test(rest)) return false;
+  return !BARE_CITATION.test(rest);
+}
+
+/**
+ * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, unless the typed line is provably bare (citationHasTypedName: fail-closed; list markers, quotes and leading See/Ref/Cf/Citation ignored) and the engine did NOT say it confirmed every typed party
+ * (name_compared absent or not true). Existence-only arm, IN_INDEX (or VERIFIED) only. One rule for /citations, the Citations panel and Intake.
+ */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
-  if (!existenceOnly || !citationHasCaseName(citation)) return null;
-  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value (no name compared, or only partly matched) keeps R1's "not confirmed" sentence
+  if (!existenceOnly || !citationHasTypedName(citation)) return null;
+  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value keeps the sentence
   if (nameCompared === true) return null;
   return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
 }

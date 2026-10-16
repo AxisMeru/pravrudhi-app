@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import { ApiError } from "./api";
@@ -118,7 +120,7 @@ test("#266: EXISTENCE_SUBTITLE says up to 5 at a time, equal to the cap constant
 });
 
 // app#347 (R1, 15 Oct): the CONFLICT sentence depends on whether the typed citation already carries a case name; both sentences are pinned byte-exact, the heading is unchanged, and the rule is a table.
-import { citationHasCaseName } from "./citationCheck";
+import { buildBareCitation, citationHasCaseName, citationHasTypedName } from "./citationCheck";
 import { CONFLICT_TEXT_WITH_NAME } from "./citationExistence";
 test("#347: both CONFLICT sentences are R1's, byte-exact; the heading is unchanged", () => {
   assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
@@ -207,4 +209,147 @@ test("#509 Intake (citationLine, citationExtra): (a) matched drops the sentence;
   assert.equal(citationExtra(c("IN_INDEX")), CASE_NAME_NOT_COMPARED); assert.equal(citationExtra(c("IN_INDEX", BARE)), null); // (c)
   assert.equal(citationLine("brand_new"), UNKNOWN_STATUS_TEXT); assert.notEqual(citationLine("brand_new"), "Not checked."); assert.equal(citationExtra(c("brand_new")), null); // (d)
   assert.equal(citationLine("NOT_CHECKED"), "Not checked.");
+});
+
+// pravrudhi-app#373 (P1): the caveat shows for ANY text before the citation's bracketed year (not only a recognised separator) unless the engine says name_compared is true. Track B's forms, per surface.
+const FORMS_373: Array<[string, string]> = [
+  ["v/s", "Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273"],
+  ["-vs-", "Totally Invented Pvt Ltd -vs- Nobody (2014) 8 SCC 273"],
+  ["In re", "In re Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["and", "Totally Invented Pvt Ltd and Nobody (2014) 8 SCC 273"],
+  ["no separator", "Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a single invented name", "Nobody (2014) 8 SCC 273"],
+  ["Devanagari", "\u0905\u0928\u093E\u092E \u0915\u0902\u092A\u0928\u0940 (2014) 8 SCC 273"],
+  ["v. (the old rule's case)", "Totally Invented Pvt Ltd v. Nobody (2014) 8 SCC 273"],
+  ["an initial V", "G V Rao (2000) 3 SCC 693"],
+  ["a name AFTER the citation", "(2014) 8 SCC 273 Totally Invented Pvt Ltd v. Nobody"],
+  ["a single name after the citation", "(2014) 8 SCC 273 Nobody"],
+  ["Devanagari after the citation", "(2014) 8 SCC 273 \u0905\u0928\u093E\u092E \u0915\u0902\u092A\u0928\u0940"],
+  ["a list marker AND a name before", "1. Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a marker, See and a name", "(1) See Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a quoted name", "\"Totally Invented Pvt Ltd\" (2014) 8 SCC 273"],
+  ["Track B: v/s before a plain-year Supp key", "Totally Invented Pvt Ltd v/s Nobody 1992 Supp (1) SCC 335"],
+  ["Track B: -vs- before a plain-year Supp key", "Totally Invented Pvt Ltd -vs- Nobody 1992 Supp (1) SCC 335"],
+  ["Track B: In re before a plain-year Supp key", "In re Totally Invented Pvt Ltd 1992 Supp (1) SCC 335"],
+  ["Track B: SCC (SUPP) alias with a name", "Totally Invented Pvt Ltd v/s Nobody 1992 SCC (SUPP) 1 335"],
+  ["Track B: a name after a plain-year Supp key", "1992 Supp (1) SCC 335 Totally Invented Pvt Ltd v/s Nobody"],
+  ["a reporter the index does not hold (fail-closed)", "(2014) 3 SCC (L&S) 92"],
+  ["another reporter (fail-closed)", "(1994) Cri LJ 123"],
+  ["no year at all (fail-closed)", "Nobody"],
+  ["AIR form (fail-closed)", "AIR 1950 SC 27"],
+];
+// harmless text beside a citation that is NOT a typed name: list markers, quotes, See/Ref/Cf/Citation, trailing punctuation (numbered lists are a common paste format)
+const BARE_373 = ["(2014) 8 SCC 273", "  (2014) 8 SCC 273", "(2014)8 SCC 273", "1. (2014) 8 SCC 273", "- (2014) 8 SCC 273", "(1) (2014) 8 SCC 273", "[1] (2014) 8 SCC 273", "\u2022 (2014) 8 SCC 273", "See (2014) 8 SCC 273", "Ref: (2014) 8 SCC 273",
+  "Citation: (2014) 8 SCC 273", "cf. (2014) 8 SCC 273", "SEE: (2014) 8 SCC 273", "\"(2014) 8 SCC 273\"", "'(2014) 8 SCC 273'", "1. See (2014) 8 SCC 273", "(2014) 8 SCC 273.", "(2014) 8 SCC 273;  ", "2) Ref. (2014) 8 SCC 273,",
+  "(1970) Supp (3) SCC 253", "(1971) Supp SCC 359", "1992 Supp (1) SCC 335", "2014 8 SCC 273", "1992 SCC (SUPP) 1 335", "1992 Supp. SCC 335", "See 1992 Supp (1) SCC 335", "1. 2014 8 SCC 273.", "1952 (2) SCC 329", "1952(2)SCC 329", "1980 (1) SCC (Supp) 224", "1980 SCC (SUPP) (1) 224", "1992 SCC Supl. 335", "1992 SCC Suppl. 1 335", "1992 1 SCC Supl. 335"];
+test("#373 the text-before-year rule: any text before the bracketed year counts; a bare citation, no year part, an empty line and a non-string do not", () => {
+  for (const [name, line] of FORMS_373) assert.equal(citationHasTypedName(line), true, name);
+  for (const line of BARE_373) assert.equal(citationHasTypedName(line), false, line);
+  for (const x of ["", "   ", "(2014)", "1.", "(1)", "See:", undefined, null, 42]) assert.equal(citationHasTypedName(x), false, String(x)); // nothing to judge: no letter left, or not a string
+  assert.equal(citationHasCaseName("Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273"), false, "#350's separator rule is untouched (it still picks the CONFLICT sentence)");
+});
+test("#373 /citations and the Citations panel (verifyView): every form shows R1's existing sentence after the note when the engine did not confirm the name; name_compared TRUE shows nothing; a bare citation shows nothing", () => {
+  for (const [name, line] of FORMS_373) {
+    assert.equal(verifyView(FOUND, false, true, line).nameNote, CASE_NAME_NOT_COMPARED, `${name}: field absent`);
+    assert.equal(verifyView(FOUND, false, true, line).note, FOUND.note, `${name}: the note stays`);
+    for (const odd of [false, "true", 1, null]) assert.equal(verifyView({ ...FOUND, name_compared: odd as never }, false, true, line).nameNote, CASE_NAME_NOT_COMPARED, `${name}: name_compared ${String(odd)}`);
+    assert.equal(verifyView({ ...FOUND, name_compared: true }, false, true, line).nameNote, null, `${name}: name_compared TRUE: no caveat`);
+    assert.equal(verifyView(FOUND, false, false, line).nameNote, null, `${name}: arm off`);
+  }
+  for (const line of BARE_373) assert.equal(verifyView(FOUND, false, true, line).nameNote, null, line);
+  for (const result of ["NOT_IN_INDEX", "CONFLICT", "MALFORMED", "NAME_MISMATCH"]) assert.equal(verifyView({ ...FOUND, result, status: result.toLowerCase() }, false, true, FORMS_373[0][1]).nameNote, null, result);
+});
+test("#373 Intake (citationExtra, same rule): every form gets the sentence unless name_compared is true; a mismatch keeps R1's mismatch note", () => {
+  const c = (verifierStatus: string, text: string, nameCompared = false) => ({ verifierStatus, text, nameCompared });
+  for (const [name, line] of FORMS_373) {
+    assert.equal(citationExtra(c("IN_INDEX", line)), CASE_NAME_NOT_COMPARED, name);
+    assert.equal(citationExtra(c("IN_INDEX", line, true)), null, `${name}: true`);
+  }
+  for (const line of BARE_373) assert.equal(citationExtra(c("IN_INDEX", line)), null, line);
+  assert.equal(citationExtra(c("NAME_MISMATCH", FORMS_373[0][1], true)), NAME_MISMATCH_TEXT);
+});
+
+// R2's regression (16 Oct): the engine's OWN recognised citations, typed as BARE citations, must never read as a typed name (every Supp citation was flagged); and any real key with a name typed beside it must still be flagged.
+// R2's differential (16 Oct): every bare spelling of a real key that the ENGINE reads as one citation must not be flagged: year bracketed or plain, volume bare or in parentheses, any spacing, the Supp forms and the SCC (SUPP) aliases.
+function bareVariants(key: string): string[] {
+  const out: string[] = [];
+  const plain = /^\((\d{4})\) (\d+) SCC (\d+)$/.exec(key);
+  const supp = /^\((\d{4})\) Supp(?: \((\d+)\))? SCC (\d+)$/.exec(key);
+  if (plain) {
+    const [, y, v, pg] = plain;
+    for (const yf of [`(${y})`, y]) for (const vf of [v, `(${v})`]) for (const s1 of [" ", "  ", yf.endsWith(")") || vf.startsWith("(") ? "" : " "]) for (const s2 of [" ", "", vf.endsWith(")") ? "" : " "]) {
+      out.push(`${yf}${s1}${vf}${s2}SCC ${pg}`, `${yf}${s1}${vf}${s2}SCC (Supp) ${pg}`, `${yf}${s1}SCC (SUPP) ${vf} ${pg}`);
+    }
+  }
+  if (supp) {
+    const [, y, n, pg] = supp;
+    for (const yf of [`(${y})`, y]) {
+      out.push(`${yf} Supp SCC ${pg}`, `${yf} Supp. SCC ${pg}`, `${yf} Supl. SCC ${pg}`);
+      if (n) out.push(`${yf} Supp (${n}) SCC ${pg}`, `${yf}  Supp(${n})SCC ${pg}`, `${yf} SCC (SUPP) ${n} ${pg}`, `${yf} SCC (SUPP) (${n}) ${pg}`, `${yf} SCC (Supp) (${n})${pg}`);
+    }
+  }
+  return out;
+}
+test("#373 over the engine's real citation keys (11,164) and every bare variant of them (year bracketed/plain, volume bare/parenthesised, spacing, Supp and SCC (SUPP) forms): none reads as a typed name; a name before or after is caught", () => {
+  const doc = JSON.parse(readFileSync(join(__dirname, "..", "..", "e2e", "fixtures", "engineCitationKeys.json"), "utf8")) as { sourceSha256: string; keys: string[] };
+  assert.match(doc.sourceSha256, /^[0-9a-f]{64}$/);
+  assert.equal(doc.keys.length, 11164);
+  let variants = 0;
+  const flagged: string[] = [];
+  const missed: string[] = [];
+  doc.keys.forEach((k, i) => {
+    for (const v of [k, ...bareVariants(k)]) {
+      variants += 1;
+      if (citationHasTypedName(v)) flagged.push(v);
+      if (i % 7 === 0 && (!citationHasTypedName(`Totally Invented Pvt Ltd v/s Nobody ${v}`) || !citationHasTypedName(`1. Nobody ${v}`) || !citationHasTypedName(`${v} Totally Invented Pvt Ltd v/s Nobody`) || !citationHasTypedName(`${v} Nobody`))) missed.push(v);
+    }
+  });
+  assert.ok(variants > 100000, `only ${variants} variants were generated`);
+  assert.deepEqual(flagged.slice(0, 10), [], `${flagged.length} bare spellings read as carrying a name`);
+  assert.deepEqual(missed.slice(0, 10), [], `${missed.length} spellings where a typed name was not caught`);
+});
+
+// R2's performance finding (16 Oct): the citation core must be LINEAR: a pasted junk line of CITATION_MAX (500) characters, in any of these shapes, must be judged in well under 50 ms (the check runs in the browser on /citations, the Screening panel and Intake).
+test("#373 time budget: worst-case 500-character shapes and a seeded fuzz of 500-character inputs are each judged in under 50 ms", () => {
+  const N = 500;
+  const shapes: Record<string, string> = {
+    letters_after_year: "(2014) " + "a".repeat(N - 7), letters_upper: "(2014) " + "A".repeat(N - 7), repeated_short_words: "(2014) " + "a ".repeat(N / 2), repeated_Supp: "(2014) " + "Supp ".repeat(N / 5),
+    repeated_Supp_parens: "(2014) " + "Supp (1) ".repeat(N / 9), long_digits: "(2014) " + "1".repeat(N - 7), digits_then_letters: "(2014) " + "1a".repeat(N / 2), unclosed_parens: "(2014) 8 SCC (" + "(".repeat(N),
+    unclosed_year_parens: "(".repeat(N), paren_spaces: "(" + " ".repeat(N), repeated_year_open: "( ".repeat(N / 2), many_reporter_words: "(2014) " + "SCC OnLine SC Cri LJ AIR ".repeat(N / 25), words_12_chars: "(2014) " + "abcdefghijkl ".repeat(N / 13),
+    mixed_scripts: "(2014) " + "अनाम a ".repeat(N / 7), markers: "1. ".repeat(N / 3) + "(2014) 8 SCC 273", quotes_see: "See Ref Cf Citation: ".repeat(N / 21) + "(2014) 8 SCC 273", spaces_then_cite: " ".repeat(N - 20) + "(2014) 8 SCC 273", many_years: "(2014) ".repeat(N / 7),
+  };
+  const timed = (s: string): number => { const t = performance.now(); citationHasTypedName(s); return performance.now() - t; };
+  for (const [name, line] of Object.entries(shapes)) assert.ok(timed(line) < 50, `${name} took too long`);
+  let seed = 12345; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const alphabet = ["(", ")", " ", "1", "2", "a", "B", "S", "C", ".", "&", "-", "[", "]", "अ", "Supp", "SCC", "AIR", "\"", "'"];
+  let worst = 0;
+  for (let i = 0; i < 300; i++) { let s = ""; while (s.length < N) s += alphabet[Math.floor(rnd() * alphabet.length)]; worst = Math.max(worst, timed(s.slice(0, N))); }
+  assert.ok(worst < 50, `a random 500-character input took ${worst.toFixed(1)} ms`);
+});
+
+// Track B's own forms (trackb-seat2/d21/d21d.mjs) as fixtures: the engine's Supp spellings are bare (none); a name before or after is caught; reporters the index does not hold, and prefixes that are not list markers, are NOT provably bare, so they get the caveat (fail-closed, disclosed).
+test("#373 Track B's d21d forms: Supp spellings bare => none, named before/after => caveat; other reporters and unlisted prefixes => caveat (fail-closed)", () => {
+  const SUPP_SHAPES = ["(1970) Supp (3) SCC 253", "1992 Supp (1) SCC 335", "(1992) Supp (1) SCC 335", "1992 SCC (SUPP) 1 335", "1992 SCC Supl. (1) 335", "(1970) Supp SCC 253", "(2014) 8 SCC 273"];
+  for (const c of SUPP_SHAPES) {
+    assert.equal(citationHasTypedName(c), false, `bare ${c}`);
+    assert.equal(citationHasTypedName(`Totally Invented Pvt Ltd v/s Nobody ${c}`), true, `before ${c}`);
+    assert.equal(citationHasTypedName(`${c} Totally Invented Pvt Ltd v/s Nobody`), true, `after ${c}`);
+  }
+  for (const c of ["(2014) 3 SCC (L&S) 92", "(2012) 5 SCC (Cri) 100", "(2010) 4 SCC (Civ) 7", "2014 SCC OnLine SC 123", "(2014) SCC OnLine SC 123", "(1995) 1 Cri LJ 233", "1990 Cri LJ 1234", "AIR 1950 SC 27", "(1950) AIR SC 27"]) assert.equal(citationHasTypedName(c), true, `fail-closed: ${c}`);
+  const K = "(2014) 8 SCC 273";
+  const harmless = [`1. ${K}`, `- ${K}`, `(1) ${K}`, `See ${K}`, `Ref: ${K}`, `Citation: ${K}`, `Cf. ${K}`, `"${K}"`, `\u201C${K}\u201D`, `${K} .`, `${K};`, `${K},`, `[1] ${K}`, `\u2022 ${K}`, `1. See ${K}`, `   ${K}   `];
+  for (const l of harmless) assert.equal(citationHasTypedName(l), false, l);
+  const named = [`${K} Totally Invented Pvt Ltd v. Nobody`, `${K} Totally Invented`, `Totally Invented ${K}`];
+  for (const l of named) assert.equal(citationHasTypedName(l), true, l);
+  for (const l of [`(i) ${K}`, `a) ${K}`, `\u00B6 3 ${K}`, `${K} 12`]) assert.equal(citationHasTypedName(l), true, `fail-closed: ${l}`);
+});
+
+// MUTANT: an alternation that drops the parenthesised-volume branch must fail the bare differential (R2's four forms), the unmutated matcher passes them.
+test("#373 mutant: dropping the parenthesised-volume branch makes R2's four plain-year forms read as names; the real matcher recognises them", () => {
+  const real = buildBareCitation(true);
+  const mutant = buildBareCitation(false);
+  for (const l of ["1952 (2) SCC 329", "1952(2)SCC 329", "1980 (1) SCC (Supp) 224", "1980 SCC (SUPP) (1) 224"]) {
+    assert.equal(real.test(l), true, `real: ${l}`);
+    assert.equal(mutant.test(l), false, `the mutant must NOT recognise ${l}`);
+  }
 });
