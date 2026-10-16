@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
-import { FILM_MANIFESTS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
+import { FILM_MANIFESTS, WEBM_FILMS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
   const m = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -17,14 +17,24 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion the poster stays until the visitor asks for the film with the button. The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id, manifest, autoplayMuted = false, captionsOn = false }: { id: FilmId; manifest?: FilmManifest; autoplayMuted?: boolean; captionsOn?: boolean }) {
+export function FilmPlayer({ id, manifest, autoplayMuted = false }: { id: FilmId; manifest?: FilmManifest; autoplayMuted?: boolean }) {
   const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [captions, setCaptions] = useState(captionsOn);
+  const [captions, setCaptions] = useState(false); // captions are OFF until asked, on every film (the operator, 16 Oct); the button and the browser's own CC menu turn them on
   const video = useRef<HTMLVideoElement>(null);
   const showVideo = !reduced || asked;
+  // a film with no audio track (the manifest says audio:false) has no sound button: pressing it could only do nothing
+  const hasAudio = film.audio !== false;
+  const hasWebm = WEBM_FILMS.has(id);
+  // one click turns the voice on: muted off, volume up, and play() in the SAME click if the film is paused; turning it off mutes again
+  const toggleSound = () => {
+    const v = video.current;
+    if (!v) return;
+    if (v.muted || v.volume === 0) { v.muted = false; v.volume = 1; setMuted(false); if (v.paused) void v.play().catch(() => undefined); }
+    else { v.muted = true; setMuted(true); }
+  };
   // the captions track has no `default`: it starts disabled, and the visible button (or the browser's own CC menu) turns it on
   useEffect(() => {
     const t = video.current?.textTracks[0];
@@ -48,7 +58,10 @@ export function FilmPlayer({ id, manifest, autoplayMuted = false, captionsOn = f
             aria-label={film.title}
             data-testid="film-video"
             autoPlay={reduced ? asked : autoplayMuted}
+            onVolumeChange={(e) => setMuted(e.currentTarget.muted || e.currentTarget.volume === 0)}
           >
+            {/* WebM first (VP9, with Opus when the film has a voice) for a client without H.264/AAC; the mp4 second (Safari) */}
+            {hasWebm && <source src={filmFile(id, "film.webm")} type={hasAudio ? 'video/webm; codecs="vp9, opus"' : 'video/webm; codecs="vp9"'} />}
             <source src={filmFile(id, "film.mp4")} type="video/mp4" />
             <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" />
             {FILM_VIDEO_UNSUPPORTED}
@@ -67,9 +80,11 @@ export function FilmPlayer({ id, manifest, autoplayMuted = false, captionsOn = f
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {showVideo && (
           <>
-            <button type="button" onClick={() => setMuted((m) => !m)} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
-              {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
-            </button>
+            {hasAudio && (
+              <button type="button" onClick={toggleSound} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
+                {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
+              </button>
+            )}
             <button type="button" onClick={() => setCaptions((c) => !c)} className="min-h-6 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">
               {captions ? FILM_CAPTIONS_HIDE : FILM_CAPTIONS_SHOW}
             </button>

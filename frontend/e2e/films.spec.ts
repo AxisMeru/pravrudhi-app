@@ -6,7 +6,7 @@ const PAGES = [["/guide", "client"], ["/technical-film", "technical"], ["/how-it
 const VIEWPORTS = [{ width: 400, height: 800 }, { width: 1280, height: 800 }];
 
 for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {
-  test(`${path} at ${viewport.width} px: the ${id} film plays in the page, starts muted, captions off until asked, downloadable, nothing fetched before play, no sideways scroll`, async ({ page }) => {
+  test(`${path} at ${viewport.width} px: the ${id} film plays in the page, starts muted, captions off until asked, downloadable, nothing fetched before play or the sound button, no sideways scroll`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const filmRequests: string[] = [];
     page.on("request", (r) => { if (/\/films\/[a-z]+\/film\.mp4/.test(r.url())) filmRequests.push(r.url()); });
@@ -28,6 +28,7 @@ for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {
     expect(await video.evaluate((v: HTMLVideoElement) => v.textTracks[0].mode)).toBe("showing");
     await fig.getByTestId("film-captions").click();
     expect(await video.evaluate((v: HTMLVideoElement) => v.textTracks[0].mode)).toBe("disabled");
+    expect(filmRequests, "no film bytes before the visitor presses play or the sound button").toEqual([]);
     // the sound: muted at the start (autoplay-safe), one visible button turns it on and off
     await expect(fig.getByTestId("film-sound")).toHaveText("Turn on sound");
     await fig.getByTestId("film-sound").click();
@@ -41,7 +42,8 @@ for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {
     await expect(dl).toHaveAttribute("href", new RegExp(`/films/${id}/film\\.mp4$`));
     await expect(dl).toHaveAttribute("download", "");
     expect((await page.request.get((await dl.getAttribute("href"))!)).ok(), "the film file is served").toBe(true);
-    expect(filmRequests, "no film bytes before the visitor presses play").toEqual([]);
+    // the sound button on a paused film starts it (a visitor who asks for sound wants the film), so the film file is fetched only after that press
+    expect(filmRequests.length, "the press on the sound button started the film").toBeGreaterThan(0);
     expect(await video.locator("source").evaluateAll((els) => els.map((e) => `${(e as HTMLSourceElement).type} ${(e as HTMLSourceElement).getAttribute("src")?.split("/").pop()}`))).toEqual(["video/mp4 film.mp4"]);
     // plays (muted, so a script may start it) wherever the browser decodes H.264
     const canPlay = await video.evaluate((v: HTMLVideoElement) => v.canPlayType('video/mp4; codecs="avc1.42E01E"') !== "");

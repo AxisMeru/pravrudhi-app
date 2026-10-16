@@ -5,69 +5,133 @@ WEBVTT
 The narration is a synthetic voice.
 
 2
-00:00:00.600 --> 00:00:05.675
-NyayaSiddhi. our benchmark for screening under Indian criminal law
+00:00:00.600 --> 00:00:03.100
+NyayaSiddhi
 
 3
-00:00:07.800 --> 00:00:18.834
-Madras High Court, order of 12 June 2024. The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr. No.
+00:00:01.078 --> 00:00:04.900
+our benchmark for screening under Indian criminal law
 
 4
-00:00:18.834 --> 00:00:29.372
-[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC. Public court order, example only. Allegations as recited, not findings.
+00:00:07.800 --> 00:00:11.044
+Madras High Court, order of 12 June 2024
 
 5
-00:00:29.372 --> 00:00:38.709
-Crime number and date replaced. Illustrative, not evidence. Shown on an example order. Marked as supported. Not marked as supported.
+00:00:11.044 --> 00:00:24.021
+The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
 
 6
-00:00:38.709 --> 00:00:41.750
-Here, an error is counted as not supported.
+00:00:24.021 --> 00:00:31.320
+Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
 
 7
-00:00:43.300 --> 00:00:54.675
-Development items; used to design fixes, so seen by us. Second development set, cruelty items left out; exposed to Anthropic in an earlier study.
+00:00:31.320 --> 00:00:33.820
+Shown on an example order.
 
 8
-00:00:56.200 --> 00:01:02.700
-How the system decides each item. Whole item at once. Ingredient by ingredient.
+00:00:33.347 --> 00:00:35.847
+Marked as supported
 
 9
-00:01:06.000 --> 00:01:15.225
-Reported by the entrant. Development items; used to design fixes, so seen by us. Anthropic API; not our dev stack or production stack.
+00:00:34.564 --> 00:00:37.064
+Not marked as supported
 
 10
-00:01:15.225 --> 00:01:22.041
-Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry. dev stack (local).
+00:00:36.186 --> 00:00:39.430
+Here, an error is counted as not supported.
 
 11
-00:01:22.041 --> 00:01:28.650
-Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry. About this run.
+00:00:41.000 --> 00:00:45.292
+Development items; used to design fixes, so seen by us
 
 12
-00:01:37.000 --> 00:01:48.681
-Ingredients with no fact cited. Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property. Madras High Court, order of 12 June 2024.
+00:00:45.292 --> 00:00:51.300
+Second development set, cruelty items left out; exposed to Anthropic in an earlier study
 
 13
-00:01:48.681 --> 00:02:00.224
-Shown on an example order. No fact cited: entrusted with property, or with dominion over property. Check what the facts say was handed over, to whom, and on what terms.
+00:00:52.800 --> 00:00:55.500
+How the system decides each item
 
 14
-00:02:00.224 --> 00:02:05.927
-No fact cited: dishonestly misappropriates or converts the property to his own use.
+00:00:55.500 --> 00:00:58.000
+Whole item at once
 
 15
-00:02:05.927 --> 00:02:13.280
-Check what the accused is said to have done with the property, and whether the facts show dishonest intent.
+00:00:57.300 --> 00:00:59.800
+Ingredient by ingredient
 
 16
-00:02:13.280 --> 00:02:21.250
-Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.
+00:01:02.600 --> 00:01:05.100
+Reported by the entrant
 
 17
-00:02:22.800 --> 00:02:32.975
-Rows are listed in a fixed order, by split and system name, never by a figure. This is a screening aid, not legal advice. A lawyer decides.
+00:01:04.028 --> 00:01:07.597
+Development items; used to design fixes, so seen by us
 
 18
-00:02:35.500 --> 00:02:38.500
+00:01:07.597 --> 00:01:10.809
+Anthropic API; not our dev stack or production stack
+
+19
+00:01:10.809 --> 00:01:15.449
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+20
+00:01:15.449 --> 00:01:17.949
+dev stack (local)
+
+21
+00:01:16.519 --> 00:01:21.159
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+22
+00:01:21.159 --> 00:01:23.659
+About this run
+
+23
+00:01:33.600 --> 00:01:36.100
+Ingredients with no fact cited
+
+24
+00:01:35.403 --> 00:01:41.532
+Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property
+
+25
+00:01:41.532 --> 00:01:44.416
+Madras High Court, order of 12 June 2024
+
+26
+00:01:44.416 --> 00:01:46.916
+Shown on an example order.
+
+27
+00:01:46.219 --> 00:01:50.185
+No fact cited: entrusted with property, or with dominion over property
+
+28
+00:01:50.185 --> 00:01:55.232
+Check what the facts say was handed over, to whom, and on what terms.
+
+29
+00:01:55.232 --> 00:01:59.919
+No fact cited: dishonestly misappropriates or converts the property to his own use
+
+30
+00:01:59.919 --> 00:02:06.769
+Check what the accused is said to have done with the property, and whether the facts show dishonest intent.
+
+31
+00:02:06.769 --> 00:02:13.980
+Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.
+
+32
+00:02:19.000 --> 00:02:24.333
+Rows are listed in a fixed order, by split and system name, never by a figure.
+
+33
+00:02:24.173 --> 00:02:27.840
+This is a screening aid, not legal advice. A lawyer decides.
+
+34
+00:02:31.700 --> 00:02:34.700
 The narration is a synthetic voice.

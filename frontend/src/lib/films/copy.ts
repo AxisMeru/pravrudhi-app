@@ -36,3 +36,5 @@ export const NYAYASIDDHI_CUT_HEADINGS = { "nyayasiddhi": "Cut A: the main film",
 /** PROPOSED for R1 (the operator's voice gate, 16 Oct): the label on each narrated preview, on the review page only. The narrated cuts are reachable only by this unlisted URL. */
 export const NYAYASIDDHI_VOICE_PREVIEW_LABEL = "Preview for voice review";
 export const NYAYASIDDHI_VOICE_HEADINGS = { "nyayasiddhi-narrated": "Cut A, narrated", "nyayasiddhi-firm-narrated": "Cut C, narrated" } as const;
+/** R1 (16 Oct, byte-exact): one line above each SILENT player on the review page; styled like the voice label. Its button name is FILM_CAPTIONS_SHOW (captions are off by default): if that text changes, this line changes with it (a unit test derives it). */
+export const NYAYASIDDHI_SILENT_LABEL = "Silent cut: no voice. Press Show captions to read it.";

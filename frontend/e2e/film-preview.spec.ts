@@ -10,8 +10,12 @@ test("/benchmarks-film-preview: noindex, the three silent cuts with their captio
     await expect(film).toBeVisible();
     await expect(film.getByTestId("film-video")).toHaveAttribute("poster", new RegExp(`/films/${id}/poster\\.png$`));
     await expect(film.locator("track")).toHaveAttribute("src", new RegExp(`/films/${id}/captions\\.vtt$`));
-    await expect(film.getByTestId("film-captions")).toHaveText("Hide captions");
+    await expect(film.getByTestId("film-captions")).toHaveText("Show captions"); // captions are OFF until asked
     await expect(film.getByTestId("film-video")).toHaveJSProperty("muted", true);
+    expect(await film.locator("track").evaluate((t: HTMLTrackElement) => t.hasAttribute("default"))).toBe(false);
+    // a silent cut has no sound button and says it is silent (R1's line, above the player)
+    await expect(film.getByTestId("film-sound")).toHaveCount(0);
+    await expect(page.getByTestId(`film-${id}`).locator("xpath=preceding-sibling::p[@data-testid='silent-label']")).toHaveText("Silent cut: no voice. Press Show captions to read it.");
   }
   const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(sw).toBeLessThanOrEqual(iw);
@@ -26,7 +30,21 @@ test("the two narrated previews are on the route, each labelled Preview for voic
     await expect(sec.locator("track")).toHaveAttribute("src", new RegExp(`/films/${id}/captions\\.vtt$`));
     await expect(sec.getByTestId("film-sound")).toHaveText("Turn on sound");
     await expect(sec.getByTestId("film-video")).toHaveJSProperty("autoplay", false);
-    await expect(sec.getByTestId("film-captions")).toHaveText("Hide captions");
+    await expect(sec.getByTestId("film-captions")).toHaveText("Show captions");
+    await expect(sec.getByTestId("silent-label")).toHaveCount(0);
+    // ONE click: muted off, volume up, and the film plays (a paused film is started in the same click)
+    await sec.getByTestId("film-sound").click();
+    const video = sec.getByTestId("film-video");
+    await expect(video).toHaveJSProperty("muted", false);
+    await expect(video).toHaveJSProperty("volume", 1);
+    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
+    await expect(sec.getByTestId("film-sound")).toHaveText("Turn off sound");
+    // the native control's speaker (simulated by the element's own muted flag) moves the label with it
+    await video.evaluate((v: HTMLVideoElement) => { v.muted = true; });
+    await expect(sec.getByTestId("film-sound")).toHaveText("Turn on sound");
+    await video.evaluate((v: HTMLVideoElement) => { v.muted = false; });
+    await expect(sec.getByTestId("film-sound")).toHaveText("Turn off sound");
+    await video.evaluate((v: HTMLVideoElement) => v.pause());
   }
 });
 

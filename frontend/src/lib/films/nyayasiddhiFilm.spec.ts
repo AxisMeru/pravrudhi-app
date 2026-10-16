@@ -4,12 +4,16 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import test from "node:test";
 
-import { filmFile, type FilmManifest } from "./films";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+import { FilmPlayer } from "../../components/films/FilmPlayer";
+import { WEBM_FILMS, filmFile, type FilmManifest } from "./films";
 import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
-import { FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
+import { FILM_CAPTIONS_SHOW, FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_SILENT_LABEL, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
@@ -23,7 +27,7 @@ test("the film id is registered, its files are named like the other films', and 
   const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted captionsOn \/>/);
+  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted \/>/);
   assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
   assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
   assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
@@ -31,10 +35,10 @@ test("the film id is registered, its files are named like the other films', and 
   assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
 });
 
-test("public/films holds only the film's five cuts (three silent, two narrated previews for the voice review): four files each, no script or log, no host path (R2)", () => {
+test("public/films holds only the film's five cuts (three silent, two narrated previews for the voice review): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
   const films = readdirSync(join(root, "public", "films")).filter((n) => n.startsWith("nyayasiddhi")).sort();
   assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
-  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "manifest.json", "poster.png"], f);
+  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
@@ -78,7 +82,7 @@ test("the vendored film strings are STRINGS_948_v4 (sha256 65282a5a...), carry n
   for (const t of added) assert.doesNotMatch(t, COUNT_WORD, t);
 });
 
-const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "c35ef3d5c85767e9dbe0a050d64d49be788d7408a911df64603d9addcb4be374", "nyayasiddhi-firm-narrated": "a1333fb2af9ca0db16069a7670ebb4d1f95fb6414fdbd368a9f99ce14b97a879" } as const;
+const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "783827b1e51e614d4fb841581b5ed2e116f2010a9036d9b4b000cacd82019445", "nyayasiddhi-firm-narrated": "f9e50fa65f20a5a4823345d58ac2ba636ceee980e414a549621b406f873f3ce5" } as const;
 const FILMS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"] as const;
 const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
 const sentences = (x: string): string[] => x.split(/(?<=[.!?])\s+/).map(norm).filter(Boolean);
@@ -143,4 +147,43 @@ test("vercel.json: /films/nyayasiddhi* gets X-Robots-Tag noindex, nofollow, and 
   const re = new RegExp(`^${robots[0].source}$`);
   for (const p of ["/films/nyayasiddhi/film.mp4", "/films/nyayasiddhi-loop/poster.png", "/films/nyayasiddhi-firm/captions.vtt", "/films/nyayasiddhi-narrated/film.mp4", "/films/nyayasiddhi-firm-narrated/manifest.json"]) assert.match(p, re, p);
   for (const p of ["/films/client/film.mp4", "/films/technical/film.mp4", "/benchmarks", "/"]) assert.doesNotMatch(p, re, p);
+});
+
+// The operator's report (16 Oct): the sound button on a SILENT cut does nothing (the film has no audio track); captions must be off until asked; one click turns the voice on.
+const SILENT_MANIFEST: FilmManifest = { title: "T", durationS: 10, width: 1280, height: 720, audio: false, scenes: [] };
+const VOICE_MANIFEST: FilmManifest = { ...SILENT_MANIFEST, audio: true };
+const html = (id: Parameters<typeof FilmPlayer>[0]["id"], manifest: FilmManifest, extra: Record<string, unknown> = {}) => renderToStaticMarkup(createElement(FilmPlayer, { id, manifest, ...extra }));
+
+test("a silent film has NO sound button; a narrated one has it; captions start off with the Show captions button and no default track", () => {
+  const silent = html("nyayasiddhi", SILENT_MANIFEST, { autoplayMuted: true });
+  assert.ok(!silent.includes('data-testid="film-sound"'), "no sound button on a film with no audio track");
+  const voice = html("nyayasiddhi-narrated", VOICE_MANIFEST);
+  assert.ok(voice.includes('data-testid="film-sound"') && voice.includes("Turn on sound"));
+  for (const h of [silent, voice]) {
+    assert.ok(h.includes(`>${FILM_CAPTIONS_SHOW}<`), "captions off until asked: the button offers Show captions");
+    assert.doesNotMatch(h, /<track[^>]*\sdefault/, "the captions track is never `default`");
+  }
+});
+
+test("the WebM source comes first (VP9, with Opus for a narrated film) for every film that ships a film.webm; the mp4 follows; a film without one lists only the mp4", () => {
+  const n = html("nyayasiddhi-narrated", VOICE_MANIFEST);
+  assert.ok(n.indexOf("film.webm") > 0 && n.indexOf("film.webm") < n.indexOf("film.mp4"), "webm before mp4");
+  assert.ok(n.includes("vp9, opus"));
+  const sil = html("nyayasiddhi", SILENT_MANIFEST);
+  assert.ok(sil.includes("film.webm") && sil.includes("vp9") && !sil.includes("opus"), "a silent film's webm is VP9 only");
+  assert.ok(!html("client", VOICE_MANIFEST).includes("film.webm"), "the client film has no webm: mp4 only");
+  assert.match(filmFile("nyayasiddhi", "film.webm"), /\/films\/nyayasiddhi\/film\.webm$/);
+  // the set the player uses is exactly the folders that hold a film.webm
+  const withWebm = readdirSync(join(root, "public", "films")).filter((d) => existsSync(join(root, "public", "films", d, "film.webm"))).sort();
+  assert.deepEqual([...WEBM_FILMS].sort(), withWebm);
+});
+
+test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, shown above each of the three silent cuts and nowhere else", () => {
+  assert.equal(NYAYASIDDHI_SILENT_LABEL, "Silent cut: no voice. Press Show captions to read it.");
+  assert.ok(NYAYASIDDHI_SILENT_LABEL.includes(`Press ${FILM_CAPTIONS_SHOW} to`), "derived from the captions button text");
+  assert.doesNotMatch(NYAYASIDDHI_SILENT_LABEL, BARRED);
+  const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
+  const silentBlock = page.slice(page.indexOf("{CUTS.map"), page.indexOf("{VOICE.map"));
+  assert.match(silentBlock, /NYAYASIDDHI_SILENT_LABEL/);
+  assert.doesNotMatch(page.slice(page.indexOf("{VOICE.map")), /NYAYASIDDHI_SILENT_LABEL/);
 });
