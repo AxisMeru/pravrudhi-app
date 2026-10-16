@@ -56,6 +56,14 @@ test("the choice persists per browser and is applied before hydration on the nex
   await expect(BTN(page)).toHaveAttribute("data-theme-choice", "light");
 });
 
+test("the button is a 44 px target at desktop width too (Interim lead P3, 16 Oct)", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/guide");
+  const b = (await BTN(page).boundingBox())!;
+  expect(b.width).toBeGreaterThanOrEqual(44);
+  expect(b.height).toBeGreaterThanOrEqual(44);
+});
+
 test("the button is a 44 px target at phone width, reachable by keyboard, and has no visible text", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/guide");

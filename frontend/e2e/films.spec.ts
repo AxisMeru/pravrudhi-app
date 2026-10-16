@@ -36,6 +36,8 @@ for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {
     await expect(fig.getByTestId("film-sound")).toHaveText("Turn off sound");
     await fig.getByTestId("film-sound").click();
     expect(await video.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+    // every control is a 44 px target (Interim lead P3, 16 Oct)
+    for (const t of ["film-sound", "film-captions", "film-download"]) expect((await fig.getByTestId(t).boundingBox())!.height, t).toBeGreaterThanOrEqual(44);
     // the same-origin MP4 can be downloaded
     const dl = fig.getByTestId("film-download");
     await expect(dl).toHaveText("Download the film");

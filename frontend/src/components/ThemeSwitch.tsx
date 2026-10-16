@@ -22,7 +22,7 @@ function subscribe(onChange: () => void): () => void {
 }
 
 const ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
-const BOX = "fixed right-6 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-md border border-[var(--color-control-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-hover)] max-md:h-11 max-md:w-11 print:hidden";
+const BOX = "fixed right-6 top-3 z-30 flex h-11 w-11 items-center justify-center rounded-md border border-[var(--color-control-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-hover)] print:hidden";
 
 export function ThemeSwitch() {
   // Until the stored choice is read (the null server snapshot) the button shows the system strings, the default.

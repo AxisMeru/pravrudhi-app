@@ -27,7 +27,7 @@ test("the film id is registered, its files are named like the other films', and 
   const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} autoplayMuted \/>/);
+  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} posterFirst \/>/);
   assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
   assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
   assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
@@ -156,7 +156,7 @@ const VOICE_MANIFEST: FilmManifest = { ...SILENT_MANIFEST, audio: true };
 const html = (id: Parameters<typeof FilmPlayer>[0]["id"], manifest: FilmManifest, extra: Record<string, unknown> = {}) => renderToStaticMarkup(createElement(FilmPlayer, { id, manifest, ...extra }));
 
 test("a silent film has NO sound button; a narrated one has it; captions start off with the Show captions button and no default track", () => {
-  const silent = html("nyayasiddhi", SILENT_MANIFEST, { autoplayMuted: true });
+  const silent = html("nyayasiddhi", SILENT_MANIFEST);
   assert.ok(!silent.includes('data-testid="film-sound"'), "no sound button on a film with no audio track");
   const voice = html("nyayasiddhi-narrated", VOICE_MANIFEST);
   assert.ok(voice.includes('data-testid="film-sound"') && voice.includes("Turn on sound"));
@@ -187,4 +187,10 @@ test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, show
   const silentBlock = page.slice(page.indexOf("{CUTS.map"), page.indexOf("{VOICE.map"));
   assert.match(silentBlock, /NYAYASIDDHI_SILENT_LABEL/);
   assert.doesNotMatch(page.slice(page.indexOf("{VOICE.map")), /NYAYASIDDHI_SILENT_LABEL/);
+});
+
+test("a posterFirst film is its poster and a Play the film button: no <video>, no film.webm in the markup (the download link to the mp4 stays), no autoplay (16 Oct, no ~8.6 MB at load)", () => {
+  const h = html("nyayasiddhi", SILENT_MANIFEST, { posterFirst: true });
+  assert.ok(h.includes('data-testid="film-poster"') && h.includes('data-testid="film-play"'));
+  assert.doesNotMatch(h, /<video|film\.webm|autoplay/i);
 });

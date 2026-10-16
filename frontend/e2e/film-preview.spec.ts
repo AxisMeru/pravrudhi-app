@@ -1,9 +1,20 @@
 import { expect, test } from "./support/engineTest";
 
 // The unlisted NyayaSiddhi film review route (#948): noindex, linked from nowhere, phone width, the player with its captions track.
-test("/benchmarks-film-preview: noindex, the three silent cuts with their captions tracks, muted, captions on, no horizontal scroll at phone width", async ({ page }) => {
+test("/benchmarks-film-preview: noindex, the three silent cuts are poster + Play the film (no film bytes, no autoplay), then the player with its captions track, muted, captions off, no horizontal scroll at phone width", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
+  const filmRequests: string[] = [];
+  page.on("request", (r) => { if (/\/films\/nyayasiddhi[a-z-]*\/film\.(webm|mp4)/.test(r.url())) filmRequests.push(r.url()); });
   await page.goto("/benchmarks-film-preview");
+  await page.waitForLoadState("networkidle");
+  // at load: every silent cut is its poster and a "Play the film" button; no <video>, no film bytes
+  for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) {
+    await expect(page.getByTestId(`film-${id}`).getByTestId("film-poster")).toBeVisible();
+    await expect(page.getByTestId(`film-${id}`).getByTestId("film-play")).toHaveText("Play the film");
+    await expect(page.getByTestId(`film-${id}`).getByTestId("film-video")).toHaveCount(0);
+  }
+  expect(filmRequests, "no film file before a Play press").toEqual([]);
+  for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) await page.getByTestId(`film-${id}`).getByTestId("film-play").click();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) {
     const film = page.getByTestId(`film-${id}`);
@@ -19,7 +30,7 @@ test("/benchmarks-film-preview: noindex, the three silent cuts with their captio
   }
   const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(sw).toBeLessThanOrEqual(iw);
-  for (const b of await page.locator("main button, main a").all()) expect((await b.boundingBox())!.height, await b.innerText()).toBeGreaterThanOrEqual(24);
+  for (const b of await page.locator("main button, main a").all()) expect((await b.boundingBox())!.height, await b.innerText()).toBeGreaterThanOrEqual(44);
 });
 
 test("the two narrated previews are on the route, each labelled Preview for voice review, poster first, captions on, the sound button turns the voice on", async ({ page }) => {
