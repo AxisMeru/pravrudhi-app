@@ -31,4 +31,4 @@ export const TECHNICAL_FILM_SUBTITLE = "How a screening is built and checked, as
 export const NYAYASIDDHI_FILM_TITLE = "NyayaSiddhi film: review copy";
 export const NYAYASIDDHI_FILM_SUBTITLE = "A review copy of the film for the NyayaSiddhi benchmark. This page is not linked from the site.";
 /** PROPOSED for R1: the three cuts' headings on the review page only (review labels, not public copy). */
-export const NYAYASIDDHI_CUT_HEADINGS = { "nyayasiddhi": "Cut A: the main film", "nyayasiddhi-loop": "Cut D: the short loop", "nyayasiddhi-firm": "Cut C: the firm cut" } as const;
+export const NYAYASIDDHI_CUT_HEADINGS = { "nyayasiddhi": "Cut A: the main film", "nyayasiddhi-loop": "Cut D: the short loop", "nyayasiddhi-firm": "Cut C: the cut for law firms" } as const;
