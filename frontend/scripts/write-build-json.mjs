@@ -12,7 +12,7 @@ export function buildSha(env) {
 }
 
 // The flags the build used, read back by the pre-deploy gate from the live alias and compared with the gated record (a remote `vercel deploy --prod` builds with the Vercel project's
-// Production env vars, not the ones the gate ran with). Booleans only: each is true only if the build env is EXACTLY "1"; no other env and no value but these six booleans is written.
+// Production env vars, not the ones the gate ran with). Booleans only: each is true only if the build env is EXACTLY "1"; no other env and no value but these seven booleans is written.
 export const FLAG_ENV = {
   assistant_entry: "NEXT_PUBLIC_ASSISTANT_ENTRY",
   delete_confirmed: "NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED",
@@ -20,6 +20,7 @@ export const FLAG_ENV = {
   citation_nav: "NEXT_PUBLIC_CITATION_NAV",
   citation_existence_only: "NEXT_PUBLIC_CITATION_EXISTENCE_ONLY", // the Screening citations panel needs BOTH this and citation_nav (#190)
   look_tonal: "NEXT_PUBLIC_LOOK_TONAL", // the tonal look-and-feel patch (spec 3e0b13c4bdc8): html[data-look="tonal"]; unset = no look rule applies
+  layout_matter_b: "NEXT_PUBLIC_LAYOUT_MATTER_B", // layout B "matter-b" (#144): html[data-layout="matter-b"]; unset = the live layout, unchanged
 };
 
 export function buildFlags(env) {
