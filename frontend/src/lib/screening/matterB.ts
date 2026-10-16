@@ -18,9 +18,9 @@ export const MB = {
   newScreening: "New screening",
   // R1's confirm for "New screening" (a destructive action), shown only when something is entered or a result exists; it claims nothing about what is kept
   newTitle: "Start a new screening?",
-  newBody: "This clears the facts, the pasted text, the chosen offences and the result on this page.",
+  newBody: "This clears the facts, the pasted text, the chosen offences and the result on this page. Files you have already downloaded are not changed.",
   newConfirm: "Clear and start new",
-  newKeep: "Keep this screening",
+  newKeep: "Cancel",
   factsChip: (n: number) => `Facts (${n})`,
   citedBy: (n: number) => (n === 1 ? "Cited by 1 ingredient" : `Cited by ${n} ingredients`),
   noIngredientCites: "No ingredient cites this fact yet",
@@ -35,15 +35,17 @@ export const MB = {
 export type MbView = "intake" | "result";
 export interface MbState {
   hasResult: boolean;
+  /** The result carries a run record (the condition that offers "Download run record (.json)"): the only case the retention sentence may show. */
+  runRecord: boolean;
   view: MbView;
   /** The example's citation when the facts are one of the two public examples, else null (the neutral name is used). */
   exampleName: string | null;
 }
-const EMPTY: MbState = { hasResult: false, view: "intake", exampleName: null };
+const EMPTY: MbState = { hasResult: false, runRecord: false, view: "intake", exampleName: null };
 let state: MbState = EMPTY;
 const listeners = new Set<() => void>();
 export function setMbState(next: MbState): void {
-  if (next.hasResult === state.hasResult && next.view === state.view && next.exampleName === state.exampleName) return;
+  if (next.hasResult === state.hasResult && next.runRecord === state.runRecord && next.view === state.view && next.exampleName === state.exampleName) return;
   state = next;
   listeners.forEach((l) => l());
 }

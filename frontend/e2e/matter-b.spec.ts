@@ -67,12 +67,13 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await arrange(page);
       expect(await page.evaluate(() => document.documentElement.getAttribute("data-layout"))).toBe("matter-b");
       await expect(page.getByTestId("mb-skip")).toHaveText(MB.skipToForm);
-      await expect(page.getByTestId("breadcrumb")).toContainText(`${MB.breadcrumbRoot}›${MB.screeningLabel}›${MB.factsLabel}`.replace(/›/g, "›"));
+      const crumb = (await page.getByTestId("breadcrumb").innerText()).replace(/\s+/g, " ").trim();
+      expect(crumb, "the neutral name drops the separate Screening root").toBe(`${MB.screeningLabel} › ${MB.factsLabel}`);
       await screen(page);
       await expect(page.locator("#step-facts")).toBeHidden();
       await expect(page.getByTestId("workspace-steps")).toHaveCount(0);
       await expect(page.getByTestId("mb-skip")).toHaveText(MB.skipToResult);
-      await expect(page.getByTestId("breadcrumb")).toContainText(MB.resultLabel);
+      expect((await page.getByTestId("breadcrumb").innerText()).replace(/\s+/g, " ").trim()).toBe(`${MB.screeningLabel} › ${MB.resultLabel}`);
       await expect(page.getByTestId("mb-announce")).toHaveText(MB.resultLabel);
       await expect(page.locator("#page-title")).toBeFocused();
       // text and a second view: the page never scrolls sideways
@@ -126,6 +127,8 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       const dlg = page.getByRole("alertdialog");
       await expect(dlg).toContainText(MB.newTitle);
       await expect(dlg).toContainText(MB.newBody);
+      await expect(dlg).toContainText("Files you have already downloaded are not changed.");
+      await expect(page.getByTestId("mb-confirm-keep")).toHaveText("Cancel");
       await expect(page.getByTestId("mb-confirm-keep")).toBeFocused();
       await page.keyboard.press("Escape");
       await expect(dlg).toHaveCount(0);
@@ -161,6 +164,28 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       expect(b.y + b.height, "the focused fact button is not under the dock").toBeLessThanOrEqual(dockTop + 1);
     });
 
+    if (phone) base("phone top bar: the page title and the Facts (N) chip that jumps to the facts rail; one skip link", async ({ page }) => {
+      await arrange(page);
+      await expect(page.getByTestId("mb-topbar-title")).toBeVisible();
+      await expect(page.getByTestId("mb-facts-chip")).toHaveCount(0);
+      await expect(page.locator('a.sr-only[href="#main"]'), "the layout's skip link is hidden while the page's own is mounted").toBeHidden();
+      await expect(page.getByTestId("mb-skip")).toHaveCount(1);
+      await screen(page);
+      const chip = page.getByTestId("mb-facts-chip");
+      await expect(chip).toHaveText(MB.factsChip(1));
+      await chip.click();
+      await expect(page.getByTestId("fact-filter")).toBeInViewport();
+    });
+
+    base("another page: the This screening group still reaches the page (Facts), and there is no Matter item", async ({ page }) => {
+      await page.route("**/api/me", (r) => r.fulfill({ json: { edition: "Pravrudhi", tagline: "t", access: "member" } }));
+      await page.goto("/workflows");
+      if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
+      const nav = page.getByRole("navigation", { name: "Primary" });
+      await expect(nav.getByTestId("mb-screening-group").getByRole("link", { name: MB.factsLabel })).toHaveAttribute("href", /\/screening#step-facts$/);
+      await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveCount(0);
+    });
+
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
       await arrange(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
@@ -172,13 +197,17 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await nav.getByTestId("mb-group-reference").locator("summary").click();
       await expect(nav.getByTestId("mb-group-reference").getByRole("link", { name: "Data handling" })).toBeVisible();
       await expect(nav.getByRole("link", { name: "Citation check" })).toHaveAttribute("href", /\/citations/);
-      await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+      await expect(nav.getByRole("link", { name: "Matter", exact: true }), "the General item Matter is hidden under the flag").toHaveCount(0);
+      await expect(nav.locator('[aria-current="location"]')).toHaveCount(1);
+      await expect(nav.getByTestId("mb-reference-chevron"), "the Reference disclosure has a visible affordance").toBeVisible();
       if (!phone) expect(Math.round((await page.locator("#primary-navigation").boundingBox())!.width)).toBe(208);
       if (phone) await page.keyboard.press("Escape");
       await screen(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
       await expect(nav.getByRole("link", { name: MB.resultLabel, exact: true })).toBeVisible();
       await expect(nav.getByTestId("mb-retention")).toHaveText(MB.retention);
+      await expect(nav.getByRole("link", { name: "Case citations" }), "the citations anchor appears on a flag-on build").toBeVisible();
+      await expect(nav.getByRole("link", { name: MB.resultLabel, exact: true })).toHaveAttribute("aria-current", "location");
       await expect(page.getByText("Recent screenings")).toHaveCount(0);
     });
 

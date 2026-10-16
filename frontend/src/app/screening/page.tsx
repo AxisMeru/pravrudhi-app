@@ -324,11 +324,11 @@ export default function ScreeningPage() {
   const mbExampleName = example && isUnchangedExample(facts, example) ? example.citation : null;
   useEffect(() => {
     if (!LAYOUT_MATTER_B) return;
-    setMbState({ hasResult: result !== null && request !== null, view, exampleName: mbExampleName });
+    setMbState({ hasResult: result !== null && request !== null, runRecord: result !== null && request !== null && typeof result.run_id === "string" && result.run_id !== "", view, exampleName: mbExampleName });
   }, [result, request, view, mbExampleName]);
   useEffect(() => {
     if (!LAYOUT_MATTER_B) return () => {};
-    return () => setMbState({ hasResult: false, view: "intake", exampleName: null });
+    return () => setMbState({ hasResult: false, runRecord: false, view: "intake", exampleName: null });
   }, []);
   // Focus and announce when the page moves between the intake and the result (a screen-reader user hears which one they are on); not on the first render.
   const mbFirst = useRef(true);
@@ -343,6 +343,13 @@ export default function ScreeningPage() {
     const go = () => { if (window.location.hash === "#step-facts") setView("intake"); };
     window.addEventListener("hashchange", go);
     return () => window.removeEventListener("hashchange", go);
+  }, []);
+  // Layout B: while this page is mounted the page's own skip link is the only one (the layout's "Skip to main content" is hidden and restored on leaving).
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    const global = document.querySelector<HTMLAnchorElement>('a.sr-only[href="#main"]');
+    global?.setAttribute("hidden", "");
+    return () => global?.removeAttribute("hidden");
   }, []);
   const mbCited: Record<string, number> = {};
   if (LAYOUT_MATTER_B && result) for (const c of result.contracts) { const rs = rowsFor(c, result.facts); for (const r of [...rs.ingredients, ...rs.defences]) if (r.factId) mbCited[r.factId] = (mbCited[r.factId] ?? 0) + 1; }
@@ -390,10 +397,18 @@ export default function ScreeningPage() {
           <p className="sr-only" role="status" aria-live="polite" data-testid="mb-announce">{announce}</p>
         </>
       )}
+      {LAYOUT_MATTER_B && (
+        <div className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] pl-[68px] pr-[76px] md:hidden print:hidden" data-testid="mb-topbar">
+          <span className="min-w-0 truncate text-sm font-semibold text-[var(--color-text)]" data-testid="mb-topbar-title">{SCREENING_TITLE}</span>
+          {mbResultView && result && (
+            <a href="#mb-facts-rail" className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)]" data-testid="mb-facts-chip">{MB.factsChip(result.facts.length)}</a>
+          )}
+        </div>
+      )}
       <PageHeader
         title={SCREENING_TITLE}
         subtitle={SCREENING_SUBTITLE}
-        {...(LAYOUT_MATTER_B ? { crumb: [MB.breadcrumbRoot, mbExampleName ? `${mbExampleName} ${MB.exampleSuffix}` : MB.screeningLabel, mbResultView ? MB.resultLabel : MB.factsLabel], focusable: true } : {})}
+        {...(LAYOUT_MATTER_B ? { crumb: mbExampleName ? [MB.breadcrumbRoot, `${mbExampleName} ${MB.exampleSuffix}`, mbResultView ? MB.resultLabel : MB.factsLabel] : [MB.screeningLabel, mbResultView ? MB.resultLabel : MB.factsLabel], focusable: true } : {})}
       />
       <div className={`mx-auto flex w-full ${mbResultView ? "max-w-6xl" : "max-w-4xl"} flex-1 flex-col gap-6 p-4 sm:p-8`}>
         {!mbResultView && <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />}

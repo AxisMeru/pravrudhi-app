@@ -8,7 +8,7 @@ import { FACTS_HEADING, FACT_FILTER_CLEAR, FACT_FILTER_HINT, factFilterStatus } 
  */
 export function FactFilter({ facts, selected, onSelect, matterB }: { facts: ReadonlyArray<{ id: string; text: string }>; selected: string | null; onSelect: (id: string | null) => void; matterB?: { heading: string; cited: Readonly<Record<string, number>>; citedBy: (n: number) => string; none: string } }) {
   return (
-    <section className={`space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden${matterB ? " lg:sticky lg:top-4" : ""}`} aria-labelledby="fact-filter-heading" data-testid="fact-filter">
+    <section className={`space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden${matterB ? " lg:sticky lg:top-4" : ""}`} aria-labelledby="fact-filter-heading" id={matterB ? "mb-facts-rail" : undefined} data-testid="fact-filter">
       <h2 id="fact-filter-heading" className="font-serif text-lg font-semibold text-[var(--color-text)]">{matterB ? matterB.heading : FACTS_HEADING}</h2>
       <p className="text-sm text-[var(--color-text-dim)]" data-testid="fact-filter-hint">{FACT_FILTER_HINT}</p>
       <ul className="space-y-2">
