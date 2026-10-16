@@ -272,12 +272,14 @@ test("#373 /citations: a v/s name, no separator and a Devanagari name get R1's c
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
   await page.goto("/citations");
   const check = async (line: string) => { await page.getByRole("textbox").fill(line); await page.getByRole("button", { name: "Check citations" }).click(); await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index"); };
-  for (const line of ["Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273", "Totally Invented Pvt Ltd (2014) 8 SCC 273", "अनाम कंपनी (2014) 8 SCC 273"]) {
+  for (const line of ["(2014) 8 SCC 273 Totally Invented Pvt Ltd v. Nobody", "Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273", "Totally Invented Pvt Ltd (2014) 8 SCC 273", "अनाम कंपनी (2014) 8 SCC 273"]) {
     await check(line);
     await expect(page.getByTestId("citation-check-name-note")).toHaveText(NOT_CONFIRMED);
   }
-  await check("(2014) 8 SCC 273");
-  await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+  for (const bare of ["(2014) 8 SCC 273", "1. (2014) 8 SCC 273", "See (2014) 8 SCC 273"]) {
+    await check(bare);
+    await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+  }
   answer = { ...IN, name_compared: true };
   await check("Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273");
   await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);

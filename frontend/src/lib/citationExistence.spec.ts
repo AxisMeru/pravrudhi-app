@@ -118,7 +118,7 @@ test("#266: EXISTENCE_SUBTITLE says up to 5 at a time, equal to the cap constant
 });
 
 // app#347 (R1, 15 Oct): the CONFLICT sentence depends on whether the typed citation already carries a case name; both sentences are pinned byte-exact, the heading is unchanged, and the rule is a table.
-import { citationHasCaseName, citationHasTextBeforeYear } from "./citationCheck";
+import { citationHasCaseName, citationHasTypedName } from "./citationCheck";
 import { CONFLICT_TEXT_WITH_NAME } from "./citationExistence";
 test("#347: both CONFLICT sentences are R1's, byte-exact; the heading is unchanged", () => {
   assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
@@ -220,12 +220,20 @@ const FORMS_373: Array<[string, string]> = [
   ["Devanagari", "\u0905\u0928\u093E\u092E \u0915\u0902\u092A\u0928\u0940 (2014) 8 SCC 273"],
   ["v. (the old rule's case)", "Totally Invented Pvt Ltd v. Nobody (2014) 8 SCC 273"],
   ["an initial V", "G V Rao (2000) 3 SCC 693"],
+  ["a name AFTER the citation", "(2014) 8 SCC 273 Totally Invented Pvt Ltd v. Nobody"],
+  ["a single name after the citation", "(2014) 8 SCC 273 Nobody"],
+  ["Devanagari after the citation", "(2014) 8 SCC 273 \u0905\u0928\u093E\u092E \u0915\u0902\u092A\u0928\u0940"],
+  ["a list marker AND a name before", "1. Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a marker, See and a name", "(1) See Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a quoted name", "\"Totally Invented Pvt Ltd\" (2014) 8 SCC 273"],
 ];
-const BARE_373 = ["(2014) 8 SCC 273", "  (2014) 8 SCC 273", "(2014)8 SCC 273"];
+// harmless text beside a citation that is NOT a typed name: list markers, quotes, See/Ref/Cf/Citation, trailing punctuation (numbered lists are a common paste format)
+const BARE_373 = ["(2014) 8 SCC 273", "  (2014) 8 SCC 273", "(2014)8 SCC 273", "1. (2014) 8 SCC 273", "- (2014) 8 SCC 273", "(1) (2014) 8 SCC 273", "[1] (2014) 8 SCC 273", "\u2022 (2014) 8 SCC 273", "See (2014) 8 SCC 273", "Ref: (2014) 8 SCC 273",
+  "Citation: (2014) 8 SCC 273", "cf. (2014) 8 SCC 273", "SEE: (2014) 8 SCC 273", "\"(2014) 8 SCC 273\"", "'(2014) 8 SCC 273'", "1. See (2014) 8 SCC 273", "(2014) 8 SCC 273.", "(2014) 8 SCC 273;  ", "2) Ref. (2014) 8 SCC 273,", "(2014) 8 SCC (Cri) 273"];
 test("#373 the text-before-year rule: any text before the bracketed year counts; a bare citation, no year part, an empty line and a non-string do not", () => {
-  for (const [name, line] of FORMS_373) assert.equal(citationHasTextBeforeYear(line), true, name);
-  for (const line of BARE_373) assert.equal(citationHasTextBeforeYear(line), false, line);
-  for (const x of ["AIR 1950 SC 27", "", "   ", "Nobody", "(2014)", undefined, null, 42]) assert.equal(citationHasTextBeforeYear(x), false, String(x));
+  for (const [name, line] of FORMS_373) assert.equal(citationHasTypedName(line), true, name);
+  for (const line of BARE_373) assert.equal(citationHasTypedName(line), false, line);
+  for (const x of ["AIR 1950 SC 27", "", "   ", "Nobody", "(2014)", undefined, null, 42]) assert.equal(citationHasTypedName(x), false, String(x));
   assert.equal(citationHasCaseName("Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273"), false, "#350's separator rule is untouched (it still picks the CONFLICT sentence)");
 });
 test("#373 /citations and the Citations panel (verifyView): every form shows R1's existing sentence after the note when the engine did not confirm the name; name_compared TRUE shows nothing; a bare citation shows nothing", () => {

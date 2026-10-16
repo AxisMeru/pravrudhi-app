@@ -130,21 +130,32 @@ export function citationHasCaseName(line: unknown): boolean {
 }
 
 /**
- * pravrudhi-app#373 (P1; Interim lead): true when ANY text precedes the citation's bracketed "(year)" part: a name, however it is written (v/s, -vs-, "In re", "and", no separator, a single party, any script). The engine reads a typed name only in some forms (pravrudhi#510), so
- * for every other form the page must not give "Found in our index" with no caveat. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence). No "(year)" part, an empty line or a non-string: false (the page makes no claim).
+ * pravrudhi-app#373 (P1; Interim lead; amended 16 Oct): true when the typed line carries a NAME beside its bracketed-year citation: any text before OR after the citation ("(year) volume REPORTER page"), however it is written (v/s, -vs-, "In re", "and", no separator, a single party, any script).
+ * The engine reads a typed name only before the citation and only in some forms (pravrudhi#510), so for every other form the page must not give "Found in our index" with no caveat. Text that is NOT a name is ignored: leading list markers ("1.", "(1)", "[1]", "-", bullets), quotes,
+ * the words See / Ref / Cf / Citation (case-insensitive, with trailing punctuation), and trailing punctuation; at least one LETTER must remain. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
+ * No bracketed "(year)" part (so "AIR 1950 SC 27"), an empty line and a non-string: false (the page makes no claim there).
  */
-export function citationHasTextBeforeYear(line: unknown): boolean {
+const CITATION_CORE = /\(\s*\d{4}\s*\)\s*\d+\s*[A-Za-z][A-Za-z.]*(?:\s*\([A-Za-z]+\))?\s*\d+/;
+const LEADING_MARKER = /^\s*(?:\(\s*\d+\s*\)|\[\s*\d+\s*\]|\d+\s*[.)\]:]|[-*\u2022\u2013\u2014]+)\s*/;
+export function citationHasTypedName(line: unknown): boolean {
   if (typeof line !== "string") return false;
   const year = /\(\s*\d{4}\s*\)/.exec(line);
-  return year !== null && line.slice(0, year.index).trim().length > 0;
+  if (!year) return false;
+  const core = CITATION_CORE.exec(line);
+  // what is left beside the citation: before it, and after it (the core is cut out; a line whose core does not parse keeps everything after the year's bracket)
+  let rest = core ? `${line.slice(0, core.index)} ${line.slice(core.index + core[0].length)}` : `${line.slice(0, year.index)} ${line.slice(year.index + year[0].length)}`;
+  rest = rest.replace(/["'\u201C\u201D\u2018\u2019]/g, " ");
+  for (let i = 0; i < 4; i++) rest = rest.replace(LEADING_MARKER, "");
+  rest = rest.replace(/\b(?:see|ref|cf|citation)\b[:.,;-]?/gi, " ");
+  return /\p{L}/u.test(rest);
 }
 
 /**
- * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, whenever text precedes the citation's year (citationHasTextBeforeYear) and the engine did NOT say it confirmed every typed party
+ * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, whenever a name is typed beside the citation (citationHasTypedName: text before OR after it, list markers and See/Ref/Cf/Citation ignored) and the engine did NOT say it confirmed every typed party
  * (name_compared absent or not true). Existence-only arm, IN_INDEX (or VERIFIED) only. One rule for /citations, the Citations panel and Intake.
  */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
-  if (!existenceOnly || !citationHasTextBeforeYear(citation)) return null;
+  if (!existenceOnly || !citationHasTypedName(citation)) return null;
   // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value keeps the sentence
   if (nameCompared === true) return null;
   return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
