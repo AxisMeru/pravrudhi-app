@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
+import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
 import { FILM_MANIFESTS, clock, filmFile } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
@@ -17,12 +17,12 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion the poster stays until the visitor asks for the film with the button. The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id }: { id: FilmId }) {
+export function FilmPlayer({ id, autoplayMuted = false, captionsOn = false }: { id: FilmId; autoplayMuted?: boolean; captionsOn?: boolean }) {
   const film = FILM_MANIFESTS[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [captions, setCaptions] = useState(false);
+  const [captions, setCaptions] = useState(captionsOn);
   const video = useRef<HTMLVideoElement>(null);
   const showVideo = !reduced || asked;
   // the captions track has no `default`: it starts disabled, and the visible button (or the browser's own CC menu) turns it on
@@ -43,11 +43,11 @@ export function FilmPlayer({ id }: { id: FilmId }) {
             controls
             muted
             playsInline
-            preload="none"
+            preload={autoplayMuted && !reduced ? "metadata" : "none"}
             poster={filmFile(id, "poster.png")}
             aria-label={film.title}
             data-testid="film-video"
-            autoPlay={reduced && asked}
+            autoPlay={reduced ? asked : autoplayMuted}
           >
             <source src={filmFile(id, "film.mp4")} type="video/mp4" />
             <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" />
@@ -63,7 +63,7 @@ export function FilmPlayer({ id }: { id: FilmId }) {
           </div>
         )}
       </div>
-      <figcaption className="text-xs text-[var(--color-text-dim)]">{film.title}. {FILM_NARRATED_NOTE} {FILM_SYNTHETIC_VOICE}</figcaption>
+      <figcaption className="text-xs text-[var(--color-text-dim)]">{film.title}. {film.audio === false ? FILM_SILENT_NOTE : `${FILM_NARRATED_NOTE} ${FILM_SYNTHETIC_VOICE}`}</figcaption>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         {showVideo && (
           <>

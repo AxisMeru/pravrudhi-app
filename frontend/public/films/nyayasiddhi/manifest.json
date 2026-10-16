@@ -1,0 +1,11 @@
+{
+  "title": "NyayaSiddhi film (review copy)",
+  "durationS": 0,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "placeholder": true,
+  "note": "PLACEHOLDER until Studio's render replaces this folder (film.mp4, poster.png, captions.vtt, manifest.json written by scripts/render-films.mjs). Nothing here is a claim about results.",
+  "scenes": []
+}

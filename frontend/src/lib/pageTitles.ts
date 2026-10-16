@@ -14,6 +14,7 @@ export const PAGE_TITLES = {
   partnerKeys: "API access",
   citations: "Case citations",
   technicalFilm: "Technical film",
+  benchmarksFilmPreview: "NyayaSiddhi film: review copy",
   matters: "Offence rules",
   safety: "Safety record",
   benchmarks: "Benchmarks",

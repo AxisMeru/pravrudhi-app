@@ -1,11 +1,12 @@
 import clientManifest from "../../../public/films/client/manifest.json";
+import nyayasiddhiManifest from "../../../public/films/nyayasiddhi/manifest.json";
 import technicalManifest from "../../../public/films/technical/manifest.json";
 import { FILM_DIR, type FilmId } from "./copy";
 
 export interface FilmScene { name: string; text: string; startS: number; endS: number }
-export interface FilmManifest { title: string; durationS: number; width: number; height: number; scenes: FilmScene[] }
+export interface FilmManifest { title: string; durationS: number; width: number; height: number; audio?: boolean; scenes: FilmScene[] }
 
-export const FILM_MANIFESTS: Record<FilmId, FilmManifest> = { client: clientManifest as FilmManifest, technical: technicalManifest as FilmManifest };
+export const FILM_MANIFESTS: Record<FilmId, FilmManifest> = { client: clientManifest as FilmManifest, technical: technicalManifest as FilmManifest, nyayasiddhi: nyayasiddhiManifest as FilmManifest };
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 /** The URL of one rendered file of a film (static export: the build's base path is added by hand). */

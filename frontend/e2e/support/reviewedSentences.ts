@@ -2,6 +2,12 @@
 // scoring or improving a model must be listed here, EXACTLY as the scan splits it, with the reason it is not a statement about what happens to a submission.
 // Every entry is a sentence the app already ships; adding one here is a copy decision for R1. A stale entry fails the scan.
 export const REVIEWED: Readonly<Record<string, { reason: string; sentences: readonly string[] }>> = {
+  "src/lib/films/nyayasiddhiStrings.json": {
+    reason: "the NyayaSiddhi film's own R1-ruled caption strings (STRINGS_948_v2): the sentence says what Prabh\u0101sa-Ny\u0101ya is (the organisers' own models); it is not a statement about what happens to a submission. R1 reads it with the film",
+    sentences: [
+      "Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+    ],
+  },
   "src/data/nyayasiddhi/rows.json": {
     reason: "R1's About-this-run lines of the reference arms (15 Oct), copied by the data build from the signed manifests: they say that the organisers did not train or tune the model they ran, and what its vendor trained it on is not known to us; none is a statement about what happens to a submission",
     sentences: [
