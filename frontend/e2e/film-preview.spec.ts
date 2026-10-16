@@ -15,6 +15,7 @@ test("/benchmarks-film-preview: noindex, the three silent cuts are poster + Play
   }
   expect(filmRequests, "no film file before a Play press").toEqual([]);
   for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) await page.getByTestId(`film-${id}`).getByTestId("film-play").click();
+  for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) await expect(page.getByTestId(`film-${id}`).getByTestId("film-video"), "preload stays none after Play (app#394)").toHaveAttribute("preload", "none");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   for (const id of ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"]) {
     const film = page.getByTestId(`film-${id}`);
