@@ -201,3 +201,38 @@ test("app#347: a CONFLICT on a line with a case name reads the new sentence; a b
   await page.getByRole("button", { name: "Check citations" }).click();
   await expect(page.getByTestId("citation-check-note")).toHaveText("We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
 });
+
+// pravrudhi#509 (R1, 15 Oct, byte-exact): after the IN_INDEX note, only when the checked line carries a case name.
+const NAME_NOTE = "Only the citation was looked up; the case name you typed was not compared with the index.";
+test("#509 /citations: a found citation with a case name gets R1's sentence after the note; a bare one does not", async ({ page }) => {
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN }));
+  await page.goto("/citations");
+  await page.getByRole("textbox").fill("Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index");
+  await expect(page.getByTestId("citation-check-note")).toHaveText("A fixed note.");
+  await expect(page.getByTestId("citation-check-name-note")).toHaveText(NAME_NOTE);
+  await page.getByRole("textbox").fill("(2000) 4 SCC 168");
+  await page.getByRole("button", { name: "Check citations" }).click();
+  await expect(page.getByTestId("citation-check-note")).toHaveText("A fixed note.");
+  await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0);
+});
+
+test("#509 the Screening Citations panel: the sentence shows under the named found line only", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
+  await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN }));
+  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ json: SCREENED }));
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist")).toBeVisible();
+  const panel = page.getByTestId("citations-panel");
+  await panel.getByRole("textbox").fill("Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168\n(2019) 1 SCC 2");
+  await panel.getByRole("button", { name: "Check citations" }).click();
+  const rows = page.getByTestId("citations-panel-row");
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0).getByTestId("citation-check-name-note")).toHaveText(NAME_NOTE);
+  await expect(rows.nth(1).getByTestId("citation-check-name-note")).toHaveCount(0);
+});

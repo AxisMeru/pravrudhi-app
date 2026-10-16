@@ -139,3 +139,30 @@ test("#347: verifyView picks the sentence from the citation (existence-only arm)
   assert.equal(verifyView(conflict, false, true, "(2000) 4 SCC 168").note, CONFLICT_TEXT);
   assert.equal(verifyView(conflict, false, true).note, CONFLICT_TEXT);
 });
+
+// pravrudhi#509 (R1, 15 Oct, byte-exact): the case-name sentence is an ADDITION after the IN_INDEX note, only for a found citation that carries a case name (#350's rule), one constant on every surface that says "Found in our index".
+import { caseNameNote } from "./citationCheck";
+import { CASE_NAME_NOT_COMPARED } from "./citationExistence";
+const NAMED = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
+const BARE = "(2000) 4 SCC 168";
+const FOUND = { result: "IN_INDEX", note: "Found in the index (existence only): no quote was checked, so this is not a verification.", status: "in_index", label: "found", verified: false };
+test("#509: the sentence is R1's, exactly, neutral, and none of the banned words", () => {
+  assert.equal(CASE_NAME_NOT_COMPARED, "Only the citation was looked up; the case name you typed was not compared with the index.");
+  assert.doesNotMatch(CASE_NAME_NOT_COMPARED, /verified|\breal\b|fake|correct|wrong/i);
+});
+test("#509 /citations and the Citations panel (verifyView): a named found line gets the sentence AFTER the existing note, which stays; a bare line, any other status and the arm off get none", () => {
+  const named = verifyView(FOUND, false, true, NAMED);
+  assert.equal(named.nameNote, CASE_NAME_NOT_COMPARED);
+  assert.equal(named.note, FOUND.note, "the existing IN_INDEX note is not replaced");
+  assert.equal(verifyView(FOUND, false, true, BARE).nameNote, null);
+  assert.equal(verifyView(FOUND, false, true).nameNote, null, "no citation given: none");
+  assert.equal(verifyView(FOUND, false, false, NAMED).nameNote, null, "arm off: the label is not 'Found in our index', so no sentence");
+  for (const result of ["NOT_IN_INDEX", "CONFLICT", "MALFORMED", "EXISTS_QUOTE_NOT_FOUND", "EXISTS_QUOTE_FOUND"]) assert.equal(verifyView({ ...FOUND, result, status: result.toLowerCase() }, false, true, NAMED).nameNote, null, result);
+});
+test("#509 Intake's citation line (caseNameNote): the same rule on the citation text; a bare citation, a not-found one and an unknown status get none", () => {
+  assert.equal(caseNameNote("IN_INDEX", NAMED, true), CASE_NAME_NOT_COMPARED);
+  assert.equal(caseNameNote("VERIFIED", NAMED, true), CASE_NAME_NOT_COMPARED);
+  assert.equal(caseNameNote("IN_INDEX", BARE, true), null);
+  for (const st of ["NOT_IN_INDEX", "CONFLICT", "MALFORMED", "CHECK_UNAVAILABLE", "NOT_CHECKED", "something_new"]) assert.equal(caseNameNote(st, NAMED, true), null, st);
+  assert.equal(caseNameNote("IN_INDEX", NAMED, false), null);
+});

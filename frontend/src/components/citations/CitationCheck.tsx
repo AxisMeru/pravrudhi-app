@@ -35,6 +35,11 @@ export function CitationCheckResult({ state, announce = true }: { state: Citatio
             {state.view.note}
           </p>
         )}
+            {state.view.nameNote && (
+              <p className="text-[var(--color-text)]" data-testid="citation-check-name-note">
+                {state.view.nameNote}
+              </p>
+            )}
       </div>
     )}
     </>

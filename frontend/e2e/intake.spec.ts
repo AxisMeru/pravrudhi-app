@@ -207,3 +207,20 @@ test("each citation status has its own line: CONFLICT and MALFORMED are not show
     "Could not match one case", "Not looked up", "Found in our index", "Not found in our index: this does not show whether the citation is real", "Not checked.",
   ]);
 });
+
+// pravrudhi#509 (R1, byte-exact): Intake's citation line, after "Found in our index", only for a citation that carries a case name.
+test("#509 Intake: a found citation with a case name gets R1's sentence under its line; a bare one and a not-found one do not", async ({ page }) => {
+  const answer = { ...ANSWER, bundle: { ...ANSWER.bundle, citations: [
+    { text: "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168", verifier_status: "IN_INDEX", fact_ids: ["F1"] },
+    { text: "(2014) 8 SCC 273", verifier_status: "IN_INDEX", fact_ids: ["F1"] },
+    { text: "Invented v. Sample (2000) 1 SCC 1", verifier_status: "NOT_IN_INDEX", fact_ids: ["F1"] },
+  ] } };
+  await page.route("**/api/v1/intake", (r) => r.fulfill({ json: answer }));
+  await page.goto("/intake");
+  await page.getByLabel("Paste the text").fill("Invented text.\n\nMore invented text.");
+  await page.getByTestId("intake-run").click();
+  await expect(page.getByTestId("citation-line")).toHaveText(["Found in our index", "Found in our index", "Not found in our index: this does not show whether the citation is real"]);
+  await expect(page.getByTestId("citation-name-note")).toHaveCount(1);
+  await expect(page.getByTestId("citation-name-note")).toHaveText("Only the citation was looked up; the case name you typed was not compared with the index.");
+  await expect(page.locator("li").filter({ hasText: "Hridaya Ranjan" }).getByTestId("citation-name-note")).toHaveCount(1);
+});
