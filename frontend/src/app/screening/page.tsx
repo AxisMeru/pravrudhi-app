@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { INTAKE_ENABLED } from "@/lib/intakeFlag";
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
+import { MB, setMbState, type MbView } from "@/lib/screening/matterB";
+import { rowsFor } from "@/lib/screening/model";
 import { NotSignedInNotice } from "@/components/NotSignedInNotice";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { StartPanel } from "@/components/screening/StartPanel";
@@ -89,6 +92,12 @@ export default function ScreeningPage() {
   const [result, setResult] = useState<AnalyseFactsResult | null>(null);
   const [request, setRequest] = useState<{ facts: string[]; contractIds: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<MbView>("intake"); // layout B only: the result view hides the intake (kept mounted, so no fact is lost); "Edit facts" returns to it
+  const [announce, setAnnounce] = useState(""); // layout B only: the polite status that says which view the page moved to
+  const [confirmNew, setConfirmNew] = useState(false); // layout B only: R1's confirm before "New screening" clears the page
+  const openerRef = useRef<HTMLElement | null>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
+  const [dockMore, setDockMore] = useState(false); // layout B only: the phone dock's overflow
   const [checking, setChecking] = useState(false); // the sign-in re-check before anything is sent (R1, P2): not yet a request in flight
   const inflight = loading && !checking;
   const [runAssisted, setRunAssisted] = useState(false); // the run in flight is an assistant run (P7: one more line)
@@ -275,6 +284,7 @@ export default function ScreeningPage() {
       const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true) });
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
+      if (LAYOUT_MATTER_B) setView("result");
     } catch (e) {
       const c = classifyAnalyseError(e);
       if (assisted && c.kind === "timeout") setAssistedTimeout(Math.round((Date.now() - startedAt) / 1000));
@@ -309,14 +319,99 @@ export default function ScreeningPage() {
     } else setError(r.message);
   }
 
+  // Layout B (flag off: all of this is inert). The result view = a finished analysis shown and the view not sent back to the intake.
+  const mbResultView = LAYOUT_MATTER_B && result !== null && request !== null && view === "result";
+  const mbExampleName = example && isUnchangedExample(facts, example) ? example.citation : null;
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    setMbState({ hasResult: result !== null && request !== null, runRecord: result !== null && request !== null && typeof result.run_id === "string" && result.run_id !== "", view, exampleName: mbExampleName });
+  }, [result, request, view, mbExampleName]);
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return () => {};
+    return () => setMbState({ hasResult: false, runRecord: false, view: "intake", exampleName: null });
+  }, []);
+  // Focus and announce when the page moves between the intake and the result (a screen-reader user hears which one they are on); not on the first render.
+  const mbFirst = useRef(true);
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    if (mbFirst.current) { mbFirst.current = false; return; }
+    setAnnounce(mbResultView ? MB.resultLabel : MB.factsLabel);
+    document.getElementById("page-title")?.focus({ preventScroll: true });
+  }, [mbResultView]);
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    const go = () => { if (window.location.hash === "#step-facts") setView("intake"); };
+    window.addEventListener("hashchange", go);
+    return () => window.removeEventListener("hashchange", go);
+  }, []);
+  // Layout B: while this page is mounted the page's own skip link is the only one (the layout's "Skip to main content" is hidden and restored on leaving).
+  useEffect(() => {
+    if (!LAYOUT_MATTER_B) return;
+    const global = document.querySelector<HTMLAnchorElement>('a.sr-only[href="#main"]');
+    global?.setAttribute("hidden", "");
+    return () => global?.removeAttribute("hidden");
+  }, []);
+  const mbCited: Record<string, number> = {};
+  if (LAYOUT_MATTER_B && result) for (const c of result.contracts) { const rs = rowsFor(c, result.facts); for (const r of [...rs.ingredients, ...rs.defences]) if (r.factId) mbCited[r.factId] = (mbCited[r.factId] ?? 0) + 1; }
+  function mbRequestNew() {
+    const something = result !== null || paste.trim() !== "" || picked.size > 0 || facts.some((f) => f.trim() !== "");
+    if (!something) return mbNewScreening();
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setConfirmNew(true);
+  }
+  function mbCloseConfirm() {
+    setConfirmNew(false);
+    requestAnimationFrame(() => openerRef.current?.focus());
+  }
+  useEffect(() => {
+    if (!confirmNew) return;
+    keepRef.current?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); mbCloseConfirm(); }
+      if (e.key === "Tab") {
+        const btns = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="mb-confirm"] button'));
+        if (btns.length === 0) return;
+        const i = btns.indexOf(document.activeElement as HTMLElement);
+        e.preventDefault();
+        btns[(i + (e.shiftKey ? btns.length - 1 : 1)) % btns.length].focus();
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, [confirmNew]);
+  function mbNewScreening() {
+    setResult(null); setRequest(null); setFacts([""]); setPaste(""); setPicked(new Set()); setFactFilterState(null); setError(null); setView("intake");
+  }
+  const mbHide = mbResultView ? ({ hidden: true } as const) : {};
+
   const version = svc?.kind === "ok" ? svc.status.engine_version : null;
   const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: memoExample(request?.facts ?? [], example) });
 
   return (
     <div className="flex min-h-screen flex-col">
-      <PageHeader title={SCREENING_TITLE} subtitle={SCREENING_SUBTITLE} />
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 sm:p-8">
-        <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />
+      {LAYOUT_MATTER_B && (
+        <>
+          <a href={mbResultView ? "#screening-result" : "#step-facts"} className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-12 focus:z-[70] focus:rounded-md focus:bg-[var(--color-surface)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--color-text)]" data-testid="mb-skip">
+            {mbResultView ? MB.skipToResult : MB.skipToForm}
+          </a>
+          <p className="sr-only" role="status" aria-live="polite" data-testid="mb-announce">{announce}</p>
+        </>
+      )}
+      {LAYOUT_MATTER_B && (
+        <div className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-surface)] pl-[68px] pr-[76px] md:hidden print:hidden" data-testid="mb-topbar">
+          <span className="min-w-0 truncate text-sm font-semibold text-[var(--color-text)]" data-testid="mb-topbar-title">{SCREENING_TITLE}</span>
+          {mbResultView && result && (
+            <a href="#mb-facts-rail" className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-[var(--color-control-border)] px-3 text-sm text-[var(--color-text)]" data-testid="mb-facts-chip">{MB.factsChip(result.facts.length)}</a>
+          )}
+        </div>
+      )}
+      <PageHeader
+        title={SCREENING_TITLE}
+        subtitle={SCREENING_SUBTITLE}
+        {...(LAYOUT_MATTER_B ? { crumb: mbExampleName ? [MB.breadcrumbRoot, `${mbExampleName} ${MB.exampleSuffix}`, mbResultView ? MB.resultLabel : MB.factsLabel] : [MB.screeningLabel, mbResultView ? MB.resultLabel : MB.factsLabel], focusable: true } : {})}
+      />
+      <div className={`mx-auto flex w-full ${mbResultView ? "max-w-6xl" : "max-w-4xl"} flex-1 flex-col gap-6 p-4 sm:p-8`}>
+        {!mbResultView && <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />}
         {hydrated && !startPanelClosed && !result && facts.every((f) => f.trim() === "") && paste.trim() === "" && !example && (
           <StartPanel
             onExample={() => { const t = document.getElementById("example-entry"); t?.scrollIntoView({ block: "center" }); t?.querySelector<HTMLElement>("a")?.focus(); }}
@@ -326,7 +421,7 @@ export default function ScreeningPage() {
         )}
         {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         <CaveatStrip warming={warming} />
-        <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
+        {!mbResultView && <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
           <summary className="min-h-6 cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>
           <div className="mt-3 flex flex-col gap-3">
             <p className="text-sm text-[var(--color-text)]" data-testid="product-line">{PRODUCT_LINE}</p>
@@ -334,10 +429,10 @@ export default function ScreeningPage() {
               <Link href={GUIDE_PATH} className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline">{GUIDE_LANDING_LINK}</Link>
             </p>
           </div>
-        </details>
+        </details>}
         {exampleMissing && <ExampleNotFound page="/screening" />}
         {example && isUnchangedExample(facts, example) && <ExampleBanner example={example} />}
-        {!example && (
+        {!example && !mbResultView && (
           <div className="flex flex-col gap-1 print:hidden" id="example-entry" data-testid="example-entry">
             <p className="text-sm font-medium text-[var(--color-text)]">{EXAMPLE_ENTRY_LABEL}</p>
             <ul className="flex flex-col gap-1 text-sm">
@@ -353,7 +448,7 @@ export default function ScreeningPage() {
             </ul>
           </div>
         )}
-        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts" id="step-facts">
+        <section className="flex flex-col gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 print:hidden" aria-label="Facts" id="step-facts" {...mbHide}>
           {intakeLineShown(INTAKE_ENABLED, signedIn) && (
             <p className="text-sm text-[var(--color-text)]" data-testid="intake-link-line">
               {INTAKE_START_SENTENCE}{" "}
@@ -527,7 +622,7 @@ export default function ScreeningPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-on-accent)] disabled:opacity-50"
+            className={`inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-on-accent)] disabled:opacity-50${LAYOUT_MATTER_B ? " max-md:sticky max-md:bottom-3 max-md:z-30 max-md:shadow-lg" : ""}`}
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
             {checking ? CHECKING_SIGN_IN_LABEL : loading ? "Screening…" : "Screen these facts"}
@@ -583,7 +678,7 @@ export default function ScreeningPage() {
         )}
 
         {result && request && (
-          <div ref={resultRef} className="flex scroll-mt-4 flex-col gap-6" data-testid="screening-result">
+          <div ref={resultRef} className={`flex scroll-mt-4 flex-col gap-6${LAYOUT_MATTER_B ? " max-md:pb-24" : ""}`} data-testid="screening-result" id={LAYOUT_MATTER_B ? "screening-result" : undefined}>
             {/* Print only (#234; no new words: the step's own "Facts" label, then the facts as submitted, numbered as the memo numbers them). The form is hidden on paper, so without this the printout carries only the facts a row happens to cite. */}
             <section className="hidden print:block" aria-hidden data-testid="print-facts">
               <h2 className="text-base font-semibold">Facts</h2>
@@ -593,8 +688,9 @@ export default function ScreeningPage() {
                 ))}
               </ol>
             </section>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden" data-testid="memo-actions" id="step-memo">
+            <div className={`flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden${LAYOUT_MATTER_B ? " max-md:hidden" : ""}`} data-testid="memo-actions" id="step-memo">
               <MemoMenu
+                primary={LAYOUT_MATTER_B}
                 onDocx={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}
                 onMarkdown={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}
               />
@@ -605,26 +701,88 @@ export default function ScreeningPage() {
               <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>
                 {EXPORT_LABELS.runRecord}
               </button>
+              {LAYOUT_MATTER_B && (
+                <>
+                  <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="mb-edit-facts" onClick={() => setView("intake")}>{MB.editFacts}</button>
+                  <button type="button" className="rounded-md border border-[var(--color-border)] px-2 py-1 text-xs" data-testid="mb-new-screening" onClick={mbRequestNew}>{MB.newScreening}</button>
+                </>
+              )}
             </div>
             {result.assistant && <AssistantTrace block={result.assistant} hideLine={assistant === "paused" && result.assistant.outcome === "refused" && (result.assistant.reason === "daily_ceiling" || result.assistant.reason === "paused")} />}
             {/* R1 (15 Oct): the standing line appears once per result, above the first block, not in every block's banner (before a result it stands at the top of the page). */}
             <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>
-            <FactFilter
-              facts={result.facts}
-              selected={activeFactFilter(factFilterState, result)}
-              onSelect={(id) => setFactFilterState(id === null ? null : { key: resultKey(result), factId: id })}
-            />
-            {result.contracts.map((c, i) => (
-              <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={activeFactFilter(factFilterState, result)} />
-            ))}
-            {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
-            {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
+            {!LAYOUT_MATTER_B && (
+              <FactFilter
+                facts={result.facts}
+                selected={activeFactFilter(factFilterState, result)}
+                onSelect={(id) => setFactFilterState(id === null ? null : { key: resultKey(result), factId: id })}
+              />
+            )}
+            {/* Layout B: the rows come first in the markup and the facts rail after them (the markup order is the reading order on a phone); from lg the rail sits to the right of the rows, still after them in the tab order. */}
+            {LAYOUT_MATTER_B ? (
+              <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-8" data-testid="mb-body">
+                <div className="flex min-w-0 flex-col gap-6">
+                  {result.contracts.map((c, i) => (
+                    <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={activeFactFilter(factFilterState, result)} />
+                  ))}
+                  {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
+                  {CITATIONS_PANEL_ENABLED && <div id="step-citations" className="scroll-mt-4"><CitationsPanel /></div>}
+                </div>
+                <FactFilter
+                  facts={result.facts}
+                  selected={activeFactFilter(factFilterState, result)}
+                  onSelect={(id) => setFactFilterState(id === null ? null : { key: resultKey(result), factId: id })}
+                  matterB={{ heading: MB.yourFacts, cited: mbCited, citedBy: MB.citedBy, none: MB.noIngredientCites }}
+                />
+              </div>
+            ) : (
+              <>
+                {result.contracts.map((c, i) => (
+                  <IngredientChecklist key={c.contract_id} contract={c} facts={result.facts} live={i === 0} agenda={c.contract_id === agendaContractId(result.contracts, result.facts)} factFilter={activeFactFilter(factFilterState, result)} />
+                ))}
+                {HEARING_PREP_BUILT && <HearingPreparation result={result} intakeCitations={intakeCitationsFor(request?.facts ?? [], intakeHand)} />}
+                {CITATIONS_PANEL_ENABLED && <CitationsPanel />}
+              </>
+            )}
             <StatuteNotice />
             {/* P3: the machine identifiers come last, not first. The same text as before, only lower. */}
             <div className="text-xs text-[var(--color-text-dim)]" data-testid="run-ids">run {result.run_id} · score sha <span className="break-all font-mono">{result.score_sha256}</span></div>
+            {LAYOUT_MATTER_B && (
+              <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-surface)] p-3 md:hidden print:hidden" data-testid="mb-dock">
+                {dockMore && (
+                  <div className="mb-2 flex flex-col gap-2" id="mb-dock-more" data-testid="mb-dock-more">
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => window.print()}>{EXPORT_LABELS.print}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => download(`run-record-${result.run_id}.json`, buildRunRecord(request, result, opts()), "application/json")}>{EXPORT_LABELS.runRecord}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => setView("intake")}>{MB.editFacts}</button>
+                    <button type="button" className="min-h-11 rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={mbRequestNew}>{MB.newScreening}</button>
+                  </div>
+                )}
+                <div className="flex items-start justify-between gap-3">
+                  <MemoMenu
+                    prefix="dock-"
+                    primary
+                    onDocx={() => download(`screening-memo-${result.run_id}.docx`, buildScreeningMemoDocx(result, opts()), DOCX_MIME)}
+                    onMarkdown={() => download(`screening-memo-${result.run_id}.md`, buildScreeningMemo(result, opts()), "text/markdown")}
+                  />
+                  <button type="button" className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 text-sm" aria-expanded={dockMore} aria-controls="mb-dock-more" aria-label={MB.moreActions} data-testid="mb-dock-more-button" onClick={() => setDockMore((o) => !o)}>…</button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+      {LAYOUT_MATTER_B && confirmNew && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 print:hidden">
+          <div role="alertdialog" aria-modal="true" aria-labelledby="mb-confirm-title" aria-describedby="mb-confirm-body" className="w-full max-w-md rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5" data-testid="mb-confirm">
+            <h2 id="mb-confirm-title" className="font-serif text-lg font-semibold text-[var(--color-text)]">{MB.newTitle}</h2>
+            <p id="mb-confirm-body" className="mt-2 text-sm text-[var(--color-text)]">{MB.newBody}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button ref={keepRef} type="button" className="inline-flex min-h-11 items-center rounded-md border border-[var(--color-control-border)] px-4 text-sm text-[var(--color-text)]" data-testid="mb-confirm-keep" onClick={mbCloseConfirm}>{MB.newKeep}</button>
+              <button type="button" className="inline-flex min-h-11 items-center rounded-md border border-[var(--color-danger-border)] px-4 text-sm text-[var(--color-danger)]" data-testid="mb-confirm-clear" onClick={() => { setConfirmNew(false); mbNewScreening(); }}>{MB.newConfirm}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { AGENDA_BANNER_TEXT, STRUCTURE_NOTE, type Chip } from "@/lib/screening/copy";
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import type { ScreeningSummary } from "@/lib/screening/model";
 
 /** `live`: only ONE block of a result announces itself (R6, 15 Oct). The standing line is no longer in each block (R1, 15 Oct): it appears ONCE per result, above the first block (screening/page.tsx). */
@@ -9,7 +10,7 @@ export function SummaryBanner({ summary, agenda = false, live = true }: { summar
       data-testid="summary-banner"
       role={live ? "status" : undefined}
     >
-      <p className="text-sm font-medium text-[var(--color-text)]" data-testid="summary-text">{summary.text}</p>
+      <p className={LAYOUT_MATTER_B ? "font-serif text-xl font-semibold leading-snug text-[var(--color-text)]" : "text-sm font-medium text-[var(--color-text)]"} data-testid="summary-text">{summary.text}</p>
       {agenda && <p className="mt-1 text-sm text-[var(--color-text)]" data-testid="agenda-banner">{AGENDA_BANNER_TEXT}</p>}
       {summary.allSupported && (
         <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="structure-note">{STRUCTURE_NOTE}</p>
