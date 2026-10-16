@@ -24,15 +24,16 @@ test("each engine status is shown verbatim, with its note, and the five are all 
   }
 });
 
-test("a status this build does not know is shown as sent and flagged, never reworded", async () => {
+test("a status this build does not know is never printed raw: the neutral heading and sentence show, and the raw token does not (pravrudhi#509)", async () => {
   const s = await runCitationCheck(reply("SOMETHING_NEW"), C, Q);
   assert.equal(s.phase, "result");
   if (s.phase !== "result") return;
   assert.equal(s.view.status, "SOMETHING_NEW");
   assert.equal(s.view.known, false);
   const html = renderToStaticMarkup(createElement(CitationCheckView, { state: s, onCheck: () => {}, citation: C }));
-  assert.match(html, /SOMETHING_NEW/);
-  assert.match(html, /does not know; it is shown as sent/);
+  assert.doesNotMatch(html, /SOMETHING_NEW/);
+  assert.match(html, /Result not shown/);
+  assert.match(html, /The citation was looked up, but this version of the app cannot show the result\./);
 });
 
 test("the 503 citation_index_unavailable is an honest not-checked state with the signed sentence, and no status", async () => {

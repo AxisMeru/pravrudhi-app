@@ -44,9 +44,11 @@ test("R1's plain sentences, exactly, and an unknown status reads Not checked.", 
   assert.equal(citationLine("CHECK_UNAVAILABLE"), "The citation check was unavailable for this citation.");
   assert.equal(citationLine("CONFLICT"), "Could not match one case", "#358: a looked-up citation is never 'Not checked.'");
   assert.equal(citationLine("MALFORMED"), "Not looked up");
-  assert.equal(citationLine("EXISTS_QUOTE_NOT_FOUND"), "Not checked.", "intake sends no quote; an unexpected status stays unclaimed");
   assert.equal(citationLine("NOT_CHECKED"), "Not checked.");
-  assert.equal(citationLine("something_new"), "Not checked.");
+  // a status this build does not know was still looked up: R1's neutral sentence, never "Not checked." and never the raw token (pravrudhi#509)
+  const NEUTRAL = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
+  for (const st of ["something_new", "EXISTS_QUOTE_NOT_FOUND", ""]) assert.equal(citationLine(st), NEUTRAL, st);
+  assert.equal(citationLine("NAME_MISMATCH"), "Case name did not match");
 });
 
 test("the hand-off is taken once and then gone", () => {
@@ -129,4 +131,11 @@ test("the response shape of #437's FINAL head (1814549e) is read as the app expe
   const captionOnly = parseIntake(fx.caption_digits_only)!; // a header that carries dates and nothing else left out
   assert.equal(captionOnly.leftOut, 1);
   assert.equal(captionOnly.leftOutHasDigit, false);
+});
+
+test("parseIntake keeps name_compared only when it is the boolean true", () => {
+  const mk = (extra: Record<string, unknown>) => ({ run_id: "r", bundle: { clean_status: "cleaned", facts: [{ id: "F1", text: "Invented fact.", status: "span" }], not_citable: [], citations: [{ text: "A v. B (2000) 1 SCC 1", verifier_status: "IN_INDEX", fact_ids: ["F1"], ...extra }] } });
+  assert.equal(parseIntake(mk({ name_compared: true }))!.citations[0].nameCompared, true);
+  for (const odd of [false, "true", 1, null, undefined]) assert.equal(parseIntake(mk({ name_compared: odd }))!.citations[0].nameCompared, false, String(odd));
+  assert.equal(parseIntake(mk({}))!.citations[0].nameCompared, false);
 });
