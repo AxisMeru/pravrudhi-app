@@ -129,10 +129,23 @@ export function citationHasCaseName(line: unknown): boolean {
   return /\s(?:v\.?|vs\.?|versus)\s/i.test(line.slice(0, year.index) + " ");
 }
 
-/** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
+/**
+ * pravrudhi-app#373 (P1; Interim lead): true when ANY text precedes the citation's bracketed "(year)" part: a name, however it is written (v/s, -vs-, "In re", "and", no separator, a single party, any script). The engine reads a typed name only in some forms (pravrudhi#510), so
+ * for every other form the page must not give "Found in our index" with no caveat. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence). No "(year)" part, an empty line or a non-string: false (the page makes no claim).
+ */
+export function citationHasTextBeforeYear(line: unknown): boolean {
+  if (typeof line !== "string") return false;
+  const year = /\(\s*\d{4}\s*\)/.exec(line);
+  return year !== null && line.slice(0, year.index).trim().length > 0;
+}
+
+/**
+ * pravrudhi#509 / app#373 (R1's existing sentence, no new wording): the "not confirmed against the index" sentence for a found citation, whenever text precedes the citation's year (citationHasTextBeforeYear) and the engine did NOT say it confirmed every typed party
+ * (name_compared absent or not true). Existence-only arm, IN_INDEX (or VERIFIED) only. One rule for /citations, the Citations panel and Intake.
+ */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
-  if (!existenceOnly || !citationHasCaseName(citation)) return null;
-  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value (no name compared, or only partly matched) keeps R1's "not confirmed" sentence
+  if (!existenceOnly || !citationHasTextBeforeYear(citation)) return null;
+  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value keeps the sentence
   if (nameCompared === true) return null;
   return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
 }

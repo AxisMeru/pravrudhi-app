@@ -118,7 +118,7 @@ test("#266: EXISTENCE_SUBTITLE says up to 5 at a time, equal to the cap constant
 });
 
 // app#347 (R1, 15 Oct): the CONFLICT sentence depends on whether the typed citation already carries a case name; both sentences are pinned byte-exact, the heading is unchanged, and the rule is a table.
-import { citationHasCaseName } from "./citationCheck";
+import { citationHasCaseName, citationHasTextBeforeYear } from "./citationCheck";
 import { CONFLICT_TEXT_WITH_NAME } from "./citationExistence";
 test("#347: both CONFLICT sentences are R1's, byte-exact; the heading is unchanged", () => {
   assert.equal(CONFLICT_TEXT, "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.");
@@ -207,4 +207,44 @@ test("#509 Intake (citationLine, citationExtra): (a) matched drops the sentence;
   assert.equal(citationExtra(c("IN_INDEX")), CASE_NAME_NOT_COMPARED); assert.equal(citationExtra(c("IN_INDEX", BARE)), null); // (c)
   assert.equal(citationLine("brand_new"), UNKNOWN_STATUS_TEXT); assert.notEqual(citationLine("brand_new"), "Not checked."); assert.equal(citationExtra(c("brand_new")), null); // (d)
   assert.equal(citationLine("NOT_CHECKED"), "Not checked.");
+});
+
+// pravrudhi-app#373 (P1): the caveat shows for ANY text before the citation's bracketed year (not only a recognised separator) unless the engine says name_compared is true. Track B's forms, per surface.
+const FORMS_373: Array<[string, string]> = [
+  ["v/s", "Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273"],
+  ["-vs-", "Totally Invented Pvt Ltd -vs- Nobody (2014) 8 SCC 273"],
+  ["In re", "In re Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["and", "Totally Invented Pvt Ltd and Nobody (2014) 8 SCC 273"],
+  ["no separator", "Totally Invented Pvt Ltd (2014) 8 SCC 273"],
+  ["a single invented name", "Nobody (2014) 8 SCC 273"],
+  ["Devanagari", "\u0905\u0928\u093E\u092E \u0915\u0902\u092A\u0928\u0940 (2014) 8 SCC 273"],
+  ["v. (the old rule's case)", "Totally Invented Pvt Ltd v. Nobody (2014) 8 SCC 273"],
+  ["an initial V", "G V Rao (2000) 3 SCC 693"],
+];
+const BARE_373 = ["(2014) 8 SCC 273", "  (2014) 8 SCC 273", "(2014)8 SCC 273"];
+test("#373 the text-before-year rule: any text before the bracketed year counts; a bare citation, no year part, an empty line and a non-string do not", () => {
+  for (const [name, line] of FORMS_373) assert.equal(citationHasTextBeforeYear(line), true, name);
+  for (const line of BARE_373) assert.equal(citationHasTextBeforeYear(line), false, line);
+  for (const x of ["AIR 1950 SC 27", "", "   ", "Nobody", "(2014)", undefined, null, 42]) assert.equal(citationHasTextBeforeYear(x), false, String(x));
+  assert.equal(citationHasCaseName("Totally Invented Pvt Ltd v/s Nobody (2014) 8 SCC 273"), false, "#350's separator rule is untouched (it still picks the CONFLICT sentence)");
+});
+test("#373 /citations and the Citations panel (verifyView): every form shows R1's existing sentence after the note when the engine did not confirm the name; name_compared TRUE shows nothing; a bare citation shows nothing", () => {
+  for (const [name, line] of FORMS_373) {
+    assert.equal(verifyView(FOUND, false, true, line).nameNote, CASE_NAME_NOT_COMPARED, `${name}: field absent`);
+    assert.equal(verifyView(FOUND, false, true, line).note, FOUND.note, `${name}: the note stays`);
+    for (const odd of [false, "true", 1, null]) assert.equal(verifyView({ ...FOUND, name_compared: odd as never }, false, true, line).nameNote, CASE_NAME_NOT_COMPARED, `${name}: name_compared ${String(odd)}`);
+    assert.equal(verifyView({ ...FOUND, name_compared: true }, false, true, line).nameNote, null, `${name}: name_compared TRUE: no caveat`);
+    assert.equal(verifyView(FOUND, false, false, line).nameNote, null, `${name}: arm off`);
+  }
+  for (const line of BARE_373) assert.equal(verifyView(FOUND, false, true, line).nameNote, null, line);
+  for (const result of ["NOT_IN_INDEX", "CONFLICT", "MALFORMED", "NAME_MISMATCH"]) assert.equal(verifyView({ ...FOUND, result, status: result.toLowerCase() }, false, true, FORMS_373[0][1]).nameNote, null, result);
+});
+test("#373 Intake (citationExtra, same rule): every form gets the sentence unless name_compared is true; a mismatch keeps R1's mismatch note", () => {
+  const c = (verifierStatus: string, text: string, nameCompared = false) => ({ verifierStatus, text, nameCompared });
+  for (const [name, line] of FORMS_373) {
+    assert.equal(citationExtra(c("IN_INDEX", line)), CASE_NAME_NOT_COMPARED, name);
+    assert.equal(citationExtra(c("IN_INDEX", line, true)), null, `${name}: true`);
+  }
+  for (const line of BARE_373) assert.equal(citationExtra(c("IN_INDEX", line)), null, line);
+  assert.equal(citationExtra(c("NAME_MISMATCH", FORMS_373[0][1], true)), NAME_MISMATCH_TEXT);
 });
