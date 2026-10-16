@@ -3,7 +3,7 @@
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
-import { CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
+import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -11,6 +11,8 @@ export const PREVIEW_LABEL = "preview: existence check only";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
 export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;
+/** The six above plus NAME_MISMATCH (pravrudhi#509, engine 0.6.19): the statuses this build can word; anything else is unknown (shown neutrally, never raw). */
+const KNOWN_STATUSES: readonly string[] = [...VERIFY_STATUSES, "NAME_MISMATCH"];
 export type VerifyStatus = (typeof VERIFY_STATUSES)[number];
 
 export interface VerifyReply {
@@ -21,6 +23,8 @@ export interface VerifyReply {
   label?: string;
   preview?: boolean;
   verified?: boolean;
+  /** pravrudhi#509: present and true ONLY when the engine compared the typed case name with the index (IN_INDEX = matched, or NAME_MISMATCH); absent on older engines, when no name was typed, and on other results. */
+  name_compared?: boolean;
 }
 
 /**
@@ -67,12 +71,14 @@ export interface ProductStatus {
 export interface VerifyView {
   /** The product status and label, only when the product status is enabled and the engine's fields passed every check; else null. */
   product: ProductStatus | null;
-  /** The status as the engine sent it (an unknown one is shown as sent, flagged). */
+  /** The status as the engine sent it (kept in the data; an unknown one is never printed raw: the page shows R1's neutral heading and sentence). */
   status: string;
   known: boolean;
   /** The engine's note, or null when it is withheld. */
   note: string | null;
   noteWithheld: boolean;
+  /** #509: the sentence shown after the note on a found line that carries a case name (R1: "not compared", or "compared, except common words" when name_compared is true); null otherwise (a bare citation, any other status, the arm off). */
+  nameNote: string | null;
 }
 
 /**
@@ -100,13 +106,17 @@ export const NOT_IN_INDEX_LABEL = "Not found in our index";
 export const statusLabel = (status: string, existenceOnly: boolean = CITATION_EXISTENCE_ONLY): string =>
   status === "NOT_IN_INDEX"
     ? NOT_IN_INDEX_LABEL
-    : existenceOnly && status === "CONFLICT"
-      ? CONFLICT_HEADING
-      : existenceOnly && status === "MALFORMED"
-        ? MALFORMED_HEADING
-        : existenceOnly && status === "IN_INDEX"
-          ? IN_INDEX_LABEL
-          : status;
+    : status === "NAME_MISMATCH"
+      ? NAME_MISMATCH_HEADING
+      : status !== "" && !KNOWN_STATUSES.includes(status)
+        ? UNKNOWN_STATUS_HEADING // never the raw token (R1, 16 Oct)
+        : existenceOnly && status === "CONFLICT"
+          ? CONFLICT_HEADING
+          : existenceOnly && status === "MALFORMED"
+            ? MALFORMED_HEADING
+            : existenceOnly && status === "IN_INDEX"
+              ? IN_INDEX_LABEL
+              : status;
 
 /**
  * app#347 (R1's rule, no engine change): the citation names a case iff the text before its "(year)" part contains " v. ", " v ", " vs. " or " versus " (case-insensitive). Anything else, and any doubt
@@ -119,6 +129,14 @@ export function citationHasCaseName(line: unknown): boolean {
   return /\s(?:v\.?|vs\.?|versus)\s/i.test(line.slice(0, year.index) + " ");
 }
 
+/** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
+export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
+  if (!existenceOnly || !citationHasCaseName(citation)) return null;
+  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value (no name compared, or only partly matched) keeps R1's "not confirmed" sentence
+  if (nameCompared === true) return null;
+  return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
+}
+
 export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS_ENABLED, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, citation?: string): VerifyView {
   const status = typeof reply.result === "string" ? reply.result.trim() : "";
   const note = typeof reply.note === "string" ? reply.note.trim() : "";
@@ -127,12 +145,15 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
   const override = existenceOnly && status === "NOT_IN_INDEX";
   // #223 (R1, 15 Oct): with the arm ON a CONFLICT and a MALFORMED each show R1's sentence under their plain heading; the engine's notes ("maps to conflicting indexed cases; verify by hand", "Exactly one parseable citation is required.") are replaced.
   const explained = existenceOnly && (status === "CONFLICT" || status === "MALFORMED");
+  const mismatch = status === "NAME_MISMATCH";
+  const unknown = status !== "" && !KNOWN_STATUSES.includes(status);
   const explanation = status === "CONFLICT" ? (citationHasCaseName(citation) ? CONFLICT_TEXT_WITH_NAME : CONFLICT_TEXT) : MALFORMED_TEXT;
   return {
     status,
-    known: (VERIFY_STATUSES as readonly string[]).includes(status),
-    note: override ? NOT_IN_INDEX_NOTE : explained ? explanation : withheld ? null : note,
-    noteWithheld: !override && !explained && withheld && !!note,
+    known: KNOWN_STATUSES.includes(status),
+    note: mismatch ? NAME_MISMATCH_TEXT : unknown ? UNKNOWN_STATUS_TEXT : override ? NOT_IN_INDEX_NOTE : explained ? explanation : withheld ? null : note,
+    noteWithheld: !mismatch && !unknown && !override && !explained && withheld && !!note,
+    nameNote: caseNameNote(status, citation, existenceOnly, reply.name_compared),
     product: productStatus(reply, enabled),
   };
 }

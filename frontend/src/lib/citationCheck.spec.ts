@@ -32,10 +32,11 @@ test("the six statuses the engine can answer are shown verbatim and known", () =
   }
 });
 
-test("an unknown status is shown as sent and flagged, never reworded", () => {
+test("an unknown status is never printed raw: the data keeps it, flagged unknown; the page words are R1's neutral heading and sentence (pravrudhi#509)", () => {
   const v = verifyView({ result: "SOMETHING_NEW", note: "n" });
   assert.equal(v.status, "SOMETHING_NEW");
   assert.equal(v.known, false);
+  assert.equal(v.note, "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.");
 });
 
 test("the engine's note is shown as sent, but a note carrying the word 'fake' is withheld, never reworded", () => {

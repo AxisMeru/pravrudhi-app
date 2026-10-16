@@ -2,8 +2,11 @@
 // engine's answer (the bundle of machine tokens) and turns each token into R1's plain sentence; the engine's own per-fact reason strings are never shown (R1, 14 Oct).
 // The shape read here: { run_id, client_data, bundle: { clean_status, facts: [{ id, text, status }], not_citable: [{ status }], citations: [{ text, verifier_status, fact_ids }], ... } }.
 
+import { caseNameNote } from "./citationCheck";
+import { NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_TEXT } from "./citationExistence";
+
 export interface IntakeFact { id: string; text: string; status: "span" | "raw_fallback" }
-export interface IntakeCitation { text: string; verifierStatus: string; factIds: string[] }
+export interface IntakeCitation { text: string; verifierStatus: string; factIds: string[]; /** pravrudhi#509: true only when the engine said it compared the typed case name. */ nameCompared: boolean }
 export interface IntakeView {
   runId: string;
   cleanStatus: "cleaned" | "served_raw";
@@ -31,7 +34,7 @@ export function parseIntake(raw: unknown): IntakeView | null {
   const citations: IntakeCitation[] = [];
   for (const c of b.citations) {
     if (!isObj(c) || typeof c.text !== "string") return null;
-    citations.push({ text: c.text, verifierStatus: typeof c.verifier_status === "string" ? c.verifier_status : "NOT_CHECKED", factIds: Array.isArray(c.fact_ids) ? c.fact_ids.filter((x): x is string => typeof x === "string") : [] });
+    citations.push({ text: c.text, verifierStatus: typeof c.verifier_status === "string" ? c.verifier_status : "NOT_CHECKED", factIds: Array.isArray(c.fact_ids) ? c.fact_ids.filter((x): x is string => typeof x === "string") : [], nameCompared: c.name_compared === true });
   }
   const dups = Array.isArray(b.not_citable) ? b.not_citable.filter((n) => isObj(n) && n.status === "duplicate").length : 0;
   // #437 reports what it left out as not_citable entries with status caption / repeated_line / no_words and the cleaned-text span; the digit test is computed here from that span.
@@ -68,7 +71,7 @@ export const CITATION_NOT_CHECKED = "Not checked.";
 export const CITATION_CONFLICT = "Could not match one case";
 export const CITATION_MALFORMED = "Not looked up";
 
-/** One plain line for a citation's machine status; a status this build does not know reads "Not checked." (never a guess). */
+/** One plain line for a citation's machine status. Only NOT_CHECKED reads "Not checked."; a status this build does not know was still looked up, so it reads R1's neutral sentence, never "Not checked." and never the raw token (pravrudhi#509). */
 export function citationLine(status: string): string {
   switch (status) {
     case "IN_INDEX":
@@ -82,7 +85,17 @@ export function citationLine(status: string): string {
       return CITATION_CONFLICT;
     case "MALFORMED":
       return CITATION_MALFORMED;
-    default:
+    case "NAME_MISMATCH":
+      return NAME_MISMATCH_HEADING;
+    case "NOT_CHECKED":
       return CITATION_NOT_CHECKED;
+    default:
+      return UNKNOWN_STATUS_TEXT;
   }
+}
+
+/** The sentence under a citation's line, or null: R1's mismatch note for NAME_MISMATCH; for a found citation with a case name the "not compared" sentence unless the engine said it compared the name (pravrudhi#509). */
+export function citationExtra(c: { verifierStatus: string; text: string; nameCompared: boolean }): string | null {
+  if (c.verifierStatus === "NAME_MISMATCH") return NAME_MISMATCH_TEXT;
+  return caseNameNote(c.verifierStatus, c.text, true, c.nameCompared);
 }

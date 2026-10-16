@@ -13,6 +13,14 @@ export const QUOTE_NOT_CHECKED_TEXT = "Only the citation was looked up; the quot
 export const NOT_IN_INDEX_NOTE = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real: the index does not hold every judgment.";
 /** R1 (14 Oct, #181): the IN_INDEX heading while the index is existence-only: plain words, never the raw token. The engine's own note ("Found in the index (existence only): no quote was checked, so this is not a verification.") stays under it. */
 export const IN_INDEX_LABEL = "Found in our index";
+/** pravrudhi#509 NAME_MISMATCH (R1, 16 Oct, byte-exact): the engine compared the typed case name with the case the citation belongs to and they differ. Same heading on /citations, the panel and Intake's citation line. */
+export const NAME_MISMATCH_HEADING = "Case name did not match";
+export const NAME_MISMATCH_TEXT = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
+/** A status this build does not know (R1 accepted "Result not shown", 16 Oct): was looked up was still looked up, so it reads neither "Not checked." nor the raw token; the heading and the one sentence below are shown instead. */
+export const UNKNOWN_STATUS_HEADING = "Result not shown";
+export const UNKNOWN_STATUS_TEXT = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
+/** pravrudhi#509 (R1, 15 Oct, byte-exact): an ADDITION after the IN_INDEX note (never a replacement), shown on every surface that says "Found in our index" only when the checked line carries a case name (citationHasCaseName) and the engine did NOT say it confirmed every typed party (name_compared absent or not true; R1 16 Oct changed "compared" to "confirmed", since a name can be compared and only partly match). The constant keeps its #364 name. */
+export const CASE_NAME_NOT_COMPARED = "Only the citation was looked up; the case name you typed was not confirmed against the index.";
 /** #223 D1 (R1, 15 Oct; Lead-2): a CONFLICT is worded neutrally: the cause may be one case under a spelling variant, so it never says "more than one case" and never claims the citation is not real. */
 export const CONFLICT_TEXT = "We could not match this citation to exactly one case in our index. That does not show whether the citation is real. Adding the case name before the citation may help; if it does not, check the citation by hand.";
 /** app#347 (R1, 15 Oct, byte-exact): the CONFLICT sentence when the citation the reader typed already carries a case name (citationHasCaseName): the advice to add the name would be wrong. The heading stays "Could not match one case". */
