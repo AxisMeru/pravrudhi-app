@@ -139,12 +139,12 @@ test.describe("phone touch targets and drawer header", () => {
   });
 });
 
-test("D8: the sidebar's section labels (WORK, REFERENCE, ACCOUNT, APPEARANCE) are at least 12 px", async ({ page }) => {
+test("D8: the sidebar's section labels (WORK, REFERENCE, ACCOUNT) are at least 12 px", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
   const sizes = await page.locator("#primary-navigation").evaluate((nav) => {
-    const labels = [...nav.querySelectorAll('[data-testid^="nav-group-"] > div:first-child')].concat([...nav.querySelectorAll('[data-testid="theme-switch"] > div:first-child')]);
+    const labels = [...nav.querySelectorAll('[data-testid^="nav-group-"] > div:first-child')];
     return labels.map((l) => ({ text: (l.textContent ?? "").trim(), px: parseFloat(getComputedStyle(l).fontSize) }));
   });
   expect(sizes.length).toBeGreaterThanOrEqual(3);

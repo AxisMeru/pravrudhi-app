@@ -5,6 +5,12 @@ export type ThemeChoice = "light" | "dark" | "system";
 export const THEME_KEY = "pravrudhi-theme";
 export const THEME_CHOICES: readonly ThemeChoice[] = ["light", "dark", "system"];
 
+/** The one theme button's cycle: system (the default) -> light -> dark -> system. */
+const NEXT: Record<ThemeChoice, ThemeChoice> = { system: "light", light: "dark", dark: "system" };
+export function nextTheme(choice: ThemeChoice): ThemeChoice {
+  return NEXT[choice];
+}
+
 export function parseTheme(raw: string | null | undefined): ThemeChoice {
   return raw === "light" || raw === "dark" ? raw : "system";
 }

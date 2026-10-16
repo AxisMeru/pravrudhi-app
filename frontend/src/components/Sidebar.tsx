@@ -27,7 +27,6 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { AccountControl } from "@/components/AccountControl";
 import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
@@ -156,7 +155,7 @@ export function Sidebar() {
           className="fixed inset-0 z-40 bg-black/60 md:hidden"
         />
       ) : null}
-      {/* D1: below `md` a CLOSED drawer is off-screen but its links, the account control and the theme buttons stayed in the tab order (13 stops at x<0). `max-md:invisible` takes it out of
+      {/* D1: below `md` a CLOSED drawer is off-screen but its links, the account control and the theme button stayed in the tab order (13 stops at x<0). `max-md:invisible` takes it out of
           the focus order and the accessibility tree; from `md` up the sidebar is a normal column and is never hidden. Open, it is a modal dialog (D2). */}
       <aside
         ref={drawerRef}
@@ -218,9 +217,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-[var(--color-border)] p-3">
-        <ThemeSwitch />
-      </div>
       </aside>
     </>
   );

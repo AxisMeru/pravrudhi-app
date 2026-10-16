@@ -12,44 +12,98 @@ test("system: with no stored choice the page follows the operating system, in bo
   expect(await bg(page)).toBe("rgb(14, 22, 34)");
 });
 
-test("an explicit choice wins over the system, is stored, and is applied before hydration on the next load", async ({ page }) => {
+const BTN = (page: import("@playwright/test").Page) => page.getByTestId("theme-button");
+const stored = (page: import("@playwright/test").Page) => page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"));
+const attr = (page: import("@playwright/test").Page) => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+
+test("one theme button, top right, system by default; each press cycles system -> light -> dark -> system and the name says what is next", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/guide");
-  await page.getByTestId("theme-light").click();
-  expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBe("light");
-  expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBe("light");
+  await expect(page.getByTestId("theme-button")).toHaveCount(1);
+  await expect(page.locator('[data-testid^="theme-"]:not([data-testid="theme-button"])')).toHaveCount(0);
+  await expect(BTN(page)).toHaveAttribute("aria-label", "Colour theme: follows your device setting. Press to use light.");
+  await expect(BTN(page)).toHaveAttribute("title", "Colour theme: device setting");
+  const box = (await BTN(page).boundingBox())!;
+  const vp = page.viewportSize()!;
+  expect(box.x + box.width).toBeGreaterThan(vp.width - 80);
+  expect(box.y).toBeLessThan(60);
+  await BTN(page).click();
+  expect(await attr(page)).toBe("light");
+  expect(await stored(page)).toBe("light");
   expect(await bg(page)).toBe("rgb(246, 244, 239)");
+  await expect(BTN(page)).toHaveAttribute("aria-label", "Colour theme: light. Press to use dark.");
+  await BTN(page).click();
+  expect(await attr(page)).toBe("dark");
+  expect(await stored(page)).toBe("dark");
+  expect(await bg(page)).toBe("rgb(14, 22, 34)");
+  await expect(BTN(page)).toHaveAttribute("aria-label", "Colour theme: dark. Press to follow your device setting.");
+  await BTN(page).click();
+  expect(await attr(page)).toBeNull();
+  expect(await stored(page)).toBeNull();
+  await expect(BTN(page)).toHaveAttribute("title", "Colour theme: device setting");
+});
+
+test("the choice persists per browser and is applied before hydration on the next load", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/guide");
+  await BTN(page).click();
+  expect(await attr(page)).toBe("light");
   await page.addInitScript(() => {
     document.addEventListener("DOMContentLoaded", () => { (window as unknown as { __themeAtDcl?: string | null }).__themeAtDcl = document.documentElement.getAttribute("data-theme"); });
   });
   await page.reload();
   expect(await page.evaluate(() => (window as unknown as { __themeAtDcl?: string | null }).__themeAtDcl)).toBe("light");
-  await expect(page.getByTestId("theme-light")).toHaveAttribute("aria-pressed", "true");
+  await expect(BTN(page)).toHaveAttribute("data-theme-choice", "light");
 });
 
-test("System clears the stored choice and the attribute; Dark sets it", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "light" });
+test("the button is a 44 px target at phone width, reachable by keyboard, and has no visible text", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/guide");
-  await page.getByTestId("theme-dark").click();
-  expect(await bg(page)).toBe("rgb(14, 22, 34)");
-  expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBe("dark");
-  await page.getByTestId("theme-system").click();
-  expect(await page.evaluate(() => document.documentElement.getAttribute("data-theme"))).toBeNull();
-  expect(await page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"))).toBeNull();
-  expect(await bg(page)).toBe("rgb(246, 244, 239)");
+  const b = (await BTN(page).boundingBox())!;
+  expect(b.width).toBeGreaterThanOrEqual(44);
+  expect(b.height).toBeGreaterThanOrEqual(44);
+  expect((await BTN(page).innerText()).trim()).toBe("");
+  await BTN(page).focus();
+  await page.keyboard.press("Enter");
+  expect(await attr(page)).toBe("light");
+  await page.keyboard.press("Space");
+  expect(await attr(page)).toBe("dark");
 });
 
 test("the filled accent button is readable in both themes (text colour is on-accent, not white on mint)", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
-  for (const choice of ["theme-light", "theme-dark"]) {
+  await page.emulateMedia({ colorScheme: "light" });
+  for (const choice of ["light", "dark"]) {
     await page.goto("/screening");
-    await page.getByTestId(choice).click();
+    await page.evaluate((c) => { window.localStorage.setItem("pravrudhi-theme", c); }, choice);
+    await page.reload();
     const colours = await page.getByRole("button", { name: "Screen these facts" }).evaluate((el) => {
       const s = getComputedStyle(el);
       return { fg: s.color, bgc: s.backgroundColor };
     });
     expect(colours.fg).not.toBe(colours.bgc);
     // the canvas pair (CONTRAST_CHECK): light = white on #1f4e79, dark = #0e1622 on #7fb1e8
-    expect(colours).toEqual(choice === "theme-light" ? { fg: "rgb(255, 255, 255)", bgc: "rgb(31, 78, 121)" } : { fg: "rgb(14, 22, 34)", bgc: "rgb(127, 177, 232)" });
+    expect(colours).toEqual(choice === "light" ? { fg: "rgb(255, 255, 255)", bgc: "rgb(31, 78, 121)" } : { fg: "rgb(14, 22, 34)", bgc: "rgb(127, 177, 232)" });
+  }
+});
+
+// The sign-in page is not in this list: its heading is the fixed words "Sign in" in a vertically centred column, so a title cannot reach the top corner there.
+test("a very long page title never runs under the theme button (390, 768 and 1280 px)", async ({ page }) => {
+  for (const width of [390, 768, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of ["/guide", "/citations", "/screening"]) {
+      await page.goto(path);
+      const r = await page.evaluate(() => {
+        const h1 = document.querySelector("h1")!;
+        h1.textContent = Array.from({ length: 60 }, (_, i) => `Longtitleword${i}`).join(" ");
+        const btn = document.querySelector('[data-testid="theme-button"]')!.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(h1);
+        const hits = [...range.getClientRects()].filter((q) => q.left < btn.right && q.right > btn.left && q.top < btn.bottom && q.bottom > btn.top).length;
+        return { hits, lines: range.getClientRects().length };
+      });
+      expect(r.lines, `${path} at ${width}`).toBeGreaterThan(1);
+      expect(r.hits, `${path} at ${width}: title lines under the button`).toBe(0);
+    }
   }
 });

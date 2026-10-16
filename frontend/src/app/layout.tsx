@@ -5,6 +5,7 @@ import { EditionGate } from "@/components/EditionGate";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
 import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/lib/productCopy";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/theme";
 import "./globals.css";
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:rounded-md focus:bg-[var(--color-surface)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--color-text)]">Skip to main content</a>
+        <ThemeSwitch />
         <div className="flex h-screen print:block print:h-auto">
           <Sidebar />
           {/* Room for the drawer toggle, which is fixed at top-left below `md` and would otherwise sit on top
