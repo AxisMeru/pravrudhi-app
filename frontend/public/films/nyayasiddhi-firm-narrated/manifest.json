@@ -1,0 +1,129 @@
+{
+  "title": "NyayaSiddhi",
+  "durationS": 79.7,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "hm_omega (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "b6b9cb462688c51010b26e59a59dc62187a991e7daab7ab00b3105421da6266d",
+    "timingsSha256": "dde1935cb096bf0a273e2d0e82a8ee8525a154902d3799cddb8b365c2e2de22d",
+    "scenes": [
+      {
+        "id": "title",
+        "audioS": 5.08,
+        "durS": 7.2,
+        "origDurS": 7.2,
+        "stretch": 1,
+        "wavSha256": "459a3e28e794a8ed63399129314f2cbab06b4d14764d46d38fcdc57d091d1551"
+      },
+      {
+        "id": "example",
+        "audioS": 33.95,
+        "durS": 35.5,
+        "origDurS": 35.5,
+        "stretch": 1,
+        "wavSha256": "cb16eee3c4f0e65c4f2209b160799e0104bda88709e58a4a722b78a4d25c9f4d"
+      },
+      {
+        "id": "unit",
+        "audioS": 6.5,
+        "durS": 9.8,
+        "origDurS": 9.8,
+        "stretch": 1,
+        "wavSha256": "b4c36d2c9e383cf37abff069eeb04cbc90141354b3ed7140790e41ece6ef1aa1"
+      },
+      {
+        "id": "twonames",
+        "audioS": 9.38,
+        "durS": 10.9,
+        "origDurS": 10.9,
+        "stretch": 1,
+        "wavSha256": "59e1c4f72dc5aca8c0f6c75cd6eb3b12b73423da03b4e3ac887db27f5ba1c48a"
+      },
+      {
+        "id": "close",
+        "audioS": 10.18,
+        "durS": 16.3,
+        "origDurS": 16.3,
+        "stretch": 1,
+        "wavSha256": "0f6f552731e99264f376a0d3138de0d7e5e719e82d706efb67357568152a5e2e"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 0.999,
+      "speechRmsDb": -19,
+      "peakBeforeLimit": 0.749,
+      "limiterGain": 1,
+      "scoreSeconds": 80.7,
+      "scoreLufs": -18.99
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "9058cafaf63bcc8731ea7952e382f9bf9b19497de838f1f4e9cb694bd99b8edd",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 7.2
+    },
+    {
+      "name": "Madras High Court, order of 12 June 2024",
+      "text": "",
+      "startS": 7.2,
+      "endS": 42.7
+    },
+    {
+      "name": "How the system decides each item",
+      "text": "",
+      "startS": 42.7,
+      "endS": 52.5
+    },
+    {
+      "name": "Pravrudhi-Nyaya is the product you open.",
+      "text": "",
+      "startS": 52.5,
+      "endS": 63.4
+    },
+    {
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "text": "",
+      "startS": 63.4,
+      "endS": 79.7
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 2452157,
+      "sha256": "818978ab2b81b8ee86ab1ae8d4532356eaa0e775262e3afa2d2e6702e5c598da"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 52411,
+      "sha256": "8ebdca38a0ecd312cdac7fbda60a8700603a1f6e940f28149637eba0294ddcc9"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 1315,
+      "sha256": "a1333fb2af9ca0db16069a7670ebb4d1f95fb6414fdbd368a9f99ce14b97a879"
+    }
+  ]
+}
