@@ -200,6 +200,17 @@ table,
   }
 }
 
+/* Layout B "matter-b" (#144, spec v3 bb1b62b1c51a): ONLY under html[data-layout="matter-b"] (build flag NEXT_PUBLIC_LAYOUT_MATTER_B=1, off by default). The sidebar is 208 px from md up, and a focused control on a phone is
+   never left under the bottom dock. Colours and shadows are the look patch's (deploy 25); nothing here changes a colour. */
+html[data-layout="matter-b"] #primary-navigation {
+  width: 13rem;
+}
+@media (max-width: 767px) {
+  html[data-layout="matter-b"] {
+    scroll-padding-bottom: 6.5rem;
+  }
+}
+
 /* Look patch (spec 3e0b13c4bdc8): ONLY under html[data-look="tonal"] (build flag NEXT_PUBLIC_LOOK_TONAL=1, off by default). No transition, animation or hover lift: nothing to gate for reduced motion.
    Every rule changes a colour or a shadow, never a box size (the left state rule is an inset shadow, not a border), so no layout moves. The print block below forces a white page and no shadows. */
 html[data-look="tonal"] body {
@@ -255,16 +266,5 @@ html[data-look="tonal"] [data-testid="summary-banner"] {
   html[data-look="tonal"] [data-testid="summary-banner"],
   html[data-look="tonal"] #primary-navigation {
     box-shadow: none;
-  }
-}
-
-/* Layout B "matter-b" (#144, spec v3 bb1b62b1c51a): ONLY under html[data-layout="matter-b"] (build flag NEXT_PUBLIC_LAYOUT_MATTER_B=1, off by default). The sidebar is 208 px from md up, and a focused control on a phone is
-   never left under the bottom dock. Colours and shadows are the look patch's (deploy 25); nothing here changes a colour. */
-html[data-layout="matter-b"] #primary-navigation {
-  width: 13rem;
-}
-@media (max-width: 767px) {
-  html[data-layout="matter-b"] {
-    scroll-padding-bottom: 6.5rem;
   }
 }
