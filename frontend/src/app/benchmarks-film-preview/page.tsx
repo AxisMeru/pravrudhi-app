@@ -1,12 +1,15 @@
 import { PageHeader } from "@/components/PageHeader";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
+import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { NYAYASIDDHI_CUT_HEADINGS, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_FILM_TITLE, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "@/lib/films/copy";
 
 // The review copy of the NyayaSiddhi film: the three silent cuts (poster first, muted autoplay, captions on; reduced motion keeps the poster until asked), then the two narrated previews for the operator's voice review (poster first, captions on, the sound button turns the voice on). Not linked from anywhere.
 const CUTS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"] as const;
 const VOICE = ["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"] as const;
 
-export default function BenchmarksFilmPreviewPage() {
+export default async function BenchmarksFilmPreviewPage() {
+  // the manifests are loaded here (dynamic import), on this route only, and handed to the player as data
+  const manifests = Object.fromEntries(await Promise.all([...CUTS, ...VOICE].map(async (id) => [id, await loadNyayasiddhiManifest(id)] as const)));
   return (
     <div>
       <PageHeader title={NYAYASIDDHI_FILM_TITLE} subtitle={NYAYASIDDHI_FILM_SUBTITLE} />
@@ -14,14 +17,14 @@ export default function BenchmarksFilmPreviewPage() {
         {CUTS.map((id) => (
           <section key={id} className="space-y-3" aria-label={NYAYASIDDHI_CUT_HEADINGS[id]}>
             <h2 className="text-base font-medium text-[var(--color-text)]">{NYAYASIDDHI_CUT_HEADINGS[id]}</h2>
-            <FilmPlayer id={id} autoplayMuted captionsOn />
+            <FilmPlayer id={id} manifest={manifests[id]} autoplayMuted captionsOn />
           </section>
         ))}
         {VOICE.map((id) => (
           <section key={id} className="space-y-3" aria-label={`${NYAYASIDDHI_VOICE_HEADINGS[id]}: ${NYAYASIDDHI_VOICE_PREVIEW_LABEL}`} data-testid={`voice-${id}`}>
             <h2 className="text-base font-medium text-[var(--color-text)]">{NYAYASIDDHI_VOICE_HEADINGS[id]}</h2>
             <p className="text-sm text-[var(--color-text)]" data-testid="voice-preview-label">{NYAYASIDDHI_VOICE_PREVIEW_LABEL}</p>
-            <FilmPlayer id={id} captionsOn />
+            <FilmPlayer id={id} manifest={manifests[id]} captionsOn />
           </section>
         ))}
       </div>
