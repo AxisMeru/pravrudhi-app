@@ -146,6 +146,12 @@ table,
   outline-offset: 2px;
 }
 
+/* The first-run panel is a dark navy block in BOTH themes, so the light theme's accent ring would sit at 1.82:1 on it (Track B, live read of deploy 25): inside the panel the ring is the panel's own light text colour.
+   Unlayered like the rule above, so it wins on specificity (Tailwind utilities are layered and would lose). */
+.start-panel-ring :focus-visible {
+  outline-color: var(--color-on-hero);
+}
+
 ::selection {
   background: var(--color-accent-dim);
   color: var(--color-text);

@@ -10,7 +10,7 @@ import {
 /** The first-run panel of the Matter workspace (canvas Start): shown only while no facts are entered and no result is shown, and until the visitor closes it. Closing lasts for THIS VISIT ONLY and stores nothing: the data-handling page names the only three keys the app keeps in the browser, so a remembered dismissal would need a signed change there first. */
 export function StartPanel({ onExample, onOwn, onClose }: { onExample: () => void; onOwn: () => void; onClose: () => void }) {
   return (
-    <section className="relative flex flex-col gap-4 rounded-xl bg-[var(--color-hero)] p-5 text-[var(--color-on-hero)] print:hidden" aria-labelledby="start-panel-heading" data-testid="start-panel">
+    <section className="relative flex flex-col gap-4 rounded-xl bg-[var(--color-hero)] p-5 text-[var(--color-on-hero)] print:hidden start-panel-ring" aria-labelledby="start-panel-heading" data-testid="start-panel">
       <button
         type="button"
         onClick={onClose}
