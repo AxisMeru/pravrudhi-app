@@ -171,7 +171,9 @@ test("/benchmarks: the narrated NyayaSiddhi film sits above the results, poster 
   await page.waitForLoadState("networkidle");
   const block = page.getByTestId("block-film");
   await expect(block.getByRole("heading", { name: "NyayaSiddhi film", level: 2 })).toBeVisible();
-  await expect(block.getByTestId("benchmarks-film-label")).toHaveText("Preview for voice review");
+  // the voice gate has passed (operator, 17:00): the public card carries no "Preview for voice review"; the synthetic-voice disclosure stays
+  await expect(block.getByText(/voice review/i), "no voice-review wording on the public card").toHaveCount(0);
+  await expect(block.getByTestId("benchmarks-film-label")).toHaveCount(0);
   const poster = block.getByTestId("film-poster");
   await expect(poster).toHaveAttribute("alt", "Poster of the NyayaSiddhi film");
   await expect(poster).toHaveAttribute("src", /\/films\/nyayasiddhi-narrated\/poster\.png$/);

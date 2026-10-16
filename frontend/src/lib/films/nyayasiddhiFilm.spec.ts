@@ -217,4 +217,5 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 unchanged, 
   assert.match(page, /posterFirst/);
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
+  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|Preview for voice review/, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
 });

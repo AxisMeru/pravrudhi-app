@@ -3,7 +3,7 @@ import { NyayaSiddhiResults } from "@/components/benchmarks/NyayaSiddhiResults";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
 import { PageHeader } from "@/components/PageHeader";
 import rowsFile from "@/data/nyayasiddhi/rows.json";
-import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARRATED, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "@/lib/films/copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARRATED } from "@/lib/films/copy";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
 import { BENCHMARK_STATEMENTS, FOOTER_TEXT, HOW_WE_TEST, HOW_WE_TEST_HEADING, PAGE_SUBTITLE, PAGE_TITLE } from "@/lib/benchmarks";
@@ -31,7 +31,6 @@ export default async function BenchmarksPage() {
         </section>
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
-          <p className="text-sm text-[var(--color-text)]" data-testid="benchmarks-film-label">{NYAYASIDDHI_VOICE_PREVIEW_LABEL}</p>
           <FilmPlayer id="nyayasiddhi-narrated" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} />
