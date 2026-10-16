@@ -1,0 +1,73 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.000
+The narration is a synthetic voice.
+
+2
+00:00:00.600 --> 00:00:05.675
+NyayaSiddhi. our benchmark for screening under Indian criminal law
+
+3
+00:00:07.800 --> 00:00:18.834
+Madras High Court, order of 12 June 2024. The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr. No.
+
+4
+00:00:18.834 --> 00:00:29.372
+[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC. Public court order, example only. Allegations as recited, not findings.
+
+5
+00:00:29.372 --> 00:00:38.709
+Crime number and date replaced. Illustrative, not evidence. Shown on an example order. Marked as supported. Not marked as supported.
+
+6
+00:00:38.709 --> 00:00:41.750
+Here, an error is counted as not supported.
+
+7
+00:00:43.300 --> 00:00:54.675
+Development items; used to design fixes, so seen by us. Second development set, cruelty items left out; exposed to Anthropic in an earlier study.
+
+8
+00:00:56.200 --> 00:01:02.700
+How the system decides each item. Whole item at once. Ingredient by ingredient.
+
+9
+00:01:06.000 --> 00:01:15.225
+Reported by the entrant. Development items; used to design fixes, so seen by us. Anthropic API; not our dev stack or production stack.
+
+10
+00:01:15.225 --> 00:01:22.041
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry. dev stack (local).
+
+11
+00:01:22.041 --> 00:01:28.650
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry. About this run.
+
+12
+00:01:37.000 --> 00:01:48.681
+Ingredients with no fact cited. Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property. Madras High Court, order of 12 June 2024.
+
+13
+00:01:48.681 --> 00:02:00.224
+Shown on an example order. No fact cited: entrusted with property, or with dominion over property. Check what the facts say was handed over, to whom, and on what terms.
+
+14
+00:02:00.224 --> 00:02:05.927
+No fact cited: dishonestly misappropriates or converts the property to his own use.
+
+15
+00:02:05.927 --> 00:02:13.280
+Check what the accused is said to have done with the property, and whether the facts show dishonest intent.
+
+16
+00:02:13.280 --> 00:02:21.250
+Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.
+
+17
+00:02:22.800 --> 00:02:32.975
+Rows are listed in a fixed order, by split and system name, never by a figure. This is a screening aid, not legal advice. A lawyer decides.
+
+18
+00:02:35.500 --> 00:02:38.500
+The narration is a synthetic voice.

@@ -11,7 +11,7 @@ import { SCREENING_FILE_NOTE, FILE_NOTE } from "./surfaceCopy";
 test("the page titles are R1's, one per page, each the page name then the product name", () => {
   assert.deepEqual(PAGE_TITLES, {
     signin: "Sign in", screening: "Matter workspace", demo: "How it works", workflows: "Workflows", dataHandling: "Data handling", guide: "User guide",
-    howBuilt: "How it was built", settings: "Settings", partnerKeys: "API access", citations: "Case citations", technicalFilm: "Technical film", matters: "Offence rules",
+    howBuilt: "How it was built", settings: "Settings", partnerKeys: "API access", citations: "Case citations", technicalFilm: "Technical film", benchmarksFilmPreview: "NyayaSiddhi film: review copy", matters: "Offence rules",
     safety: "Safety record", benchmarks: "Benchmarks", intake: "Intake",
   });
   assert.equal(pageTitle("guide"), "User guide \u00b7 Pravrudhi-Nyaya");
@@ -19,7 +19,7 @@ test("the page titles are R1's, one per page, each the page name then the produc
 });
 
 test("each titled page's layout.tsx names its own key, and the keys cover the table", () => {
-  const dirs: Record<string, string> = { signin: "signin", screening: "screening", demo: "demo", workflows: "workflows", dataHandling: "data-handling", guide: "guide", howBuilt: "how-it-was-built", settings: "settings", partnerKeys: "partner-keys", citations: "citations", matters: "matters", safety: "safety", benchmarks: "benchmarks", intake: "intake", technicalFilm: "technical-film" };
+  const dirs: Record<string, string> = { benchmarksFilmPreview: "benchmarks-film-preview", signin: "signin", screening: "screening", demo: "demo", workflows: "workflows", dataHandling: "data-handling", guide: "guide", howBuilt: "how-it-was-built", settings: "settings", partnerKeys: "partner-keys", citations: "citations", matters: "matters", safety: "safety", benchmarks: "benchmarks", intake: "intake", technicalFilm: "technical-film" };
   for (const [key, dir] of Object.entries(dirs)) {
     const src = readFileSync(join(__dirname, "..", "app", dir, "layout.tsx"), "utf8");
     assert.match(src, new RegExp(`title: pageTitle\\("${key}"\\)`), dir);

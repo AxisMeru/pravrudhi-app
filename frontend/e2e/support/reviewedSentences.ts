@@ -2,6 +2,18 @@
 // scoring or improving a model must be listed here, EXACTLY as the scan splits it, with the reason it is not a statement about what happens to a submission.
 // Every entry is a sentence the app already ships; adding one here is a copy decision for R1. A stale entry fails the scan.
 export const REVIEWED: Readonly<Record<string, { reason: string; sentences: readonly string[] }>> = {
+  "public/films/nyayasiddhi-firm-narrated/captions.vtt": {
+    reason: "the R1-confirmed bridge caption of the narrated firm cut (the voice-review preview; captions sha256 a1333fb2af9c..., read by R1 by hash): the organisers' own models; not a statement about submissions. Lapses with a new bridge text or hash",
+    sentences: [
+      "Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+    ],
+  },
+  "public/films/nyayasiddhi-firm/captions.vtt": {
+    reason: "the R1-confirmed bridge caption (the film's strings file, STRINGS_948 v4 or its successor by R1's hash), as the firm cut's caption cue (the scan reads the cue number and times with it): the organisers' own models; not a statement about submissions",
+    sentences: [
+      "14 00:00:53.000 --> 00:00:58.800 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
+    ],
+  },
   "src/data/nyayasiddhi/rows.json": {
     reason: "R1's About-this-run lines of the reference arms (15 Oct), copied by the data build from the signed manifests: they say that the organisers did not train or tune the model they ran, and what its vendor trained it on is not known to us; none is a statement about what happens to a submission",
     sentences: [

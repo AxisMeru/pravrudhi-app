@@ -1,0 +1,157 @@
+{
+  "title": "NyayaSiddhi",
+  "durationS": 158.5,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "hm_omega (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "50c07d7482eff648bffdbfc1f3ac8c280048895396964e95890774d0329d34a6",
+    "timingsSha256": "2d2b6771d93e990174dd71fbe1357d907ef0364354e0d89371e2dae568b1bcf2",
+    "scenes": [
+      {
+        "id": "title",
+        "audioS": 5.08,
+        "durS": 7.2,
+        "origDurS": 7.2,
+        "stretch": 1,
+        "wavSha256": "691e7ee4f573067c70905267382bfa8f536d08d9be76294c307f381000e2387b"
+      },
+      {
+        "id": "example",
+        "audioS": 33.95,
+        "durS": 35.5,
+        "origDurS": 35.5,
+        "stretch": 1,
+        "wavSha256": "c64c3ea77df15a6528c557ea8189077fb25dc3400fd80d0a74d154ef98379fcd"
+      },
+      {
+        "id": "splits",
+        "audioS": 11.38,
+        "durS": 12.9,
+        "origDurS": 12.9,
+        "stretch": 1,
+        "wavSha256": "21f5506740c830312951326ed79063ebe0995679cd84450c1ff02e86fe8bea08"
+      },
+      {
+        "id": "unit",
+        "audioS": 6.5,
+        "durS": 9.8,
+        "origDurS": 9.8,
+        "stretch": 1,
+        "wavSha256": "d1e2743df4afc9ff39b801b788db6270f5163ee52886bbc84cc76362b29364c2"
+      },
+      {
+        "id": "cards",
+        "audioS": 22.65,
+        "durS": 31,
+        "origDurS": 31,
+        "stretch": 1,
+        "wavSha256": "56729ad084d9fdf0312e40b76fda2088d1a1015d3508093968b9f8d6d342b253"
+      },
+      {
+        "id": "nofact",
+        "audioS": 44.25,
+        "durS": 45.8,
+        "origDurS": 45.8,
+        "stretch": 1,
+        "wavSha256": "db2ea402df6e5839fbfd400663d7d367446f61113b38b5ae00e738494f293999"
+      },
+      {
+        "id": "close",
+        "audioS": 10.18,
+        "durS": 16.3,
+        "origDurS": 16.3,
+        "stretch": 1,
+        "wavSha256": "f9b01b27d950e7db481f570401872ba4d1973ee5d3b7dce3385bc765f396b2c7"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.021,
+      "speechRmsDb": -19.2,
+      "peakBeforeLimit": 0.764,
+      "limiterGain": 1,
+      "scoreSeconds": 159.5,
+      "scoreLufs": -18.99
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "8b1063e91fd450084982dc0ba58788738a706259fc0a15b96c84b5c65aae6bb7",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 7.2
+    },
+    {
+      "name": "Madras High Court, order of 12 June 2024",
+      "text": "",
+      "startS": 7.2,
+      "endS": 42.7
+    },
+    {
+      "name": "Development items; used to design fixes, so seen by us",
+      "text": "",
+      "startS": 42.7,
+      "endS": 55.6
+    },
+    {
+      "name": "How the system decides each item",
+      "text": "",
+      "startS": 55.6,
+      "endS": 65.4
+    },
+    {
+      "name": "System",
+      "text": "",
+      "startS": 65.4,
+      "endS": 96.4
+    },
+    {
+      "name": "Ingredients with no fact cited",
+      "text": "",
+      "startS": 96.4,
+      "endS": 142.2
+    },
+    {
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "text": "",
+      "startS": 142.2,
+      "endS": 158.5
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 4849085,
+      "sha256": "53c22a51e16b6928a6433799db20c0322f744f95a803f148ac508fef05ef7674"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 52411,
+      "sha256": "8ebdca38a0ecd312cdac7fbda60a8700603a1f6e940f28149637eba0294ddcc9"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 2582,
+      "sha256": "c35ef3d5c85767e9dbe0a050d64d49be788d7408a911df64603d9addcb4be374"
+    }
+  ]
+}

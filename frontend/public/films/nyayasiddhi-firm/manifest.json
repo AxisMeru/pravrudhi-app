@@ -1,0 +1,67 @@
+{
+  "title": "NyayaSiddhi",
+  "durationS": 75.10000000000001,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "f295cc4098978abab29c27b11e079c308e2ce2efda8a3e2a59ecc48410253328",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 7.2
+    },
+    {
+      "name": "Madras High Court, order of 12 June 2024",
+      "text": "",
+      "startS": 7.2,
+      "endS": 39.800000000000004
+    },
+    {
+      "name": "How the system decides each item",
+      "text": "",
+      "startS": 39.800000000000004,
+      "endS": 49.60000000000001
+    },
+    {
+      "name": "Pravrudhi-Nyaya is the product you open.",
+      "text": "",
+      "startS": 49.60000000000001,
+      "endS": 58.80000000000001
+    },
+    {
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "text": "",
+      "startS": 58.80000000000001,
+      "endS": 75.10000000000001
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 1739980,
+      "sha256": "02795fb5e735026a7497791d40550e4b3c6022ec6704acc65a15446d7bffbef0"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 47176,
+      "sha256": "28b72f1dac7f86ed652d350f540b25cbd363a2f70761881d97c462400da0ffb0"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 1675,
+      "sha256": "bca93c7dbdc3b1ee17196f15e09b0cf82434fd5609c13acf8b23cd70bfe9ab57"
+    }
+  ]
+}

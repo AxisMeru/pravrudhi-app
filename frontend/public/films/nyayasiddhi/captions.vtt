@@ -1,0 +1,209 @@
+WEBVTT
+
+1
+00:00:00.300 --> 00:00:07.200
+NyayaSiddhi
+
+2
+00:00:03.400 --> 00:00:07.200
+our benchmark for screening under Indian criminal law
+
+3
+00:00:07.500 --> 00:00:39.800
+Madras High Court, order of 12 June 2024
+
+4
+00:00:10.767 --> 00:00:39.800
+The petitioner herein is the named accused in a complaint registered by the respondent police on [date] in Cr.No.[redacted] of 2023 for the alleged offence under Sections 406 and 420 of IPC.
+
+5
+00:00:22.033 --> 00:00:39.800
+Public court order, example only. Allegations as recited, not findings. Crime number and date replaced. Illustrative, not evidence.
+
+6
+00:00:29.633 --> 00:00:39.800
+Shown on an example order.
+
+7
+00:00:33.233 --> 00:00:39.800
+Marked as supported
+
+8
+00:00:33.233 --> 00:00:39.800
+Not marked as supported
+
+9
+00:00:36.333 --> 00:00:39.800
+Here, an error is counted as not supported.
+
+10
+00:00:40.100 --> 00:00:49.500
+Development items; used to design fixes, so seen by us
+
+11
+00:00:44.033 --> 00:00:49.500
+Second development set, cruelty items left out; exposed to Anthropic in an earlier study
+
+12
+00:00:49.800 --> 00:00:59.300
+How the system decides each item
+
+13
+00:00:52.900 --> 00:00:59.300
+Whole item at once
+
+14
+00:00:56.000 --> 00:00:59.300
+Ingredient by ingredient
+
+15
+00:00:59.600 --> 00:01:15.867
+System
+
+16
+00:00:59.600 --> 00:01:15.867
+nyayasiddhi-ref-S-direct claude-sonnet-5-5-cfg-1bb53647
+
+17
+00:00:59.600 --> 00:01:15.867
+Status
+
+18
+00:00:59.600 --> 00:01:15.867
+Reported by the entrant
+
+19
+00:00:59.600 --> 00:01:15.867
+Material
+
+20
+00:00:59.600 --> 00:01:15.867
+Development items; used to design fixes, so seen by us
+
+21
+00:00:59.600 --> 00:01:15.867
+Run date
+
+22
+00:00:59.600 --> 00:01:15.867
+2026-10-15
+
+23
+00:00:59.600 --> 00:01:15.867
+Anthropic API; not our dev stack or production stack
+
+24
+00:00:59.600 --> 00:01:15.867
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+25
+00:00:59.600 --> 00:01:15.867
+About this run
+
+26
+00:01:15.867 --> 00:01:30.300
+System
+
+27
+00:01:15.867 --> 00:01:30.300
+nyayasiddhi-open-O2 Qwen3-14B-AWQ-31c69efc
+
+28
+00:01:15.867 --> 00:01:30.300
+Status
+
+29
+00:01:15.867 --> 00:01:30.300
+Reported by the entrant
+
+30
+00:01:15.867 --> 00:01:30.300
+Material
+
+31
+00:01:15.867 --> 00:01:30.300
+Development items; used to design fixes, so seen by us
+
+32
+00:01:15.867 --> 00:01:30.300
+Run date
+
+33
+00:01:15.867 --> 00:01:30.300
+2026-10-15
+
+34
+00:01:15.867 --> 00:01:30.300
+dev stack (local)
+
+35
+00:01:15.867 --> 00:01:30.300
+Run by the NyayaSiddhi organisers with prompts they wrote; not an outside entry
+
+36
+00:01:15.867 --> 00:01:30.300
+About this run
+
+37
+00:01:30.600 --> 00:02:15.700
+Ingredients with no fact cited
+
+38
+00:01:33.700 --> 00:01:46.833
+Criminal breach of trust · BNS 316 · IPC 405: by misappropriation or conversion of the property
+
+39
+00:01:39.967 --> 00:01:46.833
+Madras High Court, order of 12 June 2024
+
+40
+00:01:43.233 --> 00:01:46.833
+Shown on an example order.
+
+41
+00:01:46.833 --> 00:02:08.233
+No fact cited
+
+42
+00:01:46.833 --> 00:02:08.233
+entrusted with property, or with dominion over property
+
+43
+00:01:51.100 --> 00:02:08.233
+Check what the facts say was handed over, to whom, and on what terms.
+
+44
+00:01:56.367 --> 00:02:08.233
+No fact cited
+
+45
+00:01:56.367 --> 00:02:08.233
+dishonestly misappropriates or converts the property to his own use
+
+46
+00:02:01.300 --> 00:02:08.233
+Check what the accused is said to have done with the property, and whether the facts show dishonest intent.
+
+47
+00:02:08.233 --> 00:02:15.700
+Review agenda: what each ingredient needs, and which facts to look for. Nothing here is a finding about your matter.
+
+48
+00:02:16.000 --> 00:02:32.000
+Rows are listed in a fixed order, by split and system name, never by a figure.
+
+49
+00:02:21.933 --> 00:02:32.000
+https://huggingface.co/datasets/AxisMeru/nyayasiddhi
+
+50
+00:02:21.933 --> 00:02:32.000
+https://github.com/AxisMeru/pravrudhi
+
+51
+00:02:21.933 --> 00:02:32.000
+https://pravrudhi-app.vercel.app/benchmarks
+
+52
+00:02:27.533 --> 00:02:32.000
+This is a screening aid, not legal advice. A lawyer decides.
