@@ -11,7 +11,7 @@ import { MATTER_CAVEAT, MATTER_DOC_ID, MATTER_NOT_SCREENED, MATTER_OFFENCE_IDS, 
 import { CHIP_LABEL } from "../src/lib/screening/copy";
 import { memoBlockHeading } from "../src/lib/screening/memo";
 import { knownElements, rowsFor, summarize } from "../src/lib/screening/model";
-import { OFFENCES } from "../src/lib/screening/offences";
+import { OFFENCES, contractListLabel } from "../src/lib/screening/offences";
 
 /**
  * The Screening view's production E2E (O8.5, #830): the design-partner flow on the accepted real public matter (touched by the extraction pipeline) (Lead-2, 8 Oct): the allegation
@@ -154,7 +154,8 @@ for (let run = 1; run <= REPEATS; run++) {
     await expect(page.getByTestId("checklist")).toHaveCount(result.contracts.length);
     const observed: Record<string, { supported: number; review: number; notSupported: number; banner: string }> = {};
     for (const c of result.contracts) {
-      const section = page.getByTestId("checklist").filter({ hasText: c.contract_id });
+      // the checklist names the OFFENCE (contractListLabel), never the raw contract id: its section carries the exact aria-label "Ingredients: <label>" (stale-selector fix, #90, 16 Oct)
+      const section = page.locator(`[data-testid="checklist"][aria-label="Ingredients: ${contractListLabel(c.contract_id)}"]`);
       const rows = rowsFor(c, result.facts);
       const summary = summarize(c, rows);
       await expect(section.getByTestId("ingredient-row")).toHaveCount(rows.ingredients.length + rows.defences.length);
@@ -173,7 +174,8 @@ for (let run = 1; run <= REPEATS; run++) {
       }
       // review items are never styled as errors
       for (const chip of await section.locator('[data-chip="review"] [data-testid="ingredient-chip"]').all()) await expect(chip).not.toHaveClass(/red/);
-      const text = await section.innerText();
+      // the words the APP writes: the cited fact and a model quote come from the real court text and the model, so they are left out of this check
+      const text = await section.evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="cited-fact-text"], [data-testid="model-quote"]').forEach((n) => n.remove()); return c.textContent ?? ""; });
       expect(text, "the checklist says proved, established or verbatim").not.toMatch(/\bproved\b|\bestablished\b|verbatim|offence is made out/i);
       observed[c.contract_id] = { supported: summary.supported, review: summary.review, notSupported: summary.total - summary.supported - rows.ingredients.filter((r) => r.chip === "review").length, banner: summary.text };
     }
