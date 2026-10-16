@@ -200,7 +200,7 @@ table,
   }
 }
 
-/* Look patch (spec 3e0b13c4bdc8): ONLY under html[data-look="tonal"] (build flag NEXT_PUBLIC_LOOK=tonal, off by default). No transition, animation or hover lift: nothing to gate for reduced motion.
+/* Look patch (spec 3e0b13c4bdc8): ONLY under html[data-look="tonal"] (build flag NEXT_PUBLIC_LOOK_TONAL=1, off by default). No transition, animation or hover lift: nothing to gate for reduced motion.
    Every rule changes a colour or a shadow, never a box size (the left state rule is an inset shadow, not a border), so no layout moves. The print block below forces a white page and no shadows. */
 html[data-look="tonal"] body {
   background: linear-gradient(180deg, var(--tone-ground-top) 0, var(--color-bg) 460px), var(--color-bg);
