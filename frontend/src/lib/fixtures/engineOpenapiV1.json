@@ -266,7 +266,10 @@
             "enum": [
               "sync",
               "job",
-              "verify"
+              "verify",
+              "assist",
+              "intake",
+              "intake_assist"
             ],
             "title": "Mode",
             "type": "string"
@@ -485,6 +488,7 @@
               "uncertain",
               "uncertain_second_judge",
               "second_judge_unavailable",
+              "second_judge_not_confirmed",
               "gate1_unavailable",
               "gate1_not_entailed",
               "gate1_contradiction",
@@ -1377,6 +1381,17 @@
             "title": "Label",
             "type": "string"
           },
+          "name_compared": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name Compared"
+          },
           "note": {
             "title": "Note",
             "type": "string"
@@ -2007,7 +2022,7 @@
                 }
               }
             },
-            "description": "Validation Error"
+            "description": "Validation error, or `quote_not_served` ({\"error\": \"quote_not_served\"}): a quote was sent but this deployment's index is existence-only (it holds no judgment text), so no quote can be checked. Send the citation without a quote."
           },
           "429": {
             "description": "Over the rate limit; wait Retry-After seconds.",

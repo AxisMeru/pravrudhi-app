@@ -10,9 +10,7 @@ export const CITATION_CHECK_TITLE = "Citation check";
 export const PREVIEW_LABEL = "preview: existence check only";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
-export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT"] as const;
-/** The six above plus NAME_MISMATCH (pravrudhi#509, engine 0.6.19): the statuses this build can word; anything else is unknown (shown neutrally, never raw). */
-const KNOWN_STATUSES: readonly string[] = [...VERIFY_STATUSES, "NAME_MISMATCH"];
+export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT", "NAME_MISMATCH"] as const;
 export type VerifyStatus = (typeof VERIFY_STATUSES)[number];
 
 export interface VerifyReply {
@@ -34,7 +32,7 @@ export interface VerifyReply {
 export const PRODUCT_STATUS_ENABLED = process.env.NEXT_PUBLIC_CITATION_PRODUCT_STATUS === "1";
 
 /** The product statuses the engine can send (application/citation_status.py), in its order. */
-export const PRODUCT_STATUSES = ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed"] as const;
+export const PRODUCT_STATUSES = ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed", "name_mismatch"] as const;
 /** Words that never appear in a status label shown by this page. */
 const LABEL_BANNED = /\b(fake|fabricated|hallucinated|invalid|false)\b/i;
 
@@ -46,6 +44,7 @@ const RESULT_TO_STATUS: Record<string, string> = {
   NOT_IN_INDEX: "not_in_index",
   CONFLICT: "conflict",
   MALFORMED: "malformed",
+  NAME_MISMATCH: "name_mismatch",
 };
 /** Positive-claim words; a label carrying one anywhere is refused on every status but "verified". */
 const LABEL_POSITIVE = /\b(verif\w*|confirm\w*|authentic\w*|genuine|valid|correct|accurate|real|exists?|resolves?|appears)\b/;
@@ -108,7 +107,7 @@ export const statusLabel = (status: string, existenceOnly: boolean = CITATION_EX
     ? NOT_IN_INDEX_LABEL
     : status === "NAME_MISMATCH"
       ? NAME_MISMATCH_HEADING
-      : status !== "" && !KNOWN_STATUSES.includes(status)
+      : status !== "" && !(VERIFY_STATUSES as readonly string[]).includes(status)
         ? UNKNOWN_STATUS_HEADING // never the raw token (R1, 16 Oct)
         : existenceOnly && status === "CONFLICT"
           ? CONFLICT_HEADING
@@ -146,11 +145,11 @@ export function verifyView(reply: VerifyReply, enabled: boolean = PRODUCT_STATUS
   // #223 (R1, 15 Oct): with the arm ON a CONFLICT and a MALFORMED each show R1's sentence under their plain heading; the engine's notes ("maps to conflicting indexed cases; verify by hand", "Exactly one parseable citation is required.") are replaced.
   const explained = existenceOnly && (status === "CONFLICT" || status === "MALFORMED");
   const mismatch = status === "NAME_MISMATCH";
-  const unknown = status !== "" && !KNOWN_STATUSES.includes(status);
+  const unknown = status !== "" && !(VERIFY_STATUSES as readonly string[]).includes(status);
   const explanation = status === "CONFLICT" ? (citationHasCaseName(citation) ? CONFLICT_TEXT_WITH_NAME : CONFLICT_TEXT) : MALFORMED_TEXT;
   return {
     status,
-    known: KNOWN_STATUSES.includes(status),
+    known: (VERIFY_STATUSES as readonly string[]).includes(status),
     note: mismatch ? NAME_MISMATCH_TEXT : unknown ? UNKNOWN_STATUS_TEXT : override ? NOT_IN_INDEX_NOTE : explained ? explanation : withheld ? null : note,
     noteWithheld: !mismatch && !unknown && !override && !explained && withheld && !!note,
     nameNote: caseNameNote(status, citation, existenceOnly, reply.name_compared),
