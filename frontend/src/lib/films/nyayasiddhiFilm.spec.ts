@@ -13,7 +13,7 @@ import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
-import { FILM_CAPTIONS_SHOW, FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_SILENT_LABEL, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_NARRATED, FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_SILENT_LABEL, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
@@ -202,4 +202,20 @@ test("the video's preload attribute is pinned: none for every film (nothing is f
   const player = readFileSync(join(root, "src", "components", "films", "FilmPlayer.tsx"), "utf8");
   assert.match(player, /preload="none"/);
   assert.doesNotMatch(player, /preload=\{/, "preload is not computed: it is always none");
+});
+
+// The film on /benchmarks (operator, 16 Oct; R1's strings hash 9f41ebf6cbd5): the three new strings are pinned, the signed rows file is byte-for-byte the one that was signed, and the page passes it unchanged.
+test("the /benchmarks film: R1's three strings, the rows.json sha256 unchanged, the page keeps feeding the signed rows to the results view and puts the film above it", () => {
+  assert.equal(BENCHMARKS_FILM_HEADING, "NyayaSiddhi film");
+  assert.equal(FILM_DOWNLOAD_NARRATED, "Download the narrated film");
+  assert.equal(BENCHMARKS_FILM_POSTER_ALT, "Poster of the NyayaSiddhi film");
+  assert.equal(createHash("sha256").update(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"))).digest("hex"), "ec97253f2d983b871a09953b16115411dc4c7c584668964070e5e1580a15670a");
+  const page = readFileSync(join(root, "src", "app", "benchmarks", "page.tsx"), "utf8");
+  assert.match(page, /parseRows\(rowsFile\)/);
+  assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\} \/>/);
+  assert.ok(page.indexOf("<FilmPlayer") > 0 && page.indexOf("<FilmPlayer") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
+  assert.match(page, /posterFirst/);
+  assert.doesNotMatch(page, /autoPlay|autoplay/i);
+  assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
+  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|Preview for voice review/, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
 });

@@ -17,7 +17,7 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion, and for a film marked `posterFirst`, the poster stays until the visitor asks for the film with the button (no film bytes, no autoplay). The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id, manifest, posterFirst = false }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean }) {
+export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = FILM_DOWNLOAD_LINK, posterAlt }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean; downloadLabel?: string; posterAlt?: string }) {
   const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
@@ -69,7 +69,7 @@ export function FilmPlayer({ id, manifest, posterFirst = false }: { id: FilmId; 
         ) : (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element -- a static export; the poster is a plain file in public/films */}
-            <img src={filmFile(id, "poster.png")} alt={film.title} className="block aspect-video w-full object-cover" data-testid="film-poster" />
+            <img src={filmFile(id, "poster.png")} alt={posterAlt ?? film.title} className="block aspect-video w-full object-cover" data-testid="film-poster" />
             <button type="button" onClick={() => setAsked(true)} className="absolute bottom-3 left-3 h-fit w-fit rounded-md bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text)] min-h-11" data-testid="film-play">
               {FILM_PLAY_BUTTON}
             </button>
@@ -90,7 +90,7 @@ export function FilmPlayer({ id, manifest, posterFirst = false }: { id: FilmId; 
             </button>
           </>
         )}
-        <a href={filmFile(id, "film.mp4")} download className="inline-flex min-h-11 items-center text-[var(--color-accent)] underline" data-testid="film-download">{FILM_DOWNLOAD_LINK}</a>
+        <a href={filmFile(id, "film.mp4")} download className="inline-flex min-h-11 items-center text-[var(--color-accent)] underline" data-testid="film-download">{downloadLabel}</a>
       </div>
       <section aria-label={FILM_TRANSCRIPT_HEADING} data-testid="film-scenes">
         <h3 className="text-sm font-medium text-[var(--color-text)]">{FILM_TRANSCRIPT_HEADING}</h3>
