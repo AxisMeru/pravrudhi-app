@@ -1,5 +1,5 @@
 // Layout B "matter-b" (Studio spec v3 bb1b62b1c51a, pravrudhi-app#144): a grouped sidebar with a static screening header and a result-first Screening page. OFF by default: with the build flag unset no data-layout
 // attribute is written, none of the new markup renders and not one rule in globals.css applies, so the live pages are unchanged (rollback = unset the flag and rebuild).
-// The flag is NEXT_PUBLIC_LAYOUT_MATTER_B=1 (exactly "1", like every flag in build.json, where it is recorded as layout_matter_b).
+// The flag is NEXT_PUBLIC_LAYOUT_MATTER_B=1 (exactly "1", like the other build flags). It is deliberately NOT a build.json key yet: the ON switch is a later change.
 export const LAYOUT_MATTER_B = process.env.NEXT_PUBLIC_LAYOUT_MATTER_B === "1";
 export const LAYOUT_ATTRIBUTE: "matter-b" | undefined = LAYOUT_MATTER_B ? "matter-b" : undefined;

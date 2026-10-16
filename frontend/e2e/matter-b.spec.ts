@@ -137,6 +137,30 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(page.locator("#page-title")).toBeFocused();
     });
 
+    base("the summary line is the result's headline: serif and large (follow-up 1)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      const f = await page.getByTestId("summary-text").first().evaluate((el) => ({ family: getComputedStyle(el).fontFamily, px: parseFloat(getComputedStyle(el).fontSize) }));
+      expect(f.px).toBeGreaterThanOrEqual(20);
+      expect(f.family.toLowerCase()).toMatch(/iowan|palatino|georgia|serif/);
+    });
+
+    if (phone) base("the phone dock never hides content: the last block clears the dock at the end of the page, and a focused last control scrolls above it (follow-up 2)", async ({ page }) => {
+      await arrange(page);
+      await screen(page);
+      await page.evaluate(() => { const m = document.getElementById("main"); if (m) m.scrollTop = m.scrollHeight; window.scrollTo(0, document.documentElement.scrollHeight); });
+      await page.waitForTimeout(300);
+      const dockTop = (await page.getByTestId("mb-dock").boundingBox())!.y;
+      const last = (await page.getByTestId("run-ids").boundingBox())!;
+      expect(last.y + last.height, "the last line of the result is above the dock").toBeLessThanOrEqual(dockTop + 1);
+      // a keyboard user tabbing to the last control: the browser scrolls it into view above the dock (scroll-padding-bottom)
+      const factBtn = page.getByTestId("fact-filter-F1");
+      await factBtn.focus();
+      await page.waitForTimeout(300);
+      const b = (await factBtn.boundingBox())!;
+      expect(b.y + b.height, "the focused fact button is not under the dock").toBeLessThanOrEqual(dockTop + 1);
+    });
+
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
       await arrange(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
