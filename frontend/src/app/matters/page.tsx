@@ -480,7 +480,7 @@ export default function MattersPage() {
                   <label
                     key={id}
                     data-contract-id={id}
-                    className={`flex min-h-6 cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${
+                    className={`relative flex min-h-6 cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs ${
                       selected.has(id) ? "border-[var(--color-accent)] text-[var(--color-text)]" : "border-[var(--color-border)] text-[var(--color-text-dim)]"
                     }`}
                   >
