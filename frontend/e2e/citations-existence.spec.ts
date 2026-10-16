@@ -203,7 +203,7 @@ test("app#347: a CONFLICT on a line with a case name reads the new sentence; a b
 });
 
 // pravrudhi#509 (R1, 15 Oct, byte-exact): after the IN_INDEX note, only when the checked line carries a case name.
-const NAME_NOTE = "Only the citation was looked up; the case name you typed was not compared with the index.";
+const NAME_NOTE = "Only the citation was looked up; the case name you typed was not confirmed against the index.";
 test("#509 /citations: a found citation with a case name gets R1's sentence after the note; a bare one does not", async ({ page }) => {
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: IN }));
   await page.goto("/citations");
@@ -241,14 +241,14 @@ test("#509 the Screening Citations panel: the sentence shows under the named fou
 const MM_TEXT = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
 const NEUTRAL = "The citation was looked up, but this version of the app cannot show the result. That does not show whether the citation is real. Check it by hand.";
 const NAMED_LINE = "Hridaya Ranjan Prasad Verma v. State of Bihar (2000) 4 SCC 168";
-test("#509 /citations: matched reads R1's compared-except-common-words sentence; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
+test("#509 /citations: matched adds nothing; a mismatch reads R1's heading and note; an unknown status reads the neutral line and never the raw token", async ({ page }) => {
   let answer: Record<string, unknown> = { ...IN, name_compared: true };
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
   await page.goto("/citations");
   const check = async () => { await page.getByRole("textbox").fill(NAMED_LINE); await page.getByRole("button", { name: "Check citations" }).click(); };
   await check();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Found in our index");
-  await expect(page.getByTestId("citation-check-name-note")).toHaveText("The case name you typed was compared with the index, except a party named only by common words (such as a State or the Union of India), which is not compared.");
+  await expect(page.getByTestId("citation-check-name-note")).toHaveCount(0); // name_compared true: every typed party matched, nothing added
   answer = { result: "NAME_MISMATCH", note: "engine note", status: "name_mismatch", label: "Case name did not match", verified: false, preview: true, name_compared: true };
   await check();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Case name did not match");

@@ -3,7 +3,7 @@
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
-import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, NAME_COMPARED_EXCEPT_COMMON, CONFLICT_HEADING, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
+import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, NAME_MISMATCH_HEADING, NAME_MISMATCH_TEXT, UNKNOWN_STATUS_HEADING, UNKNOWN_STATUS_TEXT, CONFLICT_TEXT, CONFLICT_TEXT_WITH_NAME, DETAIL_422_TEXT, IN_INDEX_LABEL, MALFORMED_HEADING, MALFORMED_TEXT, NOT_IN_INDEX_NOTE, QUOTE_NOT_SERVED_TEXT, SIGNED_OUT_401_TEXT } from "./citationExistence";
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
@@ -131,8 +131,8 @@ export function citationHasCaseName(line: unknown): boolean {
 /** pravrudhi#509 (R1): the case-name sentence for a found citation, by the same rule as #350 (citationHasCaseName); existence-only arm and IN_INDEX only. One rule for /citations, the panel and Intake. */
 export function caseNameNote(status: string, citation: unknown, existenceOnly: boolean = CITATION_EXISTENCE_ONLY, nameCompared?: unknown): string | null {
   if (!existenceOnly || !citationHasCaseName(citation)) return null;
-  // the engine said it compared the name: on IN_INDEX the "not compared" sentence would be untrue, so R1's "compared, except common words" sentence replaces it (one-line removable when the engine closes the gap)
-  if (nameCompared === true) return status === "IN_INDEX" ? NAME_COMPARED_EXCEPT_COMMON : null;
+  // the engine says EVERY typed party matched (name_compared true only then, 0.6.19 three-state): nothing to add; absent or any non-true value (no name compared, or only partly matched) keeps R1's "not confirmed" sentence
+  if (nameCompared === true) return null;
   return status === "IN_INDEX" || status === "VERIFIED" ? CASE_NAME_NOT_COMPARED : null;
 }
 
