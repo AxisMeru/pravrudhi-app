@@ -52,7 +52,7 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
   return (
     <>
       <div className="mb-1" data-testid="mb-screening-group" aria-labelledby="mb-screening-heading" role="group">
-        <h2 id="mb-screening-heading" className={heading}>{MB.screeningLabel}</h2>
+        <p id="mb-screening-heading" className={heading}>{MB.screeningLabel}</p>
         {onScreening && mb.exampleName && <p className="px-3 pb-1 text-sm text-[var(--color-text)]" data-testid="mb-screening-name">{mb.exampleName} {MB.exampleSuffix}</p>}
         {onScreening && mb.hasResult && mb.runRecord && !mb.exampleName && <p className="px-3 pb-1 text-xs text-[var(--color-text-dim)]" data-testid="mb-retention">{MB.retention}</p>}
         {anchors.map((a) => (
@@ -64,7 +64,7 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
         ))}
       </div>
       <div className="mb-1" role="group" aria-labelledby="mb-general-heading" data-testid="mb-group-general">
-        <h2 id="mb-general-heading" className={heading}>{MB.groupGeneral}</h2>
+        <p id="mb-general-heading" className={heading}>{MB.groupGeneral}</p>
         {general.map(link)}
       </div>
       <details className="group mb-1" data-testid="mb-group-reference">
