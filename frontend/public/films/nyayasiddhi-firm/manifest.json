@@ -34,13 +34,13 @@
       "endS": 49.60000000000001
     },
     {
-      "name": "Pravrudhi-Nyaya is the product you open.",
+      "name": "Pravrudhi-Nyaya is the product you open",
       "text": "",
       "startS": 49.60000000000001,
       "endS": 58.80000000000001
     },
     {
-      "name": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "name": "Rows are listed in a fixed order, by split and system name, never by a figure",
       "text": "",
       "startS": 58.80000000000001,
       "endS": 75.10000000000001
@@ -60,8 +60,8 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 1675,
-      "sha256": "bca93c7dbdc3b1ee17196f15e09b0cf82434fd5609c13acf8b23cd70bfe9ab57"
+      "bytes": 376,
+      "sha256": "19cc765b0b49bc8382cc8eb0dada739c10ca6c3a13c118fe8a172fc6115d3554"
     }
   ]
 }
