@@ -135,7 +135,8 @@ export function citationHasCaseName(line: unknown): boolean {
  * the words See / Ref / Cf / Citation (case-insensitive, with trailing punctuation), and trailing punctuation; at least one LETTER must remain. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
  * No bracketed "(year)" part (so "AIR 1950 SC 27"), an empty line and a non-string: false (the page makes no claim there).
  */
-const CITATION_CORE = /\(\s*\d{4}\s*\)\s*\d+\s*[A-Za-z][A-Za-z.]*(?:\s*\([A-Za-z]+\))?\s*\d+/;
+// the citation itself: "(year)", then an optional volume (a number, or "Supp" / "Supp (3)"), then one to four reporter words (SCC, "SCC (L&S)", "SCC OnLine SC", "Cri LJ", "AIR SC"), then the page number
+const CITATION_CORE = /\(\s*\d{4}\s*\)\s*(?:(?:\d+|Supp(?:\s*\(\s*\d+\s*\))?)\s*)?(?:[A-Za-z][A-Za-z.&]*\s*(?:\([A-Za-z&. ]{1,12}\)\s*)?){1,4}\d+/;
 const LEADING_MARKER = /^\s*(?:\(\s*\d+\s*\)|\[\s*\d+\s*\]|\d+\s*[.)\]:]|[-*\u2022\u2013\u2014]+)\s*/;
 export function citationHasTypedName(line: unknown): boolean {
   if (typeof line !== "string") return false;

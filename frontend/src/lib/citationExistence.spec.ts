@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import { ApiError } from "./api";
@@ -229,7 +231,8 @@ const FORMS_373: Array<[string, string]> = [
 ];
 // harmless text beside a citation that is NOT a typed name: list markers, quotes, See/Ref/Cf/Citation, trailing punctuation (numbered lists are a common paste format)
 const BARE_373 = ["(2014) 8 SCC 273", "  (2014) 8 SCC 273", "(2014)8 SCC 273", "1. (2014) 8 SCC 273", "- (2014) 8 SCC 273", "(1) (2014) 8 SCC 273", "[1] (2014) 8 SCC 273", "\u2022 (2014) 8 SCC 273", "See (2014) 8 SCC 273", "Ref: (2014) 8 SCC 273",
-  "Citation: (2014) 8 SCC 273", "cf. (2014) 8 SCC 273", "SEE: (2014) 8 SCC 273", "\"(2014) 8 SCC 273\"", "'(2014) 8 SCC 273'", "1. See (2014) 8 SCC 273", "(2014) 8 SCC 273.", "(2014) 8 SCC 273;  ", "2) Ref. (2014) 8 SCC 273,", "(2014) 8 SCC (Cri) 273"];
+  "Citation: (2014) 8 SCC 273", "cf. (2014) 8 SCC 273", "SEE: (2014) 8 SCC 273", "\"(2014) 8 SCC 273\"", "'(2014) 8 SCC 273'", "1. See (2014) 8 SCC 273", "(2014) 8 SCC 273.", "(2014) 8 SCC 273;  ", "2) Ref. (2014) 8 SCC 273,", "(2014) 8 SCC (Cri) 273",
+  "(1970) Supp (3) SCC 253", "(1971) Supp SCC 359", "(2014) 3 SCC (L&S) 92", "(2014) SCC OnLine SC 1234", "(1994) Cri LJ 123", "(1950) AIR SC 27"];
 test("#373 the text-before-year rule: any text before the bracketed year counts; a bare citation, no year part, an empty line and a non-string do not", () => {
   for (const [name, line] of FORMS_373) assert.equal(citationHasTypedName(line), true, name);
   for (const line of BARE_373) assert.equal(citationHasTypedName(line), false, line);
@@ -255,4 +258,15 @@ test("#373 Intake (citationExtra, same rule): every form gets the sentence unles
   }
   for (const line of BARE_373) assert.equal(citationExtra(c("IN_INDEX", line)), null, line);
   assert.equal(citationExtra(c("NAME_MISMATCH", FORMS_373[0][1], true)), NAME_MISMATCH_TEXT);
+});
+
+// R2's regression (16 Oct): the engine's OWN recognised citations, typed as BARE citations, must never read as a typed name (every Supp citation was flagged); and any real key with a name typed beside it must still be flagged.
+test("#373 over the engine's real citation keys (11,164): no bare key carries a typed name; a name before or after any key is caught", () => {
+  const doc = JSON.parse(readFileSync(join(__dirname, "..", "..", "e2e", "fixtures", "engineCitationKeys.json"), "utf8")) as { sourceSha256: string; keys: string[] };
+  assert.match(doc.sourceSha256, /^[0-9a-f]{64}$/);
+  assert.equal(doc.keys.length, 11164);
+  const flagged = doc.keys.filter((k) => citationHasTypedName(k));
+  assert.deepEqual(flagged.slice(0, 10), [], `${flagged.length} bare keys read as carrying a name`);
+  const missed = doc.keys.filter((k) => !citationHasTypedName(`Totally Invented Pvt Ltd v/s Nobody ${k}`) || !citationHasTypedName(`${k} Nobody`) || !citationHasTypedName(`1. Nobody ${k}`));
+  assert.deepEqual(missed.slice(0, 10), [], `${missed.length} keys where a typed name was not caught`);
 });
