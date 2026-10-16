@@ -131,16 +131,22 @@ export function citationHasCaseName(line: unknown): boolean {
 
 /**
  * pravrudhi-app#373 (P1; Interim lead; amended 16 Oct, FAIL-CLOSED): true unless the typed line is PROVABLY BARE. A line is bare only when, after trimming leading list markers ("1.", "(1)", "[1]", "-", bullets), quotes, leading See / Ref / Cf / Citation and trailing punctuation, the WHOLE line is
- * one citation of the engine's own forms (a year, bracketed or plain, then "volume SCC page", "Supp [(N)] SCC page", "SCC (Supp) volume page" or "volume SCC (Supp) page"). Anything else that contains a letter (a name before or after, in any separator or script, a reporter the index does not hold) counts as a typed name:
+ * one citation of the engine's own forms (a year, bracketed or plain, then "volume SCC page", "Supp [(N)] SCC page", "SCC (Supp) volume page" or "volume SCC (Supp) page", the volume bare or in parentheses). Anything else that contains a letter (a name before or after, in any separator or script, a reporter the index does not hold) counts as a typed name:
  * the engine reads a typed name only before the citation and only in some forms (pravrudhi#510), so for every line that is not provably bare the page must not give "Found in our index" with no caveat. Deliberately wider than citationHasCaseName (#350's separator rule, which still picks the CONFLICT sentence).
  * LINEAR on purpose (R2): a small alternation of fixed tokens joined by \s*, no nested quantifiers; a pasted junk line of CITATION_MAX characters cannot freeze the tab. A non-string or an empty or letter-free line is false (the page makes no claim there).
  */
 const SUPP = String.raw`Supp?l?\.?`;
 const YEAR = String.raw`(?:\(\s*\d{4}\s*\)|\d{4})`;
-const BARE_CITATION = new RegExp(
-  `^${YEAR}\\s*(?:\\d+\\s*SCC\\s*\\d+|${SUPP}(?:\\s*\\(\\s*\\d+\\s*\\))?\\s*SCC\\s*\\d+|SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+\\s*\\d+|\\d+\\s*SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+)$`,
-  "i",
-);
+/** The bare-citation matcher. `parenVolumes` (true in the app): the engine reads the volume bare or in parentheses after a bracketed OR a plain year. Exported with the flag so a mutant test can drop the parenthesised branch and watch the differential fail. */
+export const buildBareCitation = (parenVolumes: boolean): RegExp => {
+  const vol = parenVolumes ? String.raw`(?:\d+|\(\s*\d+\s*\))` : String.raw`\d+`;
+  const volPage = parenVolumes ? String.raw`(?:\d+\s+|\(\s*\d+\s*\)\s*)\d+` : String.raw`\d+\s+\d+`; // volume then page, unambiguous
+  return new RegExp(
+    `^${YEAR}\\s*(?:${vol}\\s*SCC\\s*\\d+|${SUPP}(?:\\s*\\(\\s*\\d+\\s*\\))?\\s*SCC\\s*\\d+|SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*${volPage}|${vol}\\s*SCC\\s*\\(\\s*${SUPP}\\s*\\)\\s*\\d+|SCC\\s*${SUPP}\\s*(?:${volPage}|\\d+)|${vol}\\s*SCC\\s*${SUPP}\\s*\\d+)$`,
+    "i",
+  );
+};
+const BARE_CITATION = buildBareCitation(true);
 const LEADING_MARKER = /^\s*(?:\(\s*\d{1,2}\s*\)|\[\s*\d{1,3}\s*\]|\d{1,3}\s*[.)\]:]|[-*•–—]+)\s*/; // a list marker is 1-3 digits: a four-digit year in brackets is NOT a marker
 const LEADING_WORD = /^\s*(?:see|ref|cf|citation)\b[:.,;-]?\s*/i;
 export function citationHasTypedName(line: unknown): boolean {
