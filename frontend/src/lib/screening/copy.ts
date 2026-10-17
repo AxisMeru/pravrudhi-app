@@ -1,4 +1,6 @@
+import { LAYOUT_MATTER_B } from "../layoutFlag";
 import { WORKSPACE_TITLE } from "../workspace";
+import { MB } from "./matterB";
 // Every NEW user-visible string of the Screening view lives here, so R1 reviews one list before any push (O8, #830). Strings the view reuses
 // (signed REFER and element texts, the cited-fact notes) are NOT repeated here. Rules: never "proved" or "established" at row level, never
 // "verbatim", never "the offence is made out", never advice; "Needs your review" is never styled as an error.
@@ -22,7 +24,7 @@ export const CHIP_LABEL: Readonly<Record<Chip, string>> = {
 };
 
 
-export const SCREENING_TITLE = WORKSPACE_TITLE;
+export const SCREENING_TITLE = LAYOUT_MATTER_B ? MB.screeningLabel : WORKSPACE_TITLE; // layout B: R1 (17 Oct) "no matter label where no matter store exists"
 export const SCREENING_SUBTITLE =
   "Which ingredients of the alleged offence do your facts support, which do they not, and what to check before you rely on it.";
 export const WHAT_TO_CHECK_LABEL = "What to check";

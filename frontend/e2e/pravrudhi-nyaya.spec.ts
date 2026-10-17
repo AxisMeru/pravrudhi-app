@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { promiseHits } from "./support/noTrainingPromise";
-import { expectOffPageScreeningItem, isLayoutB, openReference } from "./support/layout";
+import { expectOffPageScreeningItem, isLayoutB, openReference, screeningTitle } from "./support/layout";
 
 // Pravrudhi-Nyaya: the name and line, the grouped navigation (paths unchanged), the data-handling page, /workflows and the skip link. R1's exact text is pinned in the unit specs.
 const LINE_START = "Element-by-element screening under Indian law, starting with criminal matters. For each offence it covers under the BNS and the IPC";
@@ -8,7 +8,7 @@ const LINE_START = "Element-by-element screening under Indian law, starting with
 test("the name and the line: the title, the sidebar name, and the line on the Screening page", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/screening");
-  await expect(page).toHaveTitle("Matter workspace · Pravrudhi-Nyaya"); // R1, 15 Oct (D4): every page has its own title
+  await expect(page).toHaveTitle(`${await screeningTitle(page)} · Pravrudhi-Nyaya`); // R1, 15 Oct (D4): every page has its own title
   await expect(page.locator("aside").getByText("Pravrudhi-Nyaya", { exact: true })).toBeVisible();
   await expect(page.getByTestId("product-line")).toContainText(LINE_START);
   await expect(page.getByTestId("product-line")).not.toContainText(/proof|proved|established|verbatim/i);
