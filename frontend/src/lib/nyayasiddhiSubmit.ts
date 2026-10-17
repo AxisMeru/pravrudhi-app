@@ -1,5 +1,5 @@
 // The words of the NyayaSiddhi submission page (/benchmarks/submit, app#429), R1's final file NYAYASIDDHI_SUBMIT_STRINGS_R1_FINAL.txt (sha12 004302f6a67a), pinned sentence by sentence in nyayasiddhiSubmit.spec.ts.
-// One change by Web: oracle_note uses R1's fallback "for reference" (no reference-label row is on the page; sha256[:16] 5895d966996d5f1f, sent to R1).
+// oracle_note is the one sentence R2 gave (17 Oct): the earlier second sentence ("We publish that file ourselves ...") claimed a file that is not on the dataset and was removed.
 // Every link goes to a public file of the Hugging Face dataset AxisMeru/nyayasiddhi (checked 200 on 17 Oct). The page states only what submission680/SUBMISSION_PATH_680.md and check_submission.py say.
 
 /** The ONE hidden-split sentence (R1, 17 Oct; sha256[:16] 1502d9c1b8e3fdf1): used by the submit page, the /benchmarks block and the card. */
@@ -19,7 +19,7 @@ export const NS_SUBMIT = {
   step5: "5. Run the checker on your folder. Give it both item files, even if your predictions are for one split. It must print PASS.",
   step6: "6. Open a pull request or a discussion on the Hugging Face dataset AxisMeru/nyayasiddhi with the template below.",
   after_submit: "We run the same check on your files, score them with the released scorer and add a result row. The row is marked self-reported. We plan to mark a row differently once it has been re-scored or run again; no row has been yet. Rows are only added; a correction is a new row.",
-  oracle_note: "A file whose verdicts equal the released labels on every scored item is not accepted. We publish that file ourselves for reference.",
+  oracle_note: "A file whose verdicts equal the released labels on every scored item is not accepted.",
   template_heading: "What to include with your submission",
   checker_heading: "The checker",
   checker_text: "The checker needs jsonschema. It checks the schema, that every item appears once, the item file hashes, the manifest fields, your predictions hash, the error count, your consent and that labels were not copied.",

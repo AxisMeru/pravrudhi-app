@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { NS_HIDDEN_SPLIT, NS_SUBMIT, NS_SUBMIT_LINKS, NS_SUBMIT_LINK_TEXT } from "./nyayasiddhiSubmit";
 
-// R1's final strings, pinned by sha256[:16] (NYAYASIDDHI_SUBMIT_STRINGS_R1_FINAL_HASHES.txt, with oracle_note per R1's fallback).
+// R1's final strings, pinned by sha256[:16] (NYAYASIDDHI_SUBMIT_STRINGS_R1_FINAL_HASHES.txt, with oracle_note = R2's one sentence).
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Record<string, string> = {
   heading: "c3ff81b6c553472b",
@@ -19,7 +19,7 @@ const PINS: Record<string, string> = {
   step5: "fdbe3a600aee7dc1",
   step6: "a4973025ee2019fc",
   after_submit: "ea80e285d050af68",
-  oracle_note: "5895d966996d5f1f",
+  oracle_note: "4a55e98b148cd683",
   template_heading: "f51ab132bbc54878",
   checker_heading: "38e55f2b5e88a01f",
   checker_text: "d834bab39ae4e5be",
@@ -48,4 +48,9 @@ test("the template has nine fields and the link text is R1's", () => {
 
 test("the page links only to public files of the AxisMeru/nyayasiddhi dataset", () => {
   for (const u of Object.values(NS_SUBMIT_LINKS)) assert.match(u, /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi(\/|$)/, u);
+});
+
+test("the oracle note makes no claim that a reference file is published (R2, 17 Oct)", () => {
+  assert.doesNotMatch(NS_SUBMIT.oracle_note, /publish|reference/i);
+  assert.equal(NS_SUBMIT.oracle_note, "A file whose verdicts equal the released labels on every scored item is not accepted.");
 });
