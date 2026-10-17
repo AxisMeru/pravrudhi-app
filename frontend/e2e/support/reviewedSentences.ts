@@ -8,6 +8,13 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "15 00:00:53.157 --> 00:00:59.050 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
+  "src/lib/nyayasiddhiSubmit.ts": {
+    reason: "R1's final submission-page strings (17 Oct, file sha12 004302f6a67a): they say that training on public items is declared by the submitter and not checked by the organisers, and name the template field; they promise nothing about what happens to a submission.",
+    sentences: [
+      "Training on public items is declared by you and not checked by us.",
+      "Trained on public items?",
+    ],
+  },
   "src/data/nyayasiddhi/rows.json": {
     reason: "R1's About-this-run lines of the reference arms (15 Oct), copied by the data build from the signed manifests: they say that the organisers did not train or tune the model they ran, and what its vendor trained it on is not known to us; none is a statement about what happens to a submission",
     sentences: [

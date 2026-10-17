@@ -20,6 +20,7 @@ export const PAGE_TITLES = {
   matters: "Offence rules",
   safety: "Safety record",
   benchmarks: "Benchmarks",
+  benchmarksSubmit: "Submit a system",
   intake: "Intake",
 } as const;
 
