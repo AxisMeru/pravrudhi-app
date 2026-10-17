@@ -1,20 +1,20 @@
-// DRAFT labels for the other preview workflows (A5, A3, S1, A1, B3) until R1 words them (file goal-context/web-find/PREVIEW_MORE_STRINGS_DRAFT.txt); the engine's own sentences are shown as it sends them.
+// The labels of the other preview workflows (A5, A3, S1, A1, B3), R1's file PREVIEW_MORE_STRINGS_R1_2026-10-17.md (sha12 c6fd2cd5577d), pinned key by key in previewMoreCopy.spec.ts; the engine's own sentences are shown as it sends them.
 export const PREVIEW_MORE = {
   a5Name: "Review agenda",
-  a5Line: "Lists the ingredients of the cheque-dishonour offence in the section's own words and the papers to look in. It does not say whether an ingredient is met.",
+  a5Line: "Lists the ingredients of the cheque-dishonour offence in the section's own words and the papers to look in. It is not a finding about your case.",
   a5Run: "Make the review agenda",
   a3Name: "Chronology",
   a3Line: "Lists the dates it reads in your papers, with the sentence each came from. It may be incomplete.",
   a3Run: "Make the chronology",
   s1Name: "Citation sweep",
-  s1Line: "Looks up the citations in your papers in our index. It checks only that a citation exists.",
-  s1Run: "Check the citations in the papers",
+  s1Line: "Looks up the citations in your papers in our index. It checks only that a citation exists, and does not say what any case held.",
+  s1Run: "Look up the citations in the papers",
   a1Name: "Draft citation check",
-  a1Line: "Looks up the citations in a draft you paste. It checks only that a citation exists.",
+  a1Line: "Looks up the citations in a draft you paste. It checks only that a citation exists, and does not say what any case held.",
   a1Label: "Paste the draft",
-  a1Run: "Check the citations in the draft",
+  a1Run: "Look up the citations in the draft",
   b3Name: "Section 138 checklist",
-  b3Line: "Counts the periods in the cheque-dishonour section from the dates you enter. You confirm each date as the engine reads it.",
+  b3Line: "Counts the periods set out in section 138 from the dates you enter, as a checklist of dates, not a decision. You confirm each date as the engine reads it.",
   b3Run: "Make the checklist",
   b3Cheque: "Date on the cheque",
   b3Presentation: "Date the cheque was presented to the bank",
@@ -25,7 +25,16 @@ export const PREVIEW_MORE = {
   b3Validity: "Validity of the cheque in months (optional)",
   b3Mode: "How the notice was sent",
   b3ModeNone: "Not stated",
+  citation_not_checked: "Not looked up",
+  confirm_date: "Confirm {date}",
 } as const;
+
 export const B3_MODES: readonly { value: string; label: string }[] = [
-  { value: "registered_post", label: "Registered post" }, { value: "speed_post", label: "Speed post" }, { value: "courier", label: "Courier" }, { value: "email", label: "Email" }, { value: "fax", label: "Fax" }, { value: "hand_delivery", label: "By hand" }, { value: "other", label: "Other" },
+  { value: "registered_post", label: "Registered post" },
+  { value: "speed_post", label: "Speed post" },
+  { value: "courier", label: "Courier" },
+  { value: "email", label: "Email" },
+  { value: "fax", label: "Fax" },
+  { value: "hand_delivery", label: "By hand" },
+  { value: "other", label: "Other" },
 ];

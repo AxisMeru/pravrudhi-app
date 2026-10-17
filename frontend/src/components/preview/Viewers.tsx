@@ -1,4 +1,5 @@
 import { statusLabel } from "@/lib/citationCheck";
+import { PREVIEW_MORE } from "@/lib/previewMoreCopy";
 import type { A1View, A3View, A5View, B3View, CitationRow, S1View } from "@/lib/previewParsers";
 
 const P = "text-sm text-[var(--color-text)]";
@@ -12,7 +13,7 @@ export function citationStatusText(status: string): string {
     case "not_found": return statusLabel("NOT_IN_INDEX", true);
     case "conflict": return statusLabel("CONFLICT", true);
     case "name_mismatch": return statusLabel("NAME_MISMATCH", true);
-    default: return "Not checked";
+    default: return PREVIEW_MORE.citation_not_checked;
   }
 }
 
@@ -151,7 +152,7 @@ export function B3Result({ v, onConfirm, busy }: { v: B3View; onConfirm?: (input
             <span className="font-medium">{i.role}</span><span>{i.text}</span>
             {i.readAs && <span data-testid="pv-b3-readas">{i.readAs}</span>}
             {onConfirm && i.readAs && !i.confirmed && (
-              <button type="button" disabled={busy} className="inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => onConfirm({ role: i.role, text: i.text, readAs: i.readAs! })} data-testid="pv-b3-confirm">{`Confirm ${i.readAs}`}</button>
+              <button type="button" disabled={busy} className="inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm" onClick={() => onConfirm({ role: i.role, text: i.text, readAs: i.readAs! })} data-testid="pv-b3-confirm">{PREVIEW_MORE.confirm_date.replace("{date}", i.readAs)}</button>
             )}
           </li>
         ))}
