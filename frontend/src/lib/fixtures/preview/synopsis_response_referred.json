@@ -1,0 +1,12 @@
+{
+ "run_id": "synopsis-060c2324b2",
+ "client_data": true,
+ "preview": true,
+ "label": "Preview: a first draft of the grounds for a lawyer to rewrite; not legal advice.",
+ "state": "referred",
+ "referral": {
+  "code": "sensitive_matter",
+  "text": "This matter is marked sensitive, so no draft was made. Refer it to a lawyer."
+ },
+ "draft": null
+}

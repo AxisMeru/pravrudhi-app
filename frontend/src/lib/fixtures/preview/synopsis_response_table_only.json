@@ -1,0 +1,98 @@
+{
+ "run_id": "synopsis-5caedc6d5e",
+ "client_data": true,
+ "preview": true,
+ "label": "Preview: a first draft of the grounds for a lawyer to rewrite; not legal advice.",
+ "state": "table_only",
+ "facts_set_aside": 1,
+ "draft": {
+  "run_id": "synopsis-5caedc6d5e",
+  "version": "synopsis-dates-1",
+  "matter_id": "synopsis-5caedc6d5e",
+  "state": "table_only",
+  "refused": null,
+  "list_of_dates": {
+   "heading": "List of dates and events",
+   "columns": [
+    "Date",
+    "Event",
+    "Source"
+   ],
+   "rows": [
+    {
+     "ref": "F2",
+     "row_id": 1,
+     "date_as_written": "18 July 2021",
+     "read_as": "2021-07-18",
+     "readings": null,
+     "ambiguous": false,
+     "event_quote": "The FIR was registered on 18 July 2021 at the police station.",
+     "event_line": null,
+     "document_name": "complaint.pdf",
+     "page": 1,
+     "source": "complaint.pdf p.1"
+    },
+    {
+     "ref": "F3",
+     "row_id": 2,
+     "date_as_written": "12.06.2024",
+     "read_as": null,
+     "readings": [
+      "2024-06-12",
+      "2024-12-06"
+     ],
+     "ambiguous": true,
+     "event_quote": "The petitioner was arrested on 12.06.2024 and remanded the next day.",
+     "event_line": null,
+     "document_name": "complaint.pdf",
+     "page": 1,
+     "source": "complaint.pdf p.1"
+    },
+    {
+     "ref": "F4",
+     "row_id": 3,
+     "date_as_written": "03.04.2023",
+     "read_as": null,
+     "readings": [
+      "2023-04-03",
+      "2023-03-04"
+     ],
+     "ambiguous": true,
+     "event_quote": "The notice dated 03.04.2023 was sent.",
+     "event_line": null,
+     "document_name": "complaint.pdf",
+     "page": 1,
+     "source": "complaint.pdf p.1"
+    }
+   ],
+   "none_line": null,
+   "cut_line": null
+  },
+  "synopsis": {
+   "heading": "Synopsis",
+   "paragraphs": [],
+   "fallback_line": "No synopsis could be drafted from what was entered, so only the list of dates is shown. A lawyer writes the synopsis."
+  },
+  "dates_note": "Each date is shown as the papers give it, with the paper it came from. A date the papers do not give is not filled in.",
+  "notes_for_lawyer": [
+   "1 fact(s) were not marked as the client's side and were not used."
+  ],
+  "more_notes": [],
+  "fill_ins": [],
+  "checks": [
+   {
+    "name": "table_only",
+    "passed": true,
+    "detail": "no model call was available"
+   }
+  ],
+  "facts_used": 1,
+  "facts_excluded": 1,
+  "calls": 0,
+  "tokens_in": 0,
+  "tokens_out": 0,
+  "cost_usd": 0.0,
+  "regenerated": false,
+  "incomplete": false
+ }
+}
