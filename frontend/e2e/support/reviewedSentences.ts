@@ -8,6 +8,21 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "15 00:00:53.157 --> 00:00:59.050 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
+  "src/lib/howItWasBuiltData.ts": {
+    reason: "R1's worded data note for How it was built (17 Oct, v1b sha12 5885ee683fec): they describe which data sets were used for training, held-out and evaluation and which are not published; none promises anything about what happens to a submission.",
+    sentences: [
+      "Real-text training material, our evaluation sets, and the items in NyayaSiddhi.",
+      "Training and held-out sets for our judges",
+      "The sealed evaluation sets stay private so a future test cannot be learned in advance.",
+      "Judgments were assigned to training, held-out or evaluation by a fixed rule on identity, and checked for overlap by identity and by text.",
+      "prabhasa-nyaya-7b-sft: a full fine-tune of Qwen2.5-7B, licence listed as \\",
+      "the card names part of its training data as derived from CaseHOLD.",
+      "The training sets: not on Hugging Face.",
+      "The sealed and held-out evaluation sets: private so a future test cannot be learned in advance.",
+      "You cannot rebuild our training sets or our labels from what we publish.",
+      "Overlap between training and evaluation was checked by identity and by text.",
+    ],
+  },
   "src/lib/nyayasiddhiSubmit.ts": {
     reason: "R1's final submission-page strings (17 Oct, file sha12 004302f6a67a): they say that training on public items is declared by the submitter and not checked by the organisers, and name the template field; they promise nothing about what happens to a submission.",
     sentences: [
