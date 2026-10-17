@@ -47,9 +47,10 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
     <figure className="space-y-3" data-testid={`film-${id}`}>
       <div className="overflow-hidden rounded-lg border border-[var(--color-border)] bg-black focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[color:var(--color-accent)]" data-testid="film-frame">
         {showVideo ? (
+          <>
           <video
             ref={video}
-            className="block aspect-video w-full text-white"
+            className="block aspect-video w-full text-white print:hidden"
             controls
             muted
             playsInline
@@ -66,6 +67,10 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
             <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" />
             {FILM_VIDEO_UNSUPPORTED}
           </video>
+          {/* app#414: on paper a <video> prints as a blank box with native controls; print the film's poster instead (the same file the poster-first state shows) */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- a static export; the poster is a plain file in public/films */}
+          <img src={filmFile(id, "poster.png")} alt={posterAlt ?? film.title} className="hidden aspect-video w-full object-cover print:block" data-testid="film-poster-print" />
+          </>
         ) : (
           <div className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element -- a static export; the poster is a plain file in public/films */}
