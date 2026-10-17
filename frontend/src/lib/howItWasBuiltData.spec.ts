@@ -6,7 +6,7 @@ import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SE
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1h_2026-10-17.md, sha12 ab10210c43c4 (v1h; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1i_2026-10-17.md, sha12 65643f779691 (v1i; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -31,7 +31,7 @@ const PINS: Readonly<Record<string, string>> = {
   r4_licence: "cfa4c4e4a3951ca1",
   r4_caveat: "7d75b21654362c1e",
   r5_name: "1c53a0f0a1e5040b",
-  r5_source: "e35e0499bfebc4fb",
+  r5_source: "43aa427d3452d367",
   r5_published: "a8df789192e72303",
   r5_caveat: "e94bea476a5f9ffa",
   r6_name: "a7042792ed22203f",

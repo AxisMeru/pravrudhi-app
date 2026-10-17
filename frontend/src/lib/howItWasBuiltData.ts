@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1h_2026-10-17.md (sha12 ab10210c43c4), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1i_2026-10-17.md (sha12 65643f779691), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -27,7 +27,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r4_licence: "Ours.",
   r4_caveat: "They are not court findings.",
   r5_name: "The labels",
-  r5_source: "Two model readers worked separately, each quoting the court's words. A mechanical checker kept a row only if both readers agreed and the quoted words were found in the judgment.",
+  r5_source: "Each item was read by two model families, and a row was kept only where they agreed.",
   r5_published: "Only inside NyayaSiddhi (see below).",
   r5_caveat: "The labels are model-extracted and not human-checked. There is no human-checked subset.",
   r6_name: "NyayaSiddhi v0.2",
