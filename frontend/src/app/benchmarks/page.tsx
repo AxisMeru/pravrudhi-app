@@ -1,9 +1,12 @@
 import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { NyayaSiddhiResults } from "@/components/benchmarks/NyayaSiddhiResults";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
+import Link from "next/link";
+
 import { PageHeader } from "@/components/PageHeader";
 import rowsFile from "@/data/nyayasiddhi/rows.json";
 import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARRATED } from "@/lib/films/copy";
+import { NS_SUBMIT_LINK_TEXT } from "@/lib/nyayasiddhiSubmit";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
 import { BENCHMARK_STATEMENTS, FOOTER_TEXT, HOW_WE_TEST, HOW_WE_TEST_HEADING, PAGE_SUBTITLE, PAGE_TITLE } from "@/lib/benchmarks";
@@ -28,6 +31,7 @@ export default async function BenchmarksPage() {
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-nyayasiddhi">
           <h2 className="text-base font-medium text-[var(--color-text)]">NyayaSiddhi</h2>
           <NyayaSiddhiLink />
+          <Link href="/benchmarks/submit" className="inline-flex min-h-6 items-center text-sm text-[var(--color-accent)] underline max-md:min-h-11" data-testid="ns-submit-link">{NS_SUBMIT_LINK_TEXT}</Link>
         </section>
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
