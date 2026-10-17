@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PreviewBadge } from "@/components/PreviewBadge";
+import { CaseCheck } from "@/components/preview/CaseCheck";
+import { PREVIEW_CASE as CC } from "@/lib/previewCaseCopy";
 import { A1Result, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
@@ -209,6 +211,10 @@ export default function PreviewPage() {
           </label>
           <button type="button" className={BTN} onClick={runA1} disabled={busy || !draft.trim()} data-testid="pv-a1-run">{M.a1Run}</button>
           {a1 && <A1Result v={a1} />}
+        </Card>
+
+        <Card id="cc" name={CC.name} line={CC.line}>
+          <CaseCheck matter={matter} />
         </Card>
 
         <Card id="b3" name={M.b3Name} line={M.b3Line}>
