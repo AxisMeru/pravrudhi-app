@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { isLayoutB } from "./support/layout";
 
 // R1 (15 Oct, D4/D5): every page has its own <title>, "{page} · Pravrudhi-Nyaya", and the Screening file note names the Screening button.
 const TITLES: Array<[string, string]> = [
@@ -18,7 +19,8 @@ for (const [path, name] of TITLES) {
   test(`${path} has its own title`, async ({ page }) => {
     await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
     await page.goto(path);
-    await expect(page).toHaveTitle(`${name} · Pravrudhi-Nyaya`);
+    const shown = path === "/screening" && (await isLayoutB(page)) ? "This screening" : name; // layout B (R1, 17 Oct)
+    await expect(page).toHaveTitle(`${shown} · Pravrudhi-Nyaya`);
   });
 }
 

@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { isLayoutB } from "./support/layout";
 
 // The existence-only build (NEXT_PUBLIC_CITATION_EXISTENCE_ONLY=1) has its own spec: citations-existence.spec.ts.
 test.skip(process.env.CITATION_EXISTENCE_BUILD === "1", "the existence-only build is covered in citations-existence.spec.ts");
@@ -95,7 +96,9 @@ test("empty inputs send no request", async ({ page }) => {
 test("the citation check is not in the nav until the build turns it on, and the page still opens by URL", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD === "1", "the nav-on build is covered in citations-product-status.spec.ts");
   await page.goto("/screening");
-  await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeVisible();
+  // layout B has no "Matter" item (R1's ruling for app#393): on /screening its group heading "This screening" stands in for it
+  if (await isLayoutB(page)) await expect(page.getByTestId("mb-screening-group")).toBeVisible();
+  else await expect(page.getByRole("link", { name: "Matter", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Citation check" })).toHaveCount(0);
   await page.goto("/citations");
   await expect(page.getByTestId("citation-not-offered")).toBeVisible(); // the gated state (Lead-2, 15 Oct): a notice, not the form
@@ -117,6 +120,7 @@ test("flag off (the hosted build): /citations is a notice and a way back to Scre
   await page.goto("/citations");
   await expect(page.getByTestId("citation-not-offered")).toHaveText("A citation check is not offered in this version of the app.");
   await expect(page.getByTestId("citation-not-offered-link")).toHaveAttribute("href", "/screening");
+  await expect(page.getByTestId("citation-not-offered-link"), "the link names the page: layout B says \"the screening page\" (R1, 17 Oct)").toHaveText((await isLayoutB(page)) ? "Go to the screening page" : "Go to Matter workspace");
   await expect(page.getByLabel("Citation (one)")).toHaveCount(0);
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Check" })).toHaveCount(0);

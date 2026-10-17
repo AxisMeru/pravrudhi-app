@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./support/engineTest";
+import { screeningTitle } from "./support/layout";
 
 import { InvalidEngineAnswerError, decideResultOnly, withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
@@ -86,7 +87,7 @@ for (const fixture of FIXTURES) {
         }
         await signIn(page);
         await page.goto("/screening");
-        await page.locator("main").getByRole("heading", { name: "Matter workspace", exact: true }).waitFor();
+        await page.locator("main").getByRole("heading", { name: await screeningTitle(page), exact: true }).waitFor();
         // Outside the service window the hosted demo says so and refuses to send: skipped, with the reason, not failed.
         const offline = page.getByTestId("screening-offline");
         const closed = await offline.isVisible().catch(() => false);

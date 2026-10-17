@@ -2,13 +2,15 @@
 // Nothing here is used unless the build flag NEXT_PUBLIC_LAYOUT_MATTER_B=1 (src/lib/layoutFlag.ts) is set.
 import { useSyncExternalStore } from "react";
 
+import { MB_SCREENING_LABEL } from "./matterBLabel";
+
 /** NEW strings (R1 reads each); the existing signed strings (chips, banner, standing line, export labels, nav labels) are reused where they appear, never copied. */
 export const MB = {
   // R1 (16 Oct, findability): the one line under the standing line on /screening before a result: lead word, then two links (the first uses the nav's own "Safety record"; both go to /safety and /benchmarks only).
   alsoLead: "Also:",
   alsoSafety: "Safety record",
   alsoBenchmarks: "Benchmarks and the NyayaSiddhi film",
-  screeningLabel: "This screening", // the nav group label, the header label and the neutral name
+  screeningLabel: MB_SCREENING_LABEL, // the nav group label, the header label and the neutral name ("This screening")
   resultLabel: "Result", // nav item and breadcrumb tail, shown only when a result exists
   factsLabel: "Facts", // nav item and breadcrumb tail on the intake view
   breadcrumbRoot: "Screening",

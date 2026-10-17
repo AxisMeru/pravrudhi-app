@@ -4,7 +4,7 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
 
-import { EMPTY_INDEX, PALETTE_PAGES, STUDIO_ONLY_PAGES, buildCatalogue, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
+import { EMPTY_INDEX, PALETTE_PAGES, filterResults, STUDIO_ONLY_PAGES, buildCatalogue, isStudioOnlyHref, pagesFor, studioOnlyPath } from "./palette";
 
 test("a non-Studio caller is offered Matters and Settings, nothing of the improvement loop", () => {
   assert.deepEqual(pagesFor(false, false).map((p) => p.id).sort(), ["benchmarks", "data-handling", "demo", "guide", "how-it-was-built", "safety", "screening", "settings", "workflows"]);
@@ -48,4 +48,12 @@ test("/matters is not in the palette pages, and the route is still allowed on th
   assert.ok(!PALETTE_PAGES.some((p) => p.href === "/matters" || p.id === "matters"));
   assert.ok(!pagesFor(false, false, true, true).some((p) => p.href === "/matters"));
   assert.equal(routeAllowedOnSurface("/matters"), true);
+});
+
+// app#403: a page can carry hidden search keywords (layout B names the page "This screening"; "matter" still finds it).
+test("filterResults matches a result's hidden keywords as well as its title and subtitle", () => {
+  const r = [{ id: "page:screening", group: "Pages" as const, title: "This screening", href: "/screening", keywords: ["Matter"] }, { id: "page:guide", group: "Pages" as const, title: "User guide", href: "/guide" }];
+  assert.deepEqual(filterResults(r, "matter").map((x) => x.id), ["page:screening"]);
+  assert.deepEqual(filterResults(r, "guide").map((x) => x.id), ["page:guide"]);
+  assert.deepEqual(filterResults(r, "zzz"), []);
 });
