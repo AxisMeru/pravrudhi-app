@@ -1,3 +1,4 @@
+import { NyayaSiddhiComing } from "@/components/benchmarks/NyayaSiddhiComing";
 import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { NyayaSiddhiResults } from "@/components/benchmarks/NyayaSiddhiResults";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
@@ -38,6 +39,7 @@ export default async function BenchmarksPage() {
           <FilmPlayer id="nyayasiddhi-narrated" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} />
+        <NyayaSiddhiComing rows={NYAYASIDDHI_ROWS} />
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-how">
           <h2 className="text-base font-medium text-[var(--color-text)]">{HOW_WE_TEST_HEADING}</h2>
           <p className="text-sm text-[var(--color-text)]">{HOW_WE_TEST}</p>
