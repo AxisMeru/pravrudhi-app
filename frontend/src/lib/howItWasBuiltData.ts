@@ -1,5 +1,5 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1f_2026-10-17.md (sha12 3b20ae32bdcb), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
-// NOT built (not cleared): r4_published.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1g_2026-10-17.md (sha12 13e629837479), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// NOT built (not cleared): r4_published, r6_source_quote.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
@@ -31,11 +31,11 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r5_published: "Only inside NyayaSiddhi (see below).",
   r5_caveat: "The labels are model-extracted and not human-checked. There is no human-checked subset.",
   r6_name: "NyayaSiddhi v0.2",
-  r6_source: "Built from court judgments by pinned scripts. The court's own finding quote is removed from each item so the label is not given away. Items are screened for minors and protected victims; short items and duplicates are dropped.",
+  r6_source: "Built from High Court judgments (AWS Open Data, CC BY 4.0) by pinned scripts. By the source field, every released item is a High Court judgment; Supreme Court items were dropped before release. Items naming a minor or a protected victim are dropped, and adult names are kept as in the source. Short items and duplicates are dropped.",
   r6_licence: "Our annotations, metadata and scorer are CC BY 4.0. The source text is court-derived; the dataset card gives the basis.",
-  r6_used: "A public development benchmark with two released sets. The first was used to design fixes. The second was read by a model we used earlier. The dataset card gives the counts.",
+  r6_used: "A public development benchmark with two released sets. The first was used to design fixes. Both released sets were seen by us and by the models we used. The dataset card gives the counts.",
   r6_published: "https://huggingface.co/datasets/AxisMeru/nyayasiddhi (README, the two data files, the scorer and the schemas).",
-  r6_caveat: "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet. Both released sets were seen by us. The labels are model-extracted and not human-checked.",
+  r6_caveat: "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet. The labels are model-extracted and not human-checked.",
   r7_name: "Training and held-out sets for our judges",
   r7_source: "Built from the sources above.",
   r7_published: "Not on Hugging Face. The sealed evaluation sets stay private so a future test cannot be learned in advance.",

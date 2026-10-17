@@ -6,7 +6,7 @@ import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SE
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1f_2026-10-17.md, sha12 3b20ae32bdcb (v1f; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1g_2026-10-17.md, sha12 13e629837479 (v1g; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -35,11 +35,11 @@ const PINS: Readonly<Record<string, string>> = {
   r5_published: "a8df789192e72303",
   r5_caveat: "e94bea476a5f9ffa",
   r6_name: "a7042792ed22203f",
-  r6_source: "b116660ac4c59147",
+  r6_source: "fb2c4631c9fb9926",
   r6_licence: "c02de90f9d01cc59",
-  r6_used: "bb090722d5df8b86",
+  r6_used: "c5ee9155ddb646a7",
   r6_published: "0650c4a5036b77c9",
-  r6_caveat: "728b41eb81ddc212",
+  r6_caveat: "2eb08cd810fb29af",
   r7_name: "ea7ff81a02a0e0c9",
   r7_source: "01f96b657b0128f3",
   r7_published: "bf0c3281716627d6",
@@ -71,7 +71,7 @@ const PINS: Readonly<Record<string, string>> = {
   cv5: "0bc039ef1be5f61f",
   cv6: "5c36a07ecec56f6a",
 };
-const HELD = ["r4_published"];
+const HELD = ["r4_published", "r6_source_quote"];
 
 test("every shipped data-note sentence is exactly R1's, by hash, and no HELD key is built", () => {
   assert.deepEqual(Object.keys(DATA_NOTE_TEXT).sort(), Object.keys(PINS).sort());
