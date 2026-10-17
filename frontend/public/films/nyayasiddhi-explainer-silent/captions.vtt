@@ -1,0 +1,165 @@
+WEBVTT
+
+1
+00:00:00.300 --> 00:00:08.200
+NyayaSiddhi
+
+2
+00:00:03.400 --> 00:00:08.200
+Does a system say "supported" only where a court established the offence?
+
+3
+00:00:09.000 --> 00:00:21.200
+A public order
+
+4
+00:00:11.600 --> 00:00:21.200
+court-established
+
+5
+00:00:14.600 --> 00:00:21.200
+court-rejected
+
+6
+00:00:22.400 --> 00:00:43.200
+Wrongly supported
+
+7
+00:00:26.200 --> 00:00:43.200
+Coverage
+
+8
+00:00:43.500 --> 00:00:53.600
+Entered by the NyayaSiddhi organisers, who also built this system
+
+9
+00:00:48.100 --> 00:00:53.600
+Development items; used to design fixes, so seen by us
+
+10
+00:00:53.900 --> 00:00:59.800
+No outside entry yet. Entry is a pull request on the dataset page.
+
+11
+00:01:00.200 --> 00:01:20.800
+Two released sets
+
+12
+00:01:01.000 --> 00:01:20.800
+predictions.jsonl
+
+13
+00:01:01.200 --> 00:01:20.800
+manifest.json
+
+14
+00:01:04.600 --> 00:01:20.800
+Your folder
+
+15
+00:01:08.600 --> 00:01:20.800
+Checker
+
+16
+00:01:10.800 --> 00:01:20.800
+PASS
+
+17
+00:01:15.000 --> 00:01:20.800
+Pull request
+
+18
+00:01:17.300 --> 00:01:20.800
+The route has been tried only as a local dry run with a synthetic file; no outside entry yet.
+
+19
+00:01:21.100 --> 00:01:40.800
+Same script. Same ranges.
+
+20
+00:01:22.800 --> 00:01:40.800
+predictions.jsonl
+
+21
+00:01:24.000 --> 00:01:40.800
+Script
+
+22
+00:01:29.000 --> 00:01:40.800
+Entered by the NyayaSiddhi organisers, who also built this system
+
+23
+00:01:31.800 --> 00:01:40.800
+Built
+
+24
+00:01:31.800 --> 00:01:40.800
+Self-reported
+
+25
+00:01:33.400 --> 00:01:40.800
+Planned
+
+26
+00:01:33.400 --> 00:01:40.800
+Re-scored
+
+27
+00:01:35.000 --> 00:01:40.800
+Reproduced
+
+28
+00:01:36.600 --> 00:01:40.800
+Outside check
+
+29
+00:01:41.400 --> 00:01:53.400
+Built
+
+30
+00:01:41.600 --> 00:01:53.400
+Group
+
+31
+00:01:41.900 --> 00:01:53.400
+Unit
+
+32
+00:01:53.400 --> 00:02:04.400
+Illustration: invented entries
+
+33
+00:01:53.800 --> 00:02:04.400
+Alder
+
+34
+00:01:54.300 --> 00:02:04.400
+Birch
+
+35
+00:01:54.800 --> 00:02:04.400
+Cedar
+
+36
+00:01:53.800 --> 00:02:04.400
+Planned
+
+37
+00:01:55.200 --> 00:02:04.400
+Listed by name, not by result
+
+38
+00:01:55.800 --> 00:02:04.400
+v0.2
+
+39
+00:01:57.000 --> 00:02:04.400
+v0.1
+
+40
+00:02:04.700 --> 00:02:17.100
+There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.
+
+41
+00:02:13.300 --> 00:02:17.100
+AxisMeru/nyayasiddhi

@@ -1,0 +1,199 @@
+{
+  "title": "NyayaSiddhi",
+  "durationS": 137.1,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "bf_emma (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "defad1c0b4f243e61404e40f669c46fab92e9b026c6e478b5c1fd888841fe60b",
+    "timingsSha256": "6fe5dc9882f99fd72df98ba0484748201b3d593951118da9ca2db1941f37f6c2",
+    "scenes": [
+      {
+        "id": "what",
+        "audioS": 5.08,
+        "durS": 8.2,
+        "origDurS": 8.2,
+        "stretch": 1,
+        "wavSha256": "a515ebaede618b30de7c8b3fd76fe35ed38a339d899ef1d544f3e5d97bc07062"
+      },
+      {
+        "id": "yardstick",
+        "audioS": 9.8,
+        "durS": 13,
+        "origDurS": 13,
+        "stretch": 1,
+        "wavSha256": "609ffaf720203d1283fee658e6222360d3c412c4ac534125191f46b0fa0c1e10"
+      },
+      {
+        "id": "row",
+        "audioS": 13.58,
+        "durS": 22,
+        "origDurS": 22,
+        "stretch": 1,
+        "wavSha256": "9d9641e083f1d7bd210c7c01b733055ad4ff22c91757284f80f5722a757712cd"
+      },
+      {
+        "id": "labels",
+        "audioS": 8.9,
+        "durS": 10.4,
+        "origDurS": 10.4,
+        "stretch": 1,
+        "wavSha256": "dd1cb72e40e92fde8198ac0391136b953595936e2db79003e26ba42b5f29424c"
+      },
+      {
+        "id": "enter",
+        "audioS": 4.7,
+        "durS": 6.2,
+        "origDurS": 6.2,
+        "stretch": 1,
+        "wavSha256": "6b09fac04b52e090c449bf87ffd22890d0ee2d570736d8d625675ff31368f80c"
+      },
+      {
+        "id": "submit",
+        "audioS": 16.35,
+        "durS": 21,
+        "origDurS": 21,
+        "stretch": 1,
+        "wavSha256": "1e14664c6724a60e293b08dba268152d3926490462844cd7a11017119a55c3e8"
+      },
+      {
+        "id": "scoring",
+        "audioS": 16.27,
+        "durS": 20,
+        "origDurS": 20,
+        "stretch": 1,
+        "wavSha256": "08f7fe1a0bb6893311fd1d6c1996d3c337d9d7ce70357deb777307649098e7f2"
+      },
+      {
+        "id": "board",
+        "audioS": 11.03,
+        "durS": 12.6,
+        "origDurS": 12.6,
+        "stretch": 1,
+        "wavSha256": "1e5ff63f3ffec3419c561ea7b95860be43273aaac0b768b50c9b8100b2d44969"
+      },
+      {
+        "id": "illustration",
+        "audioS": 3.93,
+        "durS": 11,
+        "origDurS": 11,
+        "stretch": 1,
+        "wavSha256": "3f0deff09b0cde14a6c6eec872c7d2a5340247ff81fd009663f4b6c2ab7d3242"
+      },
+      {
+        "id": "stand",
+        "audioS": 4.47,
+        "durS": 12.7,
+        "origDurS": 12.7,
+        "stretch": 1,
+        "wavSha256": "35af1fcda3a9eccd839602add7c2bad587aea8154844bc916fbb0d3018eacafd"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.572,
+      "speechRmsDb": -22.9,
+      "peakBeforeLimit": 1.276,
+      "limiterGain": 0.76,
+      "scoreSeconds": 138.1,
+      "scoreLufs": -18.99
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "7bb24317dc7a1735629348bb8217e94f93a24ed93aca86c951ec2a68e90cb340",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 8.2
+    },
+    {
+      "name": "A public order",
+      "text": "",
+      "startS": 8.2,
+      "endS": 21.2
+    },
+    {
+      "name": "Wrongly supported",
+      "text": "",
+      "startS": 21.2,
+      "endS": 43.2
+    },
+    {
+      "name": "Entered by the NyayaSiddhi organisers, who also built this system",
+      "text": "",
+      "startS": 43.2,
+      "endS": 53.6
+    },
+    {
+      "name": "No outside entry yet. Entry is a pull request on the dataset page.",
+      "text": "",
+      "startS": 53.6,
+      "endS": 59.800000000000004
+    },
+    {
+      "name": "Two released sets",
+      "text": "",
+      "startS": 59.800000000000004,
+      "endS": 80.80000000000001
+    },
+    {
+      "name": "Same script. Same ranges.",
+      "text": "",
+      "startS": 80.80000000000001,
+      "endS": 100.80000000000001
+    },
+    {
+      "name": "Built",
+      "text": "",
+      "startS": 100.80000000000001,
+      "endS": 113.4
+    },
+    {
+      "name": "Illustration: invented entries",
+      "text": "",
+      "startS": 113.4,
+      "endS": 124.4
+    },
+    {
+      "name": "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
+      "text": "",
+      "startS": 124.4,
+      "endS": 137.1
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 3223777,
+      "sha256": "79cd9aea329925c107f282fb665b7be5e51d5a38daacca415a6a5cbe858d1d3d"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 50984,
+      "sha256": "63964e95b9ae8cd41c79d543b2d24900c5950e0780918c1025c2414125f7d239"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 2170,
+      "sha256": "ec312454cd4301c96f9f31ac833d813db7af61804155841b845797885afd02be"
+    }
+  ]
+}
