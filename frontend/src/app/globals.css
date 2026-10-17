@@ -228,6 +228,24 @@ html[data-layout="matter-b"] #primary-navigation {
   }
 }
 
+/* app#404 (forced colours): the active nav item's tint and inset shadow are dropped by forced-colors, leaving only aria-current, so give it a system-colour outline and an underline. */
+@media (forced-colors: active) {
+  #primary-navigation nav a[aria-current] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+/* app#405 (reduced motion): the drawer's slide, the nav links' colour fade and layout B's Reference chevron turn do not animate. */
+@media (prefers-reduced-motion: reduce) {
+  #primary-navigation,
+  #primary-navigation nav a,
+  [data-testid="mb-reference-chevron"] {
+    transition: none;
+  }
+}
+
 /* Look patch (spec 3e0b13c4bdc8): ONLY under html[data-look="tonal"] (build flag NEXT_PUBLIC_LOOK_TONAL=1, off by default). No transition, animation or hover lift: nothing to gate for reduced motion.
    Every rule changes a colour or a shadow, never a box size (the left state rule is an inset shadow, not a border), so no layout moves. The print block below forces a white page and no shadows. */
 html[data-look="tonal"] body {
@@ -292,23 +310,5 @@ html[data-look="tonal"] [data-testid="summary-banner"] {
   }
   html[data-look="tonal"] [data-testid="ingredient-row"][data-chip="not_supported"] {
     box-shadow: inset 4px 0 0 var(--color-text-dim);
-  }
-}
-
-/* app#404 (forced colours): the active nav item's tint and inset shadow are dropped by forced-colors, leaving only aria-current, so give it a system-colour outline and an underline. */
-@media (forced-colors: active) {
-  #primary-navigation nav a[aria-current] {
-    outline: 2px solid Highlight;
-    outline-offset: -2px;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-}
-/* app#405 (reduced motion): the drawer's slide, the nav links' colour fade and layout B's Reference chevron turn do not animate. */
-@media (prefers-reduced-motion: reduce) {
-  #primary-navigation,
-  #primary-navigation nav a,
-  [data-testid="mb-reference-chevron"] {
-    transition: none;
   }
 }
