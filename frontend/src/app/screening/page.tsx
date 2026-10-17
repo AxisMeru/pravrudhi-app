@@ -421,7 +421,7 @@ export default function ScreeningPage() {
         {...(LAYOUT_MATTER_B ? { crumb: mbExampleName ? [MB.breadcrumbRoot, `${mbExampleName} ${MB.exampleSuffix}`, mbResultView ? MB.resultLabel : MB.factsLabel] : [MB.screeningLabel, mbResultView ? MB.resultLabel : MB.factsLabel], focusable: true } : {})}
       />
       <div className={`mx-auto flex w-full ${mbResultView ? "max-w-6xl" : "max-w-4xl"} flex-1 flex-col gap-6 p-4 sm:p-8`}>
-        {!mbResultView && <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />}
+        {!mbResultView && <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} className={LAYOUT_MATTER_B ? "max-md:-order-2" : ""} />}
         {hydrated && !startPanelClosed && !result && facts.every((f) => f.trim() === "") && paste.trim() === "" && !example && (
           <StartPanel
             onExample={() => { const t = document.getElementById("example-entry"); t?.scrollIntoView({ block: "center" }); t?.querySelector<HTMLElement>("a")?.focus(); }}
@@ -429,9 +429,9 @@ export default function ScreeningPage() {
             onClose={() => setStartPanelClosed(true)}
           />
         )}
-        {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
+        {!result && <p className={`text-sm text-[var(--color-text)]${LAYOUT_MATTER_B ? " max-md:-order-1" : ""}`} data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         {LAYOUT_MATTER_B && !result && (
-          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] max-md:flex-col max-md:items-start print:hidden" data-testid="mb-also">
+          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] max-md:-order-1 max-md:flex-col max-md:items-start print:hidden" data-testid="mb-also">
             {MB.alsoLead}{" "}
             <Link href="/safety" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-safety">{MB.alsoSafety}</Link>{" "}
             <span aria-hidden="true" className="max-md:hidden">·</span>{" "}
