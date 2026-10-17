@@ -1,6 +1,6 @@
 {
   "_source": "pravrudhi src/pravrudhi/application/citation_status.py _LABELS (copied verbatim)",
-  "_engine_sha": "4b42608f9d4ba15a11101c1ca7d81709118f9ca7",
+  "_engine_sha": "a2ffbc4e",
   "labels": {
     "VERIFIED": {
       "status": "verified",
@@ -25,7 +25,11 @@
     "IN_INDEX": {
       "status": "in_index",
       "label": "Found in the index (existence only): no quote was checked, so this is not a verification."
+    },
+    "NAME_MISMATCH": {
+      "status": "name_mismatch",
+      "label": "Case name did not match"
     }
   },
-  "_note": "Labels copied verbatim from pravrudhi src/pravrudhi/application/citation_status.py _LABELS at v0.6.5 (4b42608f); only NOT_IN_INDEX changed since 8c4f7bc8 (\"not in index\" -> \"Not found in our index\")."
+  "_note": "Labels copied verbatim from pravrudhi src/pravrudhi/application/citation_status.py _LABELS at engine tag v0.6.20 (a2ffbc4e; the file's sha256 is 7af1291e80b1ec13c0e484373f777b75b21913d5e0f08268a3dcc326671647fd, identical to v0.6.19's). Track C compared the parsed (status, label) pairs with this object: 7 members, every string equal. The labels are unchanged since d575be61 (0.6.19): NAME_MISMATCH was added there; before that only NOT_IN_INDEX changed since 8c4f7bc8 (\"not in index\" -> \"Not found in our index\")."
 }
