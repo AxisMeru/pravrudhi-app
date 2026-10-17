@@ -21,6 +21,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "The sealed and held-out evaluation sets: private so a future test cannot be learned in advance.",
       "You cannot rebuild our training sets or our labels from what we publish.",
       "Overlap between training and evaluation was checked by identity and by text.",
+      "Some training examples come from Supreme Court judgments, from a copy whose source and licence we have not yet confirmed.",
       "LegalBench: the hearsay and personal_jurisdiction tasks, CC BY 4.0, used only as held-out checks and never as training data.",
       "CaseHOLD: part of the training data of our 7B fine-tune, prabhasa-nyaya-7b-sft, derives from the CaseHOLD validation split.",
     ],

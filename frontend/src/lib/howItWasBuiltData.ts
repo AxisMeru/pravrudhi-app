@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1d_2026-10-17.md (sha12 5893ed4474e9), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1f_2026-10-17.md (sha12 3b20ae32bdcb), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -15,7 +15,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r1_caveat_cov: "Coverage is what the data set holds.",
   r1_caveat_attr: "Attribution: Indian High Court Judgments dataset, published by Dattam Labs, sourced from the eCourts judgments portal (judgments.ecourts.gov.in), licensed under CC BY 4.0. https://github.com/vanga/indian-high-court-judgments. Also listed at https://registry.opendata.aws/indian-high-court-judgments",
   r2_name: "Supreme Court judgments",
-  r2_source_fallback: "Public Supreme Court judgments. We have not yet confirmed the source and licence of our copy, so this page does not state them.",
+  r2_source: "Public Supreme Court judgments. We have not confirmed the source or licence of our copy. Comparing titles and dates, part of it matches judgments in a public collection licensed CC BY 4.0; we do not rely on that licence for our copy.",
   r3_name: "Statute text",
   r3_source: "Official-source PDFs of the Acts, fetched from India Code and other official sites: the BNS, the BNSS, the Digital Personal Data Protection Act, the Negotiable Instruments Act (the cheque-dishonour sections), the Specific Relief Act and the IPC.",
   r3_licence_fallback: "Official government publications. Terms of use are not set out here.",
@@ -40,6 +40,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r7_source: "Built from the sources above.",
   r7_published: "Not on Hugging Face. The sealed evaluation sets stay private so a future test cannot be learned in advance.",
   r7_caveat: "Judgments were assigned to training, held-out or evaluation by a fixed rule on identity, and checked for overlap by identity and by text. Some pairs share text, for example a judgment that reproduces the one under appeal.",
+  r7_sc: "Some training examples come from Supreme Court judgments, from a copy whose source and licence we have not yet confirmed.",
   r8_name: "Public research sets used in earlier work",
   r8_casehold: "CaseHOLD: part of the training data of our 7B fine-tune, prabhasa-nyaya-7b-sft, derives from the CaseHOLD validation split. CaseHOLD's code repository is Apache-2.0; its dataset card has no licence field, so we state none for the data.",
   r8_legalbench: "LegalBench: the hearsay and personal_jurisdiction tasks, CC BY 4.0, used only as held-out checks and never as training data. We do not use its non-commercial tasks.",
@@ -70,12 +71,12 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
 /** Each data set: its name (a heading) then its lines in R1's order. Keys refer to DATA_NOTE_TEXT. */
 export const DATA_SETS: readonly { id: string; name: string; lines: readonly string[] }[] = [
   { id: "r1", name: "r1_name", lines: ["r1_source", "r1_licence", "r1_used", "r1_published", "r1_caveat_cov", "r1_caveat_attr"] },
-  { id: "r2", name: "r2_name", lines: ["r2_source_fallback"] },
+  { id: "r2", name: "r2_name", lines: ["r2_source"] },
   { id: "r3", name: "r3_name", lines: ["r3_source", "r3_licence_fallback", "r3_used", "r3_published", "r3_caveat"] },
   { id: "r4", name: "r4_name", lines: ["r4_source", "r4_licence", "r4_caveat"] },
   { id: "r5", name: "r5_name", lines: ["r5_source", "r5_published", "r5_caveat"] },
   { id: "r6", name: "r6_name", lines: ["r6_source", "r6_licence", "r6_used", "r6_published", "r6_caveat"] },
-  { id: "r7", name: "r7_name", lines: ["r7_source", "r7_published", "r7_caveat"] },
+  { id: "r7", name: "r7_name", lines: ["r7_source", "r7_sc", "r7_published", "r7_caveat"] },
   { id: "r8", name: "r8_name", lines: ["r8_casehold", "r8_legalbench", "r8_published"] },
   { id: "r9", name: "r9_name", lines: ["r9_32b", "r9_7b", "r9_other"] },
   { id: "r10", name: "r10_name", lines: ["r10_source", "r10_published", "r10_caveat"] },
