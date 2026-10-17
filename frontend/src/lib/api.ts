@@ -1119,6 +1119,8 @@ export interface NyayaSource {
   act: string;
   section: string;
   title: string;
+  /** Engine 0.6.22 (#539): R1's IPC text caveat for an IPC id, null for any other act; absent on an older engine. Shown only when it is exactly R1's line (lib/ipcCaveat.ts). */
+  text_caveat?: string | null;
 }
 
 export interface NyayaAsk {
