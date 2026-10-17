@@ -204,3 +204,16 @@ test("/benchmarks: the film block adds no link to the review route and the signe
   await page.goto("/benchmarks");
   expect(await page.locator('a[href*="benchmarks-film-preview"]').count(), "no anchor to the review route").toBe(0);
 });
+
+// app#410 (explorer, 17 Oct): on paper the film block keeps its scene list and the synthetic-voice line, and drops the controls that do nothing there (the Play button and the download link row).
+test("print: the film block drops the Play button and the download link, keeps the scenes and the synthetic-voice line (#410)", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const block = page.getByTestId("block-film");
+  await expect(block.getByTestId("film-play")).toBeVisible();
+  await expect(block.getByTestId("film-download")).toBeVisible();
+  await page.emulateMedia({ media: "print" });
+  await expect(block.getByTestId("film-play"), "no live-looking Play button on paper").toBeHidden();
+  await expect(block.getByTestId("film-download"), "no download link on paper").toBeHidden();
+  await expect(block.getByTestId("film-scenes"), "the scene list stays").toBeVisible();
+  await expect(block.locator("figcaption"), "the synthetic-voice line stays").toContainText("The narration is a synthetic voice.");
+});
