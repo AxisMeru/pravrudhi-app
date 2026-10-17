@@ -263,9 +263,7 @@ test("#509 /citations: matched adds nothing; a mismatch reads R1's heading and n
 
 // pravrudhi-app#373 (P1): the caveat shows for any text before the citation's year, not only a recognised separator; name_compared true shows none.
 const NOT_CONFIRMED = "Only the citation was looked up; the case name you typed was not confirmed against the index.";
-// Plain Playwright test on purpose (like the #509 test above): its last step mocks name_compared (engine 0.6.19), which the pinned 0.6.18 response schema behind engineTest rejects.
-plain.skip(process.env.CITATION_EXISTENCE_BUILD !== "1" || process.env.CITATION_NAV_BUILD !== "1", "needs a build with the citation nav and existence-only flags");
-plain("#373 /citations: a v/s name, no separator and a Devanagari name get R1's caveat; a bare citation and name_compared true get none", async ({ page }) => {
+test("#373 /citations: a v/s name, no separator and a Devanagari name get R1's caveat; a bare citation and name_compared true get none", async ({ page }) => {
   let answer: Record<string, unknown> = { ...IN };
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: answer }));
   await page.goto("/citations");
