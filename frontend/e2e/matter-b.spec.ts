@@ -337,6 +337,27 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(page.getByRole("button", { name: /^This screening/ })).toBeVisible();
     });
 
+    base("first-run panel on a phone (#422): the buttons stay above the fold, the intro line is not rendered, the subtitle stays, the Also links come within about 1.5 screens; desktop keeps the full panel", async ({ page }) => {
+      await arrange(page);
+      const panel = page.getByTestId("start-panel");
+      await expect(panel).toBeVisible();
+      const intro = panel.locator("p").first();
+      if (phone) {
+        await expect(intro, "the intro line is display none on a phone (the page subtitle says the same and stays)").toBeHidden();
+        await expect(page.locator("main").getByText("Which ingredients of the alleged offence do your facts support").first(), "the page subtitle stays visible").toBeVisible();
+        for (const name of ["Try an example from a public court order", "Paste your own facts"]) {
+          const b = (await panel.getByRole("button", { name }).boundingBox())!;
+          expect(b.y + b.height, `${name} bottom ${b.y + b.height}`).toBeLessThanOrEqual(844);
+        }
+        const own = (await panel.getByRole("button", { name: "Paste your own facts" }).boundingBox())!;
+        expect(own.y + own.height, "compact panel: the buttons end well above the fold (Studio's estimate ~655)").toBeLessThanOrEqual(720);
+        const also = (await page.getByTestId("mb-also-benchmarks").boundingBox())!;
+        expect(also.y + also.height, "the Also links are within about 1.5 screens at 390").toBeLessThanOrEqual(844 * 1.5);
+      } else {
+        await expect(intro, "desktop keeps the intro line").toBeVisible();
+      }
+    });
+
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
       await arrange(page);
       if (phone) await page.getByRole("button", { name: "Open navigation" }).click();
