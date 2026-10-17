@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1m_2026-10-17.md (sha12 2506319544fd), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1n_2026-10-17.md (sha12 237f7c453c72), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -58,7 +58,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r11_name: "ILC (Hugging Face, d0r1h/ILC)",
   r11_source: "The d0r1h/ILC data set of Indian judgments on Hugging Face.",
   r11_licence: "CC BY 3.0: the licence recorded in our manifest matches the licence field on the dataset's Hugging Face page, read on 17 October 2026. This is not a legal opinion.",
-  r11_used: "Judgment text for further pre-training of our models, kept with the attribution the licence asks for.",
+  r11_used: "Judgment text for further pre-training of our models.",
   r11_published: "Not published. Our training sets are not on Hugging Face.",
   r12_name: "InJudgements",
   r12_source: "The InJudgements data set (opennyaiorg/InJudgements_dataset).",
