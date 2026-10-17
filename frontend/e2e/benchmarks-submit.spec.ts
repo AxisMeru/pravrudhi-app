@@ -80,7 +80,7 @@ test("a row's details open in a modal dialog with R1's labels and the pinned pub
   await expect(links.getByTestId("ns-detail-manifest")).toHaveAttribute("href", /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi\/blob\/[0-9a-f]{40}\//);
   await expect(links.getByTestId("ns-detail-manifest-sha")).toHaveText(/^[0-9a-f]{64}$/);
   await expect(links).toContainText(NS_DRAWER.links_note);
-  await page.getByTestId("ns-row-details-close").first().click();
+  await page.locator("dialog[open]").getByTestId("ns-row-details-close").click();
 });
 
 test("the version selector lists only the versions that have rows, with no count, and its note is R1's", async ({ page }) => {
