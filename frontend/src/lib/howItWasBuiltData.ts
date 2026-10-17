@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1n_2026-10-17.md (sha12 237f7c453c72), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1o_2026-10-17.md (sha12 82347d84fe30), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -21,7 +21,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r3_licence_fallback: "Government works: Copyright Act s.52(1)(q), as our notices record. The terms of the sites, the mirror and the IL-TUR file are not set out here.",
   r3_used: "The ingredient lists and the review agendas.",
   r3_used_b: "Statute text for the further pre-training of our models: official NCRB PDFs for the BNSS, the BNS and the BSA, and a mirror of the government text (devgan.in) for the IPC, the CrPC, the Negotiable Instruments Act and others.",
-  r3_published: `Not republished. The app says "${STATUTE_NOTICE}"`,
+  r3_published: `Shown in the app only beside our own analysis, with the notice "${STATUTE_NOTICE}"`,
   r3_caveat: "The Negotiable Instruments Act was rebuilt section by section because its PDF has no text layer.",
   r4_name: "Constructed cases",
   r4_source: "Written by us and labelled as constructed wherever they are shown.",
@@ -46,7 +46,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r8_name: "Public research sets used in earlier work",
   r8_casehold: "CaseHOLD: part of the training data of our 7B fine-tune, prabhasa-nyaya-7b-sft, derives from the CaseHOLD validation split. CaseHOLD's code repository is Apache-2.0; its dataset card has no licence field, so we state none for the data.",
   r8_legalbench: "LegalBench: the hearsay and personal_jurisdiction tasks, CC BY 4.0, used only as held-out checks and never as training data. We do not use its non-commercial tasks.",
-  r8_published: "These sets belong to their owners; we do not republish them.",
+  r8_published: "These sets belong to their owners; we do not publish them.",
   r9_name: "Models on Hugging Face",
   r9_32b: "nyaya-element-judge-32b-v0: a LoRA adapter on Qwen/Qwen2.5-32B, licence Apache-2.0, as its card states.",
   r9_7b: "prabhasa-nyaya-7b-sft: a full fine-tune of Qwen2.5-7B, licence listed as \"other\" on its card; the card names part of its training data as derived from CaseHOLD.",
@@ -74,7 +74,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   np1: "The training sets: not on Hugging Face.",
   np2: "The sealed and held-out evaluation sets: private so a future test cannot be learned in advance.",
   np3: NS_HIDDEN_SPLIT,
-  np4: "The citation index and the statute text: not republished; the official text stays with its owner.",
+  np4: "The citation index and the statute text are not published as data files; the official statute text stays with its owner.",
   np5: "You can re-run the NyayaSiddhi scorer on the released sets, score your own predictions with it on your own machine, and fetch the public judgment collections from their owners to read the court text. You cannot rebuild our training sets or our labels from what we publish.",
   cv_heading: "Limits",
   cv1: "The labels are model-extracted. No human has checked them, and there is no human-checked subset.",

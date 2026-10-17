@@ -6,7 +6,7 @@ import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SE
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1n_2026-10-17.md, sha12 237f7c453c72 (v1n; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1o_2026-10-17.md, sha12 82347d84fe30 (v1o; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -25,7 +25,7 @@ const PINS: Readonly<Record<string, string>> = {
   r3_licence_fallback: "ab2b24197f833c1c",
   r3_used: "23785039b5e44619",
   r3_used_b: "f60eea0ec8cb6296",
-  r3_published: "45cd57eda5376c43",
+  r3_published: "549722efe79a4acb",
   r3_caveat: "f7175985fdc2c7da",
   r4_name: "d8a63070658dbe2b",
   r4_source: "9326cb371b9f4467",
@@ -50,7 +50,7 @@ const PINS: Readonly<Record<string, string>> = {
   r8_name: "54683b82d98c7133",
   r8_casehold: "d14d49a0ab7610ec",
   r8_legalbench: "abb01bb3facc1d76",
-  r8_published: "c08d9e1ad519088a",
+  r8_published: "9e59db774634d832",
   r9_name: "abdf6a60cf28485e",
   r9_32b: "cefbf4600631bd99",
   r9_7b: "3c62ff36feb29f23",
@@ -78,7 +78,7 @@ const PINS: Readonly<Record<string, string>> = {
   np1: "9355382258cdb8fa",
   np2: "6da219455dce2700",
   np3: "1502d9c1b8e3fdf1",
-  np4: "665d870b61799247",
+  np4: "845b919a2a81cf82",
   np5: "ed90fbab9023fffc",
   cv_heading: "dffb64dc70011ecf",
   cv1: "2e4290e789b09aa6",
@@ -104,8 +104,8 @@ test("the structure names only built keys, each once, in R1's order: sets, what 
   assert.deepEqual(DATA_SETS.map((s) => s.id), ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "r13"]);
 });
 
-test("r3_published quotes the app's own statute notice byte for byte, and the hidden-set line is the one constant", () => {
-  assert.equal(DATA_NOTE_TEXT.r3_published, `Not republished. The app says "${STATUTE_NOTICE}"`);
+test("r3_published quotes the app's own statute notice byte for byte (v1o: no 'Not republished'), and the hidden-set line is the one constant", () => {
+  assert.equal(DATA_NOTE_TEXT.r3_published, `Shown in the app only beside our own analysis, with the notice "${STATUTE_NOTICE}"`);
   assert.equal(DATA_NOTE_TEXT.np3, NS_HIDDEN_SPLIT);
   assert.equal(h(DATA_NOTE_TEXT.np3), "1502d9c1b8e3fdf1");
 });
