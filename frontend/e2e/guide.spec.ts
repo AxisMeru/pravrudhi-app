@@ -31,7 +31,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
     await expect(page.getByTestId("guide-limits")).toContainText("The citation check is not offered in this version of the app.");
   }
   await expect(page.getByTestId("guide")).not.toContainText(/dev stack only|not (yet )?served/i);
-  const imgs = page.locator('[data-testid="guide"] img');
+  const imgs = page.locator('[data-testid="guide"] img:not([data-testid="film-poster-print"])'); // the film's print-only poster (app#414) is not a guide screenshot
   await expect(imgs).toHaveCount(IMAGES);
   for (let i = 0; i < IMAGES; i++) {
     await imgs.nth(i).scrollIntoViewIfNeeded();
