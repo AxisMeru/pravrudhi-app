@@ -6,7 +6,7 @@ import { DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SETS } from "./ho
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1b_2026-10-17.md, sha12 5885ee683fec (v1b, supersedes bb5a870fccc8)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1d_2026-10-17.md, sha12 5893ed4474e9 (v1d; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -17,6 +17,7 @@ const PINS: Readonly<Record<string, string>> = {
   r1_used: "b0587a3b9cbb3b97",
   r1_published: "a76689b13870c76d",
   r1_caveat_cov: "1a33c97339fcc38f",
+  r1_caveat_attr: "70a07b6765f9dcc8",
   r2_name: "91e95fa53295a428",
   r2_source_fallback: "bbc0e0d1db64ab68",
   r3_name: "0002dc7760e15464",
@@ -43,6 +44,10 @@ const PINS: Readonly<Record<string, string>> = {
   r7_source: "01f96b657b0128f3",
   r7_published: "bf0c3281716627d6",
   r7_caveat: "b063a1e0aca5c40a",
+  r8_name: "54683b82d98c7133",
+  r8_casehold: "d14d49a0ab7610ec",
+  r8_legalbench: "abb01bb3facc1d76",
+  r8_published: "c08d9e1ad519088a",
   r9_name: "abdf6a60cf28485e",
   r9_32b: "cefbf4600631bd99",
   r9_7b: "3c62ff36feb29f23",
@@ -65,7 +70,7 @@ const PINS: Readonly<Record<string, string>> = {
   cv5: "0bc039ef1be5f61f",
   cv6: "5c36a07ecec56f6a",
 };
-const HELD = ["r1_caveat_attr", "r4_published", "r8_name", "r8_casehold", "r8_legalbench", "r8_published"];
+const HELD = ["r4_published"];
 
 test("every shipped data-note sentence is exactly R1's, by hash, and no HELD key is built", () => {
   assert.deepEqual(Object.keys(DATA_NOTE_TEXT).sort(), Object.keys(PINS).sort());
@@ -78,7 +83,7 @@ test("the structure names only built keys, each once, in R1's order: sets, what 
   for (const k of used) assert.ok(Object.hasOwn(DATA_NOTE_TEXT, k), k);
   assert.equal(new Set(used).size, used.length, "a key is used twice");
   for (const k of ["heading", "intro", "np_heading", "cv_heading"]) assert.ok(Object.hasOwn(DATA_NOTE_TEXT, k), k);
-  assert.deepEqual(DATA_SETS.map((s) => s.id), ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r9", "r10"]);
+  assert.deepEqual(DATA_SETS.map((s) => s.id), ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10"]);
 });
 
 test("r3_published quotes the app's own statute notice byte for byte, and the hidden-set line is the one constant", () => {
@@ -88,7 +93,7 @@ test("r3_published quotes the app's own statute notice byte for byte, and the hi
 });
 
 test("own digit rule: no count anywhere; digits only in 'step 1', licence names and versions, and the two model names", () => {
-  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g];
+  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g, /our 7B fine-tune/g];
   for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) {
     let rest = t;
     for (const re of ALLOWED) rest = rest.replace(re, "");
@@ -98,5 +103,5 @@ test("own digit rule: no count anywhere; digits only in 'step 1', licence names 
 });
 
 test("links in the note go only to the public AxisMeru dataset", () => {
-  for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) for (const u of t.match(/https?:\/\/\S+/g) ?? []) assert.match(u, /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi$|^https:\/\/registry\.opendata\.aws\//, `${k}: ${u}`);
+  for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) for (const u of t.match(/https?:\/\/\S+/g) ?? []) assert.match(u, /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi$|^https:\/\/registry\.opendata\.aws\/|^https:\/\/github\.com\/vanga\/indian-high-court-judgments/, `${k}: ${u}`);
 });
