@@ -301,21 +301,23 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       // app#403: on a phone the two links stack (no dangling "·" at a line end); from 768 px they sit on one line with the separator
       const sep = line.locator('span[aria-hidden="true"]');
       const s1 = (await page.getByTestId("mb-also-safety").boundingBox())!, s2 = (await page.getByTestId("mb-also-benchmarks").boundingBox())!;
-      // app#403 item 1 (R1: one instance, repositioned by CSS order on a phone only, directly under the standing line): at 390 px the standing line and the Also line sit above the first-run start panel, the standing line first; at 1280 they stay below it
+      // The Also line sits AFTER the first-run start panel at every width, one instance, directly under the standing line (R1; matter-phone.spec keeps the panel's buttons above the fold at 390). DOM order = visual order.
       expect(await page.getByTestId("mb-also").count(), "one instance of the Also line").toBe(1);
       const startPanel = page.getByTestId("start-panel");
       await expect(startPanel, "the first-run panel shows on an empty page").toBeVisible();
       {
         const p = (await startPanel.boundingBox())!, st = (await standing.boundingBox())!, al = (await line.boundingBox())!;
-        if (phone) {
-          expect(al.y, "the Also line is above the start panel on a phone").toBeLessThan(p.y);
-          expect(st.y, "and the standing line is directly above it").toBeLessThan(al.y);
-          expect(al.y, "within the first screen").toBeLessThan(700);
-          const domOrder = await page.evaluate(() => { const q = (id: string) => document.querySelector(`[data-testid="${id}"]`)!; const before = (x: Element, y: Element) => !!(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING); return { standingBeforeAlso: before(q("standing-line"), q("mb-also")), alsoBeforePanel: before(q("mb-also"), q("start-panel")), stepsBeforeStanding: before(q("workspace-steps"), q("standing-line")) }; });
-          expect(domOrder, "on a phone the DOM order equals the visual order (keyboard and reading order match)").toEqual({ standingBeforeAlso: true, alsoBeforePanel: true, stepsBeforeStanding: true });
-        } else {
-          expect(al.y, "on a desktop it stays below the start panel").toBeGreaterThan(p.y);
-        }
+        expect(st.y, "the standing line is below the start panel").toBeGreaterThan(p.y + p.height - 1);
+        expect(al.y, "and the Also line directly below the standing line").toBeGreaterThan(st.y);
+        const domOrder = await page.evaluate(() => { const q = (id: string) => document.querySelector(`[data-testid="${id}"]`)!; const before = (x: Element, y: Element) => !!(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING); return { stepsBeforePanel: before(q("workspace-steps"), q("start-panel")), panelBeforeStanding: before(q("start-panel"), q("standing-line")), standingBeforeAlso: before(q("standing-line"), q("mb-also")) }; });
+        expect(domOrder, "DOM order is steps bar, start panel, standing line, Also line (keyboard and reading order match what is seen)").toEqual({ stepsBeforePanel: true, panelBeforeStanding: true, standingBeforeAlso: true });
+      }
+      // the Also links are reachable: scrolled into view they sit inside the viewport and are thumb-sized on a phone
+      for (const id of ["mb-also-safety", "mb-also-benchmarks"]) {
+        const link = page.getByTestId(id);
+        await link.scrollIntoViewIfNeeded();
+        await expect(link).toBeInViewport();
+        if (phone) expect((await link.boundingBox())!.height, `${id} is a thumb-sized target`).toBeGreaterThanOrEqual(44);
       }
       if (phone) {
         await expect(sep).toBeHidden();
