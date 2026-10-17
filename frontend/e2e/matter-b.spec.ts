@@ -298,12 +298,25 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(page.getByTestId("mb-also-benchmarks")).toHaveAttribute("href", "/benchmarks");
       await expect(page.locator('a[href*="benchmarks-film-preview"]'), "no anchor to the review route").toHaveCount(0);
       if (phone) for (const id of ["mb-also-safety", "mb-also-benchmarks"]) expect((await page.getByTestId(id).boundingBox())!.height, `${id} is a thumb-sized target`).toBeGreaterThanOrEqual(44);
+      // app#403: on a phone the two links stack (no dangling "·" at a line end); from 768 px they sit on one line with the separator
+      const sep = line.locator('span[aria-hidden="true"]');
+      const s1 = (await page.getByTestId("mb-also-safety").boundingBox())!, s2 = (await page.getByTestId("mb-also-benchmarks").boundingBox())!;
+      if (phone) {
+        await expect(sep).toBeHidden();
+        expect(s2.y, "the second link is on its own line").toBeGreaterThan(s1.y + s1.height - 1);
+      } else {
+        await expect(sep).toBeVisible();
+        expect(Math.abs(s2.y - s1.y), "one line").toBeLessThan(8);
+      }
       await screen(page);
       await expect(page.getByTestId("mb-also"), "only before a result").toHaveCount(0);
       await page.keyboard.press("Control+k");
       await expect(page.getByPlaceholder(/pages, actions/)).toBeVisible();
       await expect(page.getByRole("button", { name: /^This screening/ })).toBeVisible();
       await expect(page.getByRole("button", { name: /^Matter\b/ })).toHaveCount(0);
+      // app#403: "matter" still finds the page (a hidden keyword, not a shown string)
+      await page.getByPlaceholder(/pages, actions/).fill("matter");
+      await expect(page.getByRole("button", { name: /^This screening/ })).toBeVisible();
     });
 
     base("sidebar: 'This screening' block with in-page links, Result only after a result, Reference disclosure, the live paths", async ({ page }) => {
