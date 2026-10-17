@@ -7,11 +7,15 @@ for (const path of ["/guide", "/how-it-was-built", "/technical-film"]) {
     const video = page.getByTestId("film-video");
     await expect(video).toBeVisible();
     await expect(page.getByTestId("film-poster-print"), "the poster is not on screen").toBeHidden();
+    const title = await video.getAttribute("aria-label");
+    await expect(page.getByRole("img", { name: title ?? "" }), "no second, image-named copy of the film title on screen (the print poster is display:none, so it is not in the accessibility tree)").toHaveCount(0);
     await page.emulateMedia({ media: "print" });
     await expect(video, "no video box on paper").toBeHidden();
     const poster = page.getByTestId("film-poster-print");
     await expect(poster).toBeVisible();
     await expect(poster).toHaveAttribute("src", /\/poster\.png$/);
+    await expect(poster, "decorative: the title is in the figcaption").toHaveAttribute("alt", "");
+    await expect(page.locator("figure figcaption").first(), "the figcaption still carries the film's title in print").toContainText(title ?? "x");
     await page.emulateMedia({ media: "screen" });
     await expect(video).toBeVisible();
   });
