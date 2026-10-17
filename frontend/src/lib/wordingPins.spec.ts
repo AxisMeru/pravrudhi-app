@@ -30,7 +30,7 @@ test("the binding-leg lines and the unknown quote-check fallback, exactly", () =
   assert.equal(bindingLegText("second"), "The second check was not confident enough that your facts support this ingredient.");
   assert.equal(bindingLegText(null), null);
   const u = quoteCheckPresentation("brand_new");
-  assert.equal(u?.text, 'The check of the cited text gave a result this app does not recognise yet ("brand_new").');
+  assert.equal(u?.text, "The quote check returned a result this version of the app cannot show. Check the quoted words against your facts yourself.");
   assert.equal(u?.unknown, true);
 });
 

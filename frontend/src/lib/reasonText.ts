@@ -1,7 +1,7 @@
 // Plain-language text for the contract reasons that are not referrals, for the quote check on an element, and for which
 // judge's threshold an element failed. The words come from the team's signed partner string table (R1's wording check
 // applied); each says what the judge or the code DID, never the fact itself. No Sanskrit label reaches a partner.
-// referReason.ts keeps the referral reasons. A code this build does not know is shown as itself, never reworded.
+// referReason.ts keeps the referral reasons. A code this build does not know reads R1's neutral sentence below (app#425), never the code itself.
 
 export const NON_REFER_REASON_TEXT: Readonly<Record<string, string>> = {
   all_elements_established:
@@ -18,6 +18,10 @@ export function nonReferReasonText(reason: string | null | undefined): string | 
   const key = (reason ?? "").trim();
   return Object.prototype.hasOwnProperty.call(NON_REFER_REASON_TEXT, key) ? NON_REFER_REASON_TEXT[key] : null;
 }
+
+/** R1's neutral sentences for a code this build does not know (app#425; sha256[:16] 6327668ea585dc15 and 7bf28ecad7a95498). Neither carries the code. */
+export const UNKNOWN_QUOTE_CHECK_TEXT = "The quote check returned a result this version of the app cannot show. Check the quoted words against your facts yourself.";
+export const UNKNOWN_NON_REFER_REASON_TEXT = "The screening gave a reason for this outcome that this version of the app cannot show. A lawyer decides.";
 
 export const QUOTE_CHECK_TEXT: Readonly<Record<string, string>> = {
   ok: "The cited text appears exactly once in the fact named (the quoted words, or, when only the fact is named, the fact itself).",
@@ -36,7 +40,7 @@ export interface QuoteCheckPresentation {
   /** Whether the cause is worth showing: a rejected or absent quote. `ok` needs no explanation. */
   show: boolean;
   text: string;
-  /** True when the engine sent a code this build does not know; the text then names the raw code. */
+  /** True when the engine sent a code this build does not know; the text is then R1's neutral sentence, with no code. */
   unknown: boolean;
 }
 
@@ -44,7 +48,7 @@ export function quoteCheckPresentation(code: string | null | undefined): QuoteCh
   const raw = (code ?? "").trim();
   if (!raw) return null;
   if (Object.prototype.hasOwnProperty.call(QUOTE_CHECK_TEXT, raw)) return { show: raw !== "ok", text: QUOTE_CHECK_TEXT[raw], unknown: false };
-  return { show: true, text: `The check of the cited text gave a result this app does not recognise yet ("${raw}").`, unknown: true };
+  return { show: true, text: UNKNOWN_QUOTE_CHECK_TEXT, unknown: true };
 }
 
 /** Which judge's confidence threshold a non-established element failed (`binding_leg`), in plain words; null for anything else. */
