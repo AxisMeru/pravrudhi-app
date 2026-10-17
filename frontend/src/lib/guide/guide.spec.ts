@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
@@ -8,23 +9,23 @@ import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { DEFENCE_HEADING, DEFENCE_PROMPT_NOTE, EXPORT_LABELS } from "../screening/copy";
 import { OFFENCES, offenceLabel } from "../screening/offences";
 import { CITATIONS_PANEL_ENABLED } from "../citationNav";
-import { GUIDE_ABOUT, GUIDE_CITATIONS_OFF_TEXT, GUIDE_CITATIONS_ON_TEXT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_LIMIT_CITATIONS_ON, GUIDE_LIMIT_CITATIONS_OFF, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
+import { GUIDE_ABOUT, GUIDE_CITATIONS_OFF_TEXT, GUIDE_CITATIONS_ON_TEXT, GUIDE_COLD_START, GUIDE_COVERED, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_IMAGES, GUIDE_IMAGES_LB, GUIDE_IMAGES_LIVE, GUIDE_SCREENSHOT_NOTE_LB, GUIDE_STEP1_TEXT_LB, GUIDE_STEP1_TEXT_LIVE, GUIDE_STEP7_TEXT_LB, GUIDE_STEP7_TEXT_LIVE, GUIDE_INTRO, GUIDE_LIMITS, GUIDE_LIMIT_CITATIONS_ON, GUIDE_LIMIT_CITATIONS_OFF, GUIDE_STATUSES, GUIDE_STEPS } from "./copy";
 
 const root = join(__dirname, "..", "..", "..");
 const copySource = readFileSync(join(__dirname, "copy.ts"), "utf8");
 
 // R1 (15 Oct) signed lines that say the check "will not look at quotes" (negated, about the citation check, not the house path's judging): these exact lines, and only these, are exempt from the audit.
-const QUOTES_LINES = [GUIDE_CITATIONS_OFF_TEXT, GUIDE_CITATIONS_ON_TEXT, GUIDE_LIMIT_CITATIONS_ON, GUIDE_IMAGES.citations.alt];
+const QUOTES_LINES = [GUIDE_CITATIONS_OFF_TEXT, GUIDE_CITATIONS_ON_TEXT, GUIDE_LIMIT_CITATIONS_ON, GUIDE_IMAGES.citations.alt, GUIDE_IMAGES_LB.citations.alt, GUIDE_IMAGES_LB.citedFact.alt];
 
 // The audit reads the source literal (a non-ASCII character is written as a \\uXXXX escape there) and cuts a hit at 160 characters, so an exempt line is matched by EXACT equality with that cut of
-// its source form, never by a shared start; the full text of each is pinned in full elsewhere in this file. Exactly four hits may be exempt.
+// its source form, never by a shared start; the full text of each is pinned in full elsewhere in this file. Exactly six hits may be exempt (the four above plus R1's layout-B frame-05 and frame-03 alts, 17 Oct: the frame-03 alt repeats the app's own row note, that the screening names the fact and does not quote words).
 const asSource = (t: string): string => t.replace(/[^\x00-\x7f]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).slice(0, 160);
 const EXEMPT_HITS = new Set(QUOTES_LINES.map(asSource));
 
 test("the guide's own words carry no wording-audit hit: no proof, established or verbatim on the house path; the stale frontier sentences are gone (the frontier reader was removed in #129)", () => {
   // R1 (15 Oct) signed four lines (three guide sentences and the frame-05 alt) that say the check "will not look at quotes": the word is negated and about the citation check, not the house path's judging.
   const hits = scanSource("src/lib/guide/copy.ts", copySource);
-  assert.equal(hits.filter((h) => EXEMPT_HITS.has(h.text)).length, 4, "exactly the four R1-signed lines are exempt");
+  assert.equal(hits.filter((h) => EXEMPT_HITS.has(h.text)).length, 6, "exactly the six R1-signed lines are exempt");
   assert.deepEqual(hits.filter((h) => !EXEMPT_HITS.has(h.text)), []);
   assert.deepEqual(scanSource("src/app/guide/page.tsx", readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8")), []);
 });
@@ -42,7 +43,7 @@ test("the six screenshots are the files the guide names, each with plain alt tex
     assert.ok(i.alt.length > 30 && (QUOTES_LINES.includes(i.alt) || !BANNED.test(i.alt)), i.alt); // the one R1-signed alt that says quotes are not checked is exempt
     assert.ok(existsSync(join(root, "public", "guide", i.file)), `public/guide/${i.file} is missing`);
   }
-  const extra = readdirSync(join(root, "public", "guide")).filter((f) => !files.includes(f) && !f.startsWith("."));
+  const extra = readdirSync(join(root, "public", "guide"), { withFileTypes: true }).filter((d) => d.isFile() && !files.includes(d.name) && !d.name.startsWith(".")).map((d) => d.name);
   assert.deepEqual(extra, [], "unlisted files in public/guide");
 });
 
@@ -162,4 +163,37 @@ test("#261: guide step 1 and frame 01 describe the Matter workspace, as R1 worde
   assert.equal(statSync(join(root, "public", "guide", "01-screening-input.png")).size, 157730, "Studio's retake from the live Matter workspace (sha256 f370fed2798a…)");
   assert.equal(GUIDE_IMAGES.input.alt, "The top of the Matter workspace with an invented plot-sale matter: the four steps (Facts done, Screen available, Memo and Hearing preparation not yet), the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, the retention note, and the box with the matter pasted in.");
   assert.doesNotMatch(GUIDE_STEPS.map((x) => `${x.heading} ${x.text}`).join(" "), /four steps|step bar/i, "no step-count claim in the guide text (R1); the picture's alt may name the steps");
+});
+
+// #416: the layout-B guide: six frames retaken on the live d31 layout-B build (Studio, FRAME_MANIFEST.txt; frames 02-04 are the invented-matter mocked version). New files only: the old frames stay for the flag-off guide.
+const LB_FRAMES: Record<string, string> = {
+  "01-screening-input.png": "66953605b62ca66bd3f3bf4aebd4b6fac459038e6ff9846400f1038df6386242",
+  "02-ingredient-checklist.png": "4e44fe243038b23ce0aa94cff8fd39c1e9c0b107c09b3c7f859ddce90233d978",
+  "03-cited-fact.png": "24180e3ee4786c978eaf983c1d16d9389d99f2bce923ee5ce035c3d7748843b9",
+  "04-needs-your-review.png": "07b11d93069c05ff137d0ba1bcf6864d1a7492221a5d1edc0afa3a206861770f",
+  "05-citations-panel.png": "58c5511bea41e3a0e666795d0d3349244262053b552f873c9b3fc85195e5ec21",
+  "06-memo-export.png": "59410e9f4523b0c43884407e9508af1a01cee99de3cef66060bb3eeb6cd42068",
+};
+test("the layout-B frames are exactly the six files in public/guide/lb, each pinned by sha256 (R2's allowance list)", () => {
+  const dir = join(root, "public", "guide", "lb");
+  assert.deepEqual(readdirSync(dir).sort(), Object.keys(LB_FRAMES).sort(), "public/guide/lb holds exactly the six frames");
+  for (const [f, sha] of Object.entries(LB_FRAMES)) assert.equal(createHash("sha256").update(readFileSync(join(dir, f))).digest("hex"), sha, f);
+  assert.deepEqual(Object.values(GUIDE_IMAGES_LB).map((i) => i.file), Object.keys(LB_FRAMES).map((f) => `lb/${f}`));
+});
+test("the layout-B guide wording is R1's, by hash: caption, six alts, step 1 and step 7; 'screening' not 'matter'; the live guide untouched (#416)", () => {
+  const sha16 = (x: string) => createHash("sha256").update(x).digest("hex").slice(0, 16);
+  assert.equal(sha16(GUIDE_SCREENSHOT_NOTE_LB), "78481acb991e4e81");
+  const hashes = ["5a524fc56f46dfc5", "fdfbe51502257740", "1b7098c1748e1570", "edf31e8b41df8e4a", "ff4d11e69f17403a", "63723e8bcd89b68d"];
+  assert.deepEqual(Object.values(GUIDE_IMAGES_LB).map((i) => sha16(i.alt)), hashes);
+  for (const i of Object.values(GUIDE_IMAGES_LB)) assert.doesNotMatch(i.alt, /matter/i, i.alt);
+  assert.equal(sha16("Open This screening in the menu."), "29cf8045db774e24");
+  assert.ok(GUIDE_STEP1_TEXT_LB.startsWith("Open This screening in the menu. In the Facts step,"));
+  assert.equal(GUIDE_STEP1_TEXT_LB.replace("Open This screening in the menu.", "Open Matter in the menu."), GUIDE_STEP1_TEXT_LIVE, "only that sentence differs");
+  assert.equal(sha16("keep them with the other papers of the screening."), "905f0bd787eb6f0d");
+  assert.ok(GUIDE_STEP7_TEXT_LB.endsWith("so keep them with the other papers of the screening."));
+  assert.equal(GUIDE_STEP7_TEXT_LB.replace("so keep them with the other papers of the screening.", "so keep them as you would the matter file."), GUIDE_STEP7_TEXT_LIVE, "only that clause differs");
+  // the live guide keeps its files and words
+  assert.deepEqual(Object.values(GUIDE_IMAGES_LIVE).map((i) => i.file), ["01-screening-input.png", "02-ingredient-checklist.png", "03-cited-fact.png", "04-needs-your-review.png", "05-citations-panel.png", "06-memo-export.png"]);
+  assert.match(GUIDE_IMAGES_LIVE.input.alt, /Matter workspace/);
+  assert.equal(GUIDE_IMAGES, GUIDE_IMAGES_LIVE, "flag off: the live guide");
 });

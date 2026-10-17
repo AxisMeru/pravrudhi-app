@@ -4,6 +4,7 @@
 // (whose sentence is imported from the frontier files, not written here).
 import { ABOUT_LINE, PRODUCT_LINE } from "../productCopy";
 import { CITATIONS_PANEL_ENABLED } from "../citationNav";
+import { LAYOUT_MATTER_B } from "../layoutFlag";
 import { OFFENCES, offenceLabel } from "../screening/offences";
 import { BANNER_STANDING_LINE, CHIP_LABEL, DEFENCE_HEADING, DEFENCE_PROMPT_NOTE} from "../screening/copy";
 
@@ -15,6 +16,8 @@ export const GUIDE_SUBTITLE = "How to use Pravrudhi-Nyaya on a matter, what each
 
 export const GUIDE_SCREENSHOT_NOTE =
   "These screenshots were captured on a development stack, not on the live service. The screening input and the memo export use an invented matter; nothing on them is a real person or a real case. The ingredient checklist, the cited-fact row and the needs-your-review crop show a run on a public court order, used as an illustrative example; its output is not evidence.";
+/** R1 (17 Oct, #416): on layout B the guide's frames are 1:1 captures of the live layout-B build with an INVENTED engine answer (no judge, no spend), so this sentence replaces the development-stack note above: shown once, at the top of the guide, instead of it. */
+export const GUIDE_SCREENSHOT_NOTE_LB = "These screenshots show an invented example, not a real screening. They show no result beyond what the example screen displays.";
 
 /** R1, 14 Oct: under frame 03, which shows a No fact cited row from a real run; it never calls the image an example of a supported row. */
 export const GUIDE_CITED_FACT_CAPTION =
@@ -35,7 +38,8 @@ export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
 const FRAME_05_RETAKEN = true; // retaken by Web on a citations-ON build at the D9 batch (#281: label "Citations, one per line"; #280: placeholder (2014) 8 SCC 273); 528x366, 28,522 bytes, invented matter only
 
 /** The six screenshots, in the order the guide uses them. Files live in frontend/public/guide/. */
-export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage> = {
+type GuideImages = Record<"input" | "checklist" | "citedFact" | "needsReview" | "citations" | "memo", GuideImage>;
+export const GUIDE_IMAGES_LIVE: GuideImages = {
   input: {
     file: "01-screening-input.png",
     alt: "The top of the Matter workspace with an invented plot-sale matter: the four steps (Facts done, Screen available, Memo and Hearing preparation not yet), the standing not-legal-advice line, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, the retention note, and the box with the matter pasted in.",
@@ -64,6 +68,37 @@ export const GUIDE_IMAGES: Record<"input" | "checklist" | "citedFact" | "needsRe
     alt: "The memo export controls on the Matter workspace page once a result is shown: the button \u201cDownload the memo\u201d, opened to show Word (.docx) and Markdown (.md), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).",
   },
 };
+
+/** #416: the layout-B guide: the six frames retaken on the live d31 layout-B build (Studio, public/guide/lb/, sha256-pinned in guide.spec.ts); frames 02-04 are the invented-matter mocked version, so their alts start with R1's short form. The flag-off guide keeps GUIDE_IMAGES_LIVE. */
+export const GUIDE_IMAGES_LB: GuideImages = {
+  input: {
+    file: "lb/01-screening-input.png",
+    alt: "The top of the screening page, from an invented plot-sale example and not a real screening: the sidebar with its This screening, General and Reference groups, the four steps (Facts done, Screen available, Memo and Hearing preparation not yet), the standing not-legal-advice line, the line Also: Safety record and Benchmarks and the NyayaSiddhi film, the caveat strip, the closed About this screening fold, the example entry naming two public court orders, the retention note, and the box with the invented facts pasted in.",
+  },
+  checklist: {
+    file: "lb/02-ingredient-checklist.png",
+    alt: "The result of a screening of an invented plot-sale example, not a real screening: the heading Cheating, BNS 318, IPC 415, a headline saying 1 of 3 ingredients supported by a fact, 1 to look for and 1 for your review, then three ingredient rows grouped as Needs your review, Supported by a fact and No fact cited, each with a What to check line.",
+  },
+  citedFact: {
+    // frame 03 shows a Supported by a fact row, so the live guide's "This row has no cited fact" caption does not apply and there is no caption here (R1, 17 Oct)
+    file: "lb/03-cited-fact.png",
+    alt: "One ingredient row from the same invented example, marked Supported by a fact, with the line that it cites fact F1 in full and that the screening names the fact and does not quote words, and its What to check line.",
+  },
+  needsReview: {
+    file: "lb/04-needs-your-review.png",
+    alt: "One ingredient row from the same invented example, marked Needs your review, with its plain reason and a What to check line; it asks you to check, it is not an error.",
+  },
+  citations: {
+    file: "lb/05-citations-panel.png",
+    alt: "The Case citations panel as a signed-out visitor sees it: a preview label saying existence check only, the line Citation checks need you to be signed in, a label Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a greyed Check citations button.",
+    caption: GUIDE_CITATIONS_CAPTION,
+  },
+  memo: {
+    file: "lb/06-memo-export.png",
+    alt: "The memo export controls on the screening page, from the same invented example: a Download the memo button with its menu open, showing Word (.docx) and Markdown (.md); beside it the buttons Print / save as PDF and Download run record (.json); and below, the buttons Edit facts and New screening.",
+  },
+};
+export const GUIDE_IMAGES: GuideImages = LAYOUT_MATTER_B ? GUIDE_IMAGES_LB : GUIDE_IMAGES_LIVE;
 
 export interface GuideStep {
   id: string;
@@ -97,12 +132,20 @@ export const GUIDE_CITATIONS_ON_TEXT =
 export const GUIDE_LIMIT_CITATIONS_ON =
   "The citation check looks the case up in our index from the citation alone and does not look at quotes. \u201cFound in our index\u201d is existence only, not a verification; \u201cNot found in our index\u201d does not show whether the citation is real, because the index does not hold every judgment.";
 
+/** Step 1 names the page the way the menu does: "Matter" on the live layout, "This screening" on layout B (R1, 17 Oct: no matter store exists). */
+export const GUIDE_STEP1_TEXT_LIVE =
+  "Open Matter in the menu. In the Facts step, paste the FIR, complaint or narrative and choose Split into numbered facts. Each fact becomes F1, F2 and so on, and you can edit any of them. Then pick the offence or offences to screen for. To see how it reads, choose Try an example from a public court order. Do not submit real names or case details unless your organisation allows it: the page shows the retention notice before you send.";
+export const GUIDE_STEP1_TEXT_LB = GUIDE_STEP1_TEXT_LIVE.replace("Open Matter in the menu.", "Open This screening in the menu.");
+/** Step 7 closes on how to keep the files: "the matter file" on the live layout, "the other papers of the screening" on layout B (R1, 17 Oct). */
+export const GUIDE_STEP7_TEXT_LIVE =
+  "Once a screening result is shown, the menu Download the memo holds Word (.docx) and Markdown (.md); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and a disclaimer that this is a screening aid, not legal advice. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.";
+export const GUIDE_STEP7_TEXT_LB = GUIDE_STEP7_TEXT_LIVE.replace("so keep them as you would the matter file.", "so keep them with the other papers of the screening.");
 export const GUIDE_STEPS_HEADING = "Screening, step by step";
 export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "paste",
     heading: "1. Paste the facts and pick the offence",
-    text: "Open Matter in the menu. In the Facts step, paste the FIR, complaint or narrative and choose Split into numbered facts. Each fact becomes F1, F2 and so on, and you can edit any of them. Then pick the offence or offences to screen for. To see how it reads, choose Try an example from a public court order. Do not submit real names or case details unless your organisation allows it: the page shows the retention notice before you send.",
+    text: LAYOUT_MATTER_B ? GUIDE_STEP1_TEXT_LB : GUIDE_STEP1_TEXT_LIVE,
     image: GUIDE_IMAGES.input,
   },
   {
@@ -139,8 +182,8 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "export",
     heading: "7. Export the memo",
-    text: "Once a screening result is shown, the menu Download the memo holds Word (.docx) and Markdown (.md); Print / save as PDF opens your browser's print window; Download run record (.json) is a separate button. The memo carries the run, the versions and a disclaimer that this is a screening aid, not legal advice. The run record is a JSON file that includes the facts you entered, the full result that came back, the engine version and the checker version. Both are built in your browser and are saved to your device when you download them, so keep them as you would the matter file.",
-    image: GUIDE_IMAGES.memo,
+    text: LAYOUT_MATTER_B ? GUIDE_STEP7_TEXT_LB : GUIDE_STEP7_TEXT_LIVE,
+        image: GUIDE_IMAGES.memo,
   },
 ];
 
