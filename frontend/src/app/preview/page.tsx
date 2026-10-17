@@ -35,6 +35,9 @@ function Card({ id, name, line, children }: { id: string; name: string; line: st
   );
 }
 
+// DRAFT until R1 words the line (asked 17 Oct): shown when the engine no longer holds the matter.
+const GONE_LINE = "This matter is no longer held. Start a matter and add the papers again.";
+
 const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", M.b3Presentation], ["memo", M.b3Memo], ["information", M.b3Information], ["notice", M.b3Notice], ["receipt", M.b3Receipt]];
 
 export default function PreviewPage() {
@@ -57,7 +60,7 @@ export default function PreviewPage() {
   async function refresh(m: string) {
     const a = await previewPost("/matter-spans/list", { matter_id: m });
     if (a.status === 200) { const p = parsePapers(a.body); setPapers(p.papers); setPagesNote(p.pagesNote); }
-    else if (a.status === 404) { setMatter(null); setPapers([]); }
+    else if (a.status === 404) { setMatter(null); setPapers([]); setMessage(GONE_LINE); }
   }
   async function run(f: () => Promise<void>): Promise<void> {
     setBusy(true); setMessage(null);
@@ -88,9 +91,17 @@ export default function PreviewPage() {
     if (a.status !== 200) return setMessage(refusal(a.status, a.body));
     setMatter(null); setPapers([]); clearResults();
   });
+  /** A 404 on a matter workflow can mean the store no longer holds the matter (a restart): check with the list route and, if it is gone, start over and say so. */
+  const matterGone = async (m: string): Promise<boolean> => {
+    const l = await previewPost("/matter-spans/list", { matter_id: m });
+    if (l.status !== 404) return false;
+    setMatter(null); setPapers([]); clearResults(); setMessage(GONE_LINE);
+    return true;
+  };
   const runOnMatter = <V,>(path: string, parse: (b: Answer) => V | null, set: (v: V | null) => void, extra: Record<string, unknown> = {}) => run(async () => {
     if (!matter) return;
     const a = await previewPost(path, { matter_id: matter, ...extra });
+    if (a.status === 404 && (await matterGone(matter))) return;
     if (a.status !== 200) { set(null); return setMessage(refusal(a.status, a.body)); }
     const v = parse(a.body);
     if (!v) return setMessage(PREVIEW.wf_error);

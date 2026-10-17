@@ -96,3 +96,15 @@ test("B3 checklist: the first run sends unconfirmed dates; Confirm resends the d
   await expect(page.getByTestId("pv-b3-counts").first()).toContainText("2013-05-01");
   expect(bodies[1].cheque_date).toEqual({ value: "01.02.2013", source: "typed", confirmed: true, confirmed_as: "2013-02-01" });
 });
+
+test("when the engine no longer holds the matter (a restart), the page says so and offers to start again", async ({ page }) => {
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  let listed = 0;
+  await page.route("**/api/v1/matter-spans/list", (r) => (listed++ === 0 ? r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }) : r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } })));
+  await page.route("**/api/v1/chronology", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
+  await page.goto("/preview");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("pv-a3-run").click();
+  await expect(page.getByTestId("pv-message")).toContainText("no longer held");
+  await expect(page.getByTestId("pv-start")).toBeVisible();
+});
