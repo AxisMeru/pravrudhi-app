@@ -1,5 +1,5 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1g_2026-10-17.md (sha12 13e629837479), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
-// NOT built (not cleared): r4_published, r6_source_quote.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1h_2026-10-17.md (sha12 ab10210c43c4), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
@@ -32,6 +32,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r5_caveat: "The labels are model-extracted and not human-checked. There is no human-checked subset.",
   r6_name: "NyayaSiddhi v0.2",
   r6_source: "Built from High Court judgments (AWS Open Data, CC BY 4.0) by pinned scripts. By the source field, every released item is a High Court judgment; Supreme Court items were dropped before release. Items naming a minor or a protected victim are dropped, and adult names are kept as in the source. Short items and duplicates are dropped.",
+  r6_source_quote: "The court's finding quote is removed by the build script; we checked a sample.",
   r6_licence: "Our annotations, metadata and scorer are CC BY 4.0. The source text is court-derived; the dataset card gives the basis.",
   r6_used: "A public development benchmark with two released sets. The first was used to design fixes. Both released sets were seen by us and by the models we used. The dataset card gives the counts.",
   r6_published: "https://huggingface.co/datasets/AxisMeru/nyayasiddhi (README, the two data files, the scorer and the schemas).",
@@ -75,7 +76,7 @@ export const DATA_SETS: readonly { id: string; name: string; lines: readonly str
   { id: "r3", name: "r3_name", lines: ["r3_source", "r3_licence_fallback", "r3_used", "r3_published", "r3_caveat"] },
   { id: "r4", name: "r4_name", lines: ["r4_source", "r4_licence", "r4_caveat"] },
   { id: "r5", name: "r5_name", lines: ["r5_source", "r5_published", "r5_caveat"] },
-  { id: "r6", name: "r6_name", lines: ["r6_source", "r6_licence", "r6_used", "r6_published", "r6_caveat"] },
+  { id: "r6", name: "r6_name", lines: ["r6_source", "r6_source_quote", "r6_licence", "r6_used", "r6_published", "r6_caveat"] },
   { id: "r7", name: "r7_name", lines: ["r7_source", "r7_published", "r7_caveat", "r7_sc"] },
   { id: "r8", name: "r8_name", lines: ["r8_casehold", "r8_legalbench", "r8_published"] },
   { id: "r9", name: "r9_name", lines: ["r9_32b", "r9_7b", "r9_other"] },
@@ -92,7 +93,7 @@ export type DataLeadIn = keyof typeof DATA_LEAD_INS;
 /** The lead-in of a line by its key: source, licence, used, published and caveat lines get theirs; the lines of the older-research and model rows (r8_casehold, r8_legalbench, r9_*) name their own subject and get none. */
 export function leadInOf(key: string): DataLeadIn | null {
   const part = key.replace(/^r\d+_/, "");
-  if (part === "source" || part === "source_fallback") return "source";
+  if (part === "source" || part === "source_fallback" || part === "source_quote") return "source";
   if (part === "licence" || part === "licence_fallback") return "licence";
   if (part === "used") return "used";
   if (part === "published") return "published";
