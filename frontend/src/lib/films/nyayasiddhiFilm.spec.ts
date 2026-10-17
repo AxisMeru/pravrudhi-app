@@ -205,11 +205,11 @@ test("the video's preload attribute is pinned: none for every film (nothing is f
 });
 
 // The film on /benchmarks (operator, 16 Oct; R1's strings hash 9f41ebf6cbd5): the three new strings are pinned, the signed rows file is byte-for-byte the one that was signed, and the page passes it unchanged.
-test("the /benchmarks film: R1's three strings, the rows.json sha256 unchanged, the page keeps feeding the signed rows to the results view and puts the film above it", () => {
+test("the /benchmarks film: R1's three strings, the rows.json sha256 is the published-rows file (d35: the 8 published organiser rows, Track A rows_merged_proposal d50527be584f), the page keeps feeding the signed rows to the results view and puts the film above it", () => {
   assert.equal(BENCHMARKS_FILM_HEADING, "NyayaSiddhi film");
   assert.equal(FILM_DOWNLOAD_NARRATED, "Download the narrated film");
   assert.equal(BENCHMARKS_FILM_POSTER_ALT, "Poster of the NyayaSiddhi film");
-  assert.equal(createHash("sha256").update(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"))).digest("hex"), "ec97253f2d983b871a09953b16115411dc4c7c584668964070e5e1580a15670a");
+  assert.equal(createHash("sha256").update(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"))).digest("hex"), "d50527be584f1355ec589488b53d963102b8709cbfa2359012fa8af5e2a318a8");
   const page = readFileSync(join(root, "src", "app", "benchmarks", "page.tsx"), "utf8");
   assert.match(page, /parseRows\(rowsFile\)/);
   assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\} \/>/);
