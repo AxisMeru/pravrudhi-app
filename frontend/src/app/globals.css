@@ -294,3 +294,21 @@ html[data-look="tonal"] [data-testid="summary-banner"] {
     box-shadow: inset 4px 0 0 var(--color-text-dim);
   }
 }
+
+/* app#404 (forced colours): the active nav item's tint and inset shadow are dropped by forced-colors, leaving only aria-current, so give it a system-colour outline and an underline. */
+@media (forced-colors: active) {
+  #primary-navigation nav a[aria-current] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+/* app#405 (reduced motion): the drawer's slide, the nav links' colour fade and layout B's Reference chevron turn do not animate. */
+@media (prefers-reduced-motion: reduce) {
+  #primary-navigation,
+  #primary-navigation nav a,
+  [data-testid="mb-reference-chevron"] {
+    transition: none;
+  }
+}

@@ -32,6 +32,8 @@ export interface PalettePage {
   // Only the first nine sidebar entries get a bare-digit shortcut — "where sensible" per the ask, and ten-plus
   // single-digit slots would leave no digit free for anything else.
   digit?: number;
+  // Words that find the page without being shown (layout B names the page "This screening", and "matter" still finds it; app#403).
+  keywords?: string[];
 }
 
 // Which pages are the improvement loop's own, not the law-firm product's (Lead-2 decision on #525, 2026-10-06, binding:
@@ -73,7 +75,7 @@ export const PALETTE_PAGES: PalettePage[] = [
   { id: "nyaya", label: "Nyaya", href: "/nyaya", icon: "Scale", digit: 7 },
   { id: "runs", label: "Runs", href: "/runs", icon: "History", digit: 8 },
   { id: "models", label: "Models", href: "/models", icon: "Package", digit: 9 },
-  { id: "screening", label: LAYOUT_MATTER_B ? MB.screeningLabel : WORKSPACE_NAV_LABEL, href: "/screening", icon: "ScanSearch" }, // layout B names the page as its nav does (R1, 16 Oct)
+  { id: "screening", label: LAYOUT_MATTER_B ? MB.screeningLabel : WORKSPACE_NAV_LABEL, href: "/screening", icon: "ScanSearch", keywords: LAYOUT_MATTER_B ? [WORKSPACE_NAV_LABEL] : undefined }, // layout B names the page as its nav does (R1, 16 Oct)
   { id: "catalogue", label: "Catalogue", href: "/catalogue", icon: "Library" },
   { id: "citations", label: "Citation check", href: "/citations", icon: "Library" },
   { id: "demo", label: "How it works", href: "/demo", icon: "Scale" },
@@ -118,6 +120,7 @@ export interface PaletteResult {
   href?: string;
   run?: () => Promise<PaletteRunResult>;
   disabledReason?: string;
+  keywords?: string[];
 }
 
 export interface PaletteIndex {
@@ -166,6 +169,7 @@ function pageResults(isStudio: boolean, showRuns: boolean, surface: boolean = DE
     title: p.label,
     href: p.href,
     hint: p.digit ? String(p.digit) : undefined,
+    keywords: p.keywords,
   }));
 }
 
@@ -272,7 +276,7 @@ export function buildCatalogue(
 export function filterResults(all: PaletteResult[], query: string): PaletteResult[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return all.filter((r) => r.title.toLowerCase().includes(q) || (r.subtitle?.toLowerCase().includes(q) ?? false));
+  return all.filter((r) => r.title.toLowerCase().includes(q) || (r.subtitle?.toLowerCase().includes(q) ?? false) || (r.keywords?.some((k) => k.toLowerCase().includes(q)) ?? false));
 }
 
 // ---------------------------------------------------------------------------
