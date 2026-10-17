@@ -22,6 +22,8 @@ const EXEMPT_FILES = new Map<string, string>([
 const EXEMPT_SENTENCES_IN = new Map<string, readonly string[]>([
   // R1's "About this run" disclosure of the open-weight reference arms (15 Oct), copied by the data build from the signed manifest's overlap_check: it says WE did not train that model; it says nothing about what happens to a submission
   ["src/data/nyayasiddhi/rows.json", ["not checked: public open-weight model used as released, no training by us"]],
+  // R1's data note (17 Oct, #431): LegalBench's held-out tasks "never as training data" says what WE did with a public benchmark's tasks; it says nothing about what happens to a submission
+  ["src/lib/howItWasBuiltData.ts", ["used only as held-out checks and never as training data"]],
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
