@@ -189,3 +189,18 @@ test("D8: the sidebar's section labels (WORK, REFERENCE, ACCOUNT) are at least 1
   expect(sizes.length).toBeGreaterThanOrEqual(3);
   for (const s of sizes) expect(s.px, `${s.text} is ${s.px} px`).toBeGreaterThanOrEqual(12);
 });
+
+// app#403 item 3 (Track B): with the Reference group open the phone drawer is longer; the nav scrolls and its last link can be reached and is thumb-sized.
+test("phone drawer: a long nav scrolls inside the drawer and its last link is reachable (#403 item 3)", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 600 });
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/screening");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  const nav = page.getByRole("navigation", { name: "Primary" });
+  expect(await nav.evaluate((el) => getComputedStyle(el).overflowY), "the nav scrolls inside the drawer").toMatch(/auto|scroll/);
+  const last = nav.getByRole("link").last();
+  await last.scrollIntoViewIfNeeded();
+  const b = (await last.boundingBox())!;
+  expect(b.y + b.height, "the last link is inside the viewport after scrolling").toBeLessThanOrEqual(600);
+  expect(b.height, "and thumb-sized").toBeGreaterThanOrEqual(SIZE_MIN);
+});

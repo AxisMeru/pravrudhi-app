@@ -38,6 +38,7 @@ import { ExampleBanner, ExampleNotFound } from "@/components/ExampleBanner";
 import { takeHandoff, takeHandoffCitations } from "@/lib/handoff";
 import { HearingPreparation } from "@/components/HearingPreparation";
 import { WorkspaceSteps } from "@/components/WorkspaceSteps";
+import { useNarrow } from "@/lib/useNarrow";
 import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, DROP_ZONE_LINE, DROP_ZONE_TYPES, EXAMPLE_ENTRY_LABEL, FACTS_HEADING, OFFENCE_HEADING, OFFENCE_SEARCH_EMPTY, OFFENCE_SEARCH_LABEL } from "@/lib/screening/copy";
@@ -393,6 +394,21 @@ export default function ScreeningPage() {
     setResult(null); setRequest(null); setFacts([""]); setPaste(""); setPicked(new Set()); setFactFilterState(null); setError(null); setView("intake");
   }
   const mbHide = mbResultView ? ({ hidden: true } as const) : {};
+  // The standing line and (layout B) the Also line move together: on a phone they are RENDERED above the first-run start panel (DOM order = visual order, so focus and reading order match; one instance, app#403 item 1), elsewhere below it as before.
+  const narrow = useNarrow();
+  const standingAndAlso = (
+    <>
+      {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
+      {LAYOUT_MATTER_B && !result && (
+        <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] max-md:flex-col max-md:items-start print:hidden" data-testid="mb-also">
+          {MB.alsoLead}{" "}
+          <Link href="/safety" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-safety">{MB.alsoSafety}</Link>{" "}
+          <span aria-hidden="true" className="max-md:hidden">·</span>{" "}
+          <Link href="/benchmarks" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-benchmarks">{MB.alsoBenchmarks}</Link>
+        </p>
+      )}
+    </>
+  );
 
   const version = svc?.kind === "ok" ? svc.status.engine_version : null;
   const opts = () => ({ engineVersion: version, generatedAt: new Date().toISOString(), example: memoExample(request?.facts ?? [], example) });
@@ -422,6 +438,7 @@ export default function ScreeningPage() {
       />
       <div className={`mx-auto flex w-full ${mbResultView ? "max-w-6xl" : "max-w-4xl"} flex-1 flex-col gap-6 p-4 sm:p-8`}>
         {!mbResultView && <WorkspaceSteps hasFacts={facts.some((f) => f.trim() !== "")} hasResult={result !== null && request !== null} />}
+        {LAYOUT_MATTER_B && narrow && standingAndAlso}
         {hydrated && !startPanelClosed && !result && facts.every((f) => f.trim() === "") && paste.trim() === "" && !example && (
           <StartPanel
             onExample={() => { const t = document.getElementById("example-entry"); t?.scrollIntoView({ block: "center" }); t?.querySelector<HTMLElement>("a")?.focus(); }}
@@ -429,15 +446,7 @@ export default function ScreeningPage() {
             onClose={() => setStartPanelClosed(true)}
           />
         )}
-        {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
-        {LAYOUT_MATTER_B && !result && (
-          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] max-md:flex-col max-md:items-start print:hidden" data-testid="mb-also">
-            {MB.alsoLead}{" "}
-            <Link href="/safety" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-safety">{MB.alsoSafety}</Link>{" "}
-            <span aria-hidden="true" className="max-md:hidden">·</span>{" "}
-            <Link href="/benchmarks" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-benchmarks">{MB.alsoBenchmarks}</Link>
-          </p>
-        )}
+        {!(LAYOUT_MATTER_B && narrow) && standingAndAlso}
         <CaveatStrip warming={warming} />
         {!mbResultView && <details className="rounded-md border border-[var(--color-border)] p-3 print:hidden" data-testid="about-screening">
           <summary className="min-h-6 cursor-pointer text-sm font-medium text-[var(--color-text)] max-md:py-3">{ABOUT_SCREENING_LABEL}</summary>

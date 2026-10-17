@@ -301,6 +301,22 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       // app#403: on a phone the two links stack (no dangling "·" at a line end); from 768 px they sit on one line with the separator
       const sep = line.locator('span[aria-hidden="true"]');
       const s1 = (await page.getByTestId("mb-also-safety").boundingBox())!, s2 = (await page.getByTestId("mb-also-benchmarks").boundingBox())!;
+      // app#403 item 1 (R1: one instance, repositioned by CSS order on a phone only, directly under the standing line): at 390 px the standing line and the Also line sit above the first-run start panel, the standing line first; at 1280 they stay below it
+      expect(await page.getByTestId("mb-also").count(), "one instance of the Also line").toBe(1);
+      const startPanel = page.getByTestId("start-panel");
+      await expect(startPanel, "the first-run panel shows on an empty page").toBeVisible();
+      {
+        const p = (await startPanel.boundingBox())!, st = (await standing.boundingBox())!, al = (await line.boundingBox())!;
+        if (phone) {
+          expect(al.y, "the Also line is above the start panel on a phone").toBeLessThan(p.y);
+          expect(st.y, "and the standing line is directly above it").toBeLessThan(al.y);
+          expect(al.y, "within the first screen").toBeLessThan(700);
+          const domOrder = await page.evaluate(() => { const q = (id: string) => document.querySelector(`[data-testid="${id}"]`)!; const before = (x: Element, y: Element) => !!(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING); return { standingBeforeAlso: before(q("standing-line"), q("mb-also")), alsoBeforePanel: before(q("mb-also"), q("start-panel")), stepsBeforeStanding: before(q("workspace-steps"), q("standing-line")) }; });
+          expect(domOrder, "on a phone the DOM order equals the visual order (keyboard and reading order match)").toEqual({ standingBeforeAlso: true, alsoBeforePanel: true, stepsBeforeStanding: true });
+        } else {
+          expect(al.y, "on a desktop it stays below the start panel").toBeGreaterThan(p.y);
+        }
+      }
       if (phone) {
         await expect(sep).toBeHidden();
         expect(s2.y, "the second link is on its own line").toBeGreaterThan(s1.y + s1.height - 1);
