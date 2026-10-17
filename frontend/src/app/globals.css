@@ -236,6 +236,10 @@ html[data-layout="matter-b"] #primary-navigation {
     text-decoration: underline;
     text-underline-offset: 4px;
   }
+  /* app#403 item 8 (Track B): the current item's keyboard ring must differ from its marker, so it sits outside the box */
+  #primary-navigation nav a[aria-current]:focus-visible {
+    outline-offset: 2px;
+  }
 }
 /* app#405 (reduced motion): the drawer's slide, the nav links' colour fade and layout B's Reference chevron turn do not animate. */
 @media (prefers-reduced-motion: reduce) {
