@@ -104,7 +104,7 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
         await expect(row).toContainText("preview: existence check only");
       } else {
         await expect(link).toHaveAttribute("href", /^\/screening#step-(screen|memo|hearing)$/);
-        await expect(link).toHaveText("Open in Matter workspace");
+        await expect(link).toHaveText((await isLayoutB(page)) ? "Open the screening page" : "Open in Matter workspace");
       }
     } else {
       expect(badge).toBe("Building");
