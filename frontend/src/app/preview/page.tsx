@@ -7,6 +7,7 @@ import { PreviewBadge } from "@/components/PreviewBadge";
 import { A1Result, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
+import { MATTER_NOTE } from "@/lib/previewMatterNote";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseS1, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, str, type PaperRow } from "@/lib/previewApi";
@@ -35,8 +36,7 @@ function Card({ id, name, line, children }: { id: string; name: string; line: st
   );
 }
 
-// DRAFT until R1 words the line (asked 17 Oct): shown when the engine no longer holds the matter.
-const GONE_LINE = "This matter is no longer held. Start a matter and add the papers again.";
+const GONE_LINE = MATTER_NOTE.matter_gone;
 
 const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", M.b3Presentation], ["memo", M.b3Memo], ["information", M.b3Information], ["notice", M.b3Notice], ["receipt", M.b3Receipt]];
 
@@ -173,6 +173,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{MATTER_NOTE.matter_note}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
 
