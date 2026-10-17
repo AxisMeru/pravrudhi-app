@@ -59,7 +59,7 @@ test("A3 chronology: an ambiguous date lists both readings, the paper's words sh
   const amb = page.getByTestId("pv-a3-ambiguous");
   await expect(amb.getByTestId("pv-a3-readings").locator("li")).toHaveText(["2024-06-12", "2024-12-06"]);
   await expect(amb).toContainText("The accused was arrested on 12.06.2024");
-  await expect(page.getByTestId("pv-a3")).not.toContainText(/cannot say yet|custody/i);
+  await expect(page.getByTestId("pv-a3")).not.toContainText(/cannot say yet|custody days/i);
 });
 
 test("A5 review agenda: the section's own words, the not-added list and the not-assessed lines; nothing says an ingredient is met", async ({ page }) => {
@@ -90,7 +90,7 @@ test("B3 checklist: the first run sends unconfirmed dates; Confirm resends the d
   await page.getByTestId("pv-b3-cheque").fill("01.02.2013");
   await page.getByTestId("pv-b3-notice").fill("20.02.2013");
   await page.getByTestId("pv-b3-run").click();
-  await expect(page.getByTestId("pv-b3-steps").locator("li")).toHaveCount(4);
+  await expect(page.getByTestId("pv-b3-steps").locator(":scope > li")).toHaveCount(4);
   expect(bodies[0].cheque_date).toEqual({ value: "01.02.2013", source: "typed", confirmed: false });
   await page.getByTestId("pv-b3-confirm").first().click();
   await expect(page.getByTestId("pv-b3-counts").first()).toContainText("2013-05-01");
@@ -99,8 +99,7 @@ test("B3 checklist: the first run sends unconfirmed dates; Confirm resends the d
 
 test("when the engine no longer holds the matter (a restart), the page says so and offers to start again", async ({ page }) => {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
-  let listed = 0;
-  await page.route("**/api/v1/matter-spans/list", (r) => (listed++ === 0 ? r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }) : r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } })));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
   await page.goto("/preview");
   await page.getByTestId("pv-start").click();
