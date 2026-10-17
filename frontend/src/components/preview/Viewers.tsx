@@ -1,6 +1,6 @@
 import { statusLabel } from "@/lib/citationCheck";
 import { PREVIEW_MORE } from "@/lib/previewMoreCopy";
-import type { A1View, A3View, A5View, B3View, CitationRow, S1View } from "@/lib/previewParsers";
+import type { A1View, A3View, A5View, B3View, CitationRow, HearingRow, HearingView, S1View } from "@/lib/previewParsers";
 
 const P = "text-sm text-[var(--color-text)]";
 const DIM = "text-xs text-[var(--color-text-dim)]";
@@ -170,6 +170,56 @@ export function B3Result({ v, onConfirm, busy }: { v: B3View; onConfirm?: (input
         ))}
       </ol>
       <List items={v.notes} />
+      <List items={v.notAssessed} />
+    </div>
+  );
+}
+
+function HearingRows({ rows }: { rows: HearingRow[] }) {
+  return (
+    <ul className="mt-1 space-y-2" data-testid="pv-hp-rows">
+      {rows.map((r, i) => (
+        <li key={i} className={P}>
+          <span className="font-medium">{r.dateAsWritten}</span>
+          {r.readings.length > 0 ? <ul className={DIM} data-testid="pv-hp-readings">{r.readings.map((d) => <li key={d}>{d}</li>)}</ul> : r.readAs && <span className={DIM}> · {r.readAs}</span>}
+          {r.quote && <q className="block text-xs text-[var(--color-text-dim)]">{r.quote}</q>}
+          {r.source && <span className={DIM}>{r.source}</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function HearingResult({ v }: { v: HearingView }) {
+  return (
+    <div className="space-y-4" data-testid="pv-hp-result">
+      {v.statement && <p className={P}>{v.statement}</p>}
+      {v.hearingDateGiven && <p className={P} data-testid="pv-hp-given">{v.hearingDateGiven}</p>}
+      <div data-testid="pv-hp-next">
+        {v.nextDates.heading && <h4 className={H}>{v.nextDates.heading}</h4>}
+        {v.nextDates.rows.length > 0 ? <HearingRows rows={v.nextDates.rows} /> : v.nextDates.noneLine && <p className={P}>{v.nextDates.noneLine}</p>}
+      </div>
+      <div data-testid="pv-hp-timeline">
+        {v.timeline.heading && <h4 className={H}>{v.timeline.heading}</h4>}
+        <HearingRows rows={v.timeline.rows} />
+        {v.timeline.cutLine && <p className={DIM}>{v.timeline.cutLine}</p>}
+      </div>
+      <List heading={v.notAdded.heading} items={v.notAdded.rows} />
+      {v.notAdded.rows.length === 0 && v.notAdded.noneLine && <p className={P}>{v.notAdded.noneLine}</p>}
+      <div data-testid="pv-hp-citations">
+        {v.citations.heading && <h4 className={H}>{v.citations.heading}</h4>}
+        {v.citations.line && <p className={P}>{v.citations.line}</p>}
+        {[...v.citations.needsAttention, ...v.citations.notChecked].length > 0 && (
+          <ul className="mt-1 space-y-1">
+            {[...v.citations.needsAttention, ...v.citations.notChecked].map((c, i) => (
+              <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span>{c.where.length > 0 && <span className={DIM}>{c.where.join("; ")}</span>}</li>
+            ))}
+          </ul>
+        )}
+        {v.citations.sweepSummary && <p className={DIM}>{v.citations.sweepSummary}</p>}
+        {v.citations.note && <p className={DIM} data-testid="pv-hp-note">{v.citations.note}</p>}
+      </div>
+      <List items={v.papers} />
       <List items={v.notAssessed} />
     </div>
   );
