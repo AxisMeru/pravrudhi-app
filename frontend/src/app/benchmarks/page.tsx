@@ -10,8 +10,11 @@ import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARR
 import { NS_SUBMIT_LINK_TEXT } from "@/lib/nyayasiddhiSubmit";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
+import { parseRowLinks } from "@/lib/nyayasiddhiRowLinks";
+import rowLinksFile from "@/data/nyayasiddhi/row_links.json";
 import { BENCHMARK_STATEMENTS, FOOTER_TEXT, HOW_WE_TEST, HOW_WE_TEST_HEADING, PAGE_SUBTITLE, PAGE_TITLE } from "@/lib/benchmarks";
 
+const NYAYASIDDHI_LINKS = parseRowLinks(rowLinksFile);
 const NYAYASIDDHI_ROWS = parseRows(rowsFile); // signed rows only, from the build-time data file; empty until the signed rows are supplied
 
 // A short, static page in R1's words (lib/benchmarks.ts): what we check, how we test, and what the checks do and do not show. No figure.
@@ -38,7 +41,7 @@ export default async function BenchmarksPage() {
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
           <FilmPlayer id="nyayasiddhi-narrated" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
-        <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} />
+        <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} links={NYAYASIDDHI_LINKS} />
         <NyayaSiddhiComing rows={NYAYASIDDHI_ROWS} />
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" data-testid="block-how">
           <h2 className="text-base font-medium text-[var(--color-text)]">{HOW_WE_TEST_HEADING}</h2>
