@@ -70,7 +70,7 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
           </video>
           {/* app#414: on paper a <video> prints as a blank box with native controls; print the film's poster instead (the same file the poster-first state shows); decorative (alt=""), because the film's title prints in the figcaption right under it and display:none keeps it out of the screen accessibility tree */}
           {/* eslint-disable-next-line @next/next/no-img-element -- a static export; the poster is a plain file in public/films */}
-          <img src={filmFile(id, "poster.png")} alt="" className="hidden aspect-video w-full object-cover print:block" data-testid="film-poster-print" />
+          <img src={filmFile(id, "poster.png")} alt="" loading="lazy" className="hidden aspect-video w-full object-cover print:block" data-testid="film-poster-print" />
           </>
         ) : (
           <div className="relative">

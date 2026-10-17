@@ -31,3 +31,16 @@ test("print: a started film on /benchmarks prints its poster too (after Play)", 
   await expect(page.getByTestId("film-poster-print")).toBeVisible();
   await expect(page.getByTestId("film-play")).toHaveCount(0);
 });
+
+// app#403 item 10 (Track B): the hidden print poster is lazy, so the screen load makes no second poster request; printing still loads it (Chromium loads lazy images when it prints).
+test("the print poster is lazy: one poster request on screen, and it still loads for print (#403 item 10)", async ({ page }) => {
+  const posters: string[] = [];
+  page.on("request", (r) => { if (/\/films\/[a-z-]+\/poster\.png/.test(r.url())) posters.push(r.url()); });
+  await page.goto("/how-it-was-built");
+  await page.waitForLoadState("networkidle");
+  const img = page.getByTestId("film-poster-print");
+  await expect(img).toHaveAttribute("loading", "lazy");
+  expect(posters.length, "at most one poster request at load (the video's own poster; the print copy adds none)").toBeLessThanOrEqual(1);
+  await page.pdf(); // printing loads lazy images
+  await expect.poll(() => img.evaluate((el) => (el as HTMLImageElement).complete && (el as HTMLImageElement).naturalWidth > 0), { message: "the print poster loaded for print" }).toBe(true);
+});
