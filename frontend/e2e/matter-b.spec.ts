@@ -311,6 +311,8 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
           expect(al.y, "the Also line is above the start panel on a phone").toBeLessThan(p.y);
           expect(st.y, "and the standing line is directly above it").toBeLessThan(al.y);
           expect(al.y, "within the first screen").toBeLessThan(700);
+          const domOrder = await page.evaluate(() => { const q = (id: string) => document.querySelector(`[data-testid="${id}"]`)!; const before = (x: Element, y: Element) => !!(x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING); return { standingBeforeAlso: before(q("standing-line"), q("mb-also")), alsoBeforePanel: before(q("mb-also"), q("start-panel")), stepsBeforeStanding: before(q("workspace-steps"), q("standing-line")) }; });
+          expect(domOrder, "on a phone the DOM order equals the visual order (keyboard and reading order match)").toEqual({ standingBeforeAlso: true, alsoBeforePanel: true, stepsBeforeStanding: true });
         } else {
           expect(al.y, "on a desktop it stays below the start panel").toBeGreaterThan(p.y);
         }

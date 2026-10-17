@@ -1,10 +1,10 @@
 import { WORKSPACE_STEPS_LABEL, workspaceSteps } from "@/lib/workspace";
 
 /** The step bar at the top of the Matter workspace: each step with its state; an available step links to its place on the page, a step that is not available yet says why. */
-export function WorkspaceSteps({ hasFacts, hasResult, className = "" }: { hasFacts: boolean; hasResult: boolean; className?: string }) {
+export function WorkspaceSteps({ hasFacts, hasResult }: { hasFacts: boolean; hasResult: boolean }) {
   const steps = workspaceSteps({ hasFacts, hasResult });
   return (
-    <nav aria-label={WORKSPACE_STEPS_LABEL} className={`print:hidden ${className}`.trim()} data-testid="workspace-steps">
+    <nav aria-label={WORKSPACE_STEPS_LABEL} className="print:hidden" data-testid="workspace-steps">
       <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {steps.map((s, i) => (
           <li key={s.key} className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] p-2" data-testid={`step-${s.key}`} data-state={s.state}>
