@@ -212,7 +212,7 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.equal(createHash("sha256").update(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"))).digest("hex"), "d50527be584f1355ec589488b53d963102b8709cbfa2359012fa8af5e2a318a8");
   const page = readFileSync(join(root, "src", "app", "benchmarks", "page.tsx"), "utf8");
   assert.match(page, /parseRows\(rowsFile\)/);
-  assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\} \/>/);
+  assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\}( links=\{NYAYASIDDHI_LINKS\})? \/>/);
   assert.ok(page.indexOf("<FilmPlayer") > 0 && page.indexOf("<FilmPlayer") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
   assert.match(page, /posterFirst/);
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
