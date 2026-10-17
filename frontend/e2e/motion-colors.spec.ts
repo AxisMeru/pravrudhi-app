@@ -14,6 +14,9 @@ test("forced colours: the current nav item is marked by an outline and an underl
   expect(await marks(), "no extra marker outside forced colours").toMatchObject({ outlineStyle: "none", underline: false });
   await page.emulateMedia({ forcedColors: "active" });
   expect(await marks(), "forced colours: a 2 px system-colour outline and an underline on the current item").toMatchObject({ outlineStyle: "solid", outlineWidth: "2px", underline: true });
+  // app#403 item 8: the current item's keyboard focus ring sits outside its marker (offset 2 px instead of -2 px)
+  await page.locator(CURRENT).first().focus();
+  expect(await page.locator(CURRENT).first().evaluate((el) => getComputedStyle(el).outlineOffset), "the focused current item's ring is offset away from its marker").toBe("2px");
   const idle = await page.locator('#primary-navigation nav a:not([aria-current])').first().evaluate((el) => getComputedStyle(el).textDecorationLine);
   expect(idle, "an inactive item stays plain").not.toContain("underline");
 });

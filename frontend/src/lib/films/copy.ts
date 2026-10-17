@@ -12,6 +12,8 @@ export const FILM_NARRATED_NOTE = "The film is narrated; the captions carry the 
 /** PROPOSED for R1 (NyayaSiddhi film, 16 Oct): the note under a silent film (its manifest says audio false); it replaces the narrated note and the synthetic-voice line. */
 export const FILM_SILENT_NOTE = "The film is silent; the captions name each scene, and the list below sums up each scene.";
 export const FILM_SYNTHETIC_VOICE = "The narration is a synthetic voice.";
+/** R1 (17 Oct, #417), layout B only: under the scene list of a film whose scenes still call the page "Matter workspace" (the recorded frames; the scene text and the film files stay frozen). */
+export const FILM_EARLIER_LAYOUT_NOTE = "The film was recorded on the earlier layout, where this page was called Matter workspace.";
 // New controls (Web, 15 Oct; proposed wording, for R1 to confirm when built). The film starts muted so it can start anywhere; the visible button turns the narration on.
 export const FILM_SOUND_ON = "Turn on sound";
 export const FILM_SOUND_OFF = "Turn off sound";

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
+import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_EARLIER_LAYOUT_NOTE, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import { FILM_MANIFESTS, WEBM_FILMS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
 
 const subscribe = (cb: () => void) => {
@@ -104,6 +105,9 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
             <li key={s.startS}><span className="font-mono text-xs">{clock(s.startS)}</span> <span className="text-[var(--color-text)]">{s.name}.</span> {s.text}</li>
           ))}
         </ol>
+        {LAYOUT_MATTER_B && film.scenes.some((s) => s.text.includes("Matter workspace")) && (
+          <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="film-earlier-layout">{FILM_EARLIER_LAYOUT_NOTE}</p>
+        )}
       </section>
     </figure>
   );
