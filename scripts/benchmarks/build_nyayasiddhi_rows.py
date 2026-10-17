@@ -109,6 +109,8 @@ def split_notes(notes):
         elif c in ")]}": depth = max(0, depth - 1)
         elif c == "." and depth == 0 and not quote and i + 2 < len(notes) and notes[i + 1] == " " and (notes[i + 2].isupper() or notes.startswith("trained_on_public_items", i + 2)):
             out.append(notes[start:i + 1].strip()); start = i + 2
+        elif c == ";" and depth == 0 and not quote and re.match(r" In \d+ of \d+ replies", notes[i + 1:i + 40]):   # the two published O2 manifests read "...not recomputed here; In 0 of 170 replies..." (decision A, 17 Oct: keep the published bytes): split there so the About-run sentence is found whole
+            out.append(notes[start:i + 1].strip()); start = i + 2
         i += 1
     tail = notes[start:].strip()
     if tail: out.append(tail)
