@@ -8,7 +8,7 @@ export const WORKSPACE_NAV_LABEL = "Matter";
 /** The page's heading, its browser tab title, and the name the "Go to ..." and "Open in ..." links use. */
 export const WORKSPACE_TITLE = "Matter workspace";
 
-export const WORKSPACE_STEPS_LABEL = "Steps of this matter";
+export const WORKSPACE_STEPS_LABEL = LAYOUT_MATTER_B ? "Steps of this screening" : "Steps of this matter"; // layout B: R1 (17 Oct, #411)
 export const WORKSPACE_STEP_LABELS = { facts: "Facts", screen: "Screen", memo: "Memo", hearing: "Hearing preparation" } as const;
 export const WORKSPACE_STATE_WORDS = { done: "Done", available: "Available", notYet: "Not yet" } as const;
 /** Under Memo and Hearing preparation until a screening result exists. */

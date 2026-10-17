@@ -213,3 +213,11 @@ test("a #step-memo / #step-hearing link keeps the locked line in view when conte
     await expect.poll(inView, { message: `${key} back in view after late content`, timeout: 5000 }).toBe(true);
   }
 });
+
+// app#411 (R1, 17 Oct): the steps landmark names the screening on layout B ("Steps of this screening"), the matter on the live layout.
+test("the steps landmark's accessible name follows the layout (#411)", async ({ page }) => {
+  await setup(page);
+  await page.goto("/screening");
+  await expect(page.getByRole("navigation", { name: (await isLayoutB(page)) ? "Steps of this screening" : "Steps of this matter", exact: true })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: (await isLayoutB(page)) ? "Steps of this matter" : "Steps of this screening", exact: true }), "only one of the two names exists").toHaveCount(0);
+});
