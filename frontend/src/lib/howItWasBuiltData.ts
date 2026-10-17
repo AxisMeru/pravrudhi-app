@@ -83,3 +83,30 @@ export const DATA_SETS: readonly { id: string; name: string; lines: readonly str
 
 export const DATA_NOT_PUBLISHED: readonly string[] = ["np1", "np2", "np3", "np4", "np5"];
 export const DATA_LIMITS: readonly string[] = ["cv1", "cv2", "cv3", "cv4", "cv5", "cv6"];
+
+/** R1's five lead-ins (17 Oct), in this order; each is shown only where a data set has that kind of line, and several caveat lines share one "Note". They are not part of any line's hash. */
+export const DATA_LEAD_INS = { source: "Source", licence: "Licence", used: "Used for", published: "Published", note: "Note" } as const;
+export type DataLeadIn = keyof typeof DATA_LEAD_INS;
+
+/** The lead-in of a line by its key: source, licence, used, published and caveat lines get theirs; the lines of the older-research and model rows (r8_casehold, r8_legalbench, r9_*) name their own subject and get none. */
+export function leadInOf(key: string): DataLeadIn | null {
+  const part = key.replace(/^r\d+_/, "");
+  if (part === "source" || part === "source_fallback") return "source";
+  if (part === "licence" || part === "licence_fallback") return "licence";
+  if (part === "used") return "used";
+  if (part === "published") return "published";
+  if (part.startsWith("caveat")) return "note";
+  return null;
+}
+
+/** A set's lines grouped under their lead-ins, in order: consecutive lines with the same lead-in share one label. */
+export function groupLines(lines: readonly string[]): { leadIn: DataLeadIn | null; keys: string[] }[] {
+  const out: { leadIn: DataLeadIn | null; keys: string[] }[] = [];
+  for (const k of lines) {
+    const l = leadInOf(k);
+    const last = out[out.length - 1];
+    if (last && l !== null && last.leadIn === l) last.keys.push(k);
+    else out.push({ leadIn: l, keys: [k] });
+  }
+  return out;
+}

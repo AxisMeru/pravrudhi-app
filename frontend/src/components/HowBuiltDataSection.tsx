@@ -1,4 +1,4 @@
-import { DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT as T, DATA_SETS } from "@/lib/howItWasBuiltData";
+import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT as T, DATA_SETS, groupLines } from "@/lib/howItWasBuiltData";
 
 const URL_RE = /(https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi)/;
 
@@ -17,9 +17,14 @@ export function HowBuiltDataSection() {
       {DATA_SETS.map((s) => (
         <div key={s.id} data-testid={`how-built-data-${s.id}`}>
           <h3 className="text-sm font-medium text-[var(--color-text)]">{T[s.name]}</h3>
-          <ul className="mt-1 space-y-1 text-sm text-[var(--color-text-dim)]">
-            {s.lines.map((k) => <li key={k}><Line text={T[k]} /></li>)}
-          </ul>
+          <dl className="mt-1 space-y-1 text-sm text-[var(--color-text-dim)]">
+            {groupLines(s.lines).map((g) => (
+              <div key={g.keys[0]} className="sm:grid sm:grid-cols-[7rem_1fr] sm:gap-x-3">
+                <dt className="text-xs font-medium text-[var(--color-text)]" data-testid={g.leadIn ? `how-built-leadin-${g.leadIn}` : undefined}>{g.leadIn ? DATA_LEAD_INS[g.leadIn] : null}</dt>
+                <dd className="space-y-1">{g.keys.map((k) => <p key={k}><Line text={T[k]} /></p>)}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       ))}
       <div data-testid="how-built-data-np">

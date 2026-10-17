@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SETS } from "./howItWasBuiltData";
+import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SETS, groupLines, leadInOf } from "./howItWasBuiltData";
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
@@ -104,4 +104,23 @@ test("own digit rule: no count anywhere; digits only in 'step 1', licence names 
 
 test("links in the note go only to the public AxisMeru dataset", () => {
   for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) for (const u of t.match(/https?:\/\/\S+/g) ?? []) assert.match(u, /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi$|^https:\/\/registry\.opendata\.aws\/|^https:\/\/github\.com\/vanga\/indian-high-court-judgments/, `${k}: ${u}`);
+});
+
+test("R1's five lead-ins are exact and in order, by hash", () => {
+  assert.deepEqual(Object.values(DATA_LEAD_INS), ["Source", "Licence", "Used for", "Published", "Note"]);
+  assert.deepEqual(Object.values(DATA_LEAD_INS).map(h), ["0e570ca6fabe24f9", "f3ec8e880a46c8a6", "9cd881a5aac2fa5d", "2ef42ec21d9300dd", "d8da2c49df39d91d"]);
+});
+
+test("lines get their lead-in by kind; several caveat lines share one Note; a set shows a lead-in only where it has that line", () => {
+  assert.equal(leadInOf("r1_caveat_cov"), "note");
+  assert.equal(leadInOf("r1_caveat_attr"), "note");
+  assert.equal(leadInOf("r3_licence_fallback"), "licence");
+  assert.equal(leadInOf("r2_source_fallback"), "source");
+  assert.equal(leadInOf("r9_32b"), null);
+  const r1 = DATA_SETS.find((s) => s.id === "r1")!;
+  const g = groupLines(r1.lines);
+  assert.deepEqual(g.map((x) => x.leadIn), ["source", "licence", "used", "published", "note"]);
+  assert.deepEqual(g[4].keys, ["r1_caveat_cov", "r1_caveat_attr"]);
+  const r4 = groupLines(DATA_SETS.find((s) => s.id === "r4")!.lines);
+  assert.ok(!r4.some((x) => x.leadIn === "used" || x.leadIn === "published"), "r4 has no used/published line, so no such label");
 });
