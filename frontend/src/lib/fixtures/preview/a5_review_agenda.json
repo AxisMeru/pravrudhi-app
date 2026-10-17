@@ -1,0 +1,174 @@
+{
+ "_note": "POST /review-agenda with default offence s138_ni_act, no paper types given [Web: the amendment-act year in one footnote is written with a comma, not 'N of YYYY', so the repository's case-number guard does not fire on a statute amendment note]",
+ "response": {
+  "run_id": "agenda-sample",
+  "matter_id": "ed4dfe6439d74e9598749cdafb203f5f",
+  "statement": "Built and tested on invented text only. No lawyer has used this on a live matter.",
+  "standing_line": "A review agenda, not a finding. It lists the ingredients of the offence and the papers to look in. It says nothing about how the case will turn out. It works only from the papers you added; for a paper it cannot read, it tells you which paper to check.",
+  "source_line": "Checked against the Negotiable Instruments Act, 1881, s.138 text held by us (India Code copy captured 24 Sep 2026). The ingredients below are the section's own words.",
+  "ownership_line": null,
+  "quotes_line": "Quotes are kept as printed in the India Code copy we hold, including any typing slips. A note in square brackets beside a quote is that copy's own footnote on an amendment.",
+  "offence": {
+   "id": "s138_ni_act",
+   "name": "Dishonour of a cheque (Negotiable Instruments Act, 1881, s.138)"
+  },
+  "headings": {
+   "ingredients": "The ingredients, in the section's own words",
+   "statute_names": "Papers the statute names for this offence",
+   "not_added": "Papers not added yet that may matter"
+  },
+  "ingredients": [
+   {
+    "id": "cheque_for_a_liability",
+    "proviso": null,
+    "section": "s.138",
+    "statute_words": "any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability",
+    "statute_words_raw": "any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability"
+   },
+   {
+    "id": "returned_unpaid",
+    "proviso": null,
+    "section": "s.138",
+    "statute_words": "is returned by the bank unpaid, either because of the amount of money standing to the credit of that account is insufficient to honour the cheque or that it exceeds the amount arranged to be paid from that account by an agreement made with that bank",
+    "statute_words_raw": "is returned by the bank unpaid, either because of the amount of money standing to the credit of that account is insufficient to honour the cheque or that it exceeds the amount arranged to be paid from that account by an agreement made with that bank"
+   },
+   {
+    "id": "presentation",
+    "proviso": "(a)",
+    "section": "s.138",
+    "statute_words": "the cheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier",
+    "statute_words_raw": "the cheque has been presented to the bank within a period of six months from the date on which it is drawn or within the period of its validity, whichever is earlier"
+   },
+   {
+    "id": "notice",
+    "proviso": "(b)",
+    "section": "s.138",
+    "statute_words": "makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, within thirty days [footnote 3: Subs. by Act 55, 2002 s.7, for 'within fifteen days', w.e.f. 6-2-2003] of the receipt of information by him from the bank regarding the return of the cheque as unpaid",
+    "statute_words_raw": "makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 3 [within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid"
+   },
+   {
+    "id": "non_payment",
+    "proviso": "(c)",
+    "section": "s.138",
+    "statute_words": "the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice",
+    "statute_words_raw": "the drawer of such cheque fails to make the payment of the said amount of money to the payee or, as the case may be, to the holder in due course of the cheque, within fifteen days of the receipt of the said notice"
+   },
+   {
+    "id": "explanation",
+    "proviso": "Explanation",
+    "section": "s.138",
+    "statute_words": "debt of other liability means a legally enforceable debt or other liability",
+    "statute_words_raw": "debt of other liability means a legally enforceable debt or other liability"
+   }
+  ],
+  "statute_names": {
+   "heading": "Papers the statute names for this offence",
+   "rows": [
+    {
+     "id": "cheque",
+     "label": "The cheque",
+     "proviso": "(a)",
+     "basis": "statute_text",
+     "section": "s.138",
+     "statute_words": "the cheque has been presented to the bank",
+     "statute_words_raw": "the cheque has been presented to the bank",
+     "tag": "Named in the section",
+     "papers": [],
+     "status": "Not added yet"
+    },
+    {
+     "id": "notice_in_writing",
+     "label": "The notice in writing to the drawer",
+     "proviso": "(b)",
+     "basis": "statute_text",
+     "section": "s.138",
+     "statute_words": "by giving a notice; in writing, to the drawer of the cheque",
+     "statute_words_raw": "by giving a notice; in writing, to the drawer of the cheque",
+     "tag": "Named in the section",
+     "papers": [],
+     "status": "Not added yet"
+    },
+    {
+     "id": "bank_information",
+     "label": "The bank's information of the return of the cheque",
+     "proviso": "(b)",
+     "basis": "statute_text",
+     "section": "s.138",
+     "statute_words": "receipt of information by him from the bank regarding the return of the cheque as unpaid",
+     "statute_words_raw": "receipt of information by him from the bank regarding the return of the cheque as unpaid",
+     "tag": "Named in the section",
+     "papers": [],
+     "status": "Not added yet"
+    },
+    {
+     "id": "complaint",
+     "label": "The complaint: named in s.142, which we do not hold, so we cannot list what it names.",
+     "proviso": null,
+     "basis": "statute_text",
+     "section": "s.142 (not held)",
+     "statute_words": null,
+     "statute_words_raw": null,
+     "tag": "Named in the section",
+     "status": null
+    }
+   ]
+  },
+  "lawyer_listed": null,
+  "lawyer_confirmed": false,
+  "papers_read": {
+   "heading": "Papers read (2)",
+   "n": 2,
+   "papers": [
+    {
+     "doc_id": "34ed1cc26f6c4695ad8e0ec6fd973ba2",
+     "name": "cheque-memo-A",
+     "pages": 1,
+     "pages_without_text": 0,
+     "pages_note": null,
+     "paper_type": null,
+     "paper_type_basis": null
+    },
+    {
+     "doc_id": "dcbc17a9b3124792a3a4f3cc532941c8",
+     "name": "chronology-note-B",
+     "pages": 1,
+     "pages_without_text": 0,
+     "pages_note": null,
+     "paper_type": null,
+     "paper_type_basis": null
+    }
+   ]
+  },
+  "not_added": {
+   "heading": "Papers not added yet that may matter",
+   "rows": [
+    {
+     "id": "cheque",
+     "label": "The cheque",
+     "basis": "statute_text"
+    },
+    {
+     "id": "notice_in_writing",
+     "label": "The notice in writing to the drawer",
+     "basis": "statute_text"
+    },
+    {
+     "id": "bank_information",
+     "label": "The bank's information of the return of the cheque",
+     "basis": "statute_text"
+    }
+   ],
+   "none_line": null
+  },
+  "not_assessed": [
+   "Whether the papers show any ingredient.",
+   "Papers that were not added or could not be read.",
+   "How a court will read the facts.",
+   "Anything not in the papers you added."
+  ],
+  "source": {
+   "statute_sha256": "e67eae9bbc65394590ee0bb00b987bcebc03132aa68059d71ca8f52f21b5c77a",
+   "asset_version": 1
+  }
+ }
+}

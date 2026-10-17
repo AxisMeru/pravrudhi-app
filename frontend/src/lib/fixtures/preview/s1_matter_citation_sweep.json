@@ -1,0 +1,258 @@
+{
+ "_note": "POST /matter-citation-sweep on two invented papers; the lookup is a stand-in (IN_INDEX for 273 and 386, NOT_IN_INDEX otherwise; the real route uses the citation index); engine #530 head 003da12a",
+ "response": {
+  "run_id": "sweep-sample",
+  "client_data": true,
+  "version": 1,
+  "state": "unread_or_unchecked_remain",
+  "summary": "Existence check only, in the papers you added. 1 not checked. 4 citations listed in 1 paper; 4 distinct citations. 2 found in our index, 1 not found in our index. This does not say what any case held.",
+  "statement": "Built and tested on invented text and public court judgments only. No lawyer has used this on a live matter.",
+  "heading": "Papers you added",
+  "heading_line": "It covers only the papers you added; it does not say who wrote them.",
+  "snapshot_line": "Read as the papers were stored when the sweep started.",
+  "duplicates_line": "Counts are of the citations listed in the papers as stored, duplicates included.",
+  "order_label": "In the order first cited in the papers you added; not ranked.",
+  "cut_line": "A citation may have been split where the stored text is cut. It was not read: check it yourself.",
+  "notes": [],
+  "papers_read": [
+   {
+    "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+    "name": "prosecution-note",
+    "pages": 1,
+    "pages_without_text": [],
+    "pages_note": null,
+    "denominator": {
+     "read": 4,
+     "found": 2,
+     "not_found": 1,
+     "conflict": 0,
+     "name_mismatch": 0,
+     "not_checked": 1,
+     "not_checked_by_reason": {
+      "reporter_not_in_index": 1
+     },
+     "not_read": 0,
+     "not_read_cut_at_storage_boundary": 0,
+     "checked": 3,
+     "like_strings": 4
+    },
+    "citations": [
+     {
+      "n": 1,
+      "text": "(2014) 8 SCC 273",
+      "span": [
+       20,
+       36
+      ],
+      "page": 1,
+      "reporter": "SCC",
+      "status": "found",
+      "reason": null,
+      "name": null,
+      "name_state": "name_not_read",
+      "quoted": false,
+      "group": null,
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "passage": 1
+     },
+     {
+      "n": 2,
+      "text": "(2099) 99 SCC 999",
+      "span": [
+       44,
+       61
+      ],
+      "page": 1,
+      "reporter": "SCC",
+      "status": "not_found",
+      "reason": null,
+      "name": null,
+      "name_state": "name_not_read",
+      "quoted": false,
+      "group": null,
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "passage": 1
+     },
+     {
+      "n": 3,
+      "text": "AIR 1978 SC 597",
+      "span": [
+       105,
+       120
+      ],
+      "page": 1,
+      "reporter": "AIR",
+      "status": "not_checked",
+      "reason": "reporter_not_in_index",
+      "name": null,
+      "name_state": null,
+      "quoted": false,
+      "group": null,
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "passage": 1
+     },
+     {
+      "n": 4,
+      "text": "(2016) 10 SCC 386",
+      "span": [
+       144,
+       161
+      ],
+      "page": 1,
+      "reporter": "SCC",
+      "status": "found",
+      "reason": null,
+      "name": null,
+      "name_state": "name_not_read",
+      "quoted": false,
+      "group": null,
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "passage": 2
+     }
+    ],
+    "not_read": [],
+    "cut_at_storage_boundary": []
+   },
+   {
+    "doc_id": "c2ca63e9f3f942aaa61400b313111146",
+    "name": "arrest-memo",
+    "pages": 1,
+    "pages_without_text": [],
+    "pages_note": null,
+    "denominator": {
+     "read": 0,
+     "found": 0,
+     "not_found": 0,
+     "conflict": 0,
+     "name_mismatch": 0,
+     "not_checked": 0,
+     "not_checked_by_reason": {},
+     "not_read": 0,
+     "not_read_cut_at_storage_boundary": 0,
+     "checked": 0,
+     "like_strings": 0
+    },
+    "citations": [],
+    "not_read": [],
+    "cut_at_storage_boundary": []
+   }
+  ],
+  "distinct_citations": [
+   {
+    "key": "SCC|2014|8|273",
+    "text": "(2014) 8 SCC 273",
+    "occurrences": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "page": 1,
+      "status": "found",
+      "reason": null,
+      "name_state": "name_not_read"
+     }
+    ],
+    "statuses": [
+     "found"
+    ],
+    "papers": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "count": 1
+     }
+    ]
+   },
+   {
+    "key": "SCC|2099|99|999",
+    "text": "(2099) 99 SCC 999",
+    "occurrences": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "page": 1,
+      "status": "not_found",
+      "reason": null,
+      "name_state": "name_not_read"
+     }
+    ],
+    "statuses": [
+     "not_found"
+    ],
+    "papers": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "count": 1
+     }
+    ]
+   },
+   {
+    "key": "raw|air 1978 sc 597",
+    "text": "AIR 1978 SC 597",
+    "occurrences": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "page": 1,
+      "status": "not_checked",
+      "reason": "reporter_not_in_index",
+      "name_state": null
+     }
+    ],
+    "statuses": [
+     "not_checked"
+    ],
+    "papers": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "count": 1
+     }
+    ]
+   },
+   {
+    "key": "SCC|2016|10|386",
+    "text": "(2016) 10 SCC 386",
+    "occurrences": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "page": 1,
+      "status": "found",
+      "reason": null,
+      "name_state": "name_not_read"
+     }
+    ],
+    "statuses": [
+     "found"
+    ],
+    "papers": [
+     {
+      "doc_id": "33aade4eafd245d997e901be0b7fb32a",
+      "count": 1
+     }
+    ]
+   }
+  ],
+  "matter_denominator": {
+   "papers": 2,
+   "papers_with_citations": 1,
+   "read": 4,
+   "distinct": 4,
+   "like_strings": 4,
+   "not_read": 0,
+   "checked": 3,
+   "found": 2,
+   "not_found": 1,
+   "conflict": 0,
+   "name_mismatch": 0,
+   "not_checked": 1,
+   "lookups_made": 3,
+   "pages_without_text": 0,
+   "papers_excluded_not_ready": 0,
+   "papers_not_searched": 0,
+   "passages_not_searched": 0
+  },
+  "listing_truncated": false,
+  "not_assessed": [
+   "whether a case says what the draft says it says",
+   "whether a case is still good law",
+   "citations of a kind the index does not hold (shown as not checked)"
+  ],
+  "wording": "found in our index means the citation exists in the index, not that the case says what a paper says",
+  "matter_id": "ed2bc6080e7d4e888ff6f3d6a5a6ecb8"
+ }
+}

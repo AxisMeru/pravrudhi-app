@@ -40,5 +40,167 @@
     "id": "9-10 digit literal in a settings/config/docs file (use an obviously invented value such as 123456789)",
     "line_sha256": "729dc9d4e23a16d4cc52b38a09da94eb9be2b2a3195adacacc3b75611e6bbdc8",
     "reason": "obviously invented sequential placeholder (123456789) for the chat-id input, replacing a value that looked real (Lead-2, 12 Oct)"
+  },
+  {
+    "file": "frontend/e2e/preview.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "21a70117054f0f7bb9eb3eb02c3767dafe4265be57f8ec26061b4065e455db71",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
+  },
+  {
+    "file": "frontend/e2e/preview.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "dd8bea3ff0925d34e9c72c2c625e178271977f47f1ba11f3c3e59166d755c090",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
+  },
+  {
+    "file": "frontend/e2e/preview.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "77251b834e864b9159e59bb0d9b3067cedbf510ec859261c2a97f216514bd2ff",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
+  },
+  {
+    "file": "frontend/e2e/preview.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "421579ad4f013af42cb44060b7e559f4f89ca68cd5971a202661c082ae332eb0",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
+  },
+  {
+    "file": "frontend/e2e/preview.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "440dfe8bf03caa38b5dcea28be22e9918c36d3a7694ef23873338a25707169fd",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "40ec8e2afa656db6d800f8854d24aa69aa8268fbc09298d84a1b6df923858e61",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "eb675813606c0965c4e0bf5e9ce5e1772a99e2b1c5b73d8be16be64e88d91213",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "8f67ceea6c8512be90bf830a421904f93e170a1e36770e8a85a44ad45bfd48f4",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "3295af4ec7862a096252d473e8dd928ce16f2ebba33d0982d4199294d3db3283",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "0e9abce6566b52ac948313c1ccfb15d0701867e44d29d8aa5e65493649d04795",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "f56ba7e4eeb0a8a13be1a7851dc8e7875724f0f9fe68eaffce30325c7f19bd12",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "733179a4d2e19e85a816557c4861de3b554a01493e07ffe56f87982b4c85467f",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a3_chronology.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "9e2f55a2425c9b9df1919a566478f172e1c0bd1a0636910db7149dc999f523cd",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/a5_review_agenda.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "1f85281504746894d2f7e409be0a3e57645d82f1b3152ede873f4f4db823eb85",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "c5163fb2c8a556fd2cd2688ec67c28bda855729f9205e5bde0c9bd1366832747",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "852aaca7905f79ae70573e13ccfa088aa847c4ca5f95db85f9aee872323fdd62",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "ac8349f6b570ccbc26ef85eb13ba530f857d9026ad691a0fcd6af9968678cc99",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "8f67ceea6c8512be90bf830a421904f93e170a1e36770e8a85a44ad45bfd48f4",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "45b4faec4b8a08ee85f3a176d870ede752bfb0091545cb20d3c72c2d0477ebc1",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_computed.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "afd2766ac90d948f58f5a7f5aaf0b1c0580f7c7c3ff5a10fd3676e188f7807ff",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "c5163fb2c8a556fd2cd2688ec67c28bda855729f9205e5bde0c9bd1366832747",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "45b4faec4b8a08ee85f3a176d870ede752bfb0091545cb20d3c72c2d0477ebc1",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "6ac1ee2945262eb4e8445fb48f15425685f37c850b4300a40314021558bb3c5a",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "ff0a55b409ae06eb9b3bee7cd232cd3b35f47c6c80cafb17c00041d14da9bd31",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "613b48d31653b93b96962ca1e6a83e8e85ab131aaec866d7515cbc3389d75b25",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/b3_s138_checklist_refer.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "9f180fd8cd9511b4f904246a37d24c19a3ad064b820637abda763ba4064c9156",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/previewParsers.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "076091474fb51da1e7e62a6db79cba3a512bf421ff28641e5f067748027646f4",
+    "reason": "test input: an invented typed date (day-first) that the preview page tests send to a mocked engine; no real case date"
   }
 ]
