@@ -1,0 +1,184 @@
+{
+ "_note": "POST /s138-checklist with every date given and confirmed",
+ "response": {
+  "statement": "A checklist, not a decision",
+  "description": "Built and tested on court judgment recitals only, not on the merits of any case. No lawyer has used this on a live matter. The complaint window, holidays and the Limitation Act counting rules are not computed: they are referred to a lawyer.",
+  "lawyer_confirmed": false,
+  "run_id": "s138-checklist-sample",
+  "conventions": {
+   "A": "first day excluded, last day included (default)",
+   "B": "first day included",
+   "rule": "both are computed; when the answer differs the step answers REFER with both counts"
+  },
+  "inputs": [
+   {
+    "role": "cheque",
+    "text": "01.02.2013",
+    "read_as": "2013-02-01",
+    "day_first_assumed": true,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-01",
+    "problems": []
+   },
+   {
+    "role": "presentation",
+    "text": "10.02.2013",
+    "read_as": "2013-02-10",
+    "day_first_assumed": true,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-10",
+    "problems": []
+   },
+   {
+    "role": "memo",
+    "text": "12.02.2013",
+    "read_as": "2013-02-12",
+    "day_first_assumed": true,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-12",
+    "problems": []
+   },
+   {
+    "role": "information",
+    "text": "14.02.2013",
+    "read_as": "2013-02-14",
+    "day_first_assumed": false,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-14",
+    "problems": []
+   },
+   {
+    "role": "notice",
+    "text": "20.02.2013",
+    "read_as": "2013-02-20",
+    "day_first_assumed": false,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-20",
+    "problems": []
+   },
+   {
+    "role": "receipt",
+    "text": "25.02.2013",
+    "read_as": "2013-02-25",
+    "day_first_assumed": false,
+    "source": "typed",
+    "confirmed": true,
+    "confirmed_as": "2013-02-25",
+    "problems": []
+   }
+  ],
+  "validity": {
+   "months": 3,
+   "entered_by_user": true
+  },
+  "steps": [
+   {
+    "step": "presentation",
+    "clause": "(a)",
+    "title": "presented to the bank within six months of the date drawn, or within the cheque's validity",
+    "status": "INSIDE",
+    "refer": [],
+    "result": "The dates you entered fall inside the stated period (both counts agree: months from the date drawn)",
+    "counts": {
+     "A": {
+      "convention": "first day excluded, last day included",
+      "period_ends": "2013-05-01",
+      "days_after_start": 9,
+      "status": "inside"
+     },
+     "B": {
+      "convention": "first day included",
+      "period_ends": "2013-04-30",
+      "days_after_start": 9,
+      "status": "inside"
+     }
+    },
+    "notes": [
+     "The cheque validity of 3 months was entered by you; it is not in the section. A validity shorter than six months ends the period earlier; a longer one does not extend it past six months"
+    ],
+    "period_basis": {
+     "six_months_end": "2013-08-01",
+     "validity_end": "2013-05-01",
+     "earlier_used": "validity"
+    }
+   },
+   {
+    "step": "notice",
+    "clause": "(b)",
+    "title": "notice in writing to the drawer within thirty days of receiving the bank's information of the return",
+    "status": "INSIDE",
+    "refer": [],
+    "result": "The dates you entered fall inside the stated period (both counts agree: days from the information)",
+    "counts": {
+     "A": {
+      "convention": "first day excluded, last day included",
+      "period_ends": "2013-03-16",
+      "days_after_start": 6,
+      "status": "inside"
+     },
+     "B": {
+      "convention": "first day included",
+      "period_ends": "2013-03-15",
+      "days_after_start": 6,
+      "status": "inside"
+     }
+    }
+   },
+   {
+    "step": "payment",
+    "clause": "(c)",
+    "title": "the drawer's fifteen days to pay run from receiving the notice",
+    "status": "COMPUTED",
+    "refer": [],
+    "result": "The fifteen days run to 2013-03-12 (first day excluded) or 2013-03-11 (first day included); whether the drawer paid is not assessed here",
+    "counts": {
+     "A": {
+      "convention": "first day excluded, last day included",
+      "period_ends": "2013-03-12"
+     },
+     "B": {
+      "convention": "first day included",
+      "period_ends": "2013-03-11"
+     }
+    }
+   },
+   {
+    "step": "complaint_window",
+    "clause": "s.142",
+    "title": "the complaint window",
+    "status": "REFER",
+    "refer": [
+     {
+      "code": "complaint_window_not_computed",
+      "text": "The complaint window comes from s.142, which is not held: it is not computed here; a lawyer sets it. Nothing on this list says whether a complaint is in time"
+     }
+    ],
+    "result": "REFER: The complaint window comes from s.142, which is not held: it is not computed here; a lawyer sets it. Nothing on this list says whether a complaint is in time.",
+    "counts": {}
+   }
+  ],
+  "refer_count": 1,
+  "not_assessed": [
+   "Whether the underlying debt is legally enforceable, or still recoverable in time",
+   "Whether the cheque was drawn for the discharge of a debt or other liability (s.138 requires it)",
+   "The reason the bank gave for returning the cheque (s.138 names insufficiency of funds, or an amount over the arrangement with the bank)",
+   "Whether the notice demands more than is due",
+   "How the notice was served and whether it was received",
+   "Territorial jurisdiction",
+   "Notices to a company and its directors (s.141)",
+   "The standing of the payee or holder"
+  ],
+  "notes": [
+   "Holiday check not performed: if a last day was a court holiday, the next working day may apply (a lawyer sets the rule)"
+  ],
+  "source": {
+   "act": "Negotiable Instruments Act, 1881, s.138 proviso (a) to (c), India Code copy captured 24 Sep 2026",
+   "asset": "ni_act_s138_139.json"
+  }
+ }
+}
