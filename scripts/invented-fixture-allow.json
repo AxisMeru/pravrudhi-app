@@ -316,5 +316,23 @@
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "8f67ceea6c8512be90bf830a421904f93e170a1e36770e8a85a44ad45bfd48f4",
     "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples), kept as the engine wrote it to test how the page renders day-first dates; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/cheque_case_step1_no_b3.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "7aee43eb21c47c77065fa511de35de7c6e9cd6a55e93b8dee4a2a5ff12e5b13f",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/cheque_case_step1_no_b3.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "1f85281504746894d2f7e409be0a3e57645d82f1b3152ede873f4f4db823eb85",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/cheque_case_step2_with_b3.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "1f85281504746894d2f7e409be0a3e57645d82f1b3152ede873f4f4db823eb85",
+    "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
   }
 ]
