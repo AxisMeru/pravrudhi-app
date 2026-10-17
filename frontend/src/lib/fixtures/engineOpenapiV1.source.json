@@ -1,6 +1,6 @@
 {
-  "source": "AxisMeru/pravrudhi docs/api/openapi-v1.json as rendered by pravrudhi.api.partner_openapi.render()",
-  "commit": "PENDING final sha; rendered from d575be61 (branch trackc/name-509)",
-  "sha256": "d513716dce3c95f01a823b5891109fd9088f0e1824a4e5aa9f6ca7039c14a365",
-  "note": "PENDING (draft, do not merge before the engine swap): derived by rendering the branch with pravrudhi.api.partner_openapi.render() (not from a checked-in file: Track C's branch has not regenerated docs/api/openapi-v1.json yet). The sha256 below MUST be re-pinned to Track C's final contract/commit before the swap (he is still fixing an Intake bug on the branch). DRAFT pin for the 0.6.19 engine swap: copied unchanged into engineOpenapiV1.json; the mock-schema test checks the sha256. Replace by the released file (same renderer) if Track C's release PR changes it, updating this record in the same PR. Differences from the 0.6.18 pin (8c4f7bc8): VerifyCitationResponse.name_compared (optional boolean), AuditRowOut.mode adds assist/intake/intake_assist, a new contract reason second_judge_not_confirmed, the verify-citations 422 description (quote_not_served)."
+  "source": "AxisMeru/pravrudhi docs/api/openapi-v1.json",
+  "commit": "tag v0.6.20 (peels to a2ffbc4e, the release/0.6.20 merge)",
+  "sha256": "0960cd79355c6251ffe2c7025ca34b48ddd69b61fa8a60533b1b8e880f520c0e",
+  "note": "The contract as PUBLISHED at engine tag v0.6.20 (byte-identical to v0.6.19's file, 57,957 bytes), copied unchanged into engineOpenapiV1.json; the mock-schema test checks the sha256. Re-pin by copying the file and updating this record in the same PR. Differences from the 0.6.18 pin (8c4f7bc8): AuditRowOut.mode enum 3 -> 6 values; ContractResultOut.reason gains second_judge_not_confirmed; VerifyCitationResponse.name_compared (optional boolean) and a longer result description (NAME_MISMATCH); verify-citations 422 description (quote_not_served). Full delta: Track C's APP366_PIN_DELTA_v0.6.20_2026-10-17.md."
 }
