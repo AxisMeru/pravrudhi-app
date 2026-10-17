@@ -555,7 +555,7 @@ export default function ScreeningPage() {
             {picker === "error" ? (
               <div className="flex flex-wrap items-center gap-3">
                 <p className="text-sm text-[var(--color-danger)]" role="alert" data-testid="contracts-error">{contractsError}</p>
-                <button type="button" className="text-sm text-[var(--color-text-dim)] underline" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
+                <button type="button" className="inline-flex min-h-6 items-center text-sm text-[var(--color-text-dim)] underline max-md:min-h-11" data-testid="contracts-retry" onClick={() => { setContractsError(null); setContractsTry((n) => n + 1); }}>
                   Try again
                 </button>
               </div>
