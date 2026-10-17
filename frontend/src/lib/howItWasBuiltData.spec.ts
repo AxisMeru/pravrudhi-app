@@ -6,7 +6,7 @@ import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SE
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1k_2026-10-17.md, sha12 01855a38f9be (v1k; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1m_2026-10-17.md, sha12 2506319544fd (v1m; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -21,9 +21,10 @@ const PINS: Readonly<Record<string, string>> = {
   r2_name: "91e95fa53295a428",
   r2_source: "2760089b9194ca9d",
   r3_name: "0002dc7760e15464",
-  r3_source: "8c56c722a1ba4d04",
-  r3_licence_fallback: "5ce4dc70612fe550",
+  r3_source: "21a6557f0188df85",
+  r3_licence_fallback: "ab2b24197f833c1c",
   r3_used: "23785039b5e44619",
+  r3_used_b: "f60eea0ec8cb6296",
   r3_published: "45cd57eda5376c43",
   r3_caveat: "f7175985fdc2c7da",
   r4_name: "d8a63070658dbe2b",
@@ -136,6 +137,8 @@ test("lines get their lead-in by kind; several caveat lines share one Note; a se
   assert.equal(leadInOf("r9_32b"), null);
   assert.equal(leadInOf("r7_sc"), "note");
   assert.equal(leadInOf("r6_source_quote"), "source");
+  assert.equal(leadInOf("r3_used_b"), "used");
+  assert.deepEqual(groupLines(DATA_SETS.find((s) => s.id === "r3")!.lines).find((x) => x.leadIn === "used")?.keys, ["r3_used", "r3_used_b"]);
   assert.deepEqual(groupLines(DATA_SETS.find((s) => s.id === "r6")!.lines)[0].keys, ["r6_source", "r6_source_quote"]);
   assert.deepEqual(groupLines(DATA_SETS.find((s) => s.id === "r7")!.lines).at(-1)?.keys, ["r7_caveat", "r7_sc"]);
   const r1 = DATA_SETS.find((s) => s.id === "r1")!;

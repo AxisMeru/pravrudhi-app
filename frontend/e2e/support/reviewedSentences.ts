@@ -21,6 +21,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "The sealed and held-out evaluation sets: private so a future test cannot be learned in advance.",
       "You cannot rebuild our training sets or our labels from what we publish.",
       "Overlap between training and evaluation was checked by identity and by text.",
+      "Statute text for the further pre-training of our models: official NCRB PDFs for the BNSS, the BNS and the BSA, and a mirror of the government text (devgan.in) for the IPC, the CrPC, the Negotiable Instruments Act and others.",
       "Judgment text for further pre-training of our models, kept with the attribution the licence asks for.",
       "Our training sets are not on Hugging Face.",
       "Judgment text in our pre-training corpus.",

@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1k_2026-10-17.md (sha12 01855a38f9be), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1m_2026-10-17.md (sha12 2506319544fd), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -17,9 +17,10 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r2_name: "Supreme Court judgments",
   r2_source: "Public Supreme Court judgments. We have not confirmed the source or licence of our copy. Comparing titles and dates, part of it matches judgments in a public collection licensed CC BY 4.0; we do not rely on that licence for our copy.",
   r3_name: "Statute text",
-  r3_source: "Government-authored text of the Acts: official PDFs from India Code and the NCRB and, for some Acts, a mirror of the government text (devgan.in). Held: the BNS, the BNSS, the Digital Personal Data Protection Act, the Negotiable Instruments Act (the cheque-dishonour sections), the Specific Relief Act, the IPC and others.",
-  r3_licence_fallback: "Government works: Copyright Act s.52(1)(q), as our notices record. The terms of the sites and of the mirror are not set out here.",
+  r3_source: "Text of the Acts shown by the app: the BNS, the BNSS, the BSA and the cheque-dishonour sections of the Negotiable Instruments Act from India Code's own catalogue; the IPC from the statutes file of the IL-TUR benchmark (Exploration-Lab/IL-TUR).",
+  r3_licence_fallback: "Government works: Copyright Act s.52(1)(q), as our notices record. The terms of the sites, the mirror and the IL-TUR file are not set out here.",
   r3_used: "The ingredient lists and the review agendas.",
+  r3_used_b: "Statute text for the further pre-training of our models: official NCRB PDFs for the BNSS, the BNS and the BSA, and a mirror of the government text (devgan.in) for the IPC, the CrPC, the Negotiable Instruments Act and others.",
   r3_published: `Not republished. The app says "${STATUTE_NOTICE}"`,
   r3_caveat: "The Negotiable Instruments Act was rebuilt section by section because its PDF has no text layer.",
   r4_name: "Constructed cases",
@@ -88,7 +89,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
 export const DATA_SETS: readonly { id: string; name: string; lines: readonly string[] }[] = [
   { id: "r1", name: "r1_name", lines: ["r1_source", "r1_licence", "r1_used", "r1_published", "r1_caveat_cov", "r1_caveat_attr"] },
   { id: "r2", name: "r2_name", lines: ["r2_source"] },
-  { id: "r3", name: "r3_name", lines: ["r3_source", "r3_licence_fallback", "r3_used", "r3_published", "r3_caveat"] },
+  { id: "r3", name: "r3_name", lines: ["r3_source", "r3_licence_fallback", "r3_used", "r3_used_b", "r3_published", "r3_caveat"] },
   { id: "r4", name: "r4_name", lines: ["r4_source", "r4_licence", "r4_caveat"] },
   { id: "r5", name: "r5_name", lines: ["r5_source", "r5_published", "r5_caveat"] },
   { id: "r6", name: "r6_name", lines: ["r6_source", "r6_source_quote", "r6_licence", "r6_used", "r6_published", "r6_caveat"] },
@@ -113,7 +114,7 @@ export function leadInOf(key: string): DataLeadIn | null {
   const part = key.replace(/^r\d+_/, "");
   if (part === "source" || part === "source_fallback" || part === "source_quote") return "source";
   if (part === "licence" || part === "licence_fallback") return "licence";
-  if (part === "used") return "used";
+  if (part === "used" || part === "used_b") return "used";
   if (part === "published") return "published";
   if (part.startsWith("caveat") || part === "sc") return "note";
   return null;
