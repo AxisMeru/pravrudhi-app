@@ -431,10 +431,10 @@ export default function ScreeningPage() {
         )}
         {!result && <p className="text-sm text-[var(--color-text)]" data-testid="standing-line">{BANNER_STANDING_LINE}</p>}
         {LAYOUT_MATTER_B && !result && (
-          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] print:hidden" data-testid="mb-also">
+          <p className="flex flex-wrap items-center gap-x-2 text-sm text-[var(--color-text)] max-md:flex-col max-md:items-start print:hidden" data-testid="mb-also">
             {MB.alsoLead}{" "}
             <Link href="/safety" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-safety">{MB.alsoSafety}</Link>{" "}
-            <span aria-hidden="true">·</span>{" "}
+            <span aria-hidden="true" className="max-md:hidden">·</span>{" "}
             <Link href="/benchmarks" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline max-md:min-h-11" data-testid="mb-also-benchmarks">{MB.alsoBenchmarks}</Link>
           </p>
         )}
