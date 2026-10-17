@@ -36,3 +36,8 @@ export async function expectOffPageScreeningItem(page: Page): Promise<void> {
   await expect(nav.getByRole("link", { name: "Matter", exact: true })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: MB.factsLabel, exact: true })).toHaveCount(0);
 }
+
+// The page's own name: "This screening" on layout B (R1, 17 Oct: no "matter" label where no matter store exists), "Matter workspace" on the live layout.
+export async function screeningTitle(page: Page): Promise<string> {
+  return (await isLayoutB(page)) ? MB.screeningLabel : "Matter workspace";
+}

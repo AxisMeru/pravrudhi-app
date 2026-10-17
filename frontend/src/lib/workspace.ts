@@ -1,5 +1,7 @@
 // The Matter workspace (Lead-2, 15 Oct; R1's exact strings): /screening is the workspace for one matter, with a step bar on top: Facts, Screen, Memo, Hearing preparation. ONE constant names it
 // everywhere it is named: the nav entry, the page title, the browser tab title, the step bar and the "Go to ..." link on /citations all read WORKSPACE_* from here, so they cannot disagree.
+import { LAYOUT_MATTER_B } from "./layoutFlag";
+
 
 /** The sidebar and palette entry. */
 export const WORKSPACE_NAV_LABEL = "Matter";
@@ -21,7 +23,7 @@ export const WORKSPACE_ANCHORS = { facts: "step-facts", screen: "step-screen", m
 export const WORKSPACE_PATH = "/screening";
 
 /** The link on a Built /workflows row to its step (the label is a plain action; R1 to confirm). */
-export const WORKFLOW_OPEN_LABEL = `Open in ${WORKSPACE_TITLE}`;
+export const WORKFLOW_OPEN_LABEL = LAYOUT_MATTER_B ? "Open the screening page" : `Open in ${WORKSPACE_TITLE}`; // layout B: R1 (17 Oct)
 /** The link on the Built Intake row: Intake is its own page (/intake), not a step of the workspace (R1 to confirm the label). */
 export const INTAKE_PATH = "/intake";
 export const INTAKE_OPEN_LABEL = "Open Intake";
@@ -29,7 +31,7 @@ export const INTAKE_OPEN_LABEL = "Open Intake";
 export const INTAKE_START_SENTENCE = "To start from pasted text, use Intake.";
 export const intakeLineShown = (intakeOn: boolean, signedIn: boolean | null): boolean => intakeOn && signedIn === true;
 /** The link on /citations when the check is not offered. */
-export const CITATIONS_GO_LABEL = `Go to ${WORKSPACE_TITLE}`;
+export const CITATIONS_GO_LABEL = LAYOUT_MATTER_B ? "Go to the screening page" : `Go to ${WORKSPACE_TITLE}`; // layout B: R1 (17 Oct)
 
 export type StepKey = keyof typeof WORKSPACE_STEP_LABELS;
 export interface StepState {

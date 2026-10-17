@@ -1,6 +1,6 @@
 import { expect, test } from "./support/engineTest";
 import { sha } from "./support/sha";
-import { expectOffPageScreeningItem, expectResultViewNav, isLayoutB } from "./support/layout";
+import { expectOffPageScreeningItem, expectResultViewNav, isLayoutB, screeningTitle } from "./support/layout";
 
 // The Matter workspace (Lead-2, 15 Oct; R1's strings): /screening has a step bar (Facts, Screen, Memo, Hearing preparation) with states; the nav says "Matter"; every old URL still works.
 const F1 = "Invented: Ravi told Meena the toy lorry was his own and sold it to her for 500.";
@@ -21,7 +21,7 @@ async function setup(page: import("@playwright/test").Page) {
 test("the step bar: states before facts, with facts, and with a result; the locked steps say why", async ({ page }) => {
   await setup(page);
   await page.goto("/screening");
-  await expect(page.getByRole("heading", { name: "Matter workspace", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: await screeningTitle(page), exact: true })).toBeVisible();
   const bar = page.getByTestId("workspace-steps");
   await expect(bar.locator("li")).toHaveCount(4);
   await expect(bar.getByTestId("step-facts")).toContainText("Facts");
@@ -64,9 +64,10 @@ test("every old address still works: /screening, /screening?example=…, and ano
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthenticated" } }));
   for (const url of ["/screening", "/screening?example=madras-public-order-2024", "/screening?example=karnataka-cheating-2025"]) {
     await page.goto(url);
-    await expect(page.getByRole("heading", { name: "Matter workspace", exact: true })).toBeVisible();
+    const name = await screeningTitle(page);
+    await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
     await expect(page.getByTestId("workspace-steps")).toBeVisible();
-    await expect(page).toHaveTitle("Matter workspace · Pravrudhi-Nyaya");
+    await expect(page).toHaveTitle(`${name} · Pravrudhi-Nyaya`);
   }
   await expect(page.getByRole("textbox", { name: "Fact F1", exact: true })).not.toHaveValue("");
 });
@@ -103,7 +104,7 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
         await expect(row).toContainText("preview: existence check only");
       } else {
         await expect(link).toHaveAttribute("href", /^\/screening#step-(screen|memo|hearing)$/);
-        await expect(link).toHaveText("Open in Matter workspace");
+        await expect(link).toHaveText((await isLayoutB(page)) ? "Open the screening page" : "Open in Matter workspace");
       }
     } else {
       expect(badge).toBe("Building");

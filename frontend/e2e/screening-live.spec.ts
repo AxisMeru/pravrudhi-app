@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./support/engineTest";
+import { screeningTitle } from "./support/layout";
 
 import { withFactText, type AnalyseFactsWire } from "../src/lib/api";
 import { checkDemoResult, type DemoFixture } from "../src/lib/demo/liveCheck";
@@ -122,7 +123,7 @@ for (let run = 1; run <= REPEATS; run++) {
     await page.goto("/");
     await page.waitForURL(/\/screening/, { timeout: 20_000 });
     await page.goto("/screening");
-    await page.locator("main").getByRole("heading", { name: "Matter workspace", exact: true }).waitFor();
+    await page.locator("main").getByRole("heading", { name: await screeningTitle(page), exact: true }).waitFor();
     const offline = page.getByTestId("screening-offline");
     // Lazily: innerText() on an element that is not there waits for the whole test timeout, so only read it when the notice is visible.
     const closed = await offline.isVisible().catch(() => false);
