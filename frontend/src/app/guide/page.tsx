@@ -1,10 +1,12 @@
 import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
+
+import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
 import { GUIDE_FILM_HEADING } from "@/lib/films/copy";
 import {
   GUIDE_ABOUT, GUIDE_ABOUT_HEADING, GUIDE_BEFORE, GUIDE_BEFORE_HEADING, GUIDE_BEFORE_LINK, GUIDE_COVERED, GUIDE_COVERED_HEADING, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_GLOSSARY_HEADING,
-  GUIDE_BANNER_TEXT, GUIDE_COLD_START, GUIDE_COLD_START_HEADING, GUIDE_INTRO, GUIDE_INTRO_HEADING, GUIDE_LIMITS, GUIDE_LIMITS_HEADING, GUIDE_SCREENSHOT_NOTE,
+  GUIDE_BANNER_TEXT, GUIDE_COLD_START, GUIDE_COLD_START_HEADING, GUIDE_INTRO, GUIDE_INTRO_HEADING, GUIDE_LIMITS, GUIDE_LIMITS_HEADING, GUIDE_SCREENSHOT_NOTE, GUIDE_SCREENSHOT_NOTE_LB,
   GUIDE_STATUS_HEADING, GUIDE_STATUSES, GUIDE_STEPS, GUIDE_STEPS_HEADING, GUIDE_SUBTITLE, GUIDE_TITLE,
 } from "@/lib/guide/copy";
 
@@ -18,7 +20,7 @@ export default function GuidePage() {
         <section>
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_INTRO_HEADING}</h2>
           <p className="mt-1 text-sm text-[var(--color-text-dim)]">{GUIDE_INTRO}</p>
-          <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="guide-screenshot-note">{GUIDE_SCREENSHOT_NOTE}</p>
+          <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="guide-screenshot-note">{LAYOUT_MATTER_B ? GUIDE_SCREENSHOT_NOTE_LB : GUIDE_SCREENSHOT_NOTE}</p>
         </section>
         <section id="film" data-testid="guide-film">
           <h2 className="mb-2 text-base font-medium text-[var(--color-text)]">{GUIDE_FILM_HEADING}</h2>
