@@ -76,7 +76,7 @@ export const DATA_SETS: readonly { id: string; name: string; lines: readonly str
   { id: "r4", name: "r4_name", lines: ["r4_source", "r4_licence", "r4_caveat"] },
   { id: "r5", name: "r5_name", lines: ["r5_source", "r5_published", "r5_caveat"] },
   { id: "r6", name: "r6_name", lines: ["r6_source", "r6_licence", "r6_used", "r6_published", "r6_caveat"] },
-  { id: "r7", name: "r7_name", lines: ["r7_source", "r7_sc", "r7_published", "r7_caveat"] },
+  { id: "r7", name: "r7_name", lines: ["r7_source", "r7_published", "r7_caveat", "r7_sc"] },
   { id: "r8", name: "r8_name", lines: ["r8_casehold", "r8_legalbench", "r8_published"] },
   { id: "r9", name: "r9_name", lines: ["r9_32b", "r9_7b", "r9_other"] },
   { id: "r10", name: "r10_name", lines: ["r10_source", "r10_published", "r10_caveat"] },
@@ -96,7 +96,7 @@ export function leadInOf(key: string): DataLeadIn | null {
   if (part === "licence" || part === "licence_fallback") return "licence";
   if (part === "used") return "used";
   if (part === "published") return "published";
-  if (part.startsWith("caveat")) return "note";
+  if (part.startsWith("caveat") || part === "sc") return "note";
   return null;
 }
 

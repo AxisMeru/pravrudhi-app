@@ -118,6 +118,8 @@ test("lines get their lead-in by kind; several caveat lines share one Note; a se
   assert.equal(leadInOf("r3_licence_fallback"), "licence");
   assert.equal(leadInOf("r2_source_fallback"), "source");
   assert.equal(leadInOf("r9_32b"), null);
+  assert.equal(leadInOf("r7_sc"), "note");
+  assert.deepEqual(groupLines(DATA_SETS.find((s) => s.id === "r7")!.lines).at(-1)?.keys, ["r7_caveat", "r7_sc"]);
   const r1 = DATA_SETS.find((s) => s.id === "r1")!;
   const g = groupLines(r1.lines);
   assert.deepEqual(g.map((x) => x.leadIn), ["source", "licence", "used", "published", "note"]);
