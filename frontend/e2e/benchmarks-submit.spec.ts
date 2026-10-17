@@ -1,5 +1,6 @@
 import { expect, test } from "./support/engineTest";
 
+import { NS_COMING } from "../src/lib/nyayasiddhiComing";
 import { NS_HIDDEN_SPLIT, NS_SUBMIT as T, NS_SUBMIT_LINKS as L, NS_SUBMIT_LINK_TEXT } from "../src/lib/nyayasiddhiSubmit";
 
 // app#429 PR-B: the submission page. Every sentence is R1's (pinned by hash in src/lib/nyayasiddhiSubmit.spec.ts); no upload; links only to the public dataset files.
@@ -42,4 +43,17 @@ test("the page works at phone width: no horizontal scroll, link targets are phon
     const b = (await page.getByTestId(id).boundingBox())!;
     expect(b.height, id).toBeGreaterThanOrEqual(44);
   }
+});
+
+// app#429 PR-A: the "not populated yet" block on /benchmarks, the hidden-set sentence being the same constant the submission page prints.
+test("/benchmarks shows the not-populated block with R1's lines and the one hidden-set sentence, and no digit", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const block = page.getByTestId("ns-coming");
+  await expect(block).toBeVisible();
+  await expect(block.getByRole("heading", { level: 2 })).toHaveText(NS_COMING.coming_heading);
+  await expect(block).toContainText(NS_HIDDEN_SPLIT);
+  await expect(block).toContainText(NS_COMING.coming_rows);
+  expect(await block.innerText()).not.toMatch(/\d/);
+  await page.goto("/benchmarks/submit");
+  await expect(page.getByTestId("ns-submit-status")).toContainText(NS_HIDDEN_SPLIT);
 });
