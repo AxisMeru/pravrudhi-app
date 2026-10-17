@@ -27,11 +27,11 @@ test("available and off by default: usable, unchecked, no consent line until it 
 
 // #128 D6: the toggle component is not rendered while the reader is unavailable (it was removed); its state logic and strings stay here, unused by any page, for the release that switches the reader on.
 
-test("the quote-check labels: passed, not found, the signed sentence for another known code, an unknown code as sent", () => {
+test("the quote-check labels: passed, not found, the signed sentence for another known code, an unknown code reads R1's neutral sentence", () => {
   assert.equal(quoteCheckLabel("ok"), "passed the quote check");
   assert.equal(quoteCheckLabel("quote_not_found"), "quote not found in your facts");
   assert.match(quoteCheckLabel("ambiguous_quote"), /appears more than once/);
-  assert.match(quoteCheckLabel("brand_new"), /does not recognise yet \("brand_new"\)/);
+  assert.equal(quoteCheckLabel("brand_new"), "The quote check returned a result this version of the app cannot show. Check the quoted words against your facts yourself.");
   assert.equal(quoteCheckLabel(null), "The quote was not checked.");
 });
 
@@ -60,7 +60,7 @@ test("a cell's check is marked passed only for ok; every other code and a missin
 
 test("a label is looked up as an OWN key: names inherited from Object.prototype are unknown codes, never a function or a sentence", () => {
   for (const code of ["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf"]) {
-    assert.match(quoteCheckLabel(code), /does not recognise yet/, code);
+    assert.equal(quoteCheckLabel(code), "The quote check returned a result this version of the app cannot show. Check the quoted words against your facts yourself.", code);
   }
 });
 

@@ -3,7 +3,7 @@
 // "quote": a frontier model writes words, and the engine checks them against the user's facts mechanically. The house path says "cites your fact".
 // Every field below is optional on the wire (the engine fields are not all there yet) and nothing is invented for a missing one.
 
-import { QUOTE_CHECK_TEXT } from "./reasonText";
+import { QUOTE_CHECK_TEXT, UNKNOWN_QUOTE_CHECK_TEXT } from "./reasonText";
 
 export const FRONTIER_TOGGLE_LABEL = "Use a frontier model as an additional reader";
 
@@ -46,13 +46,13 @@ export function frontierToggleState(input: { available?: boolean | null; value: 
   return { disabled: false, checked: input.value, reason: null, consent: input.value ? consentLine(input.provider) : null };
 }
 
-/** The label for a frontier quote's check: the two decided phrases, the signed sentence for any other known code, an unknown code as sent. */
+/** The label for a frontier quote's check: the two decided phrases, the signed sentence for any other known code, an unknown code reads R1's neutral sentence (no code). */
 export function quoteCheckLabel(check: string | null | undefined): string {
   const code = (check ?? "").trim();
   if (code === "ok") return QUOTE_PASSED_TEXT;
   if (code === "quote_not_found") return QUOTE_NOT_FOUND_TEXT;
   if (Object.prototype.hasOwnProperty.call(QUOTE_CHECK_TEXT, code)) return QUOTE_CHECK_TEXT[code];
-  return code ? `The quote check gave a result this app does not recognise yet ("${code}").` : "The quote was not checked.";
+  return code ? UNKNOWN_QUOTE_CHECK_TEXT : "The quote was not checked.";
 }
 
 export interface FrontierReading {
