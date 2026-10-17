@@ -1,4 +1,4 @@
-// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1i_2026-10-17.md (sha12 65643f779691), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
+// "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1k_2026-10-17.md (sha12 01855a38f9be), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
 // r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
@@ -17,8 +17,8 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r2_name: "Supreme Court judgments",
   r2_source: "Public Supreme Court judgments. We have not confirmed the source or licence of our copy. Comparing titles and dates, part of it matches judgments in a public collection licensed CC BY 4.0; we do not rely on that licence for our copy.",
   r3_name: "Statute text",
-  r3_source: "Official-source PDFs of the Acts, fetched from India Code and other official sites: the BNS, the BNSS, the Digital Personal Data Protection Act, the Negotiable Instruments Act (the cheque-dishonour sections), the Specific Relief Act and the IPC.",
-  r3_licence_fallback: "Official government publications. Terms of use are not set out here.",
+  r3_source: "Government-authored text of the Acts: official PDFs from India Code and the NCRB and, for some Acts, a mirror of the government text (devgan.in). Held: the BNS, the BNSS, the Digital Personal Data Protection Act, the Negotiable Instruments Act (the cheque-dishonour sections), the Specific Relief Act, the IPC and others.",
+  r3_licence_fallback: "Government works: Copyright Act s.52(1)(q), as our notices record. The terms of the sites and of the mirror are not set out here.",
   r3_used: "The ingredient lists and the review agendas.",
   r3_published: `Not republished. The app says "${STATUTE_NOTICE}"`,
   r3_caveat: "The Negotiable Instruments Act was rebuilt section by section because its PDF has no text layer.",
@@ -54,6 +54,21 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r10_source: "Built from the court text we hold. It records which citations exist, not what a case held.",
   r10_published: "Not on Hugging Face.",
   r10_caveat: "It looks up Supreme Court citations written in the (year) volume SCC page form. Any other form comes back \"not found in our index\", which is no evidence either way.",
+  r11_name: "ILC (Hugging Face, d0r1h/ILC)",
+  r11_source: "The d0r1h/ILC data set of Indian judgments on Hugging Face.",
+  r11_licence: "CC BY 3.0: the licence recorded in our manifest matches the licence field on the dataset's Hugging Face page, read on 17 October 2026. This is not a legal opinion.",
+  r11_used: "Judgment text for further pre-training of our models, kept with the attribution the licence asks for.",
+  r11_published: "Not published. Our training sets are not on Hugging Face.",
+  r12_name: "InJudgements",
+  r12_source: "The InJudgements data set (opennyaiorg/InJudgements_dataset).",
+  r12_licence: "Apache-2.0: the licence recorded in our manifest matches the licence field on the dataset's page, read on 17 October 2026. The dataset is gated, and we have not checked its rows or terms. This is not a legal opinion.",
+  r12_used: "Judgment text in our pre-training corpus.",
+  r12_published: "Not published. Our training sets are not on Hugging Face.",
+  r13_name: "Kaggle Supreme Court slice",
+  r13_source: "A slice of a Kaggle collection of Supreme Court judgments.",
+  r13_licence: "CC0: the licence recorded in our manifest matches the licence field on the collection's Kaggle page, read on 17 October 2026. This is not a legal opinion.",
+  r13_used: "Supreme Court judgment text in our pre-training corpus.",
+  r13_published: "Not published. Our training sets are not on Hugging Face.",
   np_heading: "What we do not publish, and why",
   np1: "The training sets: not on Hugging Face.",
   np2: "The sealed and held-out evaluation sets: private so a future test cannot be learned in advance.",
@@ -81,6 +96,9 @@ export const DATA_SETS: readonly { id: string; name: string; lines: readonly str
   { id: "r8", name: "r8_name", lines: ["r8_casehold", "r8_legalbench", "r8_published"] },
   { id: "r9", name: "r9_name", lines: ["r9_32b", "r9_7b", "r9_other"] },
   { id: "r10", name: "r10_name", lines: ["r10_source", "r10_published", "r10_caveat"] },
+  { id: "r11", name: "r11_name", lines: ["r11_source", "r11_licence", "r11_used", "r11_published"] },
+  { id: "r12", name: "r12_name", lines: ["r12_source", "r12_licence", "r12_used", "r12_published"] },
+  { id: "r13", name: "r13_name", lines: ["r13_source", "r13_licence", "r13_used", "r13_published"] },
 ];
 
 export const DATA_NOT_PUBLISHED: readonly string[] = ["np1", "np2", "np3", "np4", "np5"];

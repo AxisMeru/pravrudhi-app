@@ -6,7 +6,7 @@ import { DATA_LEAD_INS, DATA_LIMITS, DATA_NOT_PUBLISHED, DATA_NOTE_TEXT, DATA_SE
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
-// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1i_2026-10-17.md, sha12 65643f779691 (v1i; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
+// R1's worded data note (HOW_BUILT_DATA_NOTE_R1_WORDED_v1k_2026-10-17.md, sha12 01855a38f9be (v1k; r6_source is still the v1b/v1c neutral row until the Interim lead confirms the High Court wording)): every SHIP key pinned by sha256[:16]; the HELD keys are not built.
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Readonly<Record<string, string>> = {
   heading: "c621772b57075c5d",
@@ -21,8 +21,8 @@ const PINS: Readonly<Record<string, string>> = {
   r2_name: "91e95fa53295a428",
   r2_source: "2760089b9194ca9d",
   r3_name: "0002dc7760e15464",
-  r3_source: "08db8d4bcbe81563",
-  r3_licence_fallback: "34b560058012e8bc",
+  r3_source: "8c56c722a1ba4d04",
+  r3_licence_fallback: "5ce4dc70612fe550",
   r3_used: "23785039b5e44619",
   r3_published: "45cd57eda5376c43",
   r3_caveat: "f7175985fdc2c7da",
@@ -58,6 +58,21 @@ const PINS: Readonly<Record<string, string>> = {
   r10_source: "66eb311e05ff8a3c",
   r10_published: "7f7fdd817e453526",
   r10_caveat: "0191cf6628395c07",
+  r11_name: "8b67f08b2949914f",
+  r11_source: "2c69753018bd78d3",
+  r11_licence: "3235f4dadca20f61",
+  r11_used: "e08527c6b1625646",
+  r11_published: "7cea322d6515e72a",
+  r12_name: "1c5313ba1565fe43",
+  r12_source: "8660b7657275f1b7",
+  r12_licence: "8e044bfba921c1e4",
+  r12_used: "d8a7eed5636e9b4e",
+  r12_published: "7cea322d6515e72a",
+  r13_name: "8ed26e28b474abb9",
+  r13_source: "7828df93b7f9195d",
+  r13_licence: "ac828c8bdff80ad9",
+  r13_used: "fdbb89bd54ddd322",
+  r13_published: "7cea322d6515e72a",
   np_heading: "a368c51b0c4e6c8c",
   np1: "9355382258cdb8fa",
   np2: "6da219455dce2700",
@@ -85,7 +100,7 @@ test("the structure names only built keys, each once, in R1's order: sets, what 
   for (const k of used) assert.ok(Object.hasOwn(DATA_NOTE_TEXT, k), k);
   assert.equal(new Set(used).size, used.length, "a key is used twice");
   for (const k of ["heading", "intro", "np_heading", "cv_heading"]) assert.ok(Object.hasOwn(DATA_NOTE_TEXT, k), k);
-  assert.deepEqual(DATA_SETS.map((s) => s.id), ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10"]);
+  assert.deepEqual(DATA_SETS.map((s) => s.id), ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12", "r13"]);
 });
 
 test("r3_published quotes the app's own statute notice byte for byte, and the hidden-set line is the one constant", () => {
@@ -94,8 +109,8 @@ test("r3_published quotes the app's own statute notice byte for byte, and the hi
   assert.equal(h(DATA_NOTE_TEXT.np3), "1502d9c1b8e3fdf1");
 });
 
-test("own digit rule: no count anywhere; digits only in 'step 1', licence names and versions, and the two model names", () => {
-  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g, /our 7B fine-tune/g];
+test("own digit rule: no count anywhere; digits only in 'step 1', licence names and versions, the model names, the dataset id and the one licence-read date (17 October 2026)", () => {
+  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g, /our 7B fine-tune/g, /CC BY 3\.0/g, /CC0/g, /s\.52\(1\)\(q\)/g, /d0r1h\/ILC/g, /read on 17 October 2026/g];
   for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) {
     let rest = t;
     for (const re of ALLOWED) rest = rest.replace(re, "");
