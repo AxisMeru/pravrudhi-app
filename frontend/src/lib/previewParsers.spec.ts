@@ -53,3 +53,20 @@ test("S1 and A1: citation rows keep text, status and reporter; the not-assessed 
 test("a body with no run_id, or null, is refused by every reader", () => {
   for (const f of [parseA1, parseA3, parseA5, parseS1]) { assert.equal(f(null), null); assert.equal(f({}), null); }
 });
+
+import b3computed from "./fixtures/preview/b3_s138_checklist_computed.json";
+import b3refer from "./fixtures/preview/b3_s138_checklist_refer.json";
+import { parseB3 } from "./previewParsers";
+
+test("B3: both counting conventions are kept on every counted step, the REFER texts and read-as dates show, nothing says a deadline is missed", () => {
+  const c = parseB3(body(b3computed))!;
+  assert.equal(c.steps.length, 4);
+  assert.equal(c.steps[0].status, "INSIDE");
+  assert.deepEqual(c.steps[0].counts.map((x) => x.periodEnds), ["2013-05-01", "2013-04-30"]);
+  assert.equal(c.steps[3].status, "REFER");
+  const r = parseB3(body(b3refer))!;
+  assert.ok(r.steps.every((s) => s.status === "REFER" && s.refer.length > 0));
+  assert.equal(r.inputs[0].readAs, "2013-02-01");
+  assert.ok(r.inputs[0].dayFirst && !r.inputs[0].confirmed);
+  assert.ok(r.notAssessed.length >= 6 && r.notes.length >= 1);
+});

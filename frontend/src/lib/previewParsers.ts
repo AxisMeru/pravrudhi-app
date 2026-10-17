@@ -87,3 +87,25 @@ export function parseA1(b: Rec | null): A1View | null {
 }
 
 export { stringsOf };
+
+// ---------- B3 section 138 checklist ----------
+export interface B3Input { role: string; text: string; readAs: string | null; dayFirst: boolean; confirmed: boolean; problems: string[] }
+export interface B3Step { title: string; clause: string | null; status: string; result: string | null; refer: string[]; counts: { convention: string; periodEnds: string | null; status: string | null }[]; notes: string[] }
+export interface B3View { statement: string | null; description: string | null; rule: string | null; inputs: B3Input[]; steps: B3Step[]; notAssessed: string[]; notes: string[] }
+export function parseB3(b: Rec | null): B3View | null {
+  if (!b || typeof b.run_id !== "string") return null;
+  return {
+    statement: str(b.statement),
+    description: str(b.description),
+    rule: str(rec(b.conventions)?.rule),
+    inputs: arr(b.inputs).flatMap((i) => { const r = rec(i); const role = str(r?.role), text = str(r?.text); return r && role && text !== null ? [{ role, text, readAs: str(r.read_as), dayFirst: r.day_first_assumed === true, confirmed: r.confirmed === true, problems: strs(r.problems) }] : []; }),
+    steps: arr(b.steps).flatMap((s) => {
+      const r = rec(s); const title = str(r?.title), status = str(r?.status);
+      if (!r || !title || !status) return [];
+      const counts = rec(r.counts);
+      return [{ title, clause: str(r.clause), status, result: str(r.result), refer: arr(r.refer).flatMap((x) => { const t = str(rec(x)?.text); return t ? [t] : []; }), counts: ["A", "B"].flatMap((k) => { const c = rec(counts?.[k]); const conv = str(c?.convention); return c && conv ? [{ convention: conv, periodEnds: str(c.period_ends), status: str(c.status) }] : []; }), notes: strs(r.notes) }];
+    }),
+    notAssessed: strs(b.not_assessed),
+    notes: strs(b.notes),
+  };
+}

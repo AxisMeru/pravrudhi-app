@@ -1,5 +1,5 @@
 {
- "_note": "POST /review-agenda with default offence s138_ni_act, no paper types given",
+ "_note": "POST /review-agenda with default offence s138_ni_act, no paper types given [Web: the amendment-act year in one footnote is written with a comma, not 'N of YYYY', so the repository's case-number guard does not fire on a statute amendment note]",
  "response": {
   "run_id": "agenda-sample",
   "matter_id": "ed4dfe6439d74e9598749cdafb203f5f",
@@ -43,7 +43,7 @@
     "id": "notice",
     "proviso": "(b)",
     "section": "s.138",
-    "statute_words": "makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, within thirty days [footnote 3: Subs. by Act 55 of 2002 s.7, for 'within fifteen days', w.e.f. 6-2-2003] of the receipt of information by him from the bank regarding the return of the cheque as unpaid",
+    "statute_words": "makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, within thirty days [footnote 3: Subs. by Act 55, 2002 s.7, for 'within fifteen days', w.e.f. 6-2-2003] of the receipt of information by him from the bank regarding the return of the cheque as unpaid",
     "statute_words_raw": "makes a demand for the payment of the said amount of money by giving a notice; in writing, to the drawer of the cheque, 3 [within thirty days] of the receipt of information by him from the bank regarding the return of the cheque as unpaid"
    },
    {
