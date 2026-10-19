@@ -412,5 +412,29 @@
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "73457ca2edcbe69aefc94682cde9227a2e552209f5d23beaf8d5236e02451fd3",
     "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/synopsis_response_table_only.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "733179a4d2e19e85a816557c4861de3b554a01493e07ffe56f87982b4c85467f",
+    "reason": "invented sample: a day-first date in Track C's real-engine sample response with a fake model answer on invented text; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/synopsis_response_table_only.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "8fd361b6267848a47f38de76ebf54949a8e0f8a834f84284a470de4306cd4dc8",
+    "reason": "invented sample: a day-first date in Track C's real-engine sample response with a fake model answer on invented text; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/synopsis_response_table_only.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "1f77addcdca0969f8dce04061bfd977ce293e51cefa88bc8d64d96627f4c116e",
+    "reason": "invented sample: a day-first date in Track C's real-engine sample response with a fake model answer on invented text; no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/synopsis_response_table_only.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "87289d4f5ac5166146f4e4e3b90e3434e983585cf6af8c5c57b16e17637af284",
+    "reason": "invented sample: a day-first date in Track C's real-engine sample response with a fake model answer on invented text; no real case date"
   }
 ]

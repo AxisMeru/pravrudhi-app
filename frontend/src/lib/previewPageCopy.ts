@@ -1,6 +1,6 @@
 // The app-side labels of the preview-workflow page (/preview), R1's file PREVIEW_PAGE_STRINGS_R1_2026-10-17.md (sha12 58bc09189bb7), pinned key by key in previewPageCopy.spec.ts; the engine's own sentences are shown as it sends them.
 export const PREVIEW_PAGE = {
-  title: "Preview workflows",
+  title: "Matter tools",
   matterHeading: "Papers for a matter",
   startMatter: "Start a matter",
   matterStarted: "A matter is started. Add the papers you want it to hold.",

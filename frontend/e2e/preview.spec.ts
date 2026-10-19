@@ -11,7 +11,7 @@ test("start a matter, add a paper, run the quashing agenda: the engine's sentenc
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: 1, pages_not_read: 0, pages_note: "All pages were read." } }));
   await page.route("**/api/v1/quashing-agenda", (r) => r.fulfill({ json: AGENDA }));
   await page.goto("/preview");
-  await expect(page.getByTestId("preview-line")).toContainText("Preview.");
+  await expect(page.getByTestId("preview-line")).toContainText("Check each result against your papers");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-name").fill("FIR");
   await page.getByTestId("pv-text").fill("The accused is said to have taken the lorry.");

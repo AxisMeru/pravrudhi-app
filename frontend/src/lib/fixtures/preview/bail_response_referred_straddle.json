@@ -1,0 +1,36 @@
+{
+ "run_id": "bail-339bfca1d6",
+ "client_data": true,
+ "preview": true,
+ "label": "Preview: a first draft of the grounds for a lawyer to rewrite; not legal advice.",
+ "state": "referred",
+ "referral": {
+  "code": "dates_straddle",
+  "text": "The dates fall on both sides of 1 July 2024, so no draft was made. Both framings are shown below; a lawyer decides which Act governs."
+ },
+ "framing": {
+  "status": "straddle",
+  "options": [
+   {
+    "act": "CrPC",
+    "act_name": "Code of Criminal Procedure, 1973",
+    "section": "437",
+    "line": "Under Section 437 of the Code of Criminal Procedure, 1973 (CrPC)."
+   },
+   {
+    "act": "BNSS",
+    "act_name": "Bharatiya Nagarik Suraksha Sanhita, 2023",
+    "section": "480",
+    "line": "Under Section 480 of the Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)."
+   }
+  ],
+  "deciding_dates": {
+   "offence_date": "2024-05-01",
+   "fir_date": "2024-08-02"
+  },
+  "cutoff_date": "2024-07-01",
+  "confirmed_by_lawyer": false,
+  "unconfirmed_line": "The Act and section shown come from a table a lawyer has not yet confirmed."
+ },
+ "draft": null
+}

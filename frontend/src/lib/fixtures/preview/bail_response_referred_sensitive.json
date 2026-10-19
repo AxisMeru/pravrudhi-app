@@ -1,0 +1,12 @@
+{
+ "run_id": "bail-bedbdbaeb9",
+ "client_data": true,
+ "preview": true,
+ "label": "Preview: a first draft of the grounds for a lawyer to rewrite; not legal advice.",
+ "state": "referred",
+ "referral": {
+  "code": "sensitive_section",
+  "text": "A section you listed is one this draft tool does not handle (trafficking, sexual offences or an offence against a child), so no draft was made. Refer it to a lawyer."
+ },
+ "draft": null
+}

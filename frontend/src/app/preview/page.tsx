@@ -8,6 +8,7 @@ import { CaseCheck } from "@/components/preview/CaseCheck";
 import { PREVIEW_CASE as CC } from "@/lib/previewCaseCopy";
 import { PREVIEW_HEARING as HP } from "@/lib/previewHearingCopy";
 import { A1Result, HearingResult, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
+import { BailCard, SynopsisCard } from "@/components/preview/Drafting";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
@@ -248,6 +249,9 @@ export default function PreviewPage() {
           <button type="button" className={BTN} onClick={() => runB3(b3c)} disabled={busy} data-testid="pv-b3-run">{M.b3Run}</button>
           {b3 && <B3Result v={b3} onConfirm={confirmB3} busy={busy} />}
         </Card>
+
+        <BailCard />
+        <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
       </div>
     </div>
   );

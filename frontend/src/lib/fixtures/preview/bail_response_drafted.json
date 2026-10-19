@@ -1,0 +1,108 @@
+{
+ "run_id": "bail-a27e255e1f",
+ "client_data": true,
+ "preview": true,
+ "label": "Preview: a first draft of the grounds for a lawyer to rewrite; not legal advice.",
+ "state": "drafted",
+ "framing": {
+  "status": "single",
+  "options": [
+   {
+    "act": "BNSS",
+    "act_name": "Bharatiya Nagarik Suraksha Sanhita, 2023",
+    "section": "480",
+    "line": "Under Section 480 of the Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)."
+   }
+  ],
+  "deciding_dates": {
+   "offence_date": "2024-08-01",
+   "fir_date": "2024-08-02"
+  },
+  "cutoff_date": "2024-07-01",
+  "confirmed_by_lawyer": false,
+  "unconfirmed_line": "The Act and section shown come from a table a lawyer has not yet confirmed."
+ },
+ "facts_set_aside": 1,
+ "draft": {
+  "run_id": "bail-a27e255e1f",
+  "version": "bail-draft-1",
+  "matter_id": "bail-a27e255e1f",
+  "kind": "regular",
+  "state": "drafted",
+  "refused": null,
+  "sections": [
+   {
+    "id": "heading",
+    "source": "engine",
+    "text": "Draft for lawyer review.\nBAIL APPLICATION\n[Court]\n[parties]\nUnder Section 480 of the Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)."
+   },
+   {
+    "id": "facts",
+    "source": "engine",
+    "text": "FACTS\n[F1] The applicant has no antecedents.\n[F2] The applicant has been in custody since the arrest."
+   },
+   {
+    "id": "grounds",
+    "source": "model",
+    "text": "GROUNDS\nThe applicant states that he has no antecedents [F1].\n\nThe applicant states that he has been in custody since the arrest [F2]."
+   },
+   {
+    "id": "notes",
+    "source": "model",
+    "text": "Notes for the lawyer\n- Check the period of custody.\n- 1 fact(s) were not marked as the applicant's side and were not used."
+   },
+   {
+    "id": "prayer",
+    "source": "engine",
+    "text": "PRAYER\nTo be completed by counsel. This draft gives grounds only; no relief is drafted."
+   },
+   {
+    "id": "authorities",
+    "source": "engine",
+    "text": "AUTHORITIES\nNone supplied."
+   }
+  ],
+  "text": "Draft for lawyer review.\nBAIL APPLICATION\n[Court]\n[parties]\nUnder Section 480 of the Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS).\n\nFACTS\n[F1] The applicant has no antecedents.\n[F2] The applicant has been in custody since the arrest.\n\nGROUNDS\nThe applicant states that he has no antecedents [F1].\n\nThe applicant states that he has been in custody since the arrest [F2].\n\nNotes for the lawyer\n- Check the period of custody.\n- 1 fact(s) were not marked as the applicant's side and were not used.\n\nPRAYER\nTo be completed by counsel. This draft gives grounds only; no relief is drafted.\n\nAUTHORITIES\nNone supplied.",
+  "grounds": [
+   {
+    "text": "The applicant states that he has no antecedents [F1].",
+    "facts": [
+     "F1"
+    ]
+   },
+   {
+    "text": "The applicant states that he has been in custody since the arrest [F2].",
+    "facts": [
+     "F2"
+    ]
+   }
+  ],
+  "notes_for_lawyer": [
+   "Check the period of custody.",
+   "1 fact(s) were not marked as the applicant's side and were not used."
+  ],
+  "more_notes": [],
+  "fill_ins": [],
+  "checks": [
+   {
+    "name": "paragraph_checks_attempt_1",
+    "passed": true,
+    "detail": "2 of 2 paragraphs passed",
+    "failed": []
+   }
+  ],
+  "unresolved_authorities": [],
+  "framing_status": "single",
+  "framing_lines": [
+   "Under Section 480 of the Bharatiya Nagarik Suraksha Sanhita, 2023 (BNSS)."
+  ],
+  "facts_used": 2,
+  "facts_excluded": 1,
+  "calls": 1,
+  "tokens_in": 1200,
+  "tokens_out": 260,
+  "cost_usd": 0.005,
+  "regenerated": false,
+  "incomplete": false
+ }
+}
