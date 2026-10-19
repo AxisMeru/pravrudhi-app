@@ -15,6 +15,8 @@ import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
+import { SectionLookup } from "@/components/preview/SectionLookup";
+import { SECTION_LOOKUP } from "@/lib/sectionLookup";
 import { previewRefusal } from "@/lib/previewRefusal";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
@@ -252,6 +254,7 @@ export default function PreviewPage() {
           {b3 && <B3Result v={b3} onConfirm={confirmB3} busy={busy} />}
         </Card>
 
+        {SECTION_LOOKUP && !signedOut && <SectionLookup />}
         <BailCard />
         <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
       </div>

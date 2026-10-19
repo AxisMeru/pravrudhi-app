@@ -1,0 +1,16 @@
+{
+ "run_id": "lookup-0123456789",
+ "code": "IPC",
+ "section": "999",
+ "table_source_line": "The sections shown come from the Corresponding Section Table that the National Crime Records Bureau (Ministry of Home Affairs) appends to the official Act texts, marked \"For reference only\".",
+ "lawyer_line": "Check the official texts before you rely on this. A lawyer decides.",
+ "old": {
+  "held": false,
+  "lines": [
+   "The text of this section is not held. Check the official text."
+  ]
+ },
+ "new": [],
+ "state": "not_in_table",
+ "line": "This section is not in the table. Check the official texts."
+}

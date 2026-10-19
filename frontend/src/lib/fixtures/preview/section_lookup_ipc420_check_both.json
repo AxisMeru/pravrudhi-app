@@ -1,0 +1,32 @@
+{
+ "run_id": "lookup-0123456789",
+ "code": "IPC",
+ "section": "420",
+ "table_source_line": "The sections shown come from the Corresponding Section Table that the National Crime Records Bureau (Ministry of Home Affairs) appends to the official Act texts, marked \"For reference only\".",
+ "lawyer_line": "Check the official texts before you rely on this. A lawyer decides.",
+ "old": {
+  "held": true,
+  "section": "Section 420",
+  "title": "Cheating and dishonestly inducing delivery of property",
+  "text": "Whoever cheats and thereby dishonestly induces the person deceived to  ...[mock: the real text is the full section]",
+  "lines": [
+   "IPC text is from a copy of the Act published by the Ministry of Home Affairs, file dated January 2007.",
+   "This copy may not show later amendments. Check the official text.",
+   "Amendment marks and footnotes are left out of this text."
+  ]
+ },
+ "new": [
+  {
+   "id": "BNS/Section 318",
+   "held": true,
+   "section": "Section 318",
+   "title": "Cheating.",
+   "text": "(1) Whoever, by deceiving any person, fraudulently or dishonestly indu ...[mock: the real text is the full section]",
+   "lines": [
+    "BNS and BNSS text is from India Code (Legislative Department, Ministry of Law and Justice)."
+   ]
+  }
+ ],
+ "state": "check_both",
+ "line": "The table does not match this section to one section. Check both official texts, shown side by side."
+}
