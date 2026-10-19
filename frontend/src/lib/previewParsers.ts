@@ -1,10 +1,12 @@
 // View models for the preview workflows' answers (Track A's sample responses and field lists, 2a65124eacbb; samples under trackA/preview/samples/). Every reader drops what is not of the expected type
 // and keeps only the fields the page may show: the engine's own sentences as sent, the paper's own words, and the readings the rendering rules require (all readings of an ambiguous date; never custody days).
 import { num, str, stringsOf } from "./previewApi";
+import { docNameOf, rowScan, type RowScan } from "./scannedIntake";
 
 type Rec = Record<string, unknown>;
 const rec = (x: unknown): Rec | null => (typeof x === "object" && x !== null && !Array.isArray(x) ? (x as Rec) : null);
 const arr = (x: unknown): unknown[] => (Array.isArray(x) ? x : []);
+const scanOf = (r: Record<string, unknown>, docName: string | null): { scan?: RowScan } => { const x = rowScan(r, docName); return x ? { scan: x } : {}; };
 const strs = (x: unknown): string[] => arr(x).filter((v): v is string => typeof v === "string");
 
 /** A paper named in an engine list: a string, or an object with a string `name` (or `document_name`). */
@@ -40,7 +42,7 @@ export function parseA5(b: Rec | null): A5View | null {
 }
 
 // ---------- A3 chronology ----------
-export interface A3Row { dateAsWritten: string; howText: string | null; readings: string[]; mentions: string | null; quote: string | null; source: string | null; notes: string[] }
+export interface A3Row { scan?: RowScan; dateAsWritten: string; howText: string | null; readings: string[]; mentions: string | null; quote: string | null; source: string | null; notes: string[] }
 export interface A3Section { key: string; heading: string | null; rows: A3Row[] }
 export interface A3View { lines: string[]; headers: { date: string | null; mentions: string | null; sentence: string | null; source: string | null }; sections: A3Section[]; papersRead: string[]; notAdded: string[] }
 const A3_SECTIONS: [string, string | null][] = [["events", null], ["ambiguous", "ambiguous"], ["approximate", "approximate"], ["partial_dates", "less_than_a_day"], ["scheduled", "scheduled"], ["undated", "undated"], ["date_not_read", "not_read"]];
@@ -51,7 +53,7 @@ export function parseA3(b: Rec | null): A3View | null {
     const r = rec(x); const d = str(r?.date_as_written);
     if (!r || d === null) return [];
     const page = num(r.page);
-    return [{ dateAsWritten: d, howText: str(r.how_text), readings: strs(r.readings), mentions: str(r.mentions), quote: str(r.quote), source: [str(r.document_name), page !== null ? `p. ${page}` : null].filter(Boolean).join(", ") || null, notes: strs(r.notes) }];
+    return [{ dateAsWritten: d, howText: str(r.how_text), readings: strs(r.readings), mentions: str(r.mentions), quote: str(r.quote), source: [str(r.document_name), page !== null ? `p. ${page}` : null].filter(Boolean).join(", ") || null, notes: strs(r.notes), ...scanOf(r, str(r.document_name)) }];
   };
   const sections = A3_SECTIONS.map(([key, hk]): A3Section => ({ key, heading: hk ? str(headings?.[hk]) : null, rows: arr(b[key]).flatMap(row) })).filter((s) => s.rows.length > 0);
   return {
@@ -159,7 +161,7 @@ export function caseB3Body(picks: Partial<Record<(typeof CASE_ROLES)[number], { 
   return cheque || Object.values(body).some((v) => Array.isArray(v) && v.length) ? body : null;
 }
 // ---------- Matter hearing pack (Track A's samples matter_hearing_pack_*.json; engine PR #541; route is Track C's) ----------
-export interface HearingRow { dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
+export interface HearingRow { scan?: RowScan; dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
 export interface HearingCitation { text: string; where: string[]; status: string }
 export interface HearingView {
   statement: string | null; hearingDateGiven: string | null;
@@ -171,7 +173,7 @@ export interface HearingView {
 }
 const hearingRows = (x: unknown): HearingRow[] => arr(x).flatMap((v): HearingRow[] => {
   const r = rec(v); const d = str(r?.date_as_written);
-  return r && d !== null ? [{ dateAsWritten: d, readings: strs(r.readings), readAs: str(r.read_as), quote: str(r.quote), source: str(r.source) }] : [];
+  return r && d !== null ? [{ dateAsWritten: d, readings: strs(r.readings), readAs: str(r.read_as), quote: str(r.quote), source: str(r.source), ...scanOf(r, docNameOf(str(r.source))) }] : [];
 });
 const hearingCitations = (x: unknown): HearingCitation[] => arr(x).flatMap((v): HearingCitation[] => {
   const r = rec(v); const t = str(r?.text);

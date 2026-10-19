@@ -18,6 +18,9 @@ import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type Hearing
 import { previewRefusal } from "@/lib/previewRefusal";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
+import { ScannedPaperControl } from "@/components/preview/ScannedPaperControl";
+import { SCANNED_INTAKE } from "@/lib/scannedIntake";
+import { KeptUploads } from "@/components/preview/ScanKept";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 const FIELD = "w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]";
@@ -45,6 +48,7 @@ export default function PreviewPage() {
   const signedOut = useSignedOut(true); // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
+  const [kept] = useState(() => new Map<string, File>()); // flag-ON only: the user's own uploads, kept in this browser so a crop can be drawn from them
   const [pagesNote, setPagesNote] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
@@ -143,6 +147,7 @@ export default function PreviewPage() {
   const editB3 = (k: string, v: string) => { setB3f((f) => ({ ...f, [k]: v })); setB3c((c) => { const n = { ...c }; delete n[k]; return n; }); };
 
   return (
+    <KeptUploads.Provider value={kept}>
     <div>
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
@@ -164,6 +169,7 @@ export default function PreviewPage() {
                 <textarea className={`${FIELD} min-h-32`} value={text} onChange={(e) => setText(e.target.value)} data-testid="pv-text" />
               </label>
               <button type="button" className={BTN} onClick={addPaper} disabled={busy || !text.trim()} data-testid="pv-add">{T.addPaper}</button>
+              {SCANNED_INTAKE && <ScannedPaperControl matter={matter} busy={busy} onAdded={() => refresh(matter)} onKept={(f) => { kept.set(f.name.trim().slice(0, 200) || "paper", f); }} onRefusal={(st, body) => setMessage(refusal(st, body))} />}
               {papers.length > 0 && (
                 <div data-testid="pv-papers">
                   <h3 className="text-sm font-medium text-[var(--color-text)]">{T.papersHeading}</h3>
@@ -256,5 +262,6 @@ export default function PreviewPage() {
         <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
       </div>
     </div>
+    </KeptUploads.Provider>
   );
 }
