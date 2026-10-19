@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { previewPost } from "@/lib/previewApi";
-import { SCAN_ACCEPT, SCAN_TEXT, documentLine, pageLines, parseScanIngest, repairedLine, scanBody, scanRefusalLine, type ScanIngest } from "@/lib/scannedIntake";
+import { MAX_SCAN_BYTES, SCAN_ACCEPT, SCAN_TEXT, documentLine, mimeOfFile, pageLines, parseScanIngest, repairedLine, scanBody, scanRefusalLine, type ScanIngest } from "@/lib/scannedIntake";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
@@ -18,7 +18,7 @@ const toBase64 = (buf: ArrayBuffer): string => {
  * (pages[].source). The file stays in this browser (onKept) so a crop can be drawn from it later; the engine keeps no page image. Per-page states are the engine's own lines and R1's reason lines.
  */
 export function ScannedPaperControl({ matter, busy, onAdded, onKept, onRefusal }: {
-  matter: string; busy: boolean; onAdded: () => Promise<void>; onKept: (file: File) => void;
+  matter: string; busy: boolean; onAdded: () => Promise<void>; onKept: (docId: string, file: File) => void;
   onRefusal: (status: number, body: Record<string, unknown> | null) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
@@ -28,13 +28,16 @@ export function ScannedPaperControl({ matter, busy, onAdded, onKept, onRefusal }
   const add = async (file: File) => {
     setWorking(true); setLast(null); setRefusal(null);
     try {
-      const r = scanBody(matter, file.name, file.type, file.size, toBase64(await file.arrayBuffer()));
+      // the size is tested before the file is read: an over-size file is refused without being read into memory
+      const mime = mimeOfFile(file.name, file.type);
+      const pre = file.size > MAX_SCAN_BYTES ? scanBody(matter, file.name, mime, file.size, "") : null;
+      const r = pre ?? scanBody(matter, file.name, mime, file.size, toBase64(await file.arrayBuffer()));
       if (!r.ok) { const line = scanRefusalLine(r.reason, null, null); return line ? setRefusal(line) : onRefusal(422, null); }
       const a = await previewPost("/matter-spans/documents", r.body);
       if (a.status !== 200) { const line = scanRefusalLine(null, a.status, a.body); return line ? setRefusal(line) : onRefusal(a.status, a.body); }
       const ingest = parseScanIngest(a.body);
       const docId = typeof a.body?.doc_id === "string" ? a.body.doc_id : null;
-      if (docId) onKept(file);
+      if (docId) onKept(docId, file);
       if (ingest) setLast({ name: file.name, ingest });
       await onAdded();
     } finally { setWorking(false); }

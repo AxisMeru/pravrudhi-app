@@ -1,5 +1,5 @@
 // "Scanned papers in" (prabhasa-nyaya#1015, app part), OFF by default: NEXT_PUBLIC_SCANNED_INTAKE=1 (exactly "1") AND the engine flag wf_c1_scanned_intake.
-// Contract: Track C's OCR_INTAKE_DESIGN_NOTE_2026-10-19.md (sha12 1e3491dc9087). Words: R1's OCR_LIMITS_V2_R1_2026-10-19.md (sha12 3d1f0ef19f36), pinned by hash in scannedIntake.spec.ts.
+// Contract: Track C's OCR_INTAKE_DESIGN_NOTE_2026-10-19.md (sha12 1e3491dc9087). Words: R1's OCR_LIMITS_V3_R1_2026-10-19.md (sha12 1323a7d5d2eb, which replaces two V2 lines) and OCR_UPLOAD_LINES_R1_2026-10-19.md (sha12 ee4baa2862f7), pinned by hash in scannedIntake.spec.ts.
 // Nothing here guesses text: an unreadable page contributes no text and no date, and the crop is drawn only from the user's own kept upload (the engine stores no page image).
 export const SCANNED_INTAKE = process.env.NEXT_PUBLIC_SCANNED_INTAKE === "1";
 
@@ -106,4 +106,23 @@ export function scanRefusalLine(reason: string | null, status: number | null, bo
   if (reason === "heic") return SCAN_TEXT.heicRefused;
   if (reason === "too_big" || status === 413 || body?.error === "pdf_too_large" || body?.code === "pdf_too_large") return SCAN_TEXT.tooLarge;
   return null;
+}
+
+/** The mime type of an uploaded file: the browser's, else by extension (some systems give an empty type), else "". */
+export function mimeOfFile(name: string, type: string): string {
+  if (type) return type.toLowerCase();
+  const ext = name.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1] ?? "";
+  return ({ pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", tif: "image/tiff", tiff: "image/tiff", heic: "image/heic", heif: "image/heif" } as Record<string, string>)[ext] ?? "";
+}
+
+/**
+ * The user's kept uploads by the paper NAME the engine's rows carry: a name maps to a file only when exactly one paper in the matter has that name and the kept file is the very one the engine
+ * stored under that doc_id; two papers with one name give no crop (never the wrong file's crop). The uploads are keyed by doc_id and cleared when the matter changes.
+ */
+export function keptByName(papers: readonly { docId: string; name: string }[], kept: ReadonlyMap<string, File>): ReadonlyMap<string, File> {
+  const count = new Map<string, number>();
+  for (const p of papers) count.set(p.name, (count.get(p.name) ?? 0) + 1);
+  const out = new Map<string, File>();
+  for (const p of papers) { const f = kept.get(p.docId); if (f && count.get(p.name) === 1) out.set(p.name, f); }
+  return out;
 }

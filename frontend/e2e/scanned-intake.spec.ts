@@ -76,3 +76,43 @@ test("flag ON: a HEIC file and an over-size file are refused with R1's lines bef
   expect(Object.keys(bodies[0]).sort()).toEqual(["matter_id", "name", "pdf_base64"]);
   await expect(page.locator("body")).not.toContainText(/8000000|larger than/);
 });
+
+test("flag ON: an over-size file is refused by size BEFORE it is read or sent, and a file with no browser mime type is sent by its extension", async ({ page }) => {
+  test.skip(!ON, "needs the build with NEXT_PUBLIC_SCANNED_INTAKE=1");
+  const bodies: Record<string, unknown>[] = [];
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "x", n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
+  await page.goto("/preview");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("scan-file").setInputFiles({ name: "big.png", mimeType: "image/png", buffer: Buffer.alloc(8_000_001, 1) });
+  await expect(page.getByTestId("scan-refusal")).toHaveText("This file is too large. The limit is 8 MB. Make the file smaller, or split it, and add it again.");
+  expect(bodies.length).toBe(0);
+  await page.getByTestId("scan-file").setInputFiles({ name: "photo.PNG", mimeType: "", buffer: PNG_2X2 });
+  await expect(page.getByTestId("scan-result")).toBeVisible();
+  expect(bodies[0].mime).toBe("image/png");
+});
+
+test("flag ON: two papers with one name show no crop, and starting over clears what was kept (a crop never comes from another file)", async ({ page }) => {
+  test.skip(!ON, "needs the build with NEXT_PUBLIC_SCANNED_INTAKE=1");
+  let n = 0;
+  const docs: { doc_id: string; name: string }[] = [];
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => { n += 1; docs.push({ doc_id: `d${n}`, name: "scan.png" }); r.fulfill({ json: { matter_id: HEX, doc_id: `d${n}`, name: "scan.png", n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 1, n_chars: 1, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } }));
+  const a3 = fx("a3_chronology").response;
+  const events = (a3.events as Record<string, unknown>[]).slice();
+  events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, source: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
+  await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
+  await page.goto("/preview");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("scan-file").setInputFiles({ name: "scan.png", mimeType: "image/png", buffer: PNG_2X2 });
+  await expect(page.getByTestId("scan-result")).toBeVisible();
+  await page.getByTestId("pv-a3-run").click();
+  await expect(page.getByTestId("scan-crop").first()).toBeVisible();
+  await page.getByTestId("scan-file").setInputFiles({ name: "scan.png", mimeType: "image/png", buffer: PNG_2X2 }); // a second paper with the same name
+  await expect(page.getByTestId("pv-papers").locator("li, div").filter({ hasText: "scan.png" }).first()).toBeVisible();
+  await page.getByTestId("pv-a3-run").click();
+  await expect(page.getByTestId("scan-date-line").first()).toBeVisible();
+  await expect(page.getByTestId("scan-crop")).toHaveCount(0);
+});

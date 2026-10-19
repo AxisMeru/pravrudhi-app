@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { SCAN_TEXT, docNameOf, repairedLine, rowScan, scanRefusalLine, scanBody, MAX_SCAN_BYTES, canDrawImage, cropRect, documentLine, pageLines, parseCrop, parseScanIngest } from "./scannedIntake";
+import { SCAN_TEXT, keptByName, mimeOfFile, docNameOf, repairedLine, rowScan, scanRefusalLine, scanBody, MAX_SCAN_BYTES, canDrawImage, cropRect, documentLine, pageLines, parseCrop, parseScanIngest } from "./scannedIntake";
 
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 
@@ -140,4 +140,27 @@ test("the repaired line follows pages[].repaired only: the engine's retired inte
     { page: 3, source: "text_layer", readable: true, reason: null, line: null, repaired: true },
   ] })!;
   assert.deepEqual(v.pages.map((p) => repairedLine(p)), [null, SCAN_TEXT.repairedPage, null]);
+});
+
+test("kept uploads are found by paper name only through the engine's doc_id, and never for a name two papers share (R2: never another file's crop)", () => {
+  const a = new File(["a"], "a.png", { type: "image/png" }), b = new File(["b"], "b.png", { type: "image/png" });
+  const kept = new Map([["d1", a], ["d2", b]]);
+  const m = keptByName([{ docId: "d1", name: "scan.png" }, { docId: "d2", name: "other.png" }], kept);
+  assert.equal(m.get("scan.png"), a);
+  assert.equal(m.get("other.png"), b);
+  const dup = keptByName([{ docId: "d1", name: "scan.png" }, { docId: "d2", name: "scan.png" }], kept);
+  assert.equal(dup.size, 0, "two papers with one name: no crop at all");
+  const gone = keptByName([{ docId: "d9", name: "scan.png" }], kept);
+  assert.equal(gone.size, 0, "a paper whose doc_id has no kept file shows no crop");
+  assert.equal(keptByName([], kept).size, 0);
+});
+
+test("the mime type falls back to the extension when the browser gives none", () => {
+  assert.equal(mimeOfFile("A.PNG", ""), "image/png");
+  assert.equal(mimeOfFile("scan.jpeg", ""), "image/jpeg");
+  assert.equal(mimeOfFile("x.TIF", ""), "image/tiff");
+  assert.equal(mimeOfFile("x.heic", ""), "image/heic");
+  assert.equal(mimeOfFile("file.pdf", ""), "application/pdf");
+  assert.equal(mimeOfFile("x.png", "image/jpeg"), "image/jpeg", "the browser's type wins when it gives one");
+  assert.equal(mimeOfFile("noext", ""), "");
 });
