@@ -42,11 +42,11 @@ test("/benchmarks-film-preview: noindex, the three silent cuts are poster + Play
   for (const b of await page.locator("main button, main a").all()) expect((await b.boundingBox())!.height, await b.innerText()).toBeGreaterThanOrEqual(44);
 });
 
-test("the two narrated previews are on the route, each labelled Preview for voice review, poster first, captions on, the sound button turns the voice on", async ({ page }) => {
+test("the two narrated previews are on the route, each labelled For voice review, poster first, captions on, the sound button turns the voice on", async ({ page }) => {
   await page.goto("/benchmarks-film-preview");
   for (const id of ["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"]) {
     const sec = page.getByTestId(`voice-${id}`);
-    await expect(sec.getByTestId("voice-preview-label")).toHaveText("Preview for voice review");
+    await expect(sec.getByTestId("voice-preview-label")).toHaveText("For voice review");
     await expect(sec.locator("track")).toHaveAttribute("src", new RegExp(`/films/${id}/captions\\.vtt$`));
     await expect(sec.getByTestId("film-sound")).toHaveText("Turn on sound");
     await expect(sec.getByTestId("film-video")).toHaveJSProperty("autoplay", false);

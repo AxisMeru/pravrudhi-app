@@ -149,6 +149,7 @@ export default function PreviewPage() {
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
         <PreviewBadge line />
+        <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>
         <section className={BOX} aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (

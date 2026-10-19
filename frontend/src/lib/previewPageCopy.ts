@@ -14,4 +14,5 @@ export const PREVIEW_PAGE = {
   s3Line: "Lists the categories the Supreme Court gave for quashing an FIR or complaint, and the papers you added. It does not say whether any category applies.",
   s3Run: "Make the quashing agenda",
   working: "Working",
+  toolsOffLine: "Some tools on this page are not switched on in this deployment. A tool that is off says so when you use it.",
 } as const;

@@ -20,6 +20,8 @@ const PINS: Readonly<Record<string, string>> = {
   r1_caveat_attr: "70a07b6765f9dcc8",
   r2_name: "91e95fa53295a428",
   r2_source: "2760089b9194ca9d",
+  r2_licence: "0df6c53966d17bf2",
+  r2_used: "ed6f0c29562ac21f",
   r3_name: "0002dc7760e15464",
   r3_source: "499378980d680984",
   r3_licence_fallback: "5ce4dc70612fe550",
