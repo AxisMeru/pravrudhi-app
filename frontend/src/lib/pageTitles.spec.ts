@@ -11,7 +11,7 @@ import { SCREENING_FILE_NOTE, FILE_NOTE } from "./surfaceCopy";
 test("the page titles are R1's, one per page, each the page name then the product name", () => {
   assert.deepEqual(PAGE_TITLES, {
     signin: "Sign in", screening: "Matter workspace", demo: "How it works", workflows: "Workflows", dataHandling: "Data handling", guide: "User guide",
-    howBuilt: "How it was built", settings: "Settings", partnerKeys: "API access", citations: "Case citations", technicalFilm: "Technical film", benchmarksFilmPreview: "NyayaSiddhi film: review copy", matters: "Offence rules",
+    howBuilt: "How it was built", settings: "Settings", partnerKeys: "API access", citations: "Case citations", technicalFilm: "Technical film", matters: "Offence rules",
     safety: "Safety record", benchmarks: "Benchmarks", benchmarksSubmit: "Submit a system", preview: "Matter tools", intake: "Intake",
   });
   assert.equal(pageTitle("guide"), "User guide \u00b7 Pravrudhi-Nyaya");

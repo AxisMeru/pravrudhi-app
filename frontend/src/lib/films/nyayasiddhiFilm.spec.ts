@@ -40,7 +40,7 @@ test("public/films holds only the film's cuts (three silent, two narrated previe
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
-test("the review route is linked from nowhere: only the surface route list and a comment in the film copy name it", () => {
+test("the old review route is linked from nowhere: only the surface route list names it", () => {
   const SKIP = new Set(["node_modules", ".next", "out", "test-results"]);
   const hits: string[] = [];
   (function walk(d: string): void {
@@ -52,7 +52,7 @@ test("the review route is linked from nowhere: only the surface route list and a
       if (readFileSync(p, "utf8").includes("benchmarks-film-preview")) hits.push(relative(root, p).replace(/\\/g, "/"));
     }
   })(join(root, "src"));
-  assert.deepEqual(hits.sort(), ["src/lib/demoPath.ts", "src/lib/films/copy.ts"], "only the route allow-list and a copy comment name the route; no nav, link, sitemap or page does");
+  assert.deepEqual(hits.sort(), ["src/lib/demoPath.ts"], "only the route allow-list names the route (it redirects to /benchmarks); no nav, link, sitemap or page does");
 });
 
 // captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v5 (the stronger pin: sha256 65282a5a..., vendored as e2e/fixtures/nyayasiddhiFilmStrings.json (a test fixture, not under src: nothing is bundled)); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
