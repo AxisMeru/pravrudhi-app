@@ -69,10 +69,14 @@ test("flag ON: the synopsis card asks the same question and sends the answer", a
   test.skip(!ON, "needs the build with the declaration flag");
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, pages_without_text: [], ingest_done: true } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [{ doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: true }], pages_total: 1, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/synopsis-dates", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("synopsis_response_table_only") }); });
   await page.goto("/preview");
   await page.getByTestId("pv-start").click();
+  await page.getByTestId("pv-name").fill("FIR");
+  await page.getByTestId("pv-text").fill("The FIR was registered.");
+  await page.getByTestId("pv-add").click();
   await page.getByTestId("synopsis-consent").check();
   const run = page.getByTestId("synopsis-run");
   await expect(run).toBeDisabled();

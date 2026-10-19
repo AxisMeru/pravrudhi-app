@@ -52,6 +52,7 @@ test("bail referred: a straddle shows both framings and no draft text; a sensiti
   await expect(page.getByTestId("bail-framing")).toContainText("Section 437");
   await expect(page.getByTestId("bail-framing")).toContainText("Section 480");
   await expect(page.getByTestId("bail-text")).toHaveCount(0);
+  await answer(page, "bail"); // asked afresh for every draft
   await page.getByTestId("bail-run").click();
   await expect(page.getByTestId("bail-referral")).toContainText("this draft tool does not handle");
   await expect(page.getByTestId("bail-text")).toHaveCount(0);
