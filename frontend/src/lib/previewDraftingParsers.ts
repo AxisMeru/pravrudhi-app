@@ -1,6 +1,7 @@
 // View models for the bail-drafting and synopsis/list-of-dates answers (Track C's contract ENGINE_API_CONTRACT_DRAFTING_AND_CARDS_2026-10-17.md d5ba47623740; samples real engine output with a fake model answer).
 // Every reader drops what is not of the expected type; the engine's sentences are shown as sent, and the label of every answer is kept for the page to show.
 import { num, str, stringsOf } from "./previewApi";
+import { docNameOf, rowScan, type RowScan } from "./scannedIntake";
 
 type Rec = Record<string, unknown>;
 const rec = (x: unknown): Rec | null => (typeof x === "object" && x !== null && !Array.isArray(x) ? (x as Rec) : null);
@@ -56,6 +57,7 @@ export function parseBail(b: Rec | null): BailView | null {
 
 export interface RowDate { written: string; readings: string[]; ambiguous: boolean }
 export interface DateRow {
+  scan?: RowScan;
   rowId: number | null;
   ref: string | null;
   dateAsWritten: string;
@@ -90,7 +92,7 @@ export function parseSynopsis(b: Rec | null): SynopsisView | null {
         if (!r || written === null) return [];
         const own = arr(r.dates).flatMap((x): RowDate[] => { const q = rec(x); const w = str(q?.date_as_written) ?? str(q?.written); return q && w !== null ? [{ written: w, readings: strs(q.readings), ambiguous: q.ambiguous === true }] : []; });
         const dates = own.length > 0 ? own : [{ written, readings: strs(r.readings), ambiguous: r.ambiguous === true }];
-        return [{ rowId: num(r.row_id), ref: str(r.ref), dateAsWritten: written, dates, readings: strs(r.readings), ambiguous: r.ambiguous === true, eventLine: str(r.event_line), eventQuote: str(r.event_quote), source: str(r.source) }];
+        return [{ rowId: num(r.row_id), ref: str(r.ref), dateAsWritten: written, dates, readings: strs(r.readings), ambiguous: r.ambiguous === true, eventLine: str(r.event_line), eventQuote: str(r.event_quote), source: str(r.source), ...((): { scan?: RowScan } => { const x = rowScan(r, str(r.document_name) ?? docNameOf(str(r.source))); return x ? { scan: x } : {}; })() }];
       }),
       noneLine: str(l.none_line),
       cutLine: str(l.cut_line),

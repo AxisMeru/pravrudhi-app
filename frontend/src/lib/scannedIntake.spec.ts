@@ -95,7 +95,7 @@ test("refusal lines: HEIC by mime, and any over-size answer (413 / pdf_too_large
 });
 
 const SAMPLE = {
-  results: [{ span_id: 41, doc_id: "d", page: 3, text: "The petitioner states that the cheque dated 2 February 2021 was returned unpaid.", source: "ocr", confidence: 91.4, crop: { page: 3, x: 112, y: 840, w: 1280, h: 96, page_w: 2480, page_h: 3508, unit: "px at ocr_dpi" } }, { span_id: 12, doc_id: "d", page: 1, text: "IN THE COURT", source: "text_layer", confidence: null, crop: null }],
+  results: [{ span_id: 41, doc_id: "d", page: 3, text: "The petitioner states that the cheque dated 2 February 2021 was returned unpaid.", read_from: "ocr", confidence: 91.4, crop: { page: 3, x: 112, y: 840, w: 1280, h: 96, page_w: 2480, page_h: 3508, unit: "px at ocr_dpi" } }, { span_id: 12, doc_id: "d", page: 1, text: "IN THE COURT", read_from: "text_layer", confidence: null, crop: null }],
   pages: [{ page: 1, source: "text_layer", confidence: null, readable: true, reason: null, line: null }, { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, repaired: true }, { page: 4, source: "unreadable", confidence: 52.3, readable: false, reason: "low_confidence", line: "This page could not be read." }],
   pages_unreadable: 1,
 };
@@ -163,4 +163,11 @@ test("the mime type falls back to the extension when the browser gives none", ()
   assert.equal(mimeOfFile("file.pdf", ""), "application/pdf");
   assert.equal(mimeOfFile("x.png", "image/jpeg"), "image/jpeg", "the browser's type wins when it gives one");
   assert.equal(mimeOfFile("noext", ""), "");
+});
+
+test("a row's own `source` key (document and page text) is never read as the way it was read: only read_from, crop and from_ocr decide", () => {
+  assert.equal(rowScan({ source: "ocr" }, "d", true), undefined);
+  assert.equal(rowScan({ source: "courier-note-B p.1" }, "courier-note-B", true), undefined);
+  assert.deepEqual(rowScan({ source: "courier-note-B p.1", read_from: "ocr" }, "courier-note-B", true), { docName: "courier-note-B", crop: null, fromOcr: true });
+  assert.equal(rowScan({ source: "x", read_from: "text_layer" }, "d", true), undefined);
 });
