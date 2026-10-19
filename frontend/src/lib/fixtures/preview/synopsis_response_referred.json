@@ -6,7 +6,7 @@
  "state": "referred",
  "referral": {
   "code": "sensitive_matter",
-  "text": "This matter is marked sensitive, so no draft was made. Refer it to a lawyer."
+  "text": "This matter is marked sensitive, so no draft was made."
  },
  "draft": null
 }
