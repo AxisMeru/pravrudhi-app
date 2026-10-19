@@ -121,7 +121,7 @@ export default function CitationsPage() {
           type="button"
           onClick={() => { if (!loading) void submit(); }}
           aria-disabled={loading} /* #260: keeps keyboard focus on the button while the check runs */
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <SearchCheck size={14} />}
           {loading ? "Checking…" : "Check"}

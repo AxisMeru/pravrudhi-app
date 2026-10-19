@@ -499,7 +499,7 @@ export default function MattersPage() {
             type="button"
             onClick={() => submit()}
             disabled={loading || closed || offline}
-            className="mt-2 inline-flex w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
+            className="mt-2 inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-[var(--color-on-accent)] disabled:opacity-50"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <Scale size={14} />}
             {loading ? "Analysing…" : "Analyse"}
