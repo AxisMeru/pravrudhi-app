@@ -70,3 +70,22 @@ test("B3: both counting conventions are kept on every counted step, the REFER te
   assert.ok(r.inputs[0].dayFirst && !r.inputs[0].confirmed);
   assert.ok(r.notAssessed.length >= 6 && r.notes.length >= 1);
 });
+
+import hp1 from "./fixtures/preview/matter_hearing_pack_with_sweep.json";
+import hp0 from "./fixtures/preview/matter_hearing_pack_no_sweep.json";
+import { parseHearing } from "./previewParsers";
+
+test("hearing pack: an ambiguous listed date keeps ALL readings, the timeline keeps date order with the paper's words, citations are existence-only with their note, not_assessed stays", () => {
+  const v = parseHearing(body(hp1))!;
+  assert.equal(v.nextDates.rows[0].dateAsWritten, "5.9.2026");
+  assert.deepEqual(v.nextDates.rows[0].readings, ["2026-09-05", "2026-05-09"]);
+  assert.equal(v.timeline.rows[0].dateAsWritten, "18 July 2021");
+  assert.ok(v.timeline.rows.every((r) => r.quote && r.source));
+  assert.equal(v.hearingDateGiven?.startsWith("Hearing date you gave: 2026-11-03"), true);
+  assert.ok(v.citations.switchedOn && v.citations.note && v.citations.needsAttention[0].text === "(2099) 99 SCC 999" && v.citations.notChecked[0].where[0] === "defence-note p.1");
+  assert.ok(v.notAssessed.length >= 7);
+  assert.doesNotMatch(JSON.stringify(v), /reporter_not_in_index|event_type|span_sha256/);
+  const n = parseHearing(body(hp0))!;
+  assert.equal(n.citations.switchedOn, false);
+  assert.ok(n.citations.note);
+});
