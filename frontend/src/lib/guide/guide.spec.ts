@@ -66,7 +66,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   // R1 (15 Oct): frame 06 as retaken by Track A at main f8738cf7 (528x64, sha256 0a019ee3...c9d2) and its exact alt
   assert.equal(statSync(join(root, "public", "guide", "06-memo-export.png")).size, 11320, "frame 06 retaken with the Download the memo menu opened (M2b, Web, sha256 3b8cb057e1cb)");
   assert.equal(GUIDE_IMAGES.memo.alt, "The memo export controls on the Matter workspace page once a result is shown: the button \u201cDownload the memo\u201d, opened to show Word (.docx) and Markdown (.md), then, set apart, the button Print / save as PDF; on the next line, the button Download run record (.json).");
-  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 28522, "the frame retaken from the citations-ON build at the D9 batch (Web, 15 Oct, sha256 d2ee473d9e12…)");
+  assert.equal(statSync(join(root, "public", "guide", "05-citations-panel.png")).size, 26287, "the frame retaken from the citations-ON build with the preview chip gone (Web, 19 Oct, sha256 ef33621d1b0a…)");
   assert.doesNotMatch(JSON.stringify([GUIDE_STEPS, GUIDE_LIMITS]), /dev stack only/i);
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
@@ -87,9 +87,9 @@ test("the warm-up note on Screening and Matters is figure-free and the same sent
 });
 
 test("R1 conditions on the images: the citations shot (arm ON, retaken frame only) has the preview caption and alt; the checklist alt names the marks, never a count", () => {
-  assert.equal(GUIDE_IMAGES.citations.caption, "Preview: existence check only."); // shown only with the retaken frame 05 (arm ON)
+  assert.equal(GUIDE_IMAGES.citations.caption, "Existence check only."); // shown only with the retaken frame 05 (arm ON)
   assert.equal(GUIDE_IMAGES.citedFact.caption, "This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text.");
-  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel: a preview label, a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.");
+  assert.equal(GUIDE_IMAGES.citations.alt, "The Case citations panel: a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.");
   assert.match(GUIDE_IMAGES.checklist.alt, /run on a public court order .*2025:KHC:12773.*three ingredient rows under the heading To look for in your papers, each marked No fact cited/);
   assert.doesNotMatch(GUIDE_IMAGES.checklist.alt, /\b\d+ of \d+\b/);
 });
@@ -171,7 +171,7 @@ const LB_FRAMES: Record<string, string> = {
   "02-ingredient-checklist.png": "4e44fe243038b23ce0aa94cff8fd39c1e9c0b107c09b3c7f859ddce90233d978",
   "03-cited-fact.png": "24180e3ee4786c978eaf983c1d16d9389d99f2bce923ee5ce035c3d7748843b9",
   "04-needs-your-review.png": "07b11d93069c05ff137d0ba1bcf6864d1a7492221a5d1edc0afa3a206861770f",
-  "05-citations-panel.png": "58c5511bea41e3a0e666795d0d3349244262053b552f873c9b3fc85195e5ec21",
+  "05-citations-panel.png": "37718539777dbf16b21ffc3548f0b02e61539953656ef61d9e3359b5a7b8a1b3",
   "06-memo-export.png": "59410e9f4523b0c43884407e9508af1a01cee99de3cef66060bb3eeb6cd42068",
 };
 test("the layout-B frames are exactly the six files in public/guide/lb, each pinned by sha256 (R2's allowance list)", () => {
@@ -183,7 +183,7 @@ test("the layout-B frames are exactly the six files in public/guide/lb, each pin
 test("the layout-B guide wording is R1's, by hash: caption, six alts, step 1 and step 7; 'screening' not 'matter'; the live guide untouched (#416)", () => {
   const sha16 = (x: string) => createHash("sha256").update(x).digest("hex").slice(0, 16);
   assert.equal(sha16(GUIDE_SCREENSHOT_NOTE_LB), "78481acb991e4e81");
-  const hashes = ["5a524fc56f46dfc5", "fdfbe51502257740", "1b7098c1748e1570", "edf31e8b41df8e4a", "ff4d11e69f17403a", "63723e8bcd89b68d"];
+  const hashes = ["5a524fc56f46dfc5", "fdfbe51502257740", "1b7098c1748e1570", "edf31e8b41df8e4a", "a94773c6aec4985a", "63723e8bcd89b68d"];
   assert.deepEqual(Object.values(GUIDE_IMAGES_LB).map((i) => sha16(i.alt)), hashes);
   for (const i of Object.values(GUIDE_IMAGES_LB)) assert.doesNotMatch(i.alt, /matter/i, i.alt);
   assert.equal(sha16("Open This screening in the menu."), "29cf8045db774e24");
