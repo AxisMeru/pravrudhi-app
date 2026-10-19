@@ -20,6 +20,7 @@ async function ask(page: import("@playwright/test").Page, code: "IPC" | "CrPC", 
   await page.getByTestId(code === "IPC" ? "pv-sl-ipc" : "pv-sl-crpc").check();
   await page.getByTestId("pv-sl-section").fill(section);
   await page.getByTestId("pv-sl-run").click();
+  await expect.poll(() => sent.length).toBe(1);
   return sent;
 }
 
