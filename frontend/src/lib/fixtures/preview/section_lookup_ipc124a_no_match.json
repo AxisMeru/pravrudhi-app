@@ -1,0 +1,21 @@
+{
+ "run_id": "lookup-0123456789",
+ "code": "IPC",
+ "section": "124A",
+ "table_source_line": "The sections shown come from the Corresponding Section Table that the National Crime Records Bureau (Ministry of Home Affairs) appends to the official Act texts, marked \"For reference only\".",
+ "lawyer_line": "Check the official texts before you rely on this. A lawyer decides.",
+ "old": {
+  "held": true,
+  "section": "Section 124A",
+  "title": "Sedition",
+  "text": "Whoever by words, either spoken or written, or by signs, or by visible ...[mock: the real text is the full section]",
+  "lines": [
+   "IPC text is from a copy of the Act published by the Ministry of Home Affairs, file dated January 2007.",
+   "This copy may not show later amendments. Check the official text.",
+   "Amendment marks and footnotes are left out of this text."
+  ]
+ },
+ "new": [],
+ "state": "no_match",
+ "line": "The table shows no corresponding section for this one. Check the official texts."
+}

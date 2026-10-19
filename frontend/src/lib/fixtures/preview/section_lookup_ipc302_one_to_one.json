@@ -1,0 +1,32 @@
+{
+ "run_id": "lookup-0123456789",
+ "code": "IPC",
+ "section": "302",
+ "table_source_line": "The sections shown come from the Corresponding Section Table that the National Crime Records Bureau (Ministry of Home Affairs) appends to the official Act texts, marked \"For reference only\".",
+ "lawyer_line": "Check the official texts before you rely on this. A lawyer decides.",
+ "old": {
+  "held": true,
+  "section": "Section 302",
+  "title": "Punishment for murder",
+  "text": "Whoever commits murder shall be punished with death, or imprisonment f ...[mock: the real text is the full section]",
+  "lines": [
+   "IPC text is from a copy of the Act published by the Ministry of Home Affairs, file dated January 2007.",
+   "This copy may not show later amendments. Check the official text.",
+   "Amendment marks and footnotes are left out of this text."
+  ]
+ },
+ "new": [
+  {
+   "id": "BNS/Section 103",
+   "held": true,
+   "section": "Section 103",
+   "title": "Punishment for murder.",
+   "text": "(1) Whoever commits murder shall be punished with death or imprisonmen ...[mock: the real text is the full section]",
+   "lines": [
+    "BNS and BNSS text is from India Code (Legislative Department, Ministry of Law and Justice)."
+   ]
+  }
+ ],
+ "state": "one_to_one",
+ "line": "The table matches this section to one section: Section 103."
+}

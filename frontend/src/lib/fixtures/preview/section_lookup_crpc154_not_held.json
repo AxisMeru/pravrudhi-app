@@ -1,0 +1,27 @@
+{
+ "run_id": "lookup-0123456789",
+ "code": "CrPC",
+ "section": "154",
+ "table_source_line": "The sections shown come from the Corresponding Section Table that the National Crime Records Bureau (Ministry of Home Affairs) appends to the official Act texts, marked \"For reference only\".",
+ "lawyer_line": "Check the official texts before you rely on this. A lawyer decides.",
+ "old": {
+  "held": false,
+  "lines": [
+   "The text of this section is not held. Check the official text."
+  ]
+ },
+ "new": [
+  {
+   "id": "BNSS/Section 173",
+   "held": true,
+   "section": "Section 173",
+   "title": "Information in cognizable cases.",
+   "text": "(1) Every information relating to the commission of a cognizable offen ...[mock: the real text is the full section]",
+   "lines": [
+    "BNS and BNSS text is from India Code (Legislative Department, Ministry of Law and Justice)."
+   ]
+  }
+ ],
+ "state": "one_to_one",
+ "line": "The table matches this section to one section: Section 173."
+}
