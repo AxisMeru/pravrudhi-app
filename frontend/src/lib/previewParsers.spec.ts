@@ -6,6 +6,9 @@ import a3 from "./fixtures/preview/a3_chronology.json";
 import a5 from "./fixtures/preview/a5_review_agenda.json";
 import s1 from "./fixtures/preview/s1_matter_citation_sweep.json";
 import { parseA1, parseA3, parseA5, parseS1 } from "./previewParsers";
+import hp1 from "./fixtures/preview/matter_hearing_pack_with_sweep.json";
+import hp0 from "./fixtures/preview/matter_hearing_pack_no_sweep.json";
+import { parseHearing } from "./previewParsers";
 
 // Track A's sample responses (real engine functions, invented text; trackA/preview/samples, shas in the file notes). The page may show only what these readers keep.
 const body = (s: { response: unknown }) => s.response as Record<string, unknown>;
@@ -71,9 +74,36 @@ test("B3: both counting conventions are kept on every counted step, the REFER te
   assert.ok(r.notAssessed.length >= 6 && r.notes.length >= 1);
 });
 
-import hp1 from "./fixtures/preview/matter_hearing_pack_with_sweep.json";
-import hp0 from "./fixtures/preview/matter_hearing_pack_no_sweep.json";
-import { parseHearing } from "./previewParsers";
+import cc1 from "./fixtures/preview/cheque_case_step1_no_b3.json";
+import cc2 from "./fixtures/preview/cheque_case_step2_with_b3.json";
+import ccReq from "./fixtures/preview/cheque_case_b3_request_used.json";
+import { caseB3Body, parseCaseCheck } from "./previewParsers";
+
+test("cheque case: candidates per step with their source, an ambiguous one keeps ALL readings and no chosen date, the agenda and the pending line stay", () => {
+  const v = parseCaseCheck(body(cc1))!;
+  assert.equal(v.roles.length, 6);
+  const notice = v.roles.find((r) => r.role === "notice")!;
+  assert.equal(notice.candidates.length, 2);
+  const amb = notice.candidates[1];
+  assert.ok(amb.ambiguous && amb.readAs === null);
+  assert.deepEqual(amb.readings, ["2013-04-03", "2013-03-04"]);
+  assert.equal(amb.source, "courier-note-B p.1");
+  assert.equal(v.roles[0].label, "the cheque's date");
+  assert.ok(v.agenda && v.agenda.ingredients.length > 0 && v.checklist === null && v.pending);
+  assert.ok(v.notUsable.length >= 1 && v.notUsableLine);
+  assert.ok(parseCaseCheck(body(cc2))!.checklist!.steps.length === 4);
+});
+
+test("the B3 body built from picks equals the body Track A used: every date an object, confirmed_as the engine's reading; an ambiguous pick is sent as its chosen ISO date", () => {
+  const v = parseCaseCheck(body(cc1))!;
+  const pick = (r: string) => ({ c: v.roles.find((x) => x.role === r)!.candidates[0], reading: null });
+  const built = caseB3Body({ cheque: pick("cheque"), presentation: pick("presentation"), memo: pick("memo"), information: pick("information"), notice: pick("notice"), receipt: pick("receipt") }, { validityMonths: 3, noticeMode: "registered_post" })!;
+  assert.deepEqual(built, body(ccReq));
+  const ambiguous = caseB3Body({ notice: { c: v.roles.find((x) => x.role === "notice")!.candidates[1], reading: "2013-03-04" } })!;
+  assert.deepEqual(ambiguous.notices, [{ value: "2013-03-04", source: "courier-note-B p.1", confirmed: true, confirmed_as: "2013-03-04", also_in_other_text: false }]);
+  assert.equal(caseB3Body({ notice: { c: v.roles.find((x) => x.role === "notice")!.candidates[1], reading: null } }), null, "no reading chosen: nothing is sent");
+  assert.equal(caseB3Body({}), null);
+});
 
 test("hearing pack: an ambiguous listed date keeps ALL readings, the timeline keeps date order with the paper's words, citations are existence-only with their note, not_assessed stays", () => {
   const v = parseHearing(body(hp1))!;

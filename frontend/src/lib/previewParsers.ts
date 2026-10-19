@@ -110,6 +110,54 @@ export function parseB3(b: Rec | null): B3View | null {
   };
 }
 
+// ---------- Cheque case check (B3 + A5 on one screen; Track A's samples cheque_case_*.json) ----------
+export const CASE_ROLES = ["cheque", "presentation", "memo", "information", "notice", "receipt"] as const;
+export type CaseRoleName = (typeof CASE_ROLES)[number];
+export interface CaseCandidate { id: string; value: string; readAs: string | null; readings: string[]; ambiguous: boolean; source: string | null; quote: string | null }
+export interface CaseRole { role: CaseRoleName; label: string; candidates: CaseCandidate[]; noCandidate: string | null }
+export interface CaseCheckView { statement: string | null; roles: CaseRole[]; notUsableLine: string | null; notUsable: string[]; agenda: A5View | null; checklist: B3View | null; pending: string | null; notAssessed: string[] }
+export function parseCaseCheck(b: Rec | null): CaseCheckView | null {
+  if (!b || typeof b.run_id !== "string") return null;
+  const c = rec(b.candidates);
+  const roles = rec(c?.roles), labels = rec(c?.role_labels), none = rec(c?.no_candidate);
+  return {
+    statement: str(b.statement),
+    roles: CASE_ROLES.map((role): CaseRole => ({
+      role,
+      label: str(labels?.[role]) ?? role,
+      noCandidate: str(none?.[role]),
+      candidates: arr(roles?.[role]).flatMap((x): CaseCandidate[] => {
+        const r = rec(x); const id = str(r?.candidate_id), value = str(r?.value);
+        return r && id && value !== null ? [{ id, value, readAs: str(r.read_as), readings: strs(r.readings), ambiguous: r.ambiguous === true, source: str(r.source), quote: str(r.quote) }] : [];
+      }),
+    })),
+    notUsableLine: str(c?.not_usable_line),
+    notUsable: arr(c?.not_usable).flatMap((x) => { const r = rec(x); const v = str(r?.value); return v ? [[v, str(r?.source)].filter(Boolean).join(", ")] : []; }),
+    agenda: parseA5(rec(b.agenda)),
+    checklist: parseB3(rec(b.checklist)),
+    pending: str(b.checklist_pending),
+    notAssessed: strs(b.not_assessed),
+  };
+}
+
+/**
+ * The B3 request body for the dates the user picked: every date an object, sent as the paper wrote it with the paper as its source, confirmed ONLY by the engine's own reading. An ambiguous
+ * candidate needs the user's choice among its readings and is sent as that ISO date (an unambiguous text), confirmed as itself. Returns null when no date is picked.
+ */
+export function caseB3Body(picks: Partial<Record<(typeof CASE_ROLES)[number], { c: CaseCandidate; reading: string | null }>>, extra: { validityMonths?: number; noticeMode?: string } = {}): Record<string, unknown> | null {
+  const obj = (p: { c: CaseCandidate; reading: string | null }) => {
+    const iso = p.c.ambiguous ? p.reading : p.c.readAs;
+    if (!iso) return null;
+    return { value: p.c.ambiguous ? iso : p.c.value, source: p.c.source ?? "papers", confirmed: true, confirmed_as: iso, also_in_other_text: false };
+  };
+  const one = (r: (typeof CASE_ROLES)[number]) => { const p = picks[r]; const o = p ? obj(p) : null; return o ? [o] : []; };
+  const body: Record<string, unknown> = { presentations: one("presentation"), return_memos: one("memo"), information_received: one("information"), notices: one("notice"), notice_receipts: one("receipt") };
+  const cheque = one("cheque")[0];
+  if (cheque) body.cheque_date = cheque;
+  if (extra.validityMonths) body.validity_months = extra.validityMonths;
+  if (extra.noticeMode) body.notice_mode = extra.noticeMode;
+  return cheque || Object.values(body).some((v) => Array.isArray(v) && v.length) ? body : null;
+}
 // ---------- Matter hearing pack (Track A's samples matter_hearing_pack_*.json; engine PR #541; route is Track C's) ----------
 export interface HearingRow { dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
 export interface HearingCitation { text: string; where: string[]; status: string }

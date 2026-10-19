@@ -1,0 +1,59 @@
+{
+ "_note": "the b3 request body that produced step 2 (each date an object; confirmed_as = the engine's reading)",
+ "response": {
+  "cheque_date": {
+   "value": "1 February 2013",
+   "source": "cheque-memo-A p.1",
+   "confirmed": true,
+   "confirmed_as": "2013-02-01",
+   "also_in_other_text": false
+  },
+  "validity_months": 3,
+  "presentations": [
+   {
+    "value": "10 February 2013",
+    "source": "cheque-memo-A p.1",
+    "confirmed": true,
+    "confirmed_as": "2013-02-10",
+    "also_in_other_text": false
+   }
+  ],
+  "return_memos": [
+   {
+    "value": "12.02.2013",
+    "source": "cheque-memo-A p.1",
+    "confirmed": true,
+    "confirmed_as": "2013-02-12",
+    "also_in_other_text": false
+   }
+  ],
+  "information_received": [
+   {
+    "value": "14.02.2013",
+    "source": "cheque-memo-A p.1",
+    "confirmed": true,
+    "confirmed_as": "2013-02-14",
+    "also_in_other_text": false
+   }
+  ],
+  "notices": [
+   {
+    "value": "20 February 2013",
+    "source": "cheque-memo-A p.1",
+    "confirmed": true,
+    "confirmed_as": "2013-02-20",
+    "also_in_other_text": false
+   }
+  ],
+  "notice_receipts": [
+   {
+    "value": "25 February 2013",
+    "source": "cheque-memo-A p.1",
+    "confirmed": true,
+    "confirmed_as": "2013-02-25",
+    "also_in_other_text": false
+   }
+  ],
+  "notice_mode": "registered_post"
+ }
+}

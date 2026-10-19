@@ -108,6 +108,36 @@ test("when the engine no longer holds the matter (a restart), the page says so a
   await expect(page.getByTestId("pv-start")).toBeVisible();
 });
 
+test("cheque case check: dates are offered per step with their source and picked by the user; the second call sends them confirmed as the engine's own readings and the checklist shows beside the agenda", async ({ page }) => {
+  await withMatter(page);
+  const bodies: Record<string, unknown>[] = [];
+  await page.route("**/api/v1/cheque-case-check", (r) => { const b = JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>; bodies.push(b); r.fulfill({ json: sample(b.b3 ? "cheque_case_step2_with_b3" : "cheque_case_step1_no_b3") }); });
+  await page.getByTestId("pv-cc-run").click();
+  const res = page.getByTestId("pv-cc-result");
+  await expect(res.getByTestId("pv-a5-result")).toBeVisible();
+  await expect(page.getByTestId("pv-cc-role-notice")).toContainText("courier-note-B p.1");
+  await expect(page.getByTestId("pv-cc-make")).toBeDisabled();
+  for (const id of ["cc-1d2f90b564", "cc-8f73c450cc", "cc-3d3720cb98", "cc-852b48337b", "cc-41138e37e7", "cc-c8b4339869"]) await page.getByTestId(`pv-cc-pick-${id}`).check();
+  await page.getByTestId("pv-cc-validity").fill("3");
+  await page.getByTestId("pv-cc-make").click();
+  await expect(res.getByTestId("pv-b3-steps").locator(":scope > li")).toHaveCount(4);
+  expect(bodies[0]).toEqual({ matter_id: HEX });
+  const b3 = bodies[1].b3 as Record<string, unknown>;
+  expect(b3.cheque_date).toEqual({ value: "1 February 2013", source: "cheque-memo-A p.1", confirmed: true, confirmed_as: "2013-02-01", also_in_other_text: false });
+  expect(b3.validity_months).toBe(3);
+});
+
+test("cheque case check: an ambiguous candidate needs the user's choice among its readings before the checklist can be made", async ({ page }) => {
+  await withMatter(page);
+  await page.route("**/api/v1/cheque-case-check", (r) => r.fulfill({ json: sample("cheque_case_step1_no_b3") }));
+  await page.getByTestId("pv-cc-run").click();
+  await page.getByTestId("pv-cc-pick-cc-6de87e57ce").check();
+  await expect(page.getByTestId("pv-cc-readings-cc-6de87e57ce").locator("input")).toHaveCount(2);
+  await expect(page.getByTestId("pv-cc-make")).toBeDisabled();
+  await page.getByTestId("pv-cc-readings-cc-6de87e57ce").locator("input").first().check();
+  await expect(page.getByTestId("pv-cc-make")).toBeEnabled();
+});
+
 test("hearing pack: the papers' own dates in order, both readings of an ambiguous date, citations as an existence check with their note; the typed hearing date is sent only when it is a valid year-month-day", async ({ page }) => {
   await withMatter(page);
   const bodies: Record<string, unknown>[] = [];
