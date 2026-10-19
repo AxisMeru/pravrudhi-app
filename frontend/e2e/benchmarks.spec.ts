@@ -225,3 +225,25 @@ test("/benchmarks-film-preview no longer exists as a page: a request goes to /be
   await expect(page.getByTestId("block-film")).toBeVisible();
   await expect(page.locator("body")).not.toContainText(/review copy|voice review/i);
 });
+
+// 390 px player check (Lead-2, #461): the silent explainer card on a phone has no horizontal scroll, a Play button of at least 44 px in the lower part of the poster, and plays with captions off.
+test("/benchmarks at 390 px: the film card has no horizontal scroll, Play is at least 44 px and sits in the lower part of the poster, every control is at least 44 px tall", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/benchmarks");
+  await page.waitForLoadState("networkidle");
+  const block = page.getByTestId("block-film");
+  await block.scrollIntoViewIfNeeded();
+  const poster = (await block.getByTestId("film-poster").boundingBox())!;
+  const play = (await block.getByTestId("film-play").boundingBox())!;
+  expect(play.y, "Play is in the lower part of the poster").toBeGreaterThanOrEqual(poster.y + poster.height * 0.6);
+  expect(play.height).toBeGreaterThanOrEqual(44);
+  expect(play.width).toBeGreaterThanOrEqual(44);
+  expect(poster.width, "the poster fits the card").toBeLessThanOrEqual(390);
+  await block.getByTestId("film-play").click();
+  const video = block.getByTestId("film-video");
+  await expect(video).toHaveJSProperty("muted", true);
+  await expect(block.getByTestId("film-captions")).toHaveText("Show captions");
+  for (const b of await block.locator("button, a").all()) expect((await b.boundingBox())!.height, await b.innerText()).toBeGreaterThanOrEqual(44);
+  const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+  expect(sw, "no horizontal scroll at 390 px").toBeLessThanOrEqual(iw);
+});
