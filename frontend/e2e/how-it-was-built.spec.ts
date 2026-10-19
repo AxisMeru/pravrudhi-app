@@ -20,7 +20,7 @@ test("the data section follows card 1 and reads as its extension; the hidden-set
   const order = await page.getByTestId("how-built").locator("section[data-testid]").evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
   expect(order.slice(0, 3)).toEqual(["how-built-card-1", "how-built-data", "how-built-card-2"]);
   for (let i = 1; i <= 6; i++) await expect(page.getByTestId(`how-built-card-${i}`)).toBeVisible();
-  await expect(section.getByTestId("how-built-data-np")).toContainText("There is no hidden set yet. The mechanism for one is being built.");
+  await expect(section.getByTestId("how-built-data-np")).toContainText("There is no hidden set yet. The mechanism for one is planned.");
   await expect(section.getByTestId("how-built-data-r6").getByRole("link")).toHaveAttribute("href", "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
   await expect(section).not.toContainText(/sha256/i);
 });

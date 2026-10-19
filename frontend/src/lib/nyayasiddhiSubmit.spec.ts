@@ -37,7 +37,7 @@ const PINS: Record<string, string> = {
 test("every submission-page sentence is exactly R1's, by hash", () => {
   for (const [k, hash] of Object.entries(PINS)) assert.equal(h((NS_SUBMIT as Record<string, unknown>)[k] as string), hash, k);
   assert.deepEqual(Object.keys(PINS).sort(), Object.keys(NS_SUBMIT).filter((k) => k !== "templateFields" && k !== "hidden_split").sort());
-  assert.equal(h(NS_HIDDEN_SPLIT), "1502d9c1b8e3fdf1");
+  assert.equal(h(NS_HIDDEN_SPLIT), "be3ec6e37f5180ec");
   assert.equal(NS_SUBMIT.hidden_split, NS_HIDDEN_SPLIT);
 });
 

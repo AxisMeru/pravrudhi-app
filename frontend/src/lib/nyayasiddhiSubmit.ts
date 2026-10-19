@@ -2,8 +2,8 @@
 // oracle_note is the one sentence R2 gave (17 Oct): the earlier second sentence ("We publish that file ourselves ...") claimed a file that is not on the dataset and was removed.
 // Every link goes to a public file of the Hugging Face dataset AxisMeru/nyayasiddhi (checked 200 on 17 Oct). The page states only what submission680/SUBMISSION_PATH_680.md and check_submission.py say.
 
-/** The ONE hidden-split sentence (R1, 17 Oct; sha256[:16] 1502d9c1b8e3fdf1): used by the submit page, the /benchmarks block and the card. */
-export const NS_HIDDEN_SPLIT = "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.";
+/** The ONE hidden-split sentence (R1, 19 Oct; sha256[:16] be3ec6e37f5180ec; was 1502d9c1b8e3fdf1 until the 19 Oct ruling): used by the submit page, the /benchmarks block and the card. */
+export const NS_HIDDEN_SPLIT = "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet.";
 
 export const NS_SUBMIT = {
   heading: "Submit a system to NyayaSiddhi",

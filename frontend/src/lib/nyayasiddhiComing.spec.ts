@@ -11,13 +11,13 @@ const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 1
 const PINS: Record<string, string> = {
   coming_heading: "747d2e8ca626eb13",
   coming_outside: "5e48b6ca4941fc43",
-  coming_status: "0c8239b267b1a582",
+  coming_status: "81d49ab30ff0491f",
   coming_rows: "567855cf8959d220",
 };
 
 test("the block's sentences are exactly R1's, by hash, and the hidden-set sentence is the one constant", () => {
   for (const [k, hash] of Object.entries(PINS)) assert.equal(h((NS_COMING as Record<string, string>)[k]), hash, k);
-  assert.equal(h(NS_HIDDEN_SPLIT), "1502d9c1b8e3fdf1");
+  assert.equal(h(NS_HIDDEN_SPLIT), "be3ec6e37f5180ec");
 });
 
 const real = parseRows(rowsFile);

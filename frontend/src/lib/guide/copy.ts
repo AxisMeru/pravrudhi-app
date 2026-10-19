@@ -128,7 +128,7 @@ export const GUIDE_LIMIT_CITATIONS_OFF =
   "The citation check is not offered in this version of the app. When it is offered, \u201cFound in our index\u201d will mean existence only, not that the case says what you cite it for, and \u201cNot found in our index\u201d will not show that a citation is not real.";
 // R1's byte-exact text for a build WITH the citations panel (CITATIONS=1; both citation flags on). Neither contains "dev stack only" or "not served".
 export const GUIDE_CITATIONS_ON_TEXT =
-  "The citations panel below the checklist looks up the case citations that you enter, one per line, in our index. For each one it tells you whether we can match the citation to exactly one case in the index. It does not look at quotes, and it does not tell you whether a citation is real, because the index does not hold every judgment. The panel is labelled preview: existence check only.";
+  "The citations panel below the checklist looks up the case citations that you enter, one per line, in our index. For each one it tells you whether we can match the citation to exactly one case in the index. It does not look at quotes, and it does not tell you whether a citation is real, because the index does not hold every judgment.";
 export const GUIDE_LIMIT_CITATIONS_ON =
   "The citation check looks the case up in our index from the citation alone and does not look at quotes. \u201cFound in our index\u201d is existence only, not a verification; \u201cNot found in our index\u201d does not show whether the citation is real, because the index does not hold every judgment.";
 

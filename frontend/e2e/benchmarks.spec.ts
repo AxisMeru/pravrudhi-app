@@ -13,7 +13,7 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   await expect(items.nth(1)).toContainText("Citation checker:");
   await expect(items.nth(2)).toContainText("Public test: a United States rule-application benchmark");
   await expect(items.nth(3)).toContainText("Legal-knowledge test: how our models do");
-  await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second, independent model reviewer.");
+  await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second model reviewer.");
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
   // everything outside the NyayaSiddhi results view
   const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"], [data-testid="block-film"]').forEach((n) => n.remove()); return c.innerText; });

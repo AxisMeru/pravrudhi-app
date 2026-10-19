@@ -15,7 +15,7 @@ test("the benchmarks page says exactly R1's strings (13 Oct), in his order", () 
   assert.equal(HOW_WE_TEST_HEADING, "How we test");
   assert.equal(
     HOW_WE_TEST,
-    "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer.",
+    "Items are court-derived. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second model reviewer.",
   );
   assert.equal(NYAYASIDDHI_URL, "https://huggingface.co/datasets/AxisMeru/nyayasiddhi");
   assert.equal(NYAYASIDDHI_LINK_TEXT, "NyayaSiddhi v0.2: open Indian element-by-element development benchmark (data + scorer)");
