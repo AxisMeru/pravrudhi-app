@@ -1,0 +1,97 @@
+{
+  "title": "NyayaSiddhi",
+  "durationS": 136.8,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "b81d9b7d0a6789dbe30f0ca10f6dddb17aaf4497d478520fd4354b52e1315211",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "NyayaSiddhi",
+      "text": "",
+      "startS": 0,
+      "endS": 8.2
+    },
+    {
+      "name": "A public order",
+      "text": "",
+      "startS": 8.2,
+      "endS": 21.2
+    },
+    {
+      "name": "Wrongly supported",
+      "text": "",
+      "startS": 21.2,
+      "endS": 43.2
+    },
+    {
+      "name": "Entered by the NyayaSiddhi organisers, who also built this system",
+      "text": "",
+      "startS": 43.2,
+      "endS": 53.6
+    },
+    {
+      "name": "No outside entry yet. Entry is a pull request on the dataset page.",
+      "text": "",
+      "startS": 53.6,
+      "endS": 59.800000000000004
+    },
+    {
+      "name": "Two released sets",
+      "text": "",
+      "startS": 59.800000000000004,
+      "endS": 80.80000000000001
+    },
+    {
+      "name": "Same script. Same ranges.",
+      "text": "",
+      "startS": 80.80000000000001,
+      "endS": 100.80000000000001
+    },
+    {
+      "name": "Built",
+      "text": "",
+      "startS": 100.80000000000001,
+      "endS": 113.10000000000001
+    },
+    {
+      "name": "Illustration: invented entries",
+      "text": "",
+      "startS": 113.10000000000001,
+      "endS": 124.10000000000001
+    },
+    {
+      "name": "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
+      "text": "",
+      "startS": 124.10000000000001,
+      "endS": 136.8
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 2453420,
+      "sha256": "692ed13a01a80e55f4794aec5b4bd03f371a04a7bd58fefe6906aacb00be698d"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 45712,
+      "sha256": "51280564baaae35da1bc3bc3699797c7fdd71cd8b2520e303f07c561c4e8d58f"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 2373,
+      "sha256": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991"
+    }
+  ]
+}

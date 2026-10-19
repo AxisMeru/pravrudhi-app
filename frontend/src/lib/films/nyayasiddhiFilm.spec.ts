@@ -1,3 +1,4 @@
+import { NS_HIDDEN_SPLIT } from "../nyayasiddhiSubmit";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -35,9 +36,9 @@ test("the film id is registered, its files are named like the other films', and 
   assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
 });
 
-test("public/films holds only the film's five cuts (three silent, two narrated previews for the voice review): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
+test("public/films holds only the film's cuts (three silent, two narrated previews for the voice review, the explainer and its silent cut): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
   const films = readdirSync(join(root, "public", "films")).filter((n) => n.startsWith("nyayasiddhi")).sort();
-  assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
+  assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
   for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
@@ -134,7 +135,7 @@ test("the NyayaSiddhi manifests are imported by one module, dynamically; no othe
   })(join(root, "src"));
   assert.deepEqual(importers, ["src/lib/films/nyayasiddhiFilms.ts"]);
   const src = readFileSync(join(root, "src", "lib", "films", "nyayasiddhiFilms.ts"), "utf8");
-  assert.equal((src.match(/import\("\.\.\/\.\.\/\.\.\/public\/films\/nyayasiddhi[a-z-]*\/manifest\.json"\)/g) ?? []).length, 5, "five dynamic imports");
+  assert.equal((src.match(/import\("\.\.\/\.\.\/\.\.\/public\/films\/nyayasiddhi[a-z-]*\/manifest\.json"\)/g) ?? []).length, 7, "seven dynamic imports");
   assert.doesNotMatch(src, /^import .* from ".*manifest\.json"/m, "no static import of a manifest");
 });
 
@@ -219,3 +220,45 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
   assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|Preview for voice review/, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
 });
+
+// ---- the explainer film #430 (nyayasiddhi-explainer narrated, nyayasiddhi-explainer-silent): Studio's film430 deliver folder; strings STRINGS_430_v3 (vendored below); R1 reads the strings; the allowance list is R2's.
+const ex = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "nyayasiddhiExplainerStrings.json"), "utf8")) as { sourceSha256: string; strings: string[]; ruleBException: string[] };
+// the four strings the Rule B exception list v2 (a021853e5598, R2) allows to carry a word the word test bars
+const exException = new Set(ex.ruleBException.flatMap((x) => [norm(x), ...sentences(x)]));
+const EXPLAINER_CAPTIONS_SHA256 = { "nyayasiddhi-explainer": "bcaed7890f48232d073ced8a001e458b27e6345c56757ac39c97996180fbeffe", "nyayasiddhi-explainer-silent": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991" } as const;
+const exAllowed = new Set(ex.strings.flatMap((x) => [norm(x), ...sentences(x)]));
+
+test("the explainer film's vendored strings are STRINGS_430_v3 (sha256 a4411e23719c...), carry no barred word", () => {
+  assert.match(ex.sourceSha256, /^a4411e23719c/);
+  assert.ok(ex.strings.length >= 50);
+  for (const t of ex.strings) if (!exException.has(norm(t))) assert.doesNotMatch(t, BARRED, t);
+});
+
+for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as const) {
+  test(`${id}: captions are WEBVTT and pinned by hash, every cue ends inside the duration, no barred word, the files exist; audio only on the narrated cut`, () => {
+    const dir = join(root, "public", "films", id);
+    const man = readManifest(id);
+    const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
+    assert.match(vtt, /^WEBVTT/);
+    assert.equal(createHash("sha256").update(readFileSync(join(dir, "captions.vtt"))).digest("hex"), EXPLAINER_CAPTIONS_SHA256[id], "the captions are the file Studio delivered (R1 reads its strings)");
+    const t = (x: string): number => { const [h, m, sec] = x.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
+    let cues = 0;
+    for (const m of vtt.matchAll(/(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})[^\n]*\n([\s\S]*?)(?:\n\n|$)/g)) {
+      assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
+      const text = norm(m[3]);
+      // the silent cut: every cue is a STRINGS_430_v3 string (or a sentence of one) or the manifest's own scene name; the narrated cut's captions are the narration script (pinned by hash above)
+      if (id.endsWith("silent")) assert.ok(exAllowed.has(text) || man.scenes.some((sc) => norm(sc.name) === text), `${id}: a cue that is not a STRINGS_430_v3 string: ${text}`);
+      if (!exException.has(text)) assert.doesNotMatch(text, BARRED, text);
+      cues += 1;
+    }
+    assert.ok(cues > 0);
+    for (const f of ["film.mp4", "film.webm", "poster.png"]) assert.ok(existsSync(join(dir, f)), `${id}/${f}`);
+    assert.equal(man.audio, !id.endsWith("silent"));
+    if (!id.endsWith("silent")) assert.match(vtt, /\n1\n[^\n]*-->[^\n]*\nThe narration is a synthetic voice\.\n/, "the synthetic-voice line is the first cue");
+  });
+
+  test(`${id}: the hidden-set scene shows the page's one sentence byte for byte (NS_HIDDEN_SPLIT)`, { skip: !id.endsWith("silent") }, () => {
+    const vtt = norm(readFileSync(join(root, "public", "films", id, "captions.vtt"), "utf8").replace(/\n\d+\n\d\d:[^\n]*/g, " "));
+    assert.ok(vtt.includes(norm(NS_HIDDEN_SPLIT)), "the film's S9 text equals the page constant");
+  });
+}
