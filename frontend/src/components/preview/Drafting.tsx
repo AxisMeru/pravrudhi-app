@@ -230,7 +230,7 @@ export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | n
   return (
     <Box id="synopsis" name={D.synopsisName} line={D.synopsisLine}>
       {!hasPapers && <p className={P}>{D.needMatter}</p>}
-      <label className={`flex items-start gap-2 ${P}`}><input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="synopsis-consent" /> {D.consent}</label>
+      <label className={`flex items-start gap-2 ${P}`}><input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="synopsis-consent" /> {D.consentSynopsis}</label>
       <label className={`block ${P}`}>{D.documentLabel}<input className={`${FIELD} mt-1`} maxLength={80} value={label} onChange={(e) => setLabel(e.target.value)} /></label>
       <FactsEditor id="synopsis" rows={facts} setRows={setFacts} warning={R.synopsisTickWarning} withGrounds={false} />
       <button type="button" className={BTN} disabled={busy || !hasPapers || !consent} onClick={() => go(null)} data-testid="synopsis-run">{D.runSynopsis}</button>

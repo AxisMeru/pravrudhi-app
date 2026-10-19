@@ -16,6 +16,7 @@ export const DRAFTING_DRAFT = {
   synopsisName: "Synopsis and list of dates",
   synopsisLine: "Writes a first draft of a synopsis and a list of dates from the papers you added and the facts you enter, for a lawyer to rewrite.",
   consent: "I am a lawyer and I will read and rewrite this draft. The facts I enter are sent to an outside AI model service to write the draft.",
+  consentSynopsis: "I am a lawyer and I will read and rewrite this draft. The facts I enter, and the sentences from my papers that hold the dates, are sent to an outside AI model service to write the draft.",
   kind: "Kind of application",
   kindBail: "Bail",
   kindAnticipatory: "Anticipatory bail",

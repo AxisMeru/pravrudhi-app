@@ -26,6 +26,7 @@ const LABEL_PINS: Record<string, string> = {
   synopsisName: "243e6b516834025d",
   synopsisLine: "5fe35b4d6af1141e",
   consent: "6e552f50121b14ee",
+  consentSynopsis: "f51bf82066f11d66",
   kind: "4fc5a6b4c1ecfa0a",
   kindBail: "7f1f8f31b6d11cc5",
   kindAnticipatory: "1b2242056f8b8ba2",
