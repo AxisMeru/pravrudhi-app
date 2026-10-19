@@ -7,7 +7,7 @@ export const PAGE_SUBTITLE = "What we check, and what the checks do and do not s
 
 export const BENCHMARK_STATEMENTS: readonly string[] = [
   "Court material: fixed sets of real Indian court items the screen is checked against. A result shows what the screen did on that set, not a promise about your matter.",
-  "Citation checker (labelled preview): in our study we planted wrong quotes in citations to see whether the checker would accept them. The preview in the app checks that the case exists in our index; it does not check the quote and does not tell you whether the case supports your point.",
+  "Citation checker: in our study we planted wrong quotes in citations to see whether the checker would accept them. The citation check in the app checks that the case exists in our index; it does not check the quote and does not tell you whether the case supports your point.",
   "Public test: a United States rule-application benchmark, used only to see whether the element-by-element method helps on a public task. It is not an Indian-law claim.",
   "Legal-knowledge test: how our models do on an Indian legal-knowledge multiple-choice test. It is not a measure of what the product does.",
 ];

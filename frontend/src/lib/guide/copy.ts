@@ -31,7 +31,7 @@ export interface GuideImage {
 }
 
 // R1 (15 Oct): the frame-05 caption for a build WITH the citations panel. It is shown only with the retaken frame (see FRAME_05_RETAKEN below).
-export const GUIDE_CITATIONS_CAPTION = "Preview: existence check only.";
+export const GUIDE_CITATIONS_CAPTION = "Existence check only.";
 
 // Frame 05 for the panel-on build must be retaken on a build with both citation flags on; until that file exists, the ON build shows step 6 with NO image and NO caption (never the old
 // hosted-build frame). Studio/Track A flip this when the new 05-citations-panel.png is committed.
@@ -59,7 +59,7 @@ export const GUIDE_IMAGES_LIVE: GuideImages = {
   },
   citations: {
     file: "05-citations-panel.png",
-    alt: "The Case citations panel: a preview label, a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
+    alt: "The Case citations panel: a label saying Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {
@@ -90,7 +90,7 @@ export const GUIDE_IMAGES_LB: GuideImages = {
   },
   citations: {
     file: "lb/05-citations-panel.png",
-    alt: "The Case citations panel as a signed-out visitor sees it: a preview label saying existence check only, the line Citation checks need you to be signed in, a label Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a greyed Check citations button.",
+    alt: "The Case citations panel as a signed-out visitor sees it: the line Citation checks need you to be signed in, a label Citations, one per line, a line saying that each line takes one citation, at most 5 at a time, and that quotes are not checked, an empty box with an example citation as its placeholder, a note that the index covers Supreme Court citations in the form (year) volume SCC page and that other citation forms come back as not found, and a greyed Check citations button.",
     caption: GUIDE_CITATIONS_CAPTION,
   },
   memo: {

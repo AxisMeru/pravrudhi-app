@@ -121,6 +121,7 @@ test("02/03 the checklist and a row from a real example run (live engine)", asyn
 // Check citations button. The panel is captured before anything is entered, so no engine answer is involved.
 test("05 the citations panel (arm ON)", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD !== "1" || process.env.CITATION_EXISTENCE_BUILD !== "1", "the Screening panel is rendered only on a build with both citation flags");
+  test.skip(process.env.MATTER_B_BUILD === "1", "the layout-B frame is the next test");
   await openWith(page, full); // the panel sits under a result
   await page.getByRole("button", { name: "Screen these facts" }).click();
   await expect(page.getByTestId("checklist").first()).toBeVisible();
@@ -129,4 +130,25 @@ test("05 the citations panel (arm ON)", async ({ page }) => {
   await panel.scrollIntoViewIfNeeded();
   await hideFloaters(page);
   await panel.screenshot({ path: "public/guide/05-citations-panel.png" });
+});
+
+// lb/05: the same panel on the layout-B build as a signed-out visitor sees it (the panel's own identity read finds nobody signed in), for public/guide/lb.
+test("05 the citations panel (layout B, signed out)", async ({ page }) => {
+  test.skip(process.env.CITATION_NAV_BUILD !== "1" || process.env.CITATION_EXISTENCE_BUILD !== "1" || process.env.MATTER_B_BUILD !== "1", "needs the layout-B build with both citation flags");
+  let screened = false;
+  await page.route("**/api/me", (r) => (screened ? r.fulfill({ status: 401, json: { error: "unauthorized" } }) : r.fulfill({ json: { email: "invented@example.invalid" } })));
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => { screened = true; return r.fulfill({ json: full }); });
+  await page.setViewportSize({ width: 832, height: 900 });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(FACTS6.join("\n\n"));
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("checklist").first()).toBeVisible();
+  const panel = page.getByTestId("citations-panel");
+  await expect(panel.getByTestId("citations-panel-signed-out")).toBeVisible();
+  await panel.scrollIntoViewIfNeeded();
+  await hideFloaters(page);
+  await panel.screenshot({ path: "public/guide/lb/05-citations-panel.png" });
 });
