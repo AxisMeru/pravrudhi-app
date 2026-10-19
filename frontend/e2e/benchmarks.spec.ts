@@ -10,7 +10,7 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   const items = page.getByTestId("benchmark-statements").locator("li");
   await expect(items).toHaveCount(4);
   await expect(items.nth(0)).toContainText("Court material: fixed sets of real Indian court items");
-  await expect(items.nth(1)).toContainText("Citation checker (labelled preview)");
+  await expect(items.nth(1)).toContainText("Citation checker:");
   await expect(items.nth(2)).toContainText("Public test: a United States rule-application benchmark");
   await expect(items.nth(3)).toContainText("Legal-knowledge test: how our models do");
   await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second, independent model reviewer.");
