@@ -158,3 +158,37 @@ export function caseB3Body(picks: Partial<Record<(typeof CASE_ROLES)[number], { 
   if (extra.noticeMode) body.notice_mode = extra.noticeMode;
   return cheque || Object.values(body).some((v) => Array.isArray(v) && v.length) ? body : null;
 }
+// ---------- Matter hearing pack (Track A's samples matter_hearing_pack_*.json; engine PR #541; route is Track C's) ----------
+export interface HearingRow { dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
+export interface HearingCitation { text: string; where: string[]; status: string }
+export interface HearingView {
+  statement: string | null; hearingDateGiven: string | null;
+  nextDates: { heading: string | null; rows: HearingRow[]; noneLine: string | null };
+  timeline: { heading: string | null; rows: HearingRow[]; cutLine: string | null };
+  notAdded: { heading: string | null; rows: string[]; noneLine: string | null };
+  citations: { heading: string | null; switchedOn: boolean; line: string | null; needsAttention: HearingCitation[]; notChecked: HearingCitation[]; sweepSummary: string | null; note: string | null };
+  papers: string[]; notAssessed: string[];
+}
+const hearingRows = (x: unknown): HearingRow[] => arr(x).flatMap((v): HearingRow[] => {
+  const r = rec(v); const d = str(r?.date_as_written);
+  return r && d !== null ? [{ dateAsWritten: d, readings: strs(r.readings), readAs: str(r.read_as), quote: str(r.quote), source: str(r.source) }] : [];
+});
+const hearingCitations = (x: unknown): HearingCitation[] => arr(x).flatMap((v): HearingCitation[] => {
+  const r = rec(v); const t = str(r?.text);
+  if (!r || !t) return [];
+  const where = arr(r.where).flatMap((w) => { const q = rec(w); const n = str(q?.document_name); const p = num(q?.page); return n ? [p !== null ? `${n} p.${p}` : n] : []; });
+  return [{ text: t, where, status: strs(r.statuses)[0] ?? "not_checked" }];
+});
+export function parseHearing(b: Rec | null): HearingView | null {
+  if (!b || typeof b.run_id !== "string") return null;
+  const nd = rec(b.next_dates), tl = rec(b.timeline), na = rec(b.not_added), ci = rec(b.citations), pp = rec(b.papers);
+  return {
+    statement: str(b.statement), hearingDateGiven: str(b.hearing_date_given),
+    nextDates: { heading: str(nd?.heading), rows: hearingRows(nd?.rows), noneLine: str(nd?.none_line) },
+    timeline: { heading: str(tl?.heading), rows: hearingRows(tl?.rows), cutLine: str(tl?.cut_line) },
+    notAdded: { heading: str(na?.heading), rows: arr(na?.rows).flatMap((x) => { const l = str(rec(x)?.label); return l ? [l] : []; }), noneLine: str(na?.none_line) },
+    citations: { heading: str(ci?.heading), switchedOn: ci?.switched_on === true, line: str(ci?.line), needsAttention: hearingCitations(ci?.needs_attention), notChecked: hearingCitations(ci?.not_checked), sweepSummary: str(ci?.sweep_summary), note: str(ci?.note) },
+    papers: arr(pp?.read).flatMap((p) => { const n = paperName(p); return n ? [n] : []; }),
+    notAssessed: strs(b.not_assessed),
+  };
+}

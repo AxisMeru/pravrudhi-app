@@ -5,6 +5,7 @@
 // page says what a verdict means: the cited section exists and was among the sources shown, or it was not.
 // Nothing on this page is ledger evidence, and a handful of asks is an anecdote, not a comparison.
 
+import { ipcCaveatOf } from "@/lib/ipcCaveat";
 import { useCallback, useEffect, useState } from "react";
 import { Scale, ShieldCheck, ShieldAlert, ShieldQuestion, Ban, Loader2 } from "lucide-react";
 import {
@@ -157,6 +158,7 @@ function Sources({ hits }: { hits: NyayaAsk["sources"] }) {
       {hits.map((s) => (
         <li key={s.id} className="rounded border border-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-text-dim)]" title={s.act}>
           <span className="font-mono text-[var(--color-text)]">{s.id}</span> — {s.title}
+          {ipcCaveatOf(s) && <span className="ml-1 block text-[11px]" data-testid="ipc-caveat">{ipcCaveatOf(s)}</span>}
         </li>
       ))}
     </ul>
@@ -639,6 +641,7 @@ function CorpusTab() {
             </div>
             <div className="mt-1 font-medium text-[var(--color-text)]">{h.title}</div>
             <div className="mt-1 text-[var(--color-text-dim)]">{h.text}</div>
+            {ipcCaveatOf(h) && <p className="mt-1 text-xs text-[var(--color-text-dim)]" data-testid="ipc-caveat">{ipcCaveatOf(h)}</p>}
             <StatuteNotice className="mt-2" href={hitSourceLink(h, recorded).href} />
           </li>
         ))}

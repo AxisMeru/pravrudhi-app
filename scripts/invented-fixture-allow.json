@@ -334,5 +334,83 @@
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "1f85281504746894d2f7e409be0a3e57645d82f1b3152ede873f4f4db823eb85",
     "reason": "invented sample: a typed date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "7a039e2f1203c02df14ac38789dafc7fc41ec6210b3b49042618671606122717",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "0d55a223d278fbfd4e456a2383ee4994a2b45d2f6b998fe6092e88e4c41fdced",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "733179a4d2e19e85a816557c4861de3b554a01493e07ffe56f87982b4c85467f",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "8d8a77394e923d965492632038f25ebd70b7155db81a6728e4cf6d207ac5ec96",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "79572813ba0df10b2537f4e66e95171c3dc3903ef5e8330b2f0e1ba8eff9d36b",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_no_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "b1f3c6c1cf7b8777f1352bdf94fd3e3e6ab4f0c049e96c8c90ca4fe8870f8d52",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "7a039e2f1203c02df14ac38789dafc7fc41ec6210b3b49042618671606122717",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "0d55a223d278fbfd4e456a2383ee4994a2b45d2f6b998fe6092e88e4c41fdced",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "733179a4d2e19e85a816557c4861de3b554a01493e07ffe56f87982b4c85467f",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "8d8a77394e923d965492632038f25ebd70b7155db81a6728e4cf6d207ac5ec96",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "79572813ba0df10b2537f4e66e95171c3dc3903ef5e8330b2f0e1ba8eff9d36b",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/preview/matter_hearing_pack_with_sweep.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "b1f3c6c1cf7b8777f1352bdf94fd3e3e6ab4f0c049e96c8c90ca4fe8870f8d52",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
+  },
+  {
+    "file": "frontend/src/lib/previewParsers.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "73457ca2edcbe69aefc94682cde9227a2e552209f5d23beaf8d5236e02451fd3",
+    "reason": "invented sample: a day-first date in Track A's real-engine sample response on invented text (trackA/preview/samples); no real case date"
   }
 ]

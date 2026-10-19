@@ -21,8 +21,8 @@ const PINS: Readonly<Record<string, string>> = {
   r2_name: "91e95fa53295a428",
   r2_source: "2760089b9194ca9d",
   r3_name: "0002dc7760e15464",
-  r3_source: "21a6557f0188df85",
-  r3_licence_fallback: "ab2b24197f833c1c",
+  r3_source: "499378980d680984",
+  r3_licence_fallback: "5ce4dc70612fe550",
   r3_used: "23785039b5e44619",
   r3_used_b: "f60eea0ec8cb6296",
   r3_published: "549722efe79a4acb",
@@ -147,4 +147,9 @@ test("lines get their lead-in by kind; several caveat lines share one Note; a se
   assert.deepEqual(g[4].keys, ["r1_caveat_cov", "r1_caveat_attr"]);
   const r4 = groupLines(DATA_SETS.find((s) => s.id === "r4")!.lines);
   assert.ok(!r4.some((x) => x.leadIn === "used" || x.leadIn === "published"), "r4 has no used/published line, so no such label");
+});
+
+test("the statutes row names no source for the IPC text and no file name (true before and after engine 0.6.22)", () => {
+  const all = DATA_NOTE_TEXT.r3_source + " " + DATA_NOTE_TEXT.r3_licence_fallback;
+  assert.doesNotMatch(all, /IL-TUR|devgan|NCRB|statutes file/i);
 });

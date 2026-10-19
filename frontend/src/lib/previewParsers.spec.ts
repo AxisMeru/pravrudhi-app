@@ -6,6 +6,9 @@ import a3 from "./fixtures/preview/a3_chronology.json";
 import a5 from "./fixtures/preview/a5_review_agenda.json";
 import s1 from "./fixtures/preview/s1_matter_citation_sweep.json";
 import { parseA1, parseA3, parseA5, parseS1 } from "./previewParsers";
+import hp1 from "./fixtures/preview/matter_hearing_pack_with_sweep.json";
+import hp0 from "./fixtures/preview/matter_hearing_pack_no_sweep.json";
+import { parseHearing } from "./previewParsers";
 
 // Track A's sample responses (real engine functions, invented text; trackA/preview/samples, shas in the file notes). The page may show only what these readers keep.
 const body = (s: { response: unknown }) => s.response as Record<string, unknown>;
@@ -100,4 +103,19 @@ test("the B3 body built from picks equals the body Track A used: every date an o
   assert.deepEqual(ambiguous.notices, [{ value: "2013-03-04", source: "courier-note-B p.1", confirmed: true, confirmed_as: "2013-03-04", also_in_other_text: false }]);
   assert.equal(caseB3Body({ notice: { c: v.roles.find((x) => x.role === "notice")!.candidates[1], reading: null } }), null, "no reading chosen: nothing is sent");
   assert.equal(caseB3Body({}), null);
+});
+
+test("hearing pack: an ambiguous listed date keeps ALL readings, the timeline keeps date order with the paper's words, citations are existence-only with their note, not_assessed stays", () => {
+  const v = parseHearing(body(hp1))!;
+  assert.equal(v.nextDates.rows[0].dateAsWritten, "5.9.2026");
+  assert.deepEqual(v.nextDates.rows[0].readings, ["2026-09-05", "2026-05-09"]);
+  assert.equal(v.timeline.rows[0].dateAsWritten, "18 July 2021");
+  assert.ok(v.timeline.rows.every((r) => r.quote && r.source));
+  assert.equal(v.hearingDateGiven?.startsWith("Hearing date you gave: 2026-11-03"), true);
+  assert.ok(v.citations.switchedOn && v.citations.note && v.citations.needsAttention[0].text === "(2099) 99 SCC 999" && v.citations.notChecked[0].where[0] === "defence-note p.1");
+  assert.ok(v.notAssessed.length >= 7);
+  assert.doesNotMatch(JSON.stringify(v), /reporter_not_in_index|event_type|span_sha256/);
+  const n = parseHearing(body(hp0))!;
+  assert.equal(n.citations.switchedOn, false);
+  assert.ok(n.citations.note);
 });

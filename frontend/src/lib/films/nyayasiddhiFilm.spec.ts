@@ -64,13 +64,13 @@ test("the review route is linked from nowhere: only the surface route list and a
   assert.deepEqual(hits.sort(), ["src/lib/demoPath.ts", "src/lib/films/copy.ts"], "only the route allow-list and a copy comment name the route; no nav, link, sitemap or page does");
 });
 
-// captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v4 (the stronger pin: sha256 65282a5a..., vendored as e2e/fixtures/nyayasiddhiFilmStrings.json (a test fixture, not under src: nothing is bundled)); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
+// captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v5 (the stronger pin: sha256 65282a5a..., vendored as e2e/fixtures/nyayasiddhiFilmStrings.json (a test fixture, not under src: nothing is bundled)); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
 const strings = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "nyayasiddhiFilmStrings.json"), "utf8")) as { sourceSha256: string; refusalStrings: string[]; strings: string[] };
 const BARRED = /\b(accuracy|accurate|verified|verify|proved|proves|proof|best|beats?|outperform|caught|stopped|protects|saved|prevented)\b|state of the art/i;
 const COUNT_WORD = /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|dozens?|many|several|few|most|all)\b/i;
 
-test("the vendored film strings are STRINGS_948_v4 (sha256 65282a5a...), carry no barred word, and the refusal strings carry no count word", () => {
-  assert.match(strings.sourceSha256, /^65282a5af3d2f41c43d561f1dbbd768418c6fa8c6ab83b3b3ef04b381f7417fa$/);
+test("the vendored film strings are STRINGS_948_v5 (sha256 d6cfcfca...), carry no barred word, and the refusal strings carry no count word", () => {
+  assert.match(strings.sourceSha256, /^d6cfcfca02b1e0a74baa4cbb3e1848e2231e885bb785c4a63a8d72195d4055a1$/);
   assert.ok(strings.strings.length > 20 && strings.refusalStrings.length > 0);
   for (const t of strings.strings) {
     assert.doesNotMatch(t, BARRED, t);
@@ -82,7 +82,7 @@ test("the vendored film strings are STRINGS_948_v4 (sha256 65282a5a...), carry n
   for (const t of added) assert.doesNotMatch(t, COUNT_WORD, t);
 });
 
-const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "783827b1e51e614d4fb841581b5ed2e116f2010a9036d9b4b000cacd82019445", "nyayasiddhi-firm-narrated": "f9e50fa65f20a5a4823345d58ac2ba636ceee980e414a549621b406f873f3ce5" } as const;
+const NARRATED_CAPTIONS_SHA256 = { "nyayasiddhi-narrated": "25d4a538082aa556d0278b52aa76326c1c9bba68837e29bec868f76e21fb3d26", "nyayasiddhi-firm-narrated": "f9e50fa65f20a5a4823345d58ac2ba636ceee980e414a549621b406f873f3ce5" } as const;
 const FILMS = ["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"] as const;
 const norm = (x: string): string => x.replace(/\s+/g, " ").trim();
 const sentences = (x: string): string[] => x.split(/(?<=[.!?])\s+/).map(norm).filter(Boolean);
@@ -94,7 +94,7 @@ for (const id of FILMS) {
   const dir = join(root, "public", "films", id);
   const man = readManifest(id);
   const rendered = existsSync(join(dir, "captions.vtt")) && man.placeholder !== true;
-  test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v4 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
+  test(`${id}: captions.vtt is WEBVTT, every cue ends inside the duration, every cue is a STRINGS_948_v5 string (or the app's own signed text), no barred word; the files exist; silent`, { skip: !rendered }, () => {
     const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
     assert.match(vtt, /^WEBVTT/);
     const t = (x: string): number => { const [h, m, sec] = x.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
@@ -106,7 +106,7 @@ for (const id of FILMS) {
       const text = norm(m[3]);
       // the silent cuts: every cue is a v4 string (or the app's own signed text). The narrated previews' captions are the narration script (v4 strings joined into spoken sentences and split at spoken pauses), so they are pinned by R1's confirmed HASH below instead
       // out_v8: a silent cut's cue is its scene name (one cue per scene; R1 reads those names as strings), which is the manifest's own scene name, or still a v4 string / signed app text
-      if (!narrated) assert.ok(allowed.has(text) || man.scenes.some((sc) => norm(sc.name) === text), `${id}: a cue that is neither a STRINGS_948_v4 string nor one of the film's own scene names: ${text}`);
+      if (!narrated) assert.ok(allowed.has(text) || man.scenes.some((sc) => norm(sc.name) === text), `${id}: a cue that is neither a STRINGS_948_v5 string nor one of the film's own scene names: ${text}`);
       assert.doesNotMatch(text, BARRED, text);
       cues += 1;
     }
@@ -212,7 +212,7 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.equal(createHash("sha256").update(readFileSync(join(root, "src", "data", "nyayasiddhi", "rows.json"))).digest("hex"), "d50527be584f1355ec589488b53d963102b8709cbfa2359012fa8af5e2a318a8");
   const page = readFileSync(join(root, "src", "app", "benchmarks", "page.tsx"), "utf8");
   assert.match(page, /parseRows\(rowsFile\)/);
-  assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\} \/>/);
+  assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\}( links=\{NYAYASIDDHI_LINKS\})? \/>/);
   assert.ok(page.indexOf("<FilmPlayer") > 0 && page.indexOf("<FilmPlayer") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
   assert.match(page, /posterFirst/);
   assert.doesNotMatch(page, /autoPlay|autoplay/i);

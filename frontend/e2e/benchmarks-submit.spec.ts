@@ -1,5 +1,6 @@
 import { expect, test } from "./support/engineTest";
 
+import { NS_DRAWER } from "../src/lib/nyayasiddhiDrawer";
 import { NS_COMING } from "../src/lib/nyayasiddhiComing";
 import { NS_HIDDEN_SPLIT, NS_SUBMIT as T, NS_SUBMIT_LINKS as L, NS_SUBMIT_LINK_TEXT } from "../src/lib/nyayasiddhiSubmit";
 
@@ -56,4 +57,37 @@ test("/benchmarks shows the not-populated block with R1's lines and the one hidd
   expect(await block.innerText()).not.toMatch(/\d/);
   await page.goto("/benchmarks/submit");
   await expect(page.getByTestId("ns-submit-status")).toContainText(NS_HIDDEN_SPLIT);
+});
+
+// app#429 PR-C (#693): the row-details dialog and the version selector on /benchmarks.
+test("a row's details open in a modal dialog with R1's labels and the pinned public files, Esc closes it and focus returns to the button", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const open = page.getByTestId("ns-row-details-open").first();
+  await open.scrollIntoViewIfNeeded();
+  await open.click();
+  const dlg = page.getByTestId("ns-row-details").first();
+  await expect(dlg).toBeVisible();
+  await expect(dlg.getByRole("heading", { name: NS_DRAWER.dialog_title })).toBeVisible();
+  await expect(dlg.getByText(NS_DRAWER.field_errors)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dlg).toBeHidden();
+  await expect(open).toBeFocused();
+  // a row with pinned links shows both files, the two hashes and the note, all on the public dataset
+  const linked = page.locator('[data-testid="ns-row"]').filter({ has: page.getByTestId("ns-detail-links") });
+  await linked.first().getByTestId("ns-row-details-open").click();
+  const links = page.getByTestId("ns-detail-links").first();
+  await expect(links.getByRole("heading", { name: NS_DRAWER.links_heading })).toBeVisible();
+  await expect(links.getByTestId("ns-detail-manifest")).toHaveAttribute("href", /^https:\/\/huggingface\.co\/datasets\/AxisMeru\/nyayasiddhi\/blob\/[0-9a-f]{40}\//);
+  await expect(links.getByTestId("ns-detail-manifest-sha")).toHaveText(/^[0-9a-f]{64}$/);
+  await expect(links).toContainText(NS_DRAWER.links_note);
+  await page.locator("dialog[open]").getByTestId("ns-row-details-close").click();
+});
+
+test("the version selector lists only the versions that have rows, with no count, and its note is R1's", async ({ page }) => {
+  await page.goto("/benchmarks");
+  const box = page.getByTestId("ns-versions");
+  await expect(box.getByRole("radio")).toHaveCount(1);
+  await expect(box.getByRole("radio", { name: "v0.2" })).toBeChecked();
+  await expect(page.getByTestId("ns-version-note")).toHaveText(NS_DRAWER.version_note);
+  expect(await box.innerText()).not.toMatch(/\(\d|\d+ rows?/);
 });
