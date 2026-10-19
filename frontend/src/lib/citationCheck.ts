@@ -1,5 +1,5 @@
 // The citation check (#539): POST /api/v1/verify-citations answers one of five fixed statuses and a fixed note. The status is shown VERBATIM as the
-// engine sent it, never reworded and never turned into a verdict about the citation; the page carries a "preview" label until the accuracy study reports. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
+// engine sent it, never reworded and never turned into a verdict about the citation. The engine's note is shown as sent, except that a note containing the word "fake" is not shown (the product never says it; see NOTE_BANNED).
 
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError } from "./api";
@@ -7,7 +7,6 @@ import { CASE_NAME_NOT_COMPARED, CITATION_EXISTENCE_ONLY, CONFLICT_HEADING, NAME
 import { CITATION_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
 
 export const CITATION_CHECK_TITLE = "Citation check";
-export const PREVIEW_LABEL = "preview: existence check only";
 
 /** The five statuses the engine can return (application/verify.py VerifyResult), in the engine's order. */
 export const VERIFY_STATUSES = ["VERIFIED", "EXISTS_QUOTE_NOT_FOUND", "IN_INDEX", "NOT_IN_INDEX", "MALFORMED", "CONFLICT", "NAME_MISMATCH"] as const;
@@ -19,8 +18,9 @@ export interface VerifyReply {
   /** Product status fields the engine adds (#533, additive; absent on an engine that predates them). */
   status?: string;
   label?: string;
-  preview?: boolean;
   verified?: boolean;
+  /** The engine still sends this; the app does not read it. */
+  preview?: boolean;
   /** pravrudhi#509: present and true ONLY when the engine compared the typed case name with the index (IN_INDEX = matched, or NAME_MISMATCH); absent on older engines, when no name was typed, and on other results. */
   name_compared?: boolean;
 }
@@ -63,8 +63,6 @@ const NOTE_BANNED = /\bfake\b/i;
 export interface ProductStatus {
   status: string;
   label: string;
-  /** Always true while the preview badge applies; the page shows the badge whenever this is not explicitly false. */
-  preview: boolean;
 }
 
 export interface VerifyView {
@@ -96,7 +94,7 @@ export function productStatus(reply: VerifyReply, enabled: boolean = PRODUCT_STA
   if (status !== "verified" && !sanctioned && LABEL_POSITIVE.test(folded)) return null;
   if (RESULT_TO_STATUS[reply.result] !== status) return null;
   if (status === "verified" ? reply.verified === false : reply.verified === true) return null;
-  return { status, label, preview: reply.preview !== false };
+  return { status, label };
 }
 
 /** R1 14 Oct (#128 D4): the code token NOT_IN_INDEX stays in the data and never on screen; the result is shown as this label. Every other status is shown as the engine sent it. */

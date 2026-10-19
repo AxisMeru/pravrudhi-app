@@ -29,10 +29,10 @@ async function run(page: import("@playwright/test").Page): Promise<void> {
   await page.getByRole("button", { name: "Check" }).click();
 }
 
-test("the page carries the preview label and says what the check is not", async ({ page }) => {
+test("the page says what the check is not, with no preview label", async ({ page }) => {
   test.skip(process.env.CITATION_NAV_BUILD !== "1", NEEDS_FORM);
   await page.goto("/citations");
-  await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
+  await expect(page.locator("body")).not.toContainText(/preview/i);
   await expect(page.getByTestId("citation-limits")).toHaveText(
     "The check looks for the case in our index and for the quote in its text, word for word apart from line breaks, quote marks, dashes and spacing. It does not say whether the case supports a point. If the case is not found in our index, that does not show whether the citation is real, because the index does not hold every judgment. This check is not yet served in the hosted deployment.",
   );
@@ -124,7 +124,6 @@ test("flag off (the hosted build): /citations is a notice and a way back to Scre
   await expect(page.getByLabel("Citation (one)")).toHaveCount(0);
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Check" })).toHaveCount(0);
-  await expect(page.getByTestId("citation-preview-label")).toHaveCount(0);
   await expect(page.getByTestId("citation-limits")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/not yet served|index is not available/i);
   await page.getByTestId("citation-not-offered-link").click();

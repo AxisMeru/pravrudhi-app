@@ -25,7 +25,7 @@ for (const [result, a] of Object.entries(ANSWERS)) {
     await page.getByRole("button", { name: "Check" }).click();
     await expect(page.getByTestId("citation-status")).toHaveText(result === "NOT_IN_INDEX" ? "Not found in our index" : result); // #128 D4
     await expect(page.getByTestId("citation-product-label")).toHaveText(a.label);
-    await expect(page.getByTestId("citation-product-preview")).toHaveText("preview");
+    await expect(page.getByTestId("citation-product-preview")).toHaveCount(0);
     // no result, IN_INDEX included, carries an icon, a tick or a verified colour (R1): one neutral style for every status
     await expect(page.getByTestId("citation-result").locator("svg, img")).toHaveCount(0);
     expect(await page.getByTestId("citation-result").innerHTML()).not.toMatch(/emerald|green|✓|✔/);

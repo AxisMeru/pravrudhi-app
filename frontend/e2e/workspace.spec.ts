@@ -101,7 +101,7 @@ test("/workflows: each Built row links to its step in the workspace; a Building 
       } else if (/^Citation check/.test((await row.locator("div > div").first().textContent()) ?? "")) {
         await expect(link).toHaveAttribute("href", "/citations");
         await expect(link).toHaveText("Open Citation check");
-        await expect(row).toContainText("preview: existence check only");
+        await expect(row).not.toContainText(/preview/i);
       } else {
         await expect(link).toHaveAttribute("href", /^\/screening#step-(screen|memo|hearing)$/);
         await expect(link).toHaveText((await isLayoutB(page)) ? "Open the screening page" : "Open in Matter workspace");

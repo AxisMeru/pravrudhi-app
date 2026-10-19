@@ -7,7 +7,6 @@ import { join } from "node:path";
 import { ApiError } from "./api";
 import {
   CITATION_MAX,
-  PREVIEW_LABEL,
   PRODUCT_STATUSES,
   PRODUCT_STATUS_ENABLED,
   productStatus,
@@ -18,8 +17,8 @@ import {
   verifyView,
 } from "./citationCheck";
 
-test("the preview label is exactly the decided wording", () => {
-  assert.equal(PREVIEW_LABEL, "preview: existence check only");
+test("no preview label is exported (R1, 19 Oct: the limit is said by the page's normal copy)", async () => {
+  assert.equal("PREVIEW_LABEL" in (await import("./citationCheck")), false);
 });
 
 const MISMATCH_NOTE = "We found this citation in our index, but the case name you typed does not appear to match the case it belongs to there. That does not show whether the citation or the name is right. Check both by hand.";
@@ -94,11 +93,11 @@ test("the product status is OFF in this build by default, and off shows only the
   }
 });
 
-test("switched on, each of the seven product statuses shows the engine's label verbatim with the preview flag", () => {
+test("switched on, each of the seven product statuses shows the engine's label verbatim ", () => {
   assert.deepEqual([...PRODUCT_STATUSES], ["verified", "quote_not_found", "in_index", "not_in_index", "conflict", "malformed", "name_mismatch"]);
   for (const reply of Object.values(PRODUCT)) {
     const p = productStatus({ ...reply, note: "n" }, true);
-    assert.deepEqual(p, { status: reply.status, label: reply.label, preview: true });
+    assert.deepEqual(p, { status: reply.status, label: reply.label });
     assert.equal(verifyView({ ...reply, note: "n" }, true).status, reply.result, "the engine status is still shown verbatim beside it");
   }
 });
@@ -124,7 +123,7 @@ test("every one of the engine's real labels passes the guards when switched on (
   assert.deepEqual(Object.keys(ENGINE_LABELS).sort(), [...VERIFY_STATUSES].sort());
   for (const [result, a] of Object.entries(ENGINE_LABELS)) {
     const p = productStatus({ result, note: "n", ...a, preview: true, verified: result === "VERIFIED" }, true);
-    assert.deepEqual(p, { status: a.status, label: a.label, preview: true }, result);
+    assert.deepEqual(p, { status: a.status, label: a.label }, result);
   }
 });
 
@@ -149,9 +148,8 @@ test("fail closed (#75): result and status must be the engine's own pair, and `v
   for (const r of swapped) assert.equal(productStatus({ ...r, note: "n" }, true), null, `${r.result}/${r.status}/${r.verified}`);
 });
 
-test("the preview flag defaults to shown unless the engine says false explicitly", () => {
-  assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: undefined, note: "n" }, true)?.preview, true);
-  assert.equal(productStatus({ ...PRODUCT.CONFLICT, preview: false, note: "n" }, true)?.preview, false);
+test("the engine's preview field is not read: the product status carries no such key", () => {
+  for (const preview of [undefined, true, false]) assert.deepEqual(productStatus({ ...PRODUCT.CONFLICT, preview, note: "n" }, true), { status: PRODUCT.CONFLICT.status, label: PRODUCT.CONFLICT.label });
 });
 
 test("checkInputs: a null quote is an existence-only check and passes; an empty or blank quote is still refused; the citation limits still apply", () => {
