@@ -97,10 +97,10 @@ test("synopsisBody needs consent; include_row_ids only when rows were unticked",
 });
 
 test("two dates in one sentence are one row; each date keeps its own readings", () => {
-  const v = parseSynopsis({ run_id: "r", state: "table_only", draft: { list_of_dates: { heading: "H", columns: [], rows: [{ row_id: 7, date_as_written: "1.2.2020 and 3 March 2020", dates: [{ date_as_written: "1.2.2020", readings: ["2020-02-01", "2020-01-02"], ambiguous: true }, { date_as_written: "3 March 2020", readings: ["2020-03-03"], ambiguous: false }], event_quote: "q" }] } } })!;
+  const v = parseSynopsis({ run_id: "r", state: "table_only", draft: { list_of_dates: { heading: "H", columns: [], rows: [{ row_id: 7, date_as_written: "1.2.20 and 3 March 2020", dates: [{ date_as_written: "1.2.20", readings: ["2020-02-01", "2020-01-02"], ambiguous: true }, { date_as_written: "3 March 2020", readings: ["2020-03-03"], ambiguous: false }], event_quote: "q" }] } } })!;
   const r = v.dates!.rows[0];
   assert.equal(r.dates.length, 2);
   assert.equal(r.dates[0].readings.length, 2);
   assert.equal(r.dates[1].ambiguous, false);
-  assert.equal(r.dateAsWritten, "1.2.2020 and 3 March 2020");
+  assert.equal(r.dateAsWritten, "1.2.20 and 3 March 2020");
 });
