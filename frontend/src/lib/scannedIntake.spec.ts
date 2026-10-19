@@ -95,7 +95,7 @@ test("refusal lines: HEIC by mime, and any over-size answer (413 / pdf_too_large
 });
 
 const SAMPLE = {
-  results: [{ span_id: 41, doc_id: "d", page: 3, text: "The petitioner states that the cheque dated 02.02.2021 was returned unpaid.", source: "ocr", confidence: 91.4, crop: { page: 3, x: 112, y: 840, w: 1280, h: 96, page_w: 2480, page_h: 3508, unit: "px at ocr_dpi" } }, { span_id: 12, doc_id: "d", page: 1, text: "IN THE COURT", source: "text_layer", confidence: null, crop: null }],
+  results: [{ span_id: 41, doc_id: "d", page: 3, text: "The petitioner states that the cheque dated 2 February 2021 was returned unpaid.", source: "ocr", confidence: 91.4, crop: { page: 3, x: 112, y: 840, w: 1280, h: 96, page_w: 2480, page_h: 3508, unit: "px at ocr_dpi" } }, { span_id: 12, doc_id: "d", page: 1, text: "IN THE COURT", source: "text_layer", confidence: null, crop: null }],
   pages: [{ page: 1, source: "text_layer", confidence: null, readable: true, reason: null, line: null }, { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, garbled_text_layer: true }, { page: 4, source: "unreadable", confidence: 52.3, readable: false, reason: "low_confidence", line: "This page could not be read." }],
   pages_unreadable: 1,
 };
