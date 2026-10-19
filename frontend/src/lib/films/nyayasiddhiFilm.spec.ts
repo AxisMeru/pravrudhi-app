@@ -1,4 +1,5 @@
-import { NS_HIDDEN_SPLIT } from "../nyayasiddhiSubmit";
+// The film captions still carry the hidden-set sentence as worded on 17 Oct ("being built") until the film is re-rendered (R1 ruling, 19 Oct: the film changes at its next re-render, not on its own); the page constant is the 19 Oct wording.
+const FILM_HIDDEN_SET_LINE = "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -257,8 +258,8 @@ for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as co
     if (!id.endsWith("silent")) assert.match(vtt, /\n1\n[^\n]*-->[^\n]*\nThe narration is a synthetic voice\.\n/, "the synthetic-voice line is the first cue");
   });
 
-  test(`${id}: the hidden-set scene shows the page's one sentence byte for byte (NS_HIDDEN_SPLIT)`, { skip: !id.endsWith("silent") }, () => {
+  test(`${id}: the hidden-set scene shows the 17 Oct sentence until the film is re-rendered (R1, 19 Oct)`, { skip: !id.endsWith("silent") }, () => {
     const vtt = norm(readFileSync(join(root, "public", "films", id, "captions.vtt"), "utf8").replace(/\n\d+\n\d\d:[^\n]*/g, " "));
-    assert.ok(vtt.includes(norm(NS_HIDDEN_SPLIT)), "the film's S9 text equals the page constant");
+    assert.ok(vtt.includes(norm(FILM_HIDDEN_SET_LINE)), "the film's S9 text is the 17 Oct sentence");
   });
 }

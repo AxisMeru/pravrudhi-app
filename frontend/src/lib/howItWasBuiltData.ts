@@ -1,6 +1,6 @@
 // "How it was built", the data section after step 1 (app#431): R1's worded note HOW_BUILT_DATA_NOTE_R1_WORDED_v1o_2026-10-17.md (sha12 82347d84fe30), keys cleared to ship only, each pinned by sha256[:16] in howItWasBuiltData.spec.ts.
 // NOT built (not cleared): r4_published.
-// r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, 1502d9c1b8e3fdf1).
+// r3_published is built from the app's own STATUTE_NOTICE so the quoted sentence is the app's, byte for byte. The hidden-set sentence np3 is the one constant NS_HIDDEN_SPLIT (R1, be3ec6e37f5180ec).
 import { NS_HIDDEN_SPLIT } from "./nyayasiddhiSubmit";
 import { STATUTE_NOTICE } from "./statuteNotice";
 
@@ -37,7 +37,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r6_licence: "Our annotations, metadata and scorer are CC BY 4.0. The source text is court-derived; the dataset card gives the basis.",
   r6_used: "A public development benchmark with two released sets. The first was used to design fixes. Both released sets were seen by us and by the models we used. The dataset card gives the counts.",
   r6_published: "https://huggingface.co/datasets/AxisMeru/nyayasiddhi (README, the two data files, the scorer and the schemas).",
-  r6_caveat: "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet. The labels are model-extracted and not human-checked.",
+  r6_caveat: "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet. The labels are model-extracted and not human-checked.",
   r7_name: "Training and held-out sets for our judges",
   r7_source: "Built from the sources above.",
   r7_published: "Not on Hugging Face. The sealed evaluation sets stay private so a future test cannot be learned in advance.",

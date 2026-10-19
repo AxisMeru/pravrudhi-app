@@ -41,7 +41,7 @@ const PINS: Readonly<Record<string, string>> = {
   r6_licence: "c02de90f9d01cc59",
   r6_used: "c5ee9155ddb646a7",
   r6_published: "0650c4a5036b77c9",
-  r6_caveat: "2eb08cd810fb29af",
+  r6_caveat: "5a082cfab6d17461",
   r7_name: "ea7ff81a02a0e0c9",
   r7_source: "01f96b657b0128f3",
   r7_published: "bf0c3281716627d6",
@@ -77,7 +77,7 @@ const PINS: Readonly<Record<string, string>> = {
   np_heading: "a368c51b0c4e6c8c",
   np1: "9355382258cdb8fa",
   np2: "6da219455dce2700",
-  np3: "1502d9c1b8e3fdf1",
+  np3: "be3ec6e37f5180ec",
   np4: "845b919a2a81cf82",
   np5: "ed90fbab9023fffc",
   cv_heading: "dffb64dc70011ecf",
@@ -107,7 +107,7 @@ test("the structure names only built keys, each once, in R1's order: sets, what 
 test("r3_published quotes the app's own statute notice byte for byte (v1o: no 'Not republished'), and the hidden-set line is the one constant", () => {
   assert.equal(DATA_NOTE_TEXT.r3_published, `Shown in the app only beside our own analysis, with the notice "${STATUTE_NOTICE}"`);
   assert.equal(DATA_NOTE_TEXT.np3, NS_HIDDEN_SPLIT);
-  assert.equal(h(DATA_NOTE_TEXT.np3), "1502d9c1b8e3fdf1");
+  assert.equal(h(DATA_NOTE_TEXT.np3), "be3ec6e37f5180ec");
 });
 
 test("own digit rule: no count anywhere; digits only in 'step 1', licence names and versions, the model names, the dataset id and the one licence-read date (17 October 2026)", () => {

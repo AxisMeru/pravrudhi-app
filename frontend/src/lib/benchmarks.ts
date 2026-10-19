@@ -14,7 +14,7 @@ export const BENCHMARK_STATEMENTS: readonly string[] = [
 
 export const HOW_WE_TEST_HEADING = "How we test";
 export const HOW_WE_TEST =
-  "Items are real court-derived or labelled constructed. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second, independent model reviewer.";
+  "Items are court-derived. The sets were reused to compare candidates, so results are not fresh-test estimates. Each result is checked by a second model reviewer.";
 
 /** NyayaSiddhi (the open development benchmark, #638): a link and a short blurb under it, no figure. Strings unchanged. */
 export const NYAYASIDDHI_URL = "https://huggingface.co/datasets/AxisMeru/nyayasiddhi";
