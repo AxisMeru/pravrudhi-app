@@ -32,7 +32,7 @@ test("bail: nothing is sent until consent, both dates, a court and a fact are gi
   await expect(page.getByTestId("bail-framing")).toContainText("Section 480");
   await expect(page.getByTestId("bail-unconfirmed")).toContainText("a lawyer has not yet confirmed");
   await expect(page.getByTestId("bail-text")).toContainText("BAIL APPLICATION");
-  await expect(page.getByTestId("pv-bail").getByText("Notes for the lawyer")).toBeVisible();
+  await expect(page.getByTestId("pv-bail").getByRole("heading", { name: "Notes for the lawyer" })).toBeVisible(); // the mocked draft text also contains the words, so match the heading by role
 });
 
 test("bail referred: a straddle shows both framings and no draft text; a sensitive section shows the engine's sentence only", async ({ page }) => {
