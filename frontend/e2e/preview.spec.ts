@@ -166,12 +166,3 @@ test("signed out: R1's sign-in line with its link above the cards, no Start a ma
   await expect(page.getByTestId("pv-start")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/stored papers/i);
 });
-
-test("signed in but the session ended: a 401 on Start sends the visitor to sign in (the app's own rule) and the engine's 'Stored papers' sentence never shows", async ({ page }) => {
-  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ status: 401, json: { detail: "Stored papers are offered only to signed-in users" } }));
-  await page.goto("/preview");
-  await page.getByTestId("pv-start").click();
-  // a hosted build (Supabase configured) navigates to /signin on a surviving 401; without it the page keeps R1's line "Sign in to add papers." (unit-tested in previewRefusal.spec.ts)
-  await expect.poll(async () => (page.url().includes("/signin") ? "signin" : await page.getByTestId("pv-message").textContent().catch(() => null))).toMatch(/signin|Sign in to add papers\./);
-  await expect(page.locator("body")).not.toContainText(/stored papers/i);
-});
