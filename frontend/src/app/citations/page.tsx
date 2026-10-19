@@ -15,7 +15,6 @@ import {
   CITATION_MAX,
   CITATION_PLACEHOLDER,
   CITATION_CHECK_TITLE,
-  PREVIEW_LABEL,
   QUOTE_MAX,
   checkInputs,
   statusLabel,
@@ -76,9 +75,6 @@ export default function CitationsPage() {
     <div>
       <PageHeader title={CITATION_CHECK_TITLE} subtitle={CITATION_EXISTENCE_ONLY ? EXISTENCE_SUBTITLE : "Look up one citation and check that a quote appears in its text."} />
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-8">
-        <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]" data-testid="citation-preview-label">
-          {PREVIEW_LABEL}
-        </p>
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="citation-limits">
           {CITATION_EXISTENCE_ONLY ? EXISTENCE_LIMITS : (
             <>
@@ -147,11 +143,6 @@ export default function CitationsPage() {
                 <p className="text-sm text-[var(--color-text)]" data-testid="citation-product-label">
                   {view.product.label}
                 </p>
-                {view.product.preview && (
-                  <span className="inline-block rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]" data-testid="citation-product-preview">
-                    preview
-                  </span>
-                )}
               </div>
             )}
             {view.note && (

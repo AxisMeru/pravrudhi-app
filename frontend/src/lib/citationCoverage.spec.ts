@@ -37,7 +37,7 @@ test("without courts_resolvable (the older shape) the line is the plain fallback
 test("IN_INDEX: the engine's existence-only answer is a known status; with the product status on, its own label shows, and only that exact label", () => {
   const reply = { result: "IN_INDEX", note: "n", status: "in_index", label: IN_INDEX_ENGINE_LABEL, preview: true, verified: false };
   assert.equal(verifyView(reply, true).known, true);
-  assert.deepEqual(productStatus(reply, true), { status: "in_index", label: IN_INDEX_ENGINE_LABEL, preview: true });
+  assert.deepEqual(productStatus(reply, true), { status: "in_index", label: IN_INDEX_ENGINE_LABEL });
   // anything but the engine's exact words, or the same words on another status, or verified:true, is refused
   for (const bad of [
     { ...reply, label: IN_INDEX_ENGINE_LABEL.replace("not a verification", "a verification") },

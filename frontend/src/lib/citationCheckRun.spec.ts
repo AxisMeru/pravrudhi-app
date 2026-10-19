@@ -68,11 +68,11 @@ test("invalid input never calls the engine", async () => {
   assert.equal(calls, 0);
 });
 
-test("the view: idle shows only the button and the preview label; checking disables it; the label never says verified by itself", () => {
+test("the view: idle shows only the button; checking disables it; the label never says verified by itself", () => {
   const html = (state: CitationCheckState) => renderToStaticMarkup(createElement(CitationCheckView, { state, onCheck: () => {}, citation: C }));
   const idle = html({ phase: "idle" });
   assert.match(idle, /Check this citation/);
-  assert.match(idle, /preview: existence check only/);
+  assert.doesNotMatch(idle, /preview/i);
   assert.doesNotMatch(idle, /citation-check-result|citation-check-error/);
   assert.match(html({ phase: "checking" }), /disabled/);
 });

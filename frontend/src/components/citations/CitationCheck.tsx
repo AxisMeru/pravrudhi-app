@@ -2,7 +2,7 @@
 
 import { Loader2, SearchCheck } from "lucide-react";
 
-import { PREVIEW_LABEL, statusLabel } from "@/lib/citationCheck";
+import { statusLabel } from "@/lib/citationCheck";
 import type { CitationCheckState } from "@/lib/citationCheckRun";
 
 /** What a finished (or failed) check shows: the engine's status verbatim with its note, or the honest refusal / invalid-input text. */
@@ -56,9 +56,6 @@ export function CitationCheckView({ state, onCheck, citation }: { state: Citatio
         {checking ? <Loader2 size={12} className="animate-spin" /> : <SearchCheck size={12} />}
         {checking ? "Checking…" : "Check this citation"}
       </button>
-      <span className="ml-2 text-[11px] text-[var(--color-warn)]" data-testid="citation-check-preview">
-        {PREVIEW_LABEL}
-      </span>
       <CitationCheckResult state={state} />
     </div>
   );

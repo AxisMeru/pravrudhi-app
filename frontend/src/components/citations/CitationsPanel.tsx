@@ -4,7 +4,7 @@ import { Loader2, SearchCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { verifyCitation } from "@/lib/api";
-import { CITATION_PLACEHOLDER, PREVIEW_LABEL } from "@/lib/citationCheck";
+import { CITATION_PLACEHOLDER } from "@/lib/citationCheck";
 import { CITATION_EXISTENCE_ONLY, COVERAGE_LIMITS_TEXT, EXISTENCE_PANEL_LINE, QUOTE_NOT_CHECKED_TEXT, SIGNED_OUT_BEFORE_TEXT, lineCountText } from "@/lib/citationExistence";
 import { COVERAGE_NOT_REPORTED, MAX_CITATIONS, MAX_CITATIONS_EXISTENCE, batchStopText, checkCitations, coverageLine, overCapText, parseCitationLines, type PanelRow } from "@/lib/citationsPanel";
 import { CitationCheckResult } from "./CitationCheck";
@@ -105,7 +105,6 @@ export function CitationsPanel({ initial, embedded = false }: { initial?: string
           <h2 id="citations-panel-title" className="text-sm font-medium text-[var(--color-text)]">
             Case citations
           </h2>
-          <p className="w-fit rounded-md border border-[var(--color-warn-border)] px-2 py-0.5 text-xs text-[var(--color-warn)]">{PREVIEW_LABEL}</p>
         </>
       )}
       {!embedded && CITATION_EXISTENCE_ONLY && signedOut && (

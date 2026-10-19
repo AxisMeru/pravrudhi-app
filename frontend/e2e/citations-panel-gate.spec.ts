@@ -26,7 +26,6 @@ test(BOTH ? "both citation flags ON: the Citations panel sits under a Screening 
     await expect(page.getByTestId("citations-panel")).toBeVisible();
   } else {
     await expect(page.getByTestId("citations-panel")).toHaveCount(0);
-    await expect(page.locator("body")).not.toContainText("preview: existence check only");
     await expect(page.locator("body")).not.toContainText("Check citations");
   }
 });

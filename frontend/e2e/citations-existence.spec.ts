@@ -30,7 +30,7 @@ test("/citations: R1's subtitle and paragraph, no quote field, no word-for-word 
   await expect(page.getByTestId("citation-limits")).toHaveText("The check looks for the case in our index from the citation you enter. It does not look at quotes and does not say whether the case supports a point. If we cannot match the citation to exactly one case in our index, the result is “Not found in our index”; that does not show whether the citation is real, because the index does not hold every judgment.");
   await expect(page.getByLabel("Quote to look for")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/word for word/i);
-  await expect(page.getByTestId("citation-preview-label")).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(/preview/i);
   await page.getByRole("textbox").fill(CITATION);
   await page.getByRole("button", { name: "Check citations" }).click();
   await expect(page.getByTestId("citation-check-status")).toHaveText("Not found in our index");
@@ -109,7 +109,7 @@ test("/citations (existence arm ON): no 'not yet served' sentence; CONFLICT show
   const IN_REAL = { ...IN, note: "Found in the index (existence only): no quote was checked, so this is not a verification." };
   await page.goto("/citations");
   await expect(page.getByTestId("citation-limits")).not.toContainText(/not yet served|hosted deployment/);
-  await expect(page.getByTestId("citation-preview-label")).toHaveText("preview: existence check only");
+  await expect(page.locator("body")).not.toContainText(/preview/i);
   await page.route("**/api/v1/verify-citations", (r) => r.fulfill({ json: CONFLICT }));
   await page.getByRole("textbox").fill(CITATION);
   await page.getByRole("button", { name: "Check citations" }).click();

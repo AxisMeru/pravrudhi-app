@@ -7,7 +7,7 @@ export interface WorkflowRow {
   name: string;
   status: WorkflowStatus;
   note?: string;
-  /** Shown beside the name (the Citation check card: R1's signed "preview: existence check only"). */
+  /** Shown beside the name when a row has one; no row has one now. */
   label?: string;
 }
 
@@ -18,7 +18,6 @@ import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { INTAKE_ENABLED } from "./intakeFlag";
 import { CITATION_NAV_ENABLED } from "./citationNav";
 import { CITATION_EXISTENCE_ONLY, EXISTENCE_SUBTITLE } from "./citationExistence";
-import { PREVIEW_LABEL } from "./citationCheck";
 import { HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, WORKFLOW_OPEN_LABEL, WORKSPACE_ANCHORS, WORKSPACE_PATH } from "./workspace";
 
 /** R1 (14 Oct): the Screening orchestration row reads "Built" with the live note only when this build offers the assistant (NEXT_PUBLIC_ASSISTANT_ENTRY=1); the Intake row reads "Built" only when it carries NEXT_PUBLIC_INTAKE=1. Otherwise both stay "Building". */
@@ -38,7 +37,7 @@ export function workflowRows(on: { assistantOn: boolean; intakeOn: boolean; cita
     { name: "Memo preparation", status: "Built", note: "The memo is a written record of a screening, built from the screening result by fixed rules, not written by a model. Download it as Markdown or Word (.docx), or print / save as PDF." },
     // R1 (15 Oct): Hearing preparation and Citation check are listed only when they are built; the Citation check card only on a build that serves the existence check.
     ...((on.hearingBuilt ?? true) ? [{ name: "Hearing preparation", status: "Built" as const, note: "A checklist for the hearing, built from the screening result by fixed rules: the ingredients still open, the facts to look for and the citations to check. It adds no fact and no law." }] : []),
-    ...(on.citationsOn ? [{ name: CITATION_CHECK_NAME, status: "Built" as const, note: EXISTENCE_SUBTITLE, label: PREVIEW_LABEL }] : []),
+    ...(on.citationsOn ? [{ name: CITATION_CHECK_NAME, status: "Built" as const, note: EXISTENCE_SUBTITLE }] : []),
   ];
 }
 
