@@ -13,6 +13,9 @@ async function fillBail(page: import("@playwright/test").Page) {
   await page.getByTestId("pv-bail").getByRole("textbox", { name: "Fact 1" }).fill("The applicant has no antecedents.");
 }
 
+// A signed-in user sees the cards as before: the signed-out check (/api/me) answers a user in every spec here except the signed-out one.
+test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } })); });
+
 test("bail: nothing is sent until consent, both dates, a court and a fact are given; the draft shows its label, framing and the unconfirmed line; more notes fold", async ({ page }) => {
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/bail-draft", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("bail_response_drafted") }); });

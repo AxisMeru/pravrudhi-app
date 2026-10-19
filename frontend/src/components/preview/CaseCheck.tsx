@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
+import { previewRefusal } from "@/lib/previewRefusal";
 import { A5Result, B3Result } from "@/components/preview/Viewers";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { PREVIEW_CASE as C } from "@/lib/previewCaseCopy";
 import { PREVIEW } from "@/lib/previewWorkflows";
-import { previewPost, str } from "@/lib/previewApi";
+import { previewPost } from "@/lib/previewApi";
 import { CASE_ROLES, caseB3Body, parseCaseCheck, type CaseCandidate, type CaseCheckView } from "@/lib/previewParsers";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
@@ -14,13 +15,7 @@ const FIELD = "w-full rounded-md border border-[var(--color-border)] bg-[var(--c
 type Role = (typeof CASE_ROLES)[number];
 type Pick = { c: CaseCandidate; reading: string | null };
 
-function refusal(status: number, body: Record<string, unknown> | null): string {
-  const detail = str(body?.detail);
-  if (status === 404) return PREVIEW.wf_unavailable;
-  if (status === 409 && body?.error === "no_papers") return PREVIEW.wf_no_papers;
-  if (status === 429 || status === 503) return detail ?? PREVIEW.wf_busy;
-  return detail ?? PREVIEW.wf_error;
-}
+const refusal = previewRefusal;
 
 /** One screen for a cheque case: A5's agenda, the candidate dates per step from the papers, the user's pick and confirmation per step, then B3's checklist beside the agenda. Nothing is picked for the user. */
 export function CaseCheck({ matter }: { matter: string | null }) {

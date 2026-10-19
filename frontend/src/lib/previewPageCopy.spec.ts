@@ -8,6 +8,9 @@ const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 1
 const PINS: Record<string, string> = {
   title: "03c5481ef61b7703",
   toolsOffLine: "4baa8fa91ce90387",
+  signedOutLine: "da7525cf1ae1bc45",
+  signedOutLink: "bfd402b2f6f38125",
+  signed401: "157d2ec7a61a23c3",
   matterHeading: "1ec1a29ecd3f03f9",
   startMatter: "a9d2db888c2e1b15",
   matterStarted: "f7a1f01ebb0740cd",

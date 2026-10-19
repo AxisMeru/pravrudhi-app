@@ -11,6 +11,7 @@ const PINS: Record<string, string> = {
   wf_unavailable: "3d906df05047c66e",
   wf_busy: "2d4fbfbf50b34057",
   wf_error: "0af66080cc67ec83",
+  wf_store_off: "06724d6a6162b5f6",
   wf_no_papers: "b5024f38e71d13e9",
 };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -14,7 +15,9 @@ import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
-import { matterIdOf, parseAgenda, parsePapers, previewPost, str, type PaperRow } from "@/lib/previewApi";
+import { previewRefusal } from "@/lib/previewRefusal";
+import { useSignedOut } from "@/components/citations/useSignedOut";
+import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 const FIELD = "w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]";
@@ -22,13 +25,7 @@ const BOX = "space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--
 type Answer = Record<string, unknown> | null;
 
 /** Why a preview call did not give a result, in R1's lines (previewWorkflows.ts); the engine's own `detail` sentence is used when it sent one for a busy or failed call. */
-function refusal(status: number, body: Answer): string {
-  const detail = str(body?.detail);
-  if (status === 404) return PREVIEW.wf_unavailable;
-  if (status === 409 && body?.error === "no_papers") return PREVIEW.wf_no_papers;
-  if (status === 429 || status === 503) return detail ?? PREVIEW.wf_busy;
-  return detail ?? PREVIEW.wf_error;
-}
+const refusal = previewRefusal;
 
 function Card({ id, name, line, children }: { id: string; name: string; line: string; children: React.ReactNode }) {
   return (
@@ -45,6 +42,7 @@ const GONE_LINE = MATTER_NOTE.matter_gone;
 const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", M.b3Presentation], ["memo", M.b3Memo], ["information", M.b3Information], ["notice", M.b3Notice], ["receipt", M.b3Receipt]];
 
 export default function PreviewPage() {
+  const signedOut = useSignedOut(true); // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
   const [pagesNote, setPagesNote] = useState<string | null>(null);
@@ -150,10 +148,13 @@ export default function PreviewPage() {
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
         <PreviewBadge line />
         <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>
+        {signedOut && (
+          <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
+        )}
         <section className={BOX} aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (
-            <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>
+            signedOut ? null : <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>
           ) : (
             <>
               <label className="block text-sm text-[var(--color-text)]">{T.paperNameLabel}
