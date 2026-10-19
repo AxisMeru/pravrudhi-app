@@ -34,7 +34,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
     r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "scan1.png", n_pages: 3, n_spans: 5, n_chars: 90, pages_without_text: [], ingest_done: true, indexed_complete: false, pages_unreadable: 1,
       ocr_line: "engine line that the app does not use", pages: [
         { page: 1, source: "ocr", confidence: 91.4, readable: true, reason: null, line: null },
-        { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, garbled_text_layer: true },
+        { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, repaired: true },
         { page: 3, source: "unreadable", confidence: 52.3, readable: false, reason: "low_confidence", line: "This page could not be read." }] } });
   });
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 3, n_spans: 5, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: false })), pages_total: 3, pages_not_read: 0, pages_note: "" } }));

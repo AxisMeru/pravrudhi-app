@@ -96,7 +96,7 @@ test("refusal lines: HEIC by mime, and any over-size answer (413 / pdf_too_large
 
 const SAMPLE = {
   results: [{ span_id: 41, doc_id: "d", page: 3, text: "The petitioner states that the cheque dated 2 February 2021 was returned unpaid.", source: "ocr", confidence: 91.4, crop: { page: 3, x: 112, y: 840, w: 1280, h: 96, page_w: 2480, page_h: 3508, unit: "px at ocr_dpi" } }, { span_id: 12, doc_id: "d", page: 1, text: "IN THE COURT", source: "text_layer", confidence: null, crop: null }],
-  pages: [{ page: 1, source: "text_layer", confidence: null, readable: true, reason: null, line: null }, { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, garbled_text_layer: true }, { page: 4, source: "unreadable", confidence: 52.3, readable: false, reason: "low_confidence", line: "This page could not be read." }],
+  pages: [{ page: 1, source: "text_layer", confidence: null, readable: true, reason: null, line: null }, { page: 2, source: "ocr", confidence: 88, readable: true, reason: null, line: null, repaired: true }, { page: 4, source: "unreadable", confidence: 52.3, readable: false, reason: "low_confidence", line: "This page could not be read." }],
   pages_unreadable: 1,
 };
 
@@ -111,7 +111,7 @@ test("Track C's sample: the garbled-layer page says R1's repaired line, the unre
 });
 
 test("a repaired flag on an unreadable page is never honoured (nothing was read)", () => {
-  const v = parseScanIngest({ pages: [{ page: 1, source: "unreadable", readable: false, reason: "low_confidence", line: null, garbled_text_layer: true }] })!;
+  const v = parseScanIngest({ pages: [{ page: 1, source: "unreadable", readable: false, reason: "low_confidence", line: null, repaired: true }] })!;
   assert.equal(v.pages[0].repaired, false);
 });
 
@@ -131,4 +131,13 @@ test("the paper name behind a 'name p. N' source string", () => {
   assert.equal(docNameOf("defence note, p. 12"), "defence note");
   assert.equal(docNameOf("FIR"), "FIR");
   assert.equal(docNameOf(null), null);
+});
+
+test("the repaired line follows pages[].repaired only: the engine's retired internal field alone shows nothing, a repaired readable ocr page shows R1's line, a text-layer page marked repaired shows nothing", () => {
+  const v = parseScanIngest({ pages: [
+    { page: 1, source: "ocr", readable: true, reason: null, line: null, garbled_text_layer: true },
+    { page: 2, source: "ocr", readable: true, reason: null, line: null, repaired: true },
+    { page: 3, source: "text_layer", readable: true, reason: null, line: null, repaired: true },
+  ] })!;
+  assert.deepEqual(v.pages.map((p) => repairedLine(p)), [null, SCAN_TEXT.repairedPage, null]);
 });

@@ -39,7 +39,7 @@ export function parseScanIngest(b: Record<string, unknown> | null): ScanIngest |
     const r = rec(p); const page = finite(r?.page); const source = typeof r?.source === "string" ? r.source : null;
     if (!r || page === null || source === null || !SOURCES.includes(source)) return [];
     const readable = r.readable === true && source !== "unreadable";
-    return [{ page, source: source as PageSource, readable, reason: typeof r.reason === "string" ? r.reason : null, line: typeof r.line === "string" ? r.line : null, repaired: readable && source === "ocr" && r.garbled_text_layer === true }];
+    return [{ page, source: source as PageSource, readable, reason: typeof r.reason === "string" ? r.reason : null, line: typeof r.line === "string" ? r.line : null, repaired: readable && source === "ocr" && r.repaired === true }];
   });
   const unreadable = pages.filter((p) => !p.readable).length;
   const n = finite(b.pages_unreadable);
@@ -53,7 +53,7 @@ export function pageLines(p: ScanPage): string[] {
   return [p.line ?? SCAN_TEXT.unreadablePage, ...(reason ? [reason] : [])];
 }
 
-/** The line for a page whose damaged or missing text layer was re-read from its image (Track C v3 field garbled_text_layer:true); R1's plain words, never the word "garbled". */
+/** The line for a page whose damaged or missing text layer was re-read from its image (Track C v3: pages[].repaired:true, which replaced the internal garbled_text_layer; OCR_GARBLED_LAYER_v3 733074c1ce63); R1's plain words, never the word "garbled". */
 export const repairedLine = (p: ScanPage): string | null => (p.repaired ? SCAN_TEXT.repairedPage : null);
 
 /** What a quote or date row carries from a page image (flag ON only): where the crop comes from, the crop box, and whether its date was read from the image. */
