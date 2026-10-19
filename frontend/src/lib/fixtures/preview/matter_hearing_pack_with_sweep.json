@@ -1,0 +1,197 @@
+{
+ "_note": "POST /matter-hearing-pack with the S1 sweep on (stand-in citation lookup: IN_INDEX for 273, else NOT_IN_INDEX) and a typed hearing date",
+ "response": {
+  "run_id": "hearing-sample",
+  "matter_id": "b718eeb2c0954efba0e62e21c53f7126",
+  "statement": "This page gathers, from the papers you added, the dates they mention, the papers the ingredient agenda lists as not added yet, and the citations in them that the index could not match or check. It does not say what matters for the hearing, what is missing from the case, or what any case held.",
+  "hearing_date_given": "Hearing date you gave: 2026-11-03. The papers' own dates are listed below as they are.",
+  "next_dates": {
+   "heading": "Dates the papers give for a hearing or listing",
+   "rows": [
+    {
+     "row_id": 4,
+     "date_as_written": "5.9.2026",
+     "read_as": null,
+     "readings": [
+      "2026-09-05",
+      "2026-05-09"
+     ],
+     "ambiguous": true,
+     "event_type": "hearing",
+     "document_name": "prosecution-note",
+     "page": 1,
+     "source": "prosecution-note p.1",
+     "quote": "The matter is listed on 5.9.2026."
+    }
+   ],
+   "none_line": null
+  },
+  "timeline": {
+   "heading": "Dates the papers mention, in date order",
+   "rows": [
+    {
+     "row_id": 2,
+     "date_as_written": "18 July 2021",
+     "read_as": "2021-07-18",
+     "readings": null,
+     "ambiguous": false,
+     "event_type": "fir",
+     "document_name": "prosecution-note",
+     "page": 1,
+     "source": "prosecution-note p.1",
+     "quote": "The FIR was registered on 18 July 2021 at the police station."
+    },
+    {
+     "row_id": 1,
+     "date_as_written": "12.06.2024",
+     "read_as": null,
+     "readings": [
+      "2024-06-12",
+      "2024-12-06"
+     ],
+     "ambiguous": true,
+     "event_type": "arrest",
+     "document_name": "prosecution-note",
+     "page": 1,
+     "source": "prosecution-note p.1",
+     "quote": "The accused was arrested on 12.06.2024 and produced before the Magistrate the next day."
+    },
+    {
+     "row_id": 5,
+     "date_as_written": "03/04/2013",
+     "read_as": null,
+     "readings": [
+      "2013-04-03",
+      "2013-03-04"
+     ],
+     "ambiguous": true,
+     "event_type": "notice",
+     "document_name": "defence-note",
+     "page": 1,
+     "source": "defence-note p.1",
+     "quote": "A second paper: the notice was sent on 03/04/2013."
+    }
+   ],
+   "cut_line": null,
+   "approximate_or_unread": 1
+  },
+  "not_added": {
+   "heading": "Papers not added yet that the agenda lists",
+   "rows": [
+    {
+     "id": "cheque",
+     "label": "The cheque",
+     "basis": "statute_text"
+    },
+    {
+     "id": "notice_in_writing",
+     "label": "The notice in writing to the drawer",
+     "basis": "statute_text"
+    },
+    {
+     "id": "bank_information",
+     "label": "The bank's information of the return of the cheque",
+     "basis": "statute_text"
+    }
+   ],
+   "none_line": null
+  },
+  "citations": {
+   "heading": "Citations to check",
+   "switched_on": true,
+   "line": null,
+   "needs_attention": [
+    {
+     "text": "(2099) 99 SCC 999",
+     "statuses": [
+      "not_found"
+     ],
+     "where": [
+      {
+       "document_name": "prosecution-note",
+       "page": 1,
+       "status": "not_found",
+       "reason": null
+      }
+     ]
+    }
+   ],
+   "not_checked": [
+    {
+     "text": "AIR 1978 SC 597",
+     "statuses": [
+      "not_checked"
+     ],
+     "where": [
+      {
+       "document_name": "defence-note",
+       "page": 1,
+       "status": "not_checked",
+       "reason": "reporter_not_in_index"
+      }
+     ]
+    }
+   ],
+   "counts": {
+    "distinct_found": 1,
+    "needs_attention": 1,
+    "not_checked": 1,
+    "papers_without_citations_read": 0
+   },
+   "sweep_state": "unread_or_unchecked_remain",
+   "sweep_summary": "Existence check only, in the papers you added. 1 not checked. 3 citations listed in 2 papers; 3 distinct citations. 1 found in our index, 1 not found in our index. This does not say what any case held.",
+   "note": "Existence check only: 'found in our index' does not say what a case held, and a citation not found may still exist outside the index."
+  },
+  "papers": {
+   "read": [
+    {
+     "doc_id": "69b405da0ad14a3a8833916c73807709",
+     "name": "prosecution-note",
+     "paper_type": "paper type not stated",
+     "pages": 1,
+     "pages_with_little_or_no_text": []
+    },
+    {
+     "doc_id": "02ad2f53c3c8469d829e8c05bff67fd7",
+     "name": "defence-note",
+     "paper_type": "paper type not stated",
+     "pages": 1,
+     "pages_with_little_or_no_text": []
+    }
+   ],
+   "agenda_papers_read": {
+    "heading": "Papers read (2)",
+    "n": 2,
+    "papers": [
+     {
+      "doc_id": "69b405da0ad14a3a8833916c73807709",
+      "name": "prosecution-note",
+      "pages": 1,
+      "pages_without_text": 0,
+      "pages_note": null,
+      "paper_type": null,
+      "paper_type_basis": null
+     },
+     {
+      "doc_id": "02ad2f53c3c8469d829e8c05bff67fd7",
+      "name": "defence-note",
+      "pages": 1,
+      "pages_without_text": 0,
+      "pages_note": null,
+      "paper_type": null,
+      "paper_type_basis": null
+     }
+    ]
+   }
+  },
+  "not_assessed": [
+   "Whether the papers show any ingredient.",
+   "Papers that were not added or could not be read.",
+   "How a court will read the facts.",
+   "Anything not in the papers you added.",
+   "whether a case says what the draft says it says",
+   "whether a case is still good law",
+   "citations of a kind the index does not hold (shown as not checked)"
+  ]
+ }
+}

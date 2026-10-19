@@ -107,3 +107,20 @@ test("when the engine no longer holds the matter (a restart), the page says so a
   await expect(page.getByTestId("pv-message")).toContainText("no longer held");
   await expect(page.getByTestId("pv-start")).toBeVisible();
 });
+
+test("hearing pack: the papers' own dates in order, both readings of an ambiguous date, citations as an existence check with their note; the typed hearing date is sent only when it is a valid year-month-day", async ({ page }) => {
+  await withMatter(page);
+  const bodies: Record<string, unknown>[] = [];
+  await page.route("**/api/v1/matter-hearing-pack", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: sample("matter_hearing_pack_with_sweep") }); });
+  await page.getByTestId("pv-hp-date").fill("3 November");
+  await page.getByTestId("pv-hp-run").click();
+  await expect(page.getByTestId("pv-hp-result")).toBeVisible();
+  expect(bodies[0]).toEqual({ matter_id: HEX });
+  await page.getByTestId("pv-hp-date").fill("2026-11-03");
+  await page.getByTestId("pv-hp-run").click();
+  await expect.poll(() => bodies.length).toBe(2);
+  expect(bodies[1]).toEqual({ matter_id: HEX, hearing_date: "2026-11-03" });
+  await expect(page.getByTestId("pv-hp-next").getByTestId("pv-hp-readings").locator("li")).toHaveText(["2026-09-05", "2026-05-09"]);
+  await expect(page.getByTestId("pv-hp-citations")).toContainText("Not found in our index");
+  await expect(page.getByTestId("pv-hp-note")).toBeVisible();
+});

@@ -4,12 +4,13 @@ import { useState } from "react";
 
 import { PageHeader } from "@/components/PageHeader";
 import { PreviewBadge } from "@/components/PreviewBadge";
-import { A1Result, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
+import { PREVIEW_HEARING as HP } from "@/lib/previewHearingCopy";
+import { A1Result, HearingResult, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
-import { parseA1, parseA3, parseA5, parseB3, parseS1, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
+import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, str, type PaperRow } from "@/lib/previewApi";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
@@ -54,6 +55,8 @@ export default function PreviewPage() {
   const [s1, setS1] = useState<S1View | null>(null);
   const [a1, setA1] = useState<A1View | null>(null);
   const [draft, setDraft] = useState("");
+  const [hp, setHp] = useState<HearingView | null>(null);
+  const [hpDate, setHpDate] = useState("");
   const [b3, setB3] = useState<B3View | null>(null);
   const [b3f, setB3f] = useState<Record<string, string>>({ cheque: "", presentation: "", memo: "", information: "", notice: "", receipt: "", validity: "", mode: "" });
 
@@ -209,6 +212,14 @@ export default function PreviewPage() {
           </label>
           <button type="button" className={BTN} onClick={runA1} disabled={busy || !draft.trim()} data-testid="pv-a1-run">{M.a1Run}</button>
           {a1 && <A1Result v={a1} />}
+        </Card>
+
+        <Card id="hp" name={HP.name} line={HP.line}>
+          <label className="block text-sm text-[var(--color-text)]">{HP.dateLabel}
+            <input className={FIELD} value={hpDate} maxLength={10} placeholder="2026-11-03" onChange={(e) => setHpDate(e.target.value)} data-testid="pv-hp-date" />
+          </label>
+          <button type="button" className={BTN} onClick={() => runOnMatter("/matter-hearing-pack", parseHearing, setHp, /^\d{4}-\d{2}-\d{2}$/.test(hpDate.trim()) ? { hearing_date: hpDate.trim() } : {})} disabled={busy || !matter} data-testid="pv-hp-run">{HP.run}</button>
+          {hp && <HearingResult v={hp} />}
         </Card>
 
         <Card id="b3" name={M.b3Name} line={M.b3Line}>
