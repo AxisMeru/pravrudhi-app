@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 
+import { previewRefusal } from "@/lib/previewRefusal";
 import { PreviewBadge } from "@/components/PreviewBadge";
 import { DRAFTING_DRAFT as D, DRAFTING_R1 as R, GROUND_LABELS, TAG_LABELS } from "@/lib/previewDraftingCopy";
 import { GROUNDS, TAGS, bailBody, parseBail, parseSynopsis, synopsisBody, type BailView, type FactIn, type SynopsisView } from "@/lib/previewDraftingParsers";
-import { previewPost, str } from "@/lib/previewApi";
+import { previewPost } from "@/lib/previewApi";
 import { PREVIEW } from "@/lib/previewWorkflows";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
@@ -16,13 +17,7 @@ const H = "text-sm font-medium text-[var(--color-text)]";
 const emptyFact = (): FactIn => ({ text: "", applicant: false, grounds: [] });
 
 /** Why a drafting call gave no draft: the engine's own sentence where it sent one, else R1's lines (previewWorkflows.ts). */
-function refusal(status: number, body: Record<string, unknown> | null): string {
-  const detail = str(body?.detail);
-  if (status === 404) return PREVIEW.wf_unavailable;
-  if (status === 409 && body?.error === "no_papers") return PREVIEW.wf_no_papers;
-  if (status === 429 || status === 503) return detail ?? PREVIEW.wf_busy;
-  return detail ?? PREVIEW.wf_error;
-}
+const refusal = previewRefusal;
 
 function Box({ id, name, line, children }: { id: string; name: string; line: string; children: React.ReactNode }) {
   return (

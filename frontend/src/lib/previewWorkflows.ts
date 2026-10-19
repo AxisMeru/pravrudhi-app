@@ -6,5 +6,6 @@ export const PREVIEW = {
   wf_unavailable: "This workflow is not available here.",
   wf_busy: "The service is busy. Try again in a moment.",
   wf_error: "This workflow could not finish, so no result is given. Please try again, or have a lawyer read the papers.",
+  wf_store_off: "Adding papers is not available here.",
   wf_no_papers: "There are no papers to read. Add papers first.",
 } as const;

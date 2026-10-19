@@ -4,6 +4,9 @@ import { expect, test } from "@playwright/test";
 const HEX = "0123456789abcdef0123456789abcdef";
 const AGENDA = { run_id: "r1", matter_id: HEX, standing_line: "Standing line from the engine.", heading: "What the Court said", stem: "The Court's words.", caution: { label: "Caution", quote: "A quoted caution.", our_line: "Our line." }, categories: ["Category one"], papers: { heading: "Papers", caption: "Listed, not read.", documents: [{ doc_id: "d1", name: "FIR" }] }, not_assessed: ["Not assessed: whether grounds exist."] };
 
+// A signed-in user sees the cards as before: the signed-out check (/api/me) answers a user in every spec here except the signed-out one.
+test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } })); });
+
 test("start a matter, add a paper, run the quashing agenda: the engine's sentences show in order under the Preview label", async ({ page }) => {
   const docs: { doc_id: string; name: string }[] = [];
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
@@ -153,4 +156,13 @@ test("hearing pack: the papers' own dates in order, both readings of an ambiguou
   await expect(page.getByTestId("pv-hp-next").getByTestId("pv-hp-readings").locator("li")).toHaveText(["2026-09-05", "2026-05-09"]);
   await expect(page.getByTestId("pv-hp-citations")).toContainText("Not found in our index");
   await expect(page.getByTestId("pv-hp-note")).toBeVisible();
+});
+
+test("signed out: R1's sign-in line with its link above the cards, no Start a matter button, and a 401 reads the sign-in line, never the engine's sentence", async ({ page }) => {
+  await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
+  await page.goto("/preview");
+  await expect(page.getByTestId("pv-signed-out")).toHaveText("Sign in to add papers and use these tools. Sign in");
+  await expect(page.getByTestId("pv-signin-link")).toHaveAttribute("href", /\/signin/);
+  await expect(page.getByTestId("pv-start")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText(/stored papers/i);
 });
