@@ -376,7 +376,7 @@ function TelegramSection() {
           type="button"
           disabled={IS_DEMO || busy || !token.trim() || !chatId.trim()}
           onClick={() => act(() => putMessaging({ token: token.trim(), chat_id: chatId.trim() }))}
-          className="rounded bg-[var(--color-accent)] px-3 py-2 text-sm text-[var(--color-on-accent)] disabled:opacity-50"
+          className="inline-flex min-h-11 items-center rounded bg-[var(--color-accent)] px-3 py-2 text-sm text-[var(--color-on-accent)] disabled:opacity-50"
         >
           {status.configured ? "Replace bot" : "Save bot"}
         </button>
