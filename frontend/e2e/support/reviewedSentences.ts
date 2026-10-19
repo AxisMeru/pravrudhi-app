@@ -27,6 +27,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "Judgment text in our pre-training corpus.",
       "Supreme Court judgment text in our pre-training corpus.",
       "Some training examples come from Supreme Court judgments, from a copy whose source and licence we have not yet confirmed.",
+      "Some of our training examples.",
       "LegalBench: the hearsay and personal_jurisdiction tasks, CC BY 4.0, used only as held-out checks and never as training data.",
       "CaseHOLD: part of the training data of our 7B fine-tune, prabhasa-nyaya-7b-sft, derives from the CaseHOLD validation split.",
     ],

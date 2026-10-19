@@ -16,6 +16,8 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
   r1_caveat_attr: "Attribution: Indian High Court Judgments dataset, published by Dattam Labs, sourced from the eCourts judgments portal (judgments.ecourts.gov.in), licensed under CC BY 4.0. https://github.com/vanga/indian-high-court-judgments. Also listed at https://registry.opendata.aws/indian-high-court-judgments",
   r2_name: "Supreme Court judgments",
   r2_source: "Public Supreme Court judgments. We have not confirmed the source or licence of our copy. Comparing titles and dates, part of it matches judgments in a public collection licensed CC BY 4.0; we do not rely on that licence for our copy.",
+  r2_licence: "Not confirmed.",
+  r2_used: "Some of our training examples.",
   r3_name: "Statute text",
   r3_source: "Text of the Acts shown by the app: the BNS, the BNSS, the BSA and the cheque-dishonour sections of the Negotiable Instruments Act from India Code's own catalogue. IPC section text is taken from published statute sources, and only some sections are held.",
   r3_licence_fallback: "Government works: Copyright Act s.52(1)(q), as our notices record. The terms of the sites and of the mirror are not set out here.",
@@ -88,7 +90,7 @@ export const DATA_NOTE_TEXT: Readonly<Record<string, string>> = {
 /** Each data set: its name (a heading) then its lines in R1's order. Keys refer to DATA_NOTE_TEXT. */
 export const DATA_SETS: readonly { id: string; name: string; lines: readonly string[] }[] = [
   { id: "r1", name: "r1_name", lines: ["r1_source", "r1_licence", "r1_used", "r1_published", "r1_caveat_cov", "r1_caveat_attr"] },
-  { id: "r2", name: "r2_name", lines: ["r2_source"] },
+  { id: "r2", name: "r2_name", lines: ["r2_source", "r2_licence", "r2_used"] },
   { id: "r3", name: "r3_name", lines: ["r3_source", "r3_licence_fallback", "r3_used", "r3_used_b", "r3_published", "r3_caveat"] },
   { id: "r4", name: "r4_name", lines: ["r4_source", "r4_licence", "r4_caveat"] },
   { id: "r5", name: "r5_name", lines: ["r5_source", "r5_published", "r5_caveat"] },

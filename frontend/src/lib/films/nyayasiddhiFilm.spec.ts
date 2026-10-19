@@ -45,7 +45,7 @@ test("public/films holds only the film's cuts (three silent, two narrated previe
 });
 
 test("the narrated previews are labelled on the route page by one byte-exact line each (the label is a page string, not in the films)", () => {
-  assert.equal(NYAYASIDDHI_VOICE_PREVIEW_LABEL, "Preview for voice review");
+  assert.equal(NYAYASIDDHI_VOICE_PREVIEW_LABEL, "For voice review"); // R1, 19 Oct (#454): no "Preview" word
   assert.deepEqual(NYAYASIDDHI_VOICE_HEADINGS, { "nyayasiddhi-narrated": "Cut A, narrated", "nyayasiddhi-firm-narrated": "Cut C, narrated" });
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
   assert.match(page, /\{NYAYASIDDHI_VOICE_PREVIEW_LABEL\}/);
@@ -219,7 +219,7 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.match(page, /posterFirst/);
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
-  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|Preview for voice review/, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
+  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|voice review/i, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
 });
 
 // ---- the explainer film #430 (nyayasiddhi-explainer narrated, nyayasiddhi-explainer-silent): Studio's film430 deliver folder; strings STRINGS_430_v3 (vendored below); R1 reads the strings; the allowance list is R2's.
