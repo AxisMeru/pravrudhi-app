@@ -1,12 +1,12 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 137.1,
+  "durationS": 136.8,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "a5d19679b61805f57f2fc6371f746fb1ab9ff834e0d7ba70de44f085718dbf62",
+    "filmSha256": "b81d9b7d0a6789dbe30f0ca10f6dddb17aaf4497d478520fd4354b52e1315211",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -61,27 +61,27 @@
       "name": "Built",
       "text": "",
       "startS": 100.80000000000001,
-      "endS": 113.4
+      "endS": 113.10000000000001
     },
     {
       "name": "Illustration: invented entries",
       "text": "",
-      "startS": 113.4,
-      "endS": 124.4
+      "startS": 113.10000000000001,
+      "endS": 124.10000000000001
     },
     {
       "name": "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
       "text": "",
-      "startS": 124.4,
-      "endS": 137.1
+      "startS": 124.10000000000001,
+      "endS": 136.8
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 2451890,
-      "sha256": "4140ecacc2a3d77b90fa1f8a72aec063002c5309879fc2a61a70dd1219786eb6"
+      "bytes": 2453420,
+      "sha256": "692ed13a01a80e55f4794aec5b4bd03f371a04a7bd58fefe6906aacb00be698d"
     },
     {
       "name": "poster.png",
@@ -91,7 +91,7 @@
     {
       "name": "captions.vtt",
       "bytes": 2373,
-      "sha256": "c83d299757d465f67396757c9f0a9735baf772d90eadf8565d34ecc2da7c8be4"
+      "sha256": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991"
     }
   ]
 }

@@ -1,14 +1,14 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 137.1,
+  "durationS": 136.8,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": true,
   "narration": {
     "voice": "bf_emma (Kokoro-82M f3ff3571, lang b), a synthetic voice",
-    "narrationJsonSha256": "defad1c0b4f243e61404e40f669c46fab92e9b026c6e478b5c1fd888841fe60b",
-    "timingsSha256": "6fe5dc9882f99fd72df98ba0484748201b3d593951118da9ca2db1941f37f6c2",
+    "narrationJsonSha256": "91a10e8778237df35c7b15d948eaa18af3a4feb85838d6e57b5b589b19613b6d",
+    "timingsSha256": "23864ba04745494ed71467c5f6cc0b4bee75c2014d6452cc7fb3cfa153eddd88",
     "scenes": [
       {
         "id": "what",
@@ -16,7 +16,7 @@
         "durS": 8.2,
         "origDurS": 8.2,
         "stretch": 1,
-        "wavSha256": "a515ebaede618b30de7c8b3fd76fe35ed38a339d899ef1d544f3e5d97bc07062"
+        "wavSha256": "5173adebfa16104d9edac687ecdf2f7f5b084894c7ad52349cb08d45b6ba250c"
       },
       {
         "id": "yardstick",
@@ -24,7 +24,7 @@
         "durS": 13,
         "origDurS": 13,
         "stretch": 1,
-        "wavSha256": "609ffaf720203d1283fee658e6222360d3c412c4ac534125191f46b0fa0c1e10"
+        "wavSha256": "6bd8804c491bf80837778ec38230ba8a2705ebdd39515167193a712d78002f41"
       },
       {
         "id": "row",
@@ -32,7 +32,7 @@
         "durS": 22,
         "origDurS": 22,
         "stretch": 1,
-        "wavSha256": "9d9641e083f1d7bd210c7c01b733055ad4ff22c91757284f80f5722a757712cd"
+        "wavSha256": "75c104dd9d462170536d9821e4a4a18005acdbbe64fe1c2500c13d795f320e1a"
       },
       {
         "id": "labels",
@@ -40,7 +40,7 @@
         "durS": 10.4,
         "origDurS": 10.4,
         "stretch": 1,
-        "wavSha256": "dd1cb72e40e92fde8198ac0391136b953595936e2db79003e26ba42b5f29424c"
+        "wavSha256": "05c2bcf903ad28d9d0ddee59a87844f174224a6e7d10cefded78314bb222e381"
       },
       {
         "id": "enter",
@@ -48,7 +48,7 @@
         "durS": 6.2,
         "origDurS": 6.2,
         "stretch": 1,
-        "wavSha256": "6b09fac04b52e090c449bf87ffd22890d0ee2d570736d8d625675ff31368f80c"
+        "wavSha256": "29dc0b087ef87c66fe0c9145682f296a698817827b3f8cc30be245a8c5702c3e"
       },
       {
         "id": "submit",
@@ -56,7 +56,7 @@
         "durS": 21,
         "origDurS": 21,
         "stretch": 1,
-        "wavSha256": "1e14664c6724a60e293b08dba268152d3926490462844cd7a11017119a55c3e8"
+        "wavSha256": "6dfea416b2e91e85b4017ce30e9301e6719d4bf95074777f68d090d3c0a7a910"
       },
       {
         "id": "scoring",
@@ -64,15 +64,15 @@
         "durS": 20,
         "origDurS": 20,
         "stretch": 1,
-        "wavSha256": "08f7fe1a0bb6893311fd1d6c1996d3c337d9d7ce70357deb777307649098e7f2"
+        "wavSha256": "9eaf39c75043a0826f5ce22542653b9ccecb9482b2e9343ca8b1bf66e1142eac"
       },
       {
         "id": "board",
-        "audioS": 11.03,
-        "durS": 12.6,
-        "origDurS": 12.6,
+        "audioS": 10.78,
+        "durS": 12.3,
+        "origDurS": 12.3,
         "stretch": 1,
-        "wavSha256": "1e5ff63f3ffec3419c561ea7b95860be43273aaac0b768b50c9b8100b2d44969"
+        "wavSha256": "7cceb1845d12f17aea634323b4fd11c500ead083f260e6921088c5135e211089"
       },
       {
         "id": "illustration",
@@ -80,7 +80,7 @@
         "durS": 11,
         "origDurS": 11,
         "stretch": 1,
-        "wavSha256": "3f0deff09b0cde14a6c6eec872c7d2a5340247ff81fd009663f4b6c2ab7d3242"
+        "wavSha256": "f716a90ac702889e044d7181398f478614ff2f5474af4bf94237ee2487f46e42"
       },
       {
         "id": "stand",
@@ -88,7 +88,7 @@
         "durS": 12.7,
         "origDurS": 12.7,
         "stretch": 1,
-        "wavSha256": "35af1fcda3a9eccd839602add7c2bad587aea8154844bc916fbb0d3018eacafd"
+        "wavSha256": "c903d005a238643821ba41f91d1687c0827769c93a1dd58967082b11ac054f60"
       }
     ],
     "mix": {
@@ -96,17 +96,17 @@
       "scoreDb": -7,
       "duckDb": -11,
       "voiceRmsDb": -19,
-      "voiceGain": 1.572,
+      "voiceGain": 1.571,
       "speechRmsDb": -22.9,
-      "peakBeforeLimit": 1.276,
-      "limiterGain": 0.76,
-      "scoreSeconds": 138.1,
+      "peakBeforeLimit": 1.27,
+      "limiterGain": 0.764,
+      "scoreSeconds": 137.80002083333332,
       "scoreLufs": -18.99
     },
     "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
   },
   "sources": {
-    "filmSha256": "7bb24317dc7a1735629348bb8217e94f93a24ed93aca86c951ec2a68e90cb340",
+    "filmSha256": "7eb469cc33f244d982b2f3cdceb1b6c1b977887d549194a67b98bd38d8f6eaa7",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
     "gateTokenReplaced": 1,
@@ -163,27 +163,27 @@
       "name": "Built",
       "text": "",
       "startS": 100.80000000000001,
-      "endS": 113.4
+      "endS": 113.10000000000001
     },
     {
       "name": "Illustration: invented entries",
       "text": "",
-      "startS": 113.4,
-      "endS": 124.4
+      "startS": 113.10000000000001,
+      "endS": 124.10000000000001
     },
     {
       "name": "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
       "text": "",
-      "startS": 124.4,
-      "endS": 137.1
+      "startS": 124.10000000000001,
+      "endS": 136.8
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 3223777,
-      "sha256": "79cd9aea329925c107f282fb665b7be5e51d5a38daacca415a6a5cbe858d1d3d"
+      "bytes": 3224724,
+      "sha256": "dd192c2882d763e8656b66958df88a509001064eca4010c79d3ba7cb0a26dce1"
     },
     {
       "name": "poster.png",
@@ -192,8 +192,9 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 2170,
-      "sha256": "ec312454cd4301c96f9f31ac833d813db7af61804155841b845797885afd02be"
+      "bytes": 2333,
+      "sha256": "bcaed7890f48232d073ced8a001e458b27e6345c56757ac39c97996180fbeffe"
     }
-  ]
+  ],
+  "captionsNote": "captions.vtt = the renderer's cues for the voice lines + one cue carrying the page constant NS_HIDDEN_SPLIT (the S9 on-screen text), added by post430.py"
 }

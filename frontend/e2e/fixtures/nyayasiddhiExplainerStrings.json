@@ -1,6 +1,6 @@
 {
   "source": "worklogs/studio-seat3/film430/STRINGS_430_v3.tsv (Studio, 17 Oct; strings of the NyayaSiddhi explainer film #430; R1 reads the NEW ones)",
-  "sourceSha256": "2117a2414f3fb65dbef767b61d7a0e5adde960b2d9b7be79f9aa98cc71386458",
+  "sourceSha256": "a4411e23719c40521130b6b6a88db93689658982ff2b0c62d4b432e67c48e364",
   "note": "Every caption cue of the silent cut must equal one of these strings or one of their sentences; the narrated cut's captions are pinned by hash (the narration script). The S9 hidden-set text equals NS_HIDDEN_SPLIT (test). Vendored: the film's own strings only.",
   "strings": [
     "NyayaSiddhi is a test. It asks one question about Indian criminal law.",
@@ -10,7 +10,7 @@
     "Anyone can enter a system. Today only we have. The route is open.",
     "Download the two released sets and check their fingerprints. Write one prediction file for one set. Write a short manifest. Put both files in your own folder on the dataset page. Run our checker on your machine until it says pass. Then open a pull request on the dataset page.",
     "We host this, and we also enter. So the scoring rules are written before anyone enters, and every row is scored by the same script, with the same ranges. Our own rows are marked as ours. We plan for an outside party to be able to re-score a row, and that row would then say so.",
-    "Today the board lists rows in a fixed order, by set and system name, never by a figure. You can look at each offence group and at each way of deciding. The board does not name a best system.",
+    "Today the board lists rows in a fixed order, by set and system name, never by a figure. You can look at each offence group and at each way of deciding. The board does not rank systems.",
     "Later, you will be able to open a row and pick a version.",
     "Today the board holds our own rows. There is no hidden set yet.",
     "NyayaSiddhi",

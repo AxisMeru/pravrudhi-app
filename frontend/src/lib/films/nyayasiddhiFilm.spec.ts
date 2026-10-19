@@ -225,11 +225,11 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
 const ex = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "nyayasiddhiExplainerStrings.json"), "utf8")) as { sourceSha256: string; strings: string[]; ruleBException: string[] };
 // the four strings the Rule B exception list v2 (a021853e5598, R2) allows to carry a word the word test bars
 const exException = new Set(ex.ruleBException.flatMap((x) => [norm(x), ...sentences(x)]));
-const EXPLAINER_CAPTIONS_SHA256 = { "nyayasiddhi-explainer": "ec312454cd4301c96f9f31ac833d813db7af61804155841b845797885afd02be", "nyayasiddhi-explainer-silent": "c83d299757d465f67396757c9f0a9735baf772d90eadf8565d34ecc2da7c8be4" } as const;
+const EXPLAINER_CAPTIONS_SHA256 = { "nyayasiddhi-explainer": "bcaed7890f48232d073ced8a001e458b27e6345c56757ac39c97996180fbeffe", "nyayasiddhi-explainer-silent": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991" } as const;
 const exAllowed = new Set(ex.strings.flatMap((x) => [norm(x), ...sentences(x)]));
 
-test("the explainer film's vendored strings are STRINGS_430_v3 (sha256 2117a241...), carry no barred word", () => {
-  assert.match(ex.sourceSha256, /^2117a2414f3f/);
+test("the explainer film's vendored strings are STRINGS_430_v3 (sha256 a4411e23719c...), carry no barred word", () => {
+  assert.match(ex.sourceSha256, /^a4411e23719c/);
   assert.ok(ex.strings.length >= 50);
   for (const t of ex.strings) if (!exException.has(norm(t))) assert.doesNotMatch(t, BARRED, t);
 });
