@@ -1,5 +1,6 @@
 import { statusLabel } from "@/lib/citationCheck";
 import { PREVIEW_MORE } from "@/lib/previewMoreCopy";
+import { RowCrop } from "./RowCrop";
 import type { A1View, A3View, A5View, B3View, CitationRow, HearingRow, HearingView, S1View } from "@/lib/previewParsers";
 
 const P = "text-sm text-[var(--color-text)]";
@@ -101,7 +102,7 @@ export function A3Result({ v }: { v: A3View }) {
                     {r.notes.map((n, k) => <div key={k} className={DIM}>{n}</div>)}
                   </td>
                   <td className="py-2 pr-3">{r.mentions}</td>
-                  <td className="py-2 pr-3">{r.quote && <q>{r.quote}</q>}</td>
+                  <td className="py-2 pr-3">{r.quote && <q>{r.quote}</q>}<RowCrop scan={r.scan} /></td>
                   <td className="py-2">{r.source}</td>
                 </tr>
               ))}
@@ -183,6 +184,7 @@ function HearingRows({ rows }: { rows: HearingRow[] }) {
           <span className="font-medium">{r.dateAsWritten}</span>
           {r.readings.length > 0 ? <ul className={DIM} data-testid="pv-hp-readings">{r.readings.map((d) => <li key={d}>{d}</li>)}</ul> : r.readAs && <span className={DIM}> · {r.readAs}</span>}
           {r.quote && <q className="block text-xs text-[var(--color-text-dim)]">{r.quote}</q>}
+          <RowCrop scan={r.scan} />
           {r.source && <span className={DIM}>{r.source}</span>}
         </li>
       ))}

@@ -18,6 +18,9 @@ import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type Hearing
 import { previewRefusal } from "@/lib/previewRefusal";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
+import { ScannedPaperControl } from "@/components/preview/ScannedPaperControl";
+import { SCANNED_INTAKE, keptByName } from "@/lib/scannedIntake";
+import { KeptUploads } from "@/components/preview/ScanKept";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 const FIELD = "w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] p-2 text-sm text-[var(--color-text)]";
@@ -45,6 +48,7 @@ export default function PreviewPage() {
   const signedOut = useSignedOut(true); // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
+  const [kept] = useState(() => new Map<string, File>()); // flag-ON only: the user's own uploads by the engine's doc_id, kept in this browser so a crop can be drawn from them; cleared when the matter changes
   const [pagesNote, setPagesNote] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [text, setText] = useState("");
@@ -64,7 +68,7 @@ export default function PreviewPage() {
   async function refresh(m: string) {
     const a = await previewPost("/matter-spans/list", { matter_id: m });
     if (a.status === 200) { const p = parsePapers(a.body); setPapers(p.papers); setPagesNote(p.pagesNote); }
-    else if (a.status === 404) { setMatter(null); setPapers([]); setMessage(GONE_LINE); }
+    else if (a.status === 404) { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }
   }
   async function run(f: () => Promise<void>): Promise<void> {
     setBusy(true); setMessage(null);
@@ -75,7 +79,7 @@ export default function PreviewPage() {
     const a = await previewPost("/matter-spans/matters", {});
     const id = matterIdOf(a.body);
     if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
-    setMatter(id); setPapers([]); clearResults(); setMessage(T.matterStarted);
+    kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(T.matterStarted);
   });
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
@@ -87,19 +91,20 @@ export default function PreviewPage() {
     if (!matter) return;
     const a = await previewPost("/matter-spans/delete", { matter_id: matter, doc_id: docId });
     if (a.status !== 200) return setMessage(refusal(a.status, a.body));
+    kept.delete(docId);
     await refresh(matter);
   });
   const removeAll = () => run(async () => {
     if (!matter) return;
     const a = await previewPost("/matter-spans/delete", { matter_id: matter });
     if (a.status !== 200) return setMessage(refusal(a.status, a.body));
-    setMatter(null); setPapers([]); clearResults();
+    kept.clear(); setMatter(null); setPapers([]); clearResults();
   });
   /** A 404 on a matter workflow can mean the store no longer holds the matter (a restart): check with the list route and, if it is gone, start over and say so. */
   const matterGone = async (m: string): Promise<boolean> => {
     const l = await previewPost("/matter-spans/list", { matter_id: m });
     if (l.status !== 404) return false;
-    setMatter(null); setPapers([]); clearResults(); setMessage(GONE_LINE);
+    kept.clear(); setMatter(null); setPapers([]); clearResults(); setMessage(GONE_LINE);
     return true;
   };
   const runOnMatter = <V,>(path: string, parse: (b: Answer) => V | null, set: (v: V | null) => void, extra: Record<string, unknown> = {}) => run(async () => {
@@ -143,6 +148,7 @@ export default function PreviewPage() {
   const editB3 = (k: string, v: string) => { setB3f((f) => ({ ...f, [k]: v })); setB3c((c) => { const n = { ...c }; delete n[k]; return n; }); };
 
   return (
+    <KeptUploads.Provider value={keptByName(papers, kept)}>
     <div>
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
@@ -164,6 +170,7 @@ export default function PreviewPage() {
                 <textarea className={`${FIELD} min-h-32`} value={text} onChange={(e) => setText(e.target.value)} data-testid="pv-text" />
               </label>
               <button type="button" className={BTN} onClick={addPaper} disabled={busy || !text.trim()} data-testid="pv-add">{T.addPaper}</button>
+              {SCANNED_INTAKE && <ScannedPaperControl matter={matter} busy={busy} onAdded={() => refresh(matter)} onKept={(docId, f) => { kept.set(docId, f); }} onRefusal={(st, body) => setMessage(refusal(st, body))} />}
               {papers.length > 0 && (
                 <div data-testid="pv-papers">
                   <h3 className="text-sm font-medium text-[var(--color-text)]">{T.papersHeading}</h3>
@@ -253,8 +260,9 @@ export default function PreviewPage() {
         </Card>
 
         <BailCard />
-        <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
+        <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
       </div>
     </div>
+    </KeptUploads.Provider>
   );
 }
