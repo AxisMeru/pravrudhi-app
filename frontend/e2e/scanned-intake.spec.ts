@@ -6,7 +6,7 @@ import { join } from "node:path";
 // ON only with a build that has NEXT_PUBLIC_SCANNED_INTAKE=1 (SCANNED_BUILD=1); the OFF arm asserts the control is not there at all.
 const HEX = "0123456789abcdef0123456789abcdef";
 const ON = process.env.SCANNED_BUILD === "1";
-const PNG_2X2 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFUlEQVR4nGP8z8Dwn4GBgYEJRDAAAB0IAgSnL5bsAAAAAElFTkSuQmCC", "base64");
+const PNG_2X2 = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFElEQVR4nGM4YWT03+iE0X8GGAMAS6gIrRI8nqoAAAAASUVORK5CYII=", "base64"); // a real 2x2 RGBA PNG
 const fx = (n: string) => JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "preview", `${n}.json`), "utf8")) as { response: Record<string, unknown> };
 const ME = { email: "invented@example.invalid" };
 
