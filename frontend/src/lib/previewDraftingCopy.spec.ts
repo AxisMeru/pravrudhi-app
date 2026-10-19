@@ -40,7 +40,7 @@ const LABEL_PINS: Record<string, string> = {
   factApplicant: "d0a5630d15a63b9a",
   groundsHeading: "8db5f4ac888742f0",
   addFact: "e0812cce24382b45",
-  tagsHeading: "6161c19babd88f43",
+  tagsHeading: "b24a787ce4b9ee8f",
   sections: "69b909b0d2f0e018",
   documentLabel: "30b7c7b46c3c4144",
   runBail: "b1be0320bd9a7846",

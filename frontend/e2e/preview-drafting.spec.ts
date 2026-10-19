@@ -4,6 +4,10 @@ import { join } from "node:path";
 
 // The bail-drafting and synopsis cards against Track C's sample answers (real engine code, fake model answer): src/lib/fixtures/preview/*.json.
 const HEX = "0123456789abcdef0123456789abcdef";
+// With the declaration flag ON (DECLARATION_BUILD=1) a draft needs the lawyer's answer first; the helper makes it and the expected bodies carry it.
+const ON = process.env.DECLARATION_BUILD === "1";
+const DECL = ON ? { sensitive_declaration: "none" } : {};
+async function answer(page: import("@playwright/test").Page, id: "bail" | "synopsis") { if (ON) await page.getByTestId(`${id}-declaration-none`).check(); }
 const fx = (n: string) => JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "preview", `${n}.json`), "utf8")) as unknown;
 
 async function fillBail(page: import("@playwright/test").Page) {
@@ -23,11 +27,12 @@ test("bail: nothing is sent until consent, both dates, a court and a fact are gi
   await fillBail(page);
   await expect(run).toBeDisabled();
   await page.getByTestId("bail-consent").check();
+  await answer(page, "bail");
   await page.getByTestId("pv-bail").getByLabel("On the applicant's side").check();
   await expect(run).toBeEnabled();
   await run.click();
   await expect(page.getByTestId("bail-result")).toBeVisible();
-  expect(bodies[0]).toEqual({ consent: true, kind: "bail", forum: "trial_court", offence_date: "2024-08-01", fir_date: "2024-08-02", facts: [{ text: "The applicant has no antecedents.", side: "applicant" }] });
+  expect(bodies[0]).toEqual({ ...DECL, consent: true, kind: "bail", forum: "trial_court", offence_date: "2024-08-01", fir_date: "2024-08-02", facts: [{ text: "The applicant has no antecedents.", side: "applicant" }] });
   await expect(page.getByTestId("draft-label")).toContainText("Preview:");
   await expect(page.getByTestId("bail-framing")).toContainText("Section 480");
   await expect(page.getByTestId("bail-unconfirmed")).toContainText("a lawyer has not yet confirmed");
@@ -41,6 +46,7 @@ test("bail referred: a straddle shows both framings and no draft text; a sensiti
   await page.goto("/preview");
   await fillBail(page);
   await page.getByTestId("bail-consent").check();
+  await answer(page, "bail");
   await page.getByTestId("bail-run").click();
   await expect(page.getByTestId("bail-referral")).toContainText("both sides of 1 July 2024");
   await expect(page.getByTestId("bail-framing")).toContainText("Section 437");
@@ -56,6 +62,7 @@ test("bail: a 404 (flag off) reads R1's 'not available here' line", async ({ pag
   await page.goto("/preview");
   await fillBail(page);
   await page.getByTestId("bail-consent").check();
+  await answer(page, "bail");
   await page.getByTestId("bail-run").click();
   await expect(page.getByTestId("bail-message")).toHaveText("This workflow is not available here.");
 });
@@ -74,15 +81,17 @@ test("synopsis: table only keeps the paper's dates and both readings; unticking 
   await expect(page.getByTestId("synopsis-run")).toBeDisabled();
   await expect(page.getByTestId("synopsis-tick-warning")).toContainText("Tick only the facts and dates you want in the synopsis.");
   await page.getByTestId("synopsis-consent").check();
+  await answer(page, "synopsis");
   await page.getByTestId("synopsis-run").click();
   await expect(page.getByTestId("synopsis-result")).toBeVisible();
-  expect(bodies[0]).toEqual({ consent: true, matter_id: HEX, facts: [] });
+  expect(bodies[0]).toEqual({ ...DECL, consent: true, matter_id: HEX, facts: [] });
   await expect(page.getByTestId("draft-label")).toContainText("Preview:");
   const rows = page.getByTestId("dates-row");
   await expect(rows.first()).toContainText("18 July 2021");
   await expect(page.getByTestId("dates-readings").first()).toContainText("2024-06-12 / 2024-12-06");
   await expect(page.getByTestId("synopsis-text")).toContainText("No synopsis could be drafted");
   await rows.first().getByRole("checkbox").uncheck();
+  await answer(page, "synopsis"); // the answer is asked afresh for every draft
   await page.getByTestId("synopsis-update").click();
   await expect.poll(() => bodies.length).toBe(2);
   expect(bodies[1].include_row_ids).toEqual([2, 3]);

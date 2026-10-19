@@ -30,7 +30,7 @@ export const DRAFTING_DRAFT = {
   factApplicant: "On the applicant's side",
   groundsHeading: "Grounds this fact goes to (optional)",
   addFact: "Add a fact",
-  tagsHeading: "Mark any that apply. No draft is made for a sensitive case.",
+  tagsHeading: "Mark any that apply. No draft is made for a case you mark.",
   sections: "Sections charged (optional, separated by commas)",
   documentLabel: "Name of the document (optional)",
   runBail: "Draft the grounds",

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { PreviewBadge } from "@/components/PreviewBadge";
 import { DRAFTING_DRAFT as D, DRAFTING_R1 as R, GROUND_LABELS, TAG_LABELS } from "@/lib/previewDraftingCopy";
+import { DECLARATION_TEXT, SENSITIVE_DECLARATION, isDeclarationRefusal, showDeclarationMissing, withDeclaration, type Declaration } from "@/lib/sensitiveDeclaration";
 import { GROUNDS, TAGS, bailBody, parseBail, parseSynopsis, synopsisBody, type BailView, type FactIn, type SynopsisView } from "@/lib/previewDraftingParsers";
 import { previewPost, str } from "@/lib/previewApi";
 import { PREVIEW } from "@/lib/previewWorkflows";
@@ -100,6 +101,17 @@ function BailResult({ v }: { v: BailView }) {
   );
 }
 
+/** R1's required question (no default): the legend names the three things once and the two choices answer it. Starts empty every time. */
+function DeclarationChoice({ id, value, onChange }: { id: string; value: Declaration; onChange: (v: Declaration) => void }) {
+  return (
+    <fieldset className="space-y-1" data-testid={`${id}-declaration`}>
+      <legend className={P}>{DECLARATION_TEXT.legend}</legend>
+      <label className={`flex items-start gap-2 ${P}`}><input type="radio" name={`${id}-declaration`} className="mt-1" checked={value === "none"} onChange={() => onChange("none")} data-testid={`${id}-declaration-none`} /> {DECLARATION_TEXT.none}</label>
+      <label className={`flex items-start gap-2 ${P}`}><input type="radio" name={`${id}-declaration`} className="mt-1" checked={value === "sensitive"} onChange={() => onChange("sensitive")} data-testid={`${id}-declaration-sensitive`} /> {DECLARATION_TEXT.sensitive}</label>
+    </fieldset>
+  );
+}
+
 export function BailCard() {
   const [consent, setConsent] = useState(false);
   const [kind, setKind] = useState<"bail" | "anticipatory_bail">("bail");
@@ -112,18 +124,21 @@ export function BailCard() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [view, setView] = useState<BailView | null>(null);
-  const body = bailBody({ consent, kind, forum, offence, fir, facts, tags, sections });
+  const [declared, setDeclared] = useState<Declaration>(""); // flag ON: no choice made, every time
+  const baseBody = bailBody({ consent, kind, forum, offence, fir, facts, tags, sections });
+  const body = withDeclaration(baseBody, declared);
 
   async function go() {
     if (!body) return;
     setBusy(true); setMessage(null); setView(null);
     try {
       const a = await previewPost("/bail-draft", body);
+      if (isDeclarationRefusal(a.status, a.body)) return setMessage(DECLARATION_TEXT.missing);
       if (a.status !== 200) return setMessage(refusal(a.status, a.body));
       const v = parseBail(a.body);
       if (!v) return setMessage(PREVIEW.wf_error);
       setView(v);
-    } catch { setMessage(PREVIEW.wf_error); } finally { setBusy(false); }
+    } catch { setMessage(PREVIEW.wf_error); } finally { setBusy(false); setDeclared(""); }
   }
   return (
     <Box id="bail" name={D.bailName} line={D.bailLine}>
@@ -154,6 +169,8 @@ export function BailCard() {
         </div>
       </fieldset>
       <label className={`block ${P}`}>{D.sections}<input className={`${FIELD} mt-1`} value={sections} onChange={(e) => setSections(e.target.value)} /></label>
+      {SENSITIVE_DECLARATION && <DeclarationChoice id="bail" value={declared} onChange={setDeclared} />}
+      {showDeclarationMissing(SENSITIVE_DECLARATION, declared, baseBody !== null) && <p className={P} data-testid="bail-declaration-missing">{DECLARATION_TEXT.missing}</p>}
       <button type="button" className={BTN} disabled={busy || !body} onClick={go} data-testid="bail-run">{D.runBail}</button>
       {message && <p role="status" className={P} data-testid="bail-message">{message}</p>}
       {view && <BailResult v={view} />}
@@ -161,7 +178,7 @@ export function BailCard() {
   );
 }
 
-function SynopsisResult({ v, kept, setKept, onUpdate, busy }: { v: SynopsisView; kept: number[]; setKept: (k: number[]) => void; onUpdate: () => void; busy: boolean }) {
+function SynopsisResult({ v, kept, setKept, onUpdate, busy, updateBlocked }: { v: SynopsisView; kept: number[]; setKept: (k: number[]) => void; onUpdate: () => void; busy: boolean; updateBlocked: boolean }) {
   const d = v.dates;
   return (
     <div className="space-y-3" data-testid="synopsis-result">
@@ -188,7 +205,7 @@ function SynopsisResult({ v, kept, setKept, onUpdate, busy }: { v: SynopsisView;
             </table>
           )}
           {d.cutLine && <p className={P}>{d.cutLine}</p>}
-          {d.rows.length > 0 && <button type="button" className={BTN} disabled={busy} onClick={onUpdate} data-testid="synopsis-update">{D.updateRows}</button>}
+          {d.rows.length > 0 && <button type="button" className={BTN} disabled={busy || updateBlocked} onClick={onUpdate} data-testid="synopsis-update">{D.updateRows}</button>}
         </div>
       )}
       {v.synopsis && (
@@ -206,6 +223,7 @@ function SynopsisResult({ v, kept, setKept, onUpdate, busy }: { v: SynopsisView;
 
 export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | null; hasPapers: boolean; onGone: () => void }) {
   const [consent, setConsent] = useState(false);
+  const [declared, setDeclared] = useState<Declaration>(""); // flag ON: no choice made, every time
   const [facts, setFacts] = useState<FactIn[]>([emptyFact()]);
   const [label, setLabel] = useState("");
   const [busy, setBusy] = useState(false);
@@ -214,18 +232,19 @@ export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | n
   const [kept, setKept] = useState<number[]>([]);
 
   async function go(keep: number[] | null) {
-    const body = matter ? synopsisBody(matter, consent, facts, label, keep) : null;
+    const body = matter ? withDeclaration(synopsisBody(matter, consent, facts, label, keep), declared) : null;
     if (!body) return;
     setBusy(true); setMessage(null);
     try {
       const a = await previewPost("/synopsis-dates", body);
+      if (isDeclarationRefusal(a.status, a.body)) { setView(null); return setMessage(DECLARATION_TEXT.missing); }
       if (a.status === 404) { setView(null); onGone(); return setMessage(PREVIEW.wf_unavailable); }
       if (a.status !== 200) { setView(null); return setMessage(refusal(a.status, a.body)); }
       const v = parseSynopsis(a.body);
       if (!v) { setView(null); return setMessage(PREVIEW.wf_error); }
       setView(v);
       if (keep === null) setKept((v.dates?.rows ?? []).flatMap((r) => (r.rowId !== null ? [r.rowId] : [])));
-    } catch { setMessage(PREVIEW.wf_error); } finally { setBusy(false); }
+    } catch { setMessage(PREVIEW.wf_error); } finally { setBusy(false); setDeclared(""); }
   }
   return (
     <Box id="synopsis" name={D.synopsisName} line={D.synopsisLine}>
@@ -233,9 +252,11 @@ export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | n
       <label className={`flex items-start gap-2 ${P}`}><input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="synopsis-consent" /> {D.consentSynopsis}</label>
       <label className={`block ${P}`}>{D.documentLabel}<input className={`${FIELD} mt-1`} maxLength={80} value={label} onChange={(e) => setLabel(e.target.value)} /></label>
       <FactsEditor id="synopsis" rows={facts} setRows={setFacts} warning={R.synopsisTickWarning} withGrounds={false} />
-      <button type="button" className={BTN} disabled={busy || !hasPapers || !consent} onClick={() => go(null)} data-testid="synopsis-run">{D.runSynopsis}</button>
+      {SENSITIVE_DECLARATION && <DeclarationChoice id="synopsis" value={declared} onChange={setDeclared} />}
+      {showDeclarationMissing(SENSITIVE_DECLARATION, declared, hasPapers && consent) && <p className={P} data-testid="synopsis-declaration-missing">{DECLARATION_TEXT.missing}</p>}
+      <button type="button" className={BTN} disabled={busy || !hasPapers || !consent || (SENSITIVE_DECLARATION && declared === "")} onClick={() => go(null)} data-testid="synopsis-run">{D.runSynopsis}</button>
       {message && <p role="status" className={P} data-testid="synopsis-message">{message}</p>}
-      {view && <SynopsisResult v={view} kept={kept} setKept={setKept} onUpdate={() => go(kept)} busy={busy} />}
+      {view && <SynopsisResult v={view} kept={kept} setKept={setKept} onUpdate={() => go(kept)} busy={busy} updateBlocked={SENSITIVE_DECLARATION && declared === ""} />}
     </Box>
   );
 }
