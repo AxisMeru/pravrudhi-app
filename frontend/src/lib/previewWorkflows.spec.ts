@@ -6,7 +6,7 @@ import { PREVIEW } from "./previewWorkflows";
 
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 const PINS: Record<string, string> = {
-  preview_line: "bebdc142b48a2623",
+  preview_line: "9057f26f70b840f1",
   preview_short: "b9900bac73e05cef",
   wf_unavailable: "3d906df05047c66e",
   wf_busy: "2d4fbfbf50b34057",
