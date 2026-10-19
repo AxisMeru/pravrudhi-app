@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { previewPost } from "@/lib/previewApi";
 import { MAX_SCAN_BYTES, SCAN_ACCEPT, SCAN_TEXT, documentLine, mimeOfFile, pageLines, parseScanIngest, repairedLine, scanBody, scanRefusalLine, type ScanIngest } from "@/lib/scannedIntake";
@@ -22,6 +22,8 @@ export function ScannedPaperControl({ matter, busy, onAdded, onKept, onRefusal }
   onRefusal: (status: number, body: Record<string, unknown> | null) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
+  const current = useRef(matter);
+  useEffect(() => { current.current = matter; }, [matter]); // R2: an upload in flight must not act after the matter changed
   const [last, setLast] = useState<{ name: string; ingest: ScanIngest } | null>(null);
   const [working, setWorking] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
@@ -37,6 +39,7 @@ export function ScannedPaperControl({ matter, busy, onAdded, onKept, onRefusal }
       if (a.status !== 200) { const line = scanRefusalLine(null, a.status, a.body); return line ? setRefusal(line) : onRefusal(a.status, a.body); }
       const ingest = parseScanIngest(a.body);
       const docId = typeof a.body?.doc_id === "string" ? a.body.doc_id : null;
+      if (current.current !== matter) return; // the matter changed while this was uploading: nothing is kept, shown or refreshed for it
       if (docId) onKept(docId, file);
       if (ingest) setLast({ name: file.name, ingest });
       await onAdded();

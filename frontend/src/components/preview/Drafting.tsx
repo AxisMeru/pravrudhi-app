@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { RowCrop } from "./RowCrop";
 import { previewRefusal } from "@/lib/previewRefusal";
 import { PreviewBadge } from "@/components/PreviewBadge";
 import { DRAFTING_DRAFT as D, DRAFTING_R1 as R, GROUND_LABELS, TAG_LABELS } from "@/lib/previewDraftingCopy";
@@ -192,7 +193,7 @@ function SynopsisResult({ v, kept, setKept, onUpdate, busy, updateBlocked }: { v
                   <tr key={i} className="align-top" data-testid="dates-row">
                     <td className="pr-2">{r.rowId !== null && <input type="checkbox" aria-label={D.keepRows} checked={kept.includes(r.rowId)} onChange={(e) => setKept(e.target.checked ? [...kept, r.rowId!] : kept.filter((x) => x !== r.rowId))} />}</td>
                     <td className="pr-2">{r.dateAsWritten}{r.dates.filter((d) => d.ambiguous && d.readings.length > 0).map((d, j) => <span key={j} className="block text-xs text-[var(--color-text-dim)]" data-testid="dates-readings">{r.dates.length > 1 ? `${d.written}: ` : ""}{d.readings.join(" / ")}</span>)}</td>
-                    <td className="pr-2">{r.eventLine && <span className="block">{r.eventLine}</span>}{r.eventQuote && <span className="block">{r.eventQuote}</span>}</td>
+                    <td className="pr-2">{r.eventLine && <span className="block">{r.eventLine}</span>}{r.eventQuote && <span className="block">{r.eventQuote}</span>}<RowCrop scan={r.scan} /></td>
                     <td>{r.source}</td>
                   </tr>
                 ))}

@@ -60,7 +60,7 @@ export const repairedLine = (p: ScanPage): string | null => (p.repaired ? SCAN_T
 export interface RowScan { docName: string | null; crop: Crop | null; fromOcr: boolean }
 export function rowScan(r: Record<string, unknown>, docName: string | null, enabled: boolean = SCANNED_INTAKE): RowScan | undefined {
   if (!enabled) return undefined;
-  const crop = parseCrop(r.crop), fromOcr = r.from_ocr === true || r.source === "ocr";
+  const crop = parseCrop(r.crop), fromOcr = r.from_ocr === true || r.read_from === "ocr"; // `read_from` (Track C, 19 Oct): a row's own `source` key keeps its old meaning (document and page text) and is never read here
   return crop || fromOcr ? { docName, crop, fromOcr } : undefined;
 }
 

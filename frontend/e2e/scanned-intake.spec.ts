@@ -40,7 +40,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 3, n_spans: 5, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: false })), pages_total: 3, pages_not_read: 0, pages_note: "" } }));
   const a3 = fx("a3_chronology").response;
   const events = (a3.events as Record<string, unknown>[]).slice();
-  events[0] = { ...events[0], document_name: "scan1.png", page: 1, from_ocr: true, source: "ocr", confidence: 91.4, crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
+  events[0] = { ...events[0], document_name: "scan1.png", page: 1, from_ocr: true, read_from: "ocr", confidence: 91.4, crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
   await page.goto("/preview");
   await page.getByTestId("pv-start").click();
@@ -102,7 +102,7 @@ test("flag ON: two papers with one name show no crop, and starting over clears w
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 1, n_chars: 1, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } }));
   const a3 = fx("a3_chronology").response;
   const events = (a3.events as Record<string, unknown>[]).slice();
-  events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, source: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
+  events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, read_from: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
   await page.goto("/preview");
   await page.getByTestId("pv-start").click();
@@ -115,4 +115,44 @@ test("flag ON: two papers with one name show no crop, and starting over clears w
   await page.getByTestId("pv-a3-run").click();
   await expect(page.getByTestId("scan-date-line").first()).toBeVisible();
   await expect(page.getByTestId("scan-crop")).toHaveCount(0);
+});
+
+const CROP = { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" };
+async function scanMatter(page: import("@playwright/test").Page, name: string) {
+  const docs: { doc_id: string; name: string }[] = [];
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => { docs.push({ doc_id: "d1", name }); r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name, n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 1, n_chars: 1, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } }));
+  await page.goto("/preview");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("scan-file").setInputFiles({ name, mimeType: "image/png", buffer: PNG_2X2 });
+  await expect(page.getByTestId("scan-result")).toBeVisible();
+}
+
+test("flag ON: a cheque-case candidate and an A8 list-of-dates row read from an image show the date line and the crop; a row's own `source` text is untouched", async ({ page }) => {
+  test.skip(!ON, "needs NEXT_PUBLIC_SCANNED_INTAKE=1");
+  await scanMatter(page, "cheque-memo-A");
+  const cc = fx("cheque_case_step1_no_b3").response as { candidates: { roles: Record<string, Record<string, unknown>[]> } };
+  const cheque = cc.candidates.roles.cheque.slice();
+  cheque[0] = { ...cheque[0], read_from: "ocr", from_ocr: true, crop: CROP };
+  await page.route("**/api/v1/cheque-case-check", (r) => r.fulfill({ json: { ...cc, candidates: { ...cc.candidates, roles: { ...cc.candidates.roles, cheque } } } }));
+  await page.getByTestId("pv-cc-run").click();
+  const role = page.getByTestId("pv-cc-role-cheque");
+  await expect(role.getByTestId("scan-date-line")).toHaveText("Read from a page image: check this date against the page image.");
+  await expect(role.getByTestId("scan-crop")).toBeVisible();
+  await expect(role).toContainText("cheque-memo-A p.1");
+});
+
+test("flag ON: an upload that finishes after the matter was removed is neither kept nor shown (R2: guard by matter)", async ({ page }) => {
+  test.skip(!ON, "needs NEXT_PUBLIC_SCANNED_INTAKE=1");
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
+  await page.route("**/api/v1/matter-spans/delete", (r) => r.fulfill({ json: { matter_id: HEX, deleted: true } }));
+  await page.route("**/api/v1/matter-spans/documents", async (r) => { await new Promise((res) => setTimeout(res, 1500)); await r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "slow.png", n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
+  await page.goto("/preview");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("scan-file").setInputFiles({ name: "slow.png", mimeType: "image/png", buffer: PNG_2X2 });
+  await page.getByTestId("pv-remove-all").click();
+  await page.waitForTimeout(2500);
+  await expect(page.getByTestId("scan-result")).toHaveCount(0);
 });

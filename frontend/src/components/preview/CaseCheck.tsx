@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { RowCrop } from "./RowCrop";
 import { previewRefusal } from "@/lib/previewRefusal";
 import { A5Result, B3Result } from "@/components/preview/Viewers";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
@@ -62,7 +63,7 @@ export function CaseCheck({ matter }: { matter: string | null }) {
                 <div key={c.id} className="text-sm text-[var(--color-text)]">
                   <label className="flex min-h-[44px] items-start gap-2">
                     <input type="radio" name={`cc-${r.role}`} checked={picks[r.role]?.c.id === c.id} onChange={() => choose(r.role, c)} data-testid={`pv-cc-pick-${c.id}`} />
-                    <span><span className="font-medium">{c.value}</span>{c.source && <span className="text-[var(--color-text-dim)]"> · {c.source}</span>}{c.quote && <q className="block text-xs text-[var(--color-text-dim)]">{c.quote}</q>}</span>
+                    <span><span className="font-medium">{c.value}</span>{c.source && <span className="text-[var(--color-text-dim)]"> · {c.source}</span>}{c.quote && <q className="block text-xs text-[var(--color-text-dim)]">{c.quote}</q>}<RowCrop scan={c.scan} /></span>
                   </label>
                   {c.ambiguous && picks[r.role]?.c.id === c.id && (
                     <div className="ml-6" data-testid={`pv-cc-readings-${c.id}`}>

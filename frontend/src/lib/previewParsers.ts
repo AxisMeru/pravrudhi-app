@@ -115,7 +115,7 @@ export function parseB3(b: Rec | null): B3View | null {
 // ---------- Cheque case check (B3 + A5 on one screen; Track A's samples cheque_case_*.json) ----------
 export const CASE_ROLES = ["cheque", "presentation", "memo", "information", "notice", "receipt"] as const;
 export type CaseRoleName = (typeof CASE_ROLES)[number];
-export interface CaseCandidate { id: string; value: string; readAs: string | null; readings: string[]; ambiguous: boolean; source: string | null; quote: string | null }
+export interface CaseCandidate { scan?: RowScan; id: string; value: string; readAs: string | null; readings: string[]; ambiguous: boolean; source: string | null; quote: string | null }
 export interface CaseRole { role: CaseRoleName; label: string; candidates: CaseCandidate[]; noCandidate: string | null }
 export interface CaseCheckView { statement: string | null; roles: CaseRole[]; notUsableLine: string | null; notUsable: string[]; agenda: A5View | null; checklist: B3View | null; pending: string | null; notAssessed: string[] }
 export function parseCaseCheck(b: Rec | null): CaseCheckView | null {
@@ -130,7 +130,7 @@ export function parseCaseCheck(b: Rec | null): CaseCheckView | null {
       noCandidate: str(none?.[role]),
       candidates: arr(roles?.[role]).flatMap((x): CaseCandidate[] => {
         const r = rec(x); const id = str(r?.candidate_id), value = str(r?.value);
-        return r && id && value !== null ? [{ id, value, readAs: str(r.read_as), readings: strs(r.readings), ambiguous: r.ambiguous === true, source: str(r.source), quote: str(r.quote) }] : [];
+        return r && id && value !== null ? [{ id, value, readAs: str(r.read_as), readings: strs(r.readings), ambiguous: r.ambiguous === true, source: str(r.source), quote: str(r.quote), ...scanOf(r, str(r.document_name) ?? docNameOf(str(r.source))) }] : [];
       }),
     })),
     notUsableLine: str(c?.not_usable_line),
