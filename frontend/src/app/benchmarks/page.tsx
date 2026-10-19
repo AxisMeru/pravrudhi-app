@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import rowsFile from "@/data/nyayasiddhi/rows.json";
-import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_NARRATED } from "@/lib/films/copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_DOWNLOAD_LINK } from "@/lib/films/copy";
 import { NS_SUBMIT_LINK_TEXT } from "@/lib/nyayasiddhiSubmit";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
@@ -19,8 +19,8 @@ const NYAYASIDDHI_ROWS = parseRows(rowsFile); // signed rows only, from the buil
 
 // A short, static page in R1's words (lib/benchmarks.ts): what we check, how we test, and what the checks do and do not show. No figure.
 export default async function BenchmarksPage() {
-  // the narrated cut A (the manifest is loaded by a dynamic import, on this page only), poster first: no film file is requested until the visitor presses Play
-  const filmManifest = await loadNyayasiddhiManifest("nyayasiddhi-narrated");
+  // the silent explainer film #430 (Studio's final render; the manifest is loaded by a dynamic import, on this page only), poster first: no film file is requested until the visitor presses Play
+  const filmManifest = await loadNyayasiddhiManifest("nyayasiddhi-explainer-silent");
   return (
     <div>
       <PageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
@@ -39,7 +39,7 @@ export default async function BenchmarksPage() {
         </section>
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
-          <FilmPlayer id="nyayasiddhi-narrated" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
+          <FilmPlayer id="nyayasiddhi-explainer-silent" manifest={filmManifest} posterFirst downloadLabel={FILM_DOWNLOAD_LINK} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} links={NYAYASIDDHI_LINKS} />
         <NyayaSiddhiComing rows={NYAYASIDDHI_ROWS} />

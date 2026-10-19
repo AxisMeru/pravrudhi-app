@@ -15,26 +15,22 @@ import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
-import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_NARRATED, FILM_IDS, FILM_SILENT_NOTE, NYAYASIDDHI_FILM_SUBTITLE, NYAYASIDDHI_SILENT_LABEL, NYAYASIDDHI_VOICE_HEADINGS, NYAYASIDDHI_VOICE_PREVIEW_LABEL } from "./copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_NARRATED, FILM_IDS, FILM_SILENT_NOTE } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
 const readManifest = (id: string): FilmManifest & { placeholder?: boolean } => JSON.parse(readFileSync(join(root, "public", "films", id, "manifest.json"), "utf8"));
 const manifest = readManifest("nyayasiddhi");
 
-test("the film id is registered, its files are named like the other films', and the review route is noindex", () => {
+test("the film id is registered, its files are named like the other films', and the old review route is only a redirect to /benchmarks (no preview page exists: operator, 19 Oct)", () => {
   assert.ok((FILM_IDS as readonly string[]).includes("nyayasiddhi"));
   assert.match(filmFile("nyayasiddhi", "captions.vtt"), /\/films\/nyayasiddhi\/captions\.vtt$/);
   assert.equal(manifest.audio, false, "silent-first");
-  const layout = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx"), "utf8");
-  assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
+  assert.equal(existsSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx")), false, "no layout, no title, no preview page");
   const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /<FilmPlayer id=\{id\} manifest=\{manifests\[id\]\} posterFirst \/>/);
-  assert.match(page, /\["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm"\]/);
-  assert.match(page, /const VOICE = \["nyayasiddhi-narrated", "nyayasiddhi-firm-narrated"\]/);
-  assert.doesNotMatch(page, /preview-narrated|\.aac|Kokoro/i, "only the two narrated folders served from public/films, by id; no source-folder path, no engine name");
+  assert.match(page, /redirect\("\/benchmarks"\)/);
+  assert.doesNotMatch(page, /FilmPlayer|loadNyayasiddhiManifest|NYAYASIDDHI_/, "the redirect page holds no player and no film text");
   assert.equal(FILM_SILENT_NOTE, "The film is silent; the captions name each scene, and the list below sums up each scene.");
-  assert.doesNotMatch(NYAYASIDDHI_FILM_SUBTITLE + FILM_SILENT_NOTE, /verified|prove|accura|best|better|beat|rank/i);
 });
 
 test("public/films holds only the film's cuts (three silent, two narrated previews for the voice review, the explainer and its silent cut): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
@@ -42,13 +38,6 @@ test("public/films holds only the film's cuts (three silent, two narrated previe
   assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
   for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
-});
-
-test("the narrated previews are labelled on the route page by one byte-exact line each (the label is a page string, not in the films)", () => {
-  assert.equal(NYAYASIDDHI_VOICE_PREVIEW_LABEL, "For voice review"); // R1, 19 Oct (#454): no "Preview" word
-  assert.deepEqual(NYAYASIDDHI_VOICE_HEADINGS, { "nyayasiddhi-narrated": "Cut A, narrated", "nyayasiddhi-firm-narrated": "Cut C, narrated" });
-  const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /\{NYAYASIDDHI_VOICE_PREVIEW_LABEL\}/);
 });
 
 test("the review route is linked from nowhere: only the surface route list and a comment in the film copy name it", () => {
@@ -181,16 +170,6 @@ test("the WebM source comes first (VP9, with Opus for a narrated film) for every
   assert.deepEqual([...WEBM_FILMS].sort(), withWebm);
 });
 
-test("R1's silent label: byte-exact, its button name is FILM_CAPTIONS_SHOW, shown above each of the three silent cuts and nowhere else", () => {
-  assert.equal(NYAYASIDDHI_SILENT_LABEL, "Silent cut: no voice. While it plays, press Show captions to see the scene titles.");
-  assert.ok(NYAYASIDDHI_SILENT_LABEL.includes(`press ${FILM_CAPTIONS_SHOW} to`), "derived from the captions button text");
-  assert.doesNotMatch(NYAYASIDDHI_SILENT_LABEL, BARRED);
-  const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  const silentBlock = page.slice(page.indexOf("{CUTS.map"), page.indexOf("{VOICE.map"));
-  assert.match(silentBlock, /NYAYASIDDHI_SILENT_LABEL/);
-  assert.doesNotMatch(page.slice(page.indexOf("{VOICE.map")), /NYAYASIDDHI_SILENT_LABEL/);
-});
-
 test("a posterFirst film is its poster and a Play the film button: no <video>, no film.webm in the markup (the download link to the mp4 stays), no autoplay (16 Oct, no ~8.6 MB at load)", () => {
   const h = html("nyayasiddhi", SILENT_MANIFEST, { posterFirst: true });
   assert.ok(h.includes('data-testid="film-poster"') && h.includes('data-testid="film-play"'));
@@ -219,7 +198,7 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.match(page, /posterFirst/);
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
-  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|voice review/i, "the voice gate passed: the public card does not say it is a preview; the review route keeps its label");
+  assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|voice review/i, "the voice gate passed: the public card does not say it is a preview");
 });
 
 // ---- the explainer film #430 (nyayasiddhi-explainer narrated, nyayasiddhi-explainer-silent): Studio's film430 deliver folder; strings STRINGS_430_v3 (vendored below); R1 reads the strings; the allowance list is R2's.

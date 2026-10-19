@@ -19,7 +19,7 @@ test("the page titles are R1's, one per page, each the page name then the produc
 });
 
 test("each titled page's layout.tsx names its own key, and the keys cover the table", () => {
-  const dirs: Record<string, string> = { benchmarksSubmit: "benchmarks/submit", preview: "preview", benchmarksFilmPreview: "benchmarks-film-preview", signin: "signin", screening: "screening", demo: "demo", workflows: "workflows", dataHandling: "data-handling", guide: "guide", howBuilt: "how-it-was-built", settings: "settings", partnerKeys: "partner-keys", citations: "citations", matters: "matters", safety: "safety", benchmarks: "benchmarks", intake: "intake", technicalFilm: "technical-film" };
+  const dirs: Record<string, string> = { benchmarksSubmit: "benchmarks/submit", preview: "preview", signin: "signin", screening: "screening", demo: "demo", workflows: "workflows", dataHandling: "data-handling", guide: "guide", howBuilt: "how-it-was-built", settings: "settings", partnerKeys: "partner-keys", citations: "citations", matters: "matters", safety: "safety", benchmarks: "benchmarks", intake: "intake", technicalFilm: "technical-film" };
   for (const [key, dir] of Object.entries(dirs)) {
     const src = readFileSync(join(__dirname, "..", "app", dir, "layout.tsx"), "utf8");
     assert.match(src, new RegExp(`title: pageTitle\\("${key}"\\)`), dir);
