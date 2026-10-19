@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import test from "node:test";
 
 import { DECLARATION_TEXT, isDeclarationRefusal, showDeclarationMissing, withDeclaration } from "./sensitiveDeclaration";
@@ -42,4 +44,15 @@ test("the 'say whether' line shows only with the flag on, nothing chosen and the
   assert.equal(showDeclarationMissing(true, "sensitive", true), false);
   assert.equal(showDeclarationMissing(true, "", false), false);
   assert.equal(showDeclarationMissing(false, "", true), false);
+});
+
+// R2's condition (19 Oct): "none" is an explicit choice every time, never a default, never a remembered value.
+test("no preselected answer and no remembered value: the choice state starts empty, nothing is stored in the browser, no radio is checked by default", () => {
+  const root = join(__dirname, "..", "..");
+  const card = readFileSync(join(root, "src", "components", "preview", "Drafting.tsx"), "utf8");
+  const lib = readFileSync(join(root, "src", "lib", "sensitiveDeclaration.ts"), "utf8");
+  assert.equal((card.match(/useState<Declaration>\(""\)/g) ?? []).length, 2, "both cards start with the empty choice");
+  assert.equal((card.match(/setDeclared\(""\)/g) ?? []).length, 2, "both cards clear it after every draft request");
+  for (const src of [card, lib]) assert.doesNotMatch(src, /localStorage|sessionStorage|indexedDB|defaultChecked|defaultValue/, "nothing is remembered or prefilled");
+  assert.doesNotMatch(card, /useState<Declaration>\("(none|sensitive)"\)/);
 });

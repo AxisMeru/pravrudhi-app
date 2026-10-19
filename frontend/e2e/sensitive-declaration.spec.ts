@@ -86,3 +86,21 @@ test("flag ON: the synopsis card asks the same question and sends the answer", a
   await expect(page.getByTestId("synopsis-result")).toBeVisible();
   expect(bodies[0].sensitive_declaration).toBe("none");
 });
+
+test("flag ON: a fresh load, a second draft in the same session and a page reload all show no answer chosen and the button disabled", async ({ page }) => {
+  test.skip(!ON, "needs the build with the declaration flag");
+  await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ json: fx("bail_response_drafted") }));
+  const none = page.getByTestId("bail-declaration-none"), yes = page.getByTestId("bail-declaration-sensitive"), run = page.getByTestId("bail-run");
+  await page.goto("/preview");
+  await expect(none).not.toBeChecked(); await expect(yes).not.toBeChecked(); await expect(run).toBeDisabled();
+  await fillBail(page);
+  await none.check();
+  await run.click();
+  await expect(page.getByTestId("bail-result")).toBeVisible();
+  await expect(none).not.toBeChecked(); await expect(yes).not.toBeChecked(); await expect(run).toBeDisabled(); // second draft in the same session
+  await none.check();
+  await page.reload();
+  await expect(none).not.toBeChecked(); await expect(yes).not.toBeChecked(); // no remembered value after a reload
+  await expect(run).toBeDisabled();
+  expect(await page.evaluate(() => Object.keys(localStorage).concat(Object.keys(sessionStorage)).filter((k) => /declar|sensitive/i.test(k)))).toEqual([]);
+});
