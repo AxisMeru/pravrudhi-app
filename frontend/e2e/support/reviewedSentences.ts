@@ -12,6 +12,7 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
     reason: "R1's worded data note for How it was built (17 Oct, v1b sha12 5885ee683fec): they describe which data sets were used for training, held-out and evaluation and which are not published; none promises anything about what happens to a submission.",
     sentences: [
       "Real-text training material, our evaluation sets, and the items in NyayaSiddhi.",
+      "Supreme Court judgments, pre-training slice", // d46 (R1 SC_SOURCE_LICENCE_GREP 1af0a35c3e6f, 4a3f7cf3f1a7c37d): the row name of the pre-training slice; it says which data set it is, nothing about what happens to a submission
       "Training and held-out sets for our judges",
       "The sealed evaluation sets stay private so a future test cannot be learned in advance.",
       "Judgments were assigned to training, held-out or evaluation by a fixed rule on identity, and checked for overlap by identity and by text.",
