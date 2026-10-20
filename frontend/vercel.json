@@ -8,6 +8,13 @@
     }
   },
   "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
+  "redirects": [
+    {
+      "source": "/benchmarks-film-preview/:path*",
+      "destination": "/benchmarks",
+      "statusCode": 308
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
