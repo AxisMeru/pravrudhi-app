@@ -101,14 +101,35 @@ test("flag ON: an engine status without the workflows field (older engine) leave
   for (const c of await page.getByTestId("workflow-card-chip").all()) await expect(c).toHaveText("Available");
 });
 
-test("the matter-tools 'some tools are not switched on' line shows when the engine reports a tool off, and is absent with all eight on (while the A4/A8 cards are off)", async ({ page }) => {
-  test.skip(process.env.DRAFTING_BUILD === "1", "with the A4/A8 cards on the line stays by design");
-  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith({ ...ALL_ON, wf_a6_cheque_case_check: false }) }));
+// R1's rule (#475): the line shows only when a tool the page shows is reported off; hidden when the status cannot be read; no map = the pinned fallback (A4/A8 off).
+const DRAFT = process.env.DRAFTING_BUILD === "1"; // built with the A4/A8 cards on
+const ALL_TEN = { ...ALL_ON, wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: true };
+async function line(page: import("@playwright/test").Page, status: { status?: number; json?: unknown }) {
+  await page.route("**/api/v1/status", (r) => r.fulfill({ status: status.status ?? 200, json: status.json ?? {} }));
   await page.goto("/matter-tools");
-  await expect(page.getByTestId("pv-tools-off-line")).toBeVisible();
-  await page.unroute("**/api/v1/status");
-  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith(ALL_ON) }));
-  await page.reload();
   await expect(page.getByTestId("pv-matter")).toBeVisible();
-  await expect(page.getByTestId("pv-tools-off-line")).toHaveCount(0);
+  await page.waitForTimeout(600); // the status read is asynchronous: give it time to land before asserting absence
+  return page.getByTestId("pv-tools-off-line");
+}
+
+test("matter-tools line: all tools the page shows are on -> hidden", async ({ page }) => {
+  await expect(await line(page, { json: statusWith(DRAFT ? ALL_TEN : ALL_ON) })).toHaveCount(0);
+});
+
+test("matter-tools line: a registry tool reported off -> shown", async ({ page }) => {
+  await expect(await line(page, { json: statusWith({ ...(DRAFT ? ALL_TEN : ALL_ON), wf_a6_cheque_case_check: false }) })).toBeVisible();
+});
+
+test("matter-tools line: with the A4/A8 cards on, a4 off or a8 off or a8 missing from the map -> shown", async ({ page }) => {
+  test.skip(!DRAFT, "needs the build with the A4/A8 cards (DRAFTING_BUILD=1)");
+  await expect(await line(page, { json: statusWith({ ...ALL_TEN, wf_a4_bail_drafting: false }) })).toBeVisible();
+});
+
+test("matter-tools line: a status that cannot be read -> hidden (never claim a tool is off on a guess)", async ({ page }) => {
+  await expect(await line(page, { status: 503, json: { detail: "down" } })).toHaveCount(0);
+});
+
+test("matter-tools line: a readable status with no workflows map -> the pinned fallback: hidden with the A4/A8 cards off, shown with them on", async ({ page }) => {
+  const l = await line(page, { json: statusWith() });
+  if (DRAFT) await expect(l).toBeVisible(); else await expect(l).toHaveCount(0);
 });
