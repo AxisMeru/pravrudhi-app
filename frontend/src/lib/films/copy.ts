@@ -17,6 +17,11 @@ export const FILM_EARLIER_LAYOUT_NOTE = "The film was recorded on the earlier la
 // New controls (Web, 15 Oct; proposed wording, for R1 to confirm when built). The film starts muted so it can start anywhere; the visible button turns the narration on.
 export const FILM_SOUND_ON = "Turn on sound";
 export const FILM_SOUND_OFF = "Turn off sound";
+/** R1 (20 Oct, FILM_MUTE_WORDS_R1_2026-10-20.md sha12 7ed782e9f2b3), narrated-default card only: sound starts at Play; the visible button mutes it. Pinned by hash in nyayasiddhiFilm.spec.ts. */
+export const FILM_MUTE = "Mute";
+export const FILM_UNMUTE = "Unmute";
+export const FILM_MUTE_ARIA = "Mute the narration";
+export const FILM_UNMUTE_ARIA = "Unmute the narration";
 export const FILM_CAPTIONS_SHOW = "Show captions";
 export const FILM_CAPTIONS_HIDE = "Hide captions";
 export const FILM_DOWNLOAD_LINK = "Download the film";

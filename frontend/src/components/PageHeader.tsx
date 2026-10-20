@@ -1,6 +1,6 @@
 export function PageHeader({ title, subtitle, crumb, focusable = false }: { title: string; subtitle?: string; crumb?: string[]; focusable?: boolean }) {
   return (
-    <div className="border-b border-[var(--color-border)] py-6 pl-4 pr-4 sm:pr-8 md:pl-8 md:pr-20">
+    <div className="border-b border-[var(--color-border)] py-6 pl-4 pr-4 sm:pr-8 md:pl-8">
       {/* layout B: the breadcrumb (Screening › name › Result|Facts); the separators are decoration. Rendered only when a page passes `crumb`. */}
       {crumb && crumb.length > 0 && (
         <nav aria-label="Breadcrumb" className="mb-1 text-xs text-[var(--color-text-dim)]" data-testid="breadcrumb">

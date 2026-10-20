@@ -16,7 +16,7 @@ const BTN = (page: import("@playwright/test").Page) => page.getByTestId("theme-b
 const stored = (page: import("@playwright/test").Page) => page.evaluate(() => window.localStorage.getItem("pravrudhi-theme"));
 const attr = (page: import("@playwright/test").Page) => page.evaluate(() => document.documentElement.getAttribute("data-theme"));
 
-test("one theme button, top right, system by default; each press cycles system -> light -> dark -> system and the name says what is next", async ({ page }) => {
+test("one theme button (sidebar brand row, top strip on a phone), system by default; each press cycles system -> light -> dark -> system and the name says what is next", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/guide");
   await expect(page.getByTestId("theme-button")).toHaveCount(1);
@@ -25,8 +25,8 @@ test("one theme button, top right, system by default; each press cycles system -
   await expect(BTN(page)).toHaveAttribute("title", "Colour theme: device setting");
   const box = (await BTN(page).boundingBox())!;
   const vp = page.viewportSize()!;
-  expect(box.x + box.width).toBeGreaterThan(vp.width - 80);
-  expect(box.y).toBeLessThan(60);
+  if (vp.width >= 768) { expect(box.x + box.width, "in the sidebar brand row").toBeLessThan(240); expect(box.width).toBeGreaterThanOrEqual(44); } else { expect(box.x + box.width, "phone: right end of the top strip").toBeGreaterThan(vp.width - 40); expect(box.width).toBeGreaterThanOrEqual(44); }
+  expect(box.y, "in the top band").toBeLessThan(60);
   await BTN(page).click();
   expect(await attr(page)).toBe("light");
   expect(await stored(page)).toBe("light");
@@ -67,6 +67,7 @@ test("the button is a 44 px target at desktop width too (Interim lead P3, 16 Oct
 test("the button is a 44 px target at phone width, reachable by keyboard, and has no visible text", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/guide");
+  await expect(BTN(page), "the phone swaps the sidebar-row icon for the top-strip one right after hydration").toBeVisible();
   const b = (await BTN(page).boundingBox())!;
   expect(b.width).toBeGreaterThanOrEqual(44);
   expect(b.height).toBeGreaterThanOrEqual(44);
