@@ -5,6 +5,7 @@
 import { ASSISTANT_RETENTION_MAX_HOURS } from "./assistantContract";
 import { ASSISTANT_ENTRY_ENABLED } from "./assistantFlag";
 import { BANNER_STANDING_LINE } from "./screening/copy";
+import { YOUR_MATTERS, DH_LIST_LINE } from "./yourMatters";
 import { CITATION_EXISTENCE_ONLY, RETENTION_EXISTENCE } from "./citationExistence";
 import { CITATION_RETENTION } from "./surfaceCopy";
 
@@ -62,8 +63,10 @@ export const DH_WHERE_FALLBACK = "If our EU processing is unavailable, part of t
 export const DH_WHERE_ASSIST = "If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).";
 
 /** The page's sections. `assist` adds the assistant section and the "where it is processed" sentence for it (both behind the one assistant flag); `deleteConfirmed` adds the delete sentence. */
-export function dataHandlingSections(assist: boolean, deleteConfirmed: boolean): readonly DataHandlingSection[] {
+export function dataHandlingSections(assist: boolean, deleteConfirmed: boolean, listOn: boolean = YOUR_MATTERS): readonly DataHandlingSection[] {
   return BASE_SECTIONS.flatMap((s): DataHandlingSection[] => {
+    // with the matters list on, the two interim lines (reload, no tested request path) give way to one line about the list (R1, same change)
+    if (s.id === "papers" && listOn) return [{ ...s, paragraphs: [...s.paragraphs.filter((p) => p !== DH_PAPERS_RELOAD && p !== DH_PAPERS_NO_REQUEST_PATH && p !== DH_PAPERS_NOT_RUNS), DH_LIST_LINE, DH_PAPERS_NOT_RUNS] }];
     if (s.id === "assistant") return assist ? [{ ...s, paragraphs: s.paragraphs.filter((p) => deleteConfirmed || p !== DH_ASSIST_DELETE) }] : [];
     if (s.id === "where" && assist) return [{ ...s, paragraphs: [...s.paragraphs, DH_WHERE_ASSIST] }];
     return [s];

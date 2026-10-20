@@ -25,6 +25,8 @@ import { useSignedOut } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
 import { ScannedPaperControl } from "@/components/preview/ScannedPaperControl";
 import { SCANNED_INTAKE, keptByName } from "@/lib/scannedIntake";
+import { YOUR_MATTERS } from "@/lib/yourMatters";
+import { YourMatters } from "@/components/preview/YourMatters";
 import { KeptUploads } from "@/components/preview/ScanKept";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
@@ -163,6 +165,13 @@ export default function PreviewPage() {
         {signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
         )}
+        {YOUR_MATTERS && !signedOut && (
+          <YourMatters
+            current={matter}
+            onOpen={(id) => { kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(null); void refresh(id); }}
+            onDeleted={(id) => { if (id === matter) { kept.clear(); setMatter(null); setPapers([]); clearResults(); } }}
+          />
+        )}
         <section className={BOX} id="pv-matter" aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (
@@ -194,7 +203,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{SCANNED_INTAKE ? MATTER_NOTE.matter_note.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : MATTER_NOTE.matter_note}</p>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{(() => { const base = YOUR_MATTERS ? MATTER_NOTE.matter_note_list : MATTER_NOTE.matter_note; return SCANNED_INTAKE ? base.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : base; })()}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
 
