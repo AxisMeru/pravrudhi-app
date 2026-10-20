@@ -34,6 +34,7 @@ import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { GUIDE_NAV_LABEL } from "@/lib/guide/copy";
 import { NAV_GROUP_LABELS, NAV_LABELS } from "@/lib/navCopy";
 import { IS_DEMO } from "@/lib/api";
@@ -197,8 +198,11 @@ export function Sidebar() {
       >
       <div className="border-b border-[var(--color-border)] px-5 py-5 max-md:pl-[68px]">
         <div className="flex items-center justify-between gap-2">
-          <div data-testid="drawer-brand" className="text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
-          {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
+          <div data-testid="drawer-brand" className="min-w-0 text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
+          <div className="flex shrink-0 items-center gap-1">
+            <ThemeSwitch where="row" />
+            {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
+          </div>
         </div>
         {/* The product's line is long (it is read on the Screening page and the guide); the sidebar keeps the name, and the Studio edition its short tagline. */}
         {whoami.edition === STUDIO && (

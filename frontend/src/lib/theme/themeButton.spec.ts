@@ -25,8 +25,15 @@ test("R1's strings are pinned byte for byte (app#378)", () => {
   });
 });
 
-test("every page header keeps its text clear of the fixed theme button from md up (right padding md:pr-20)", () => {
+test("the theme button is in the sidebar brand row and the phone top strip, not floating over the page: no page header reserves space for it (no md:pr-20)", () => {
   for (const f of ["src/components/PageHeader.tsx", "src/components/run/RunHeader.tsx", "src/components/objective/ObjectiveDetailView.tsx"]) {
-    assert.match(readFileSync(join(process.cwd(), f), "utf8"), /md:pr-20/, `${f} reserves the space under the theme button`);
+    assert.doesNotMatch(readFileSync(join(process.cwd(), f), "utf8"), /md:pr-20/, `${f} no longer reserves space under a floating theme button`);
   }
+  const box = readFileSync(join(process.cwd(), "src/components/ThemeSwitch.tsx"), "utf8");
+  assert.doesNotMatch(box, /right-6|border border-\[var\(--color-control-border\)\]/, "borderless, not at the old floating spot");
+  assert.match(box, /h-11 w-11/, "44 px hit area");
+  assert.doesNotMatch(box, /md:z-|left-\[/, "no z hack and no guessed left offset: the row icon is in the brand row's flow");
+  assert.match(readFileSync(join(process.cwd(), "src/components/Sidebar.tsx"), "utf8"), /<ThemeSwitch where="row" \/>/);
+  assert.match(readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8"), /<ThemeSwitch where="strip" \/>/);
+  assert.doesNotMatch(box, /md:h-\d|md:w-\d/, "the hit area is 44 px at desktop width too");
 });
