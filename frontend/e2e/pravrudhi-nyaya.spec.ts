@@ -41,7 +41,15 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   await page.goto("/data-handling");
   const body = page.getByTestId("data-handling");
   await expect(page.getByRole("heading", { name: "Data handling", exact: true, level: 1 })).toBeVisible();
-  await expect(body.getByTestId("dh-kept")).toContainText("Run records are kept for up to 7 days.");
+  await expect(body.getByTestId("dh-kept")).toContainText("Screening run records are kept for up to 7 days.");
+  // #478: the matter-papers section follows it and says what is true about papers (R1 FINAL 9544b4acd0c9)
+  await expect(body.getByTestId("dh-papers")).toContainText("Where it is kept: in our store on a storage volume in the EU (Romania), not in India.");
+  await expect(body.getByTestId("dh-papers")).toContainText("How long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period.");
+  await expect(body.getByTestId("dh-papers")).toContainText("Backup: none known.");
+  await expect(body.getByTestId("dh-papers")).toContainText("This service does not encrypt the stored files. People who run the service and its hosting account can read them.");
+  await expect(body.getByTestId("dh-papers")).toContainText("Who can read it: only your organisation");
+  await expect(body.getByTestId("dh-papers")).toContainText("If you lose the matter number, there is not yet a tested way to ask us to delete your papers.");
+  await expect(body.getByTestId("dh-papers")).not.toContainText(/permanent|we will remove|we will look into/i);
   await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
   await expect(body.getByTestId("dh-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");

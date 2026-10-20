@@ -1,5 +1,7 @@
-// The matter note and the 'matter gone' line of the preview page, R1's file PREVIEW_MATTER_NOTE_R1_v2_2026-10-17.md (sha12 20e75ba6467e), pinned in previewMatterNote.spec.ts. Promises NO storage: the production store is container-local and is recreated by swaps (L2A, A2_PROD_STORE_FACTS_2026-10-17). The earlier 'stay stored until you delete them' was withdrawn.
+// The matter note and the 'matter gone' line of the matter-tools page. 20 Oct (pravrudhi-app#478): R1's MATTER_PAPERS_WORDS_FINAL (v5, sha12 c2895699052b, option A interim after Lead-2's ruling; from L2A's STORE_FACTS_MATTER_PAPERS a804f4e09c07), by hash in previewMatterNote.spec.ts. Papers are kept on the engine's network volume (EU-RO) until the visitor deletes them; the old 17 Oct container-local wording is gone.
 export const MATTER_NOTE = {
-  matter_note: "The service may remove papers when it restarts or is updated, so keep your own copies. Reloading this page loses the matter number shown here, and this page cannot list your matters.",
+  matter_note: "The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. Images are not read.",
+  /** Replaces the \"Images are not read.\" sentence only once scanned papers are on (NEXT_PUBLIC_SCANNED_INTAKE=1) in production AND tested end to end (R1): until then the note says images are not read. */
+  matter_note_images: "For a scanned paper, only the text read from its pages is kept; the page images are not written to our store.",
   matter_gone: "This matter is no longer held. Start a matter and add the papers again.",
 } as const;
