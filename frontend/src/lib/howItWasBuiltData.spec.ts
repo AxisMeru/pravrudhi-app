@@ -113,7 +113,7 @@ test("r3_published quotes the app's own statute notice byte for byte (v1o: no 'N
 });
 
 test("own digit rule: no count anywhere; digits only in 'step 1', licence names and versions, the model names, the dataset id and the one licence-read date (17 October 2026)", () => {
-  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g, /our 7B fine-tune/g, /CC BY 3\.0/g, /CC0/g, /s\.52\(1\)\(q\)/g, /d0r1h\/ILC/g, /read on 17 October 2026/g];
+  const ALLOWED = [/step 1/gi, /CC BY 4\.0/g, /Apache-2\.0/g, /v0\.2/g, /nyaya-element-judge-32b-v0/g, /Qwen\/Qwen2\.5-32B/g, /prabhasa-nyaya-7b-sft/g, /Qwen2\.5-7B/g, /our 7B fine-tune/g, /CC BY 3\.0/g, /s\.52\(1\)\(q\)/g, /d0r1h\/ILC/g, /read on 17 October 2026/g];
   for (const [k, t] of Object.entries(DATA_NOTE_TEXT)) {
     let rest = t;
     for (const re of ALLOWED) rest = rest.replace(re, "");
