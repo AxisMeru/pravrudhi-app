@@ -67,6 +67,7 @@ test("the button is a 44 px target at desktop width too (Interim lead P3, 16 Oct
 test("the button is a 44 px target at phone width, reachable by keyboard, and has no visible text", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 800 });
   await page.goto("/guide");
+  await expect(BTN(page), "the phone swaps the sidebar-row icon for the top-strip one right after hydration").toBeVisible();
   const b = (await BTN(page).boundingBox())!;
   expect(b.width).toBeGreaterThanOrEqual(44);
   expect(b.height).toBeGreaterThanOrEqual(44);

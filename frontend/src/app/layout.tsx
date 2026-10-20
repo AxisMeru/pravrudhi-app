@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[70] focus:rounded-md focus:bg-[var(--color-surface)] focus:px-3 focus:py-2 focus:text-sm focus:text-[var(--color-text)]">Skip to main content</a>
-        <ThemeSwitch />
+        <ThemeSwitch where="strip" />
         <div className="flex h-screen print:block print:h-auto">
           <Sidebar />
           {/* Room for the drawer toggle, which is fixed at top-left below `md` and would otherwise sit on top

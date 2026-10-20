@@ -32,5 +32,8 @@ test("the theme button is in the sidebar brand row and the phone top strip, not 
   const box = readFileSync(join(process.cwd(), "src/components/ThemeSwitch.tsx"), "utf8");
   assert.doesNotMatch(box, /right-6|border border-\[var\(--color-control-border\)\]/, "borderless, not at the old floating spot");
   assert.match(box, /h-11 w-11/, "44 px hit area");
+  assert.doesNotMatch(box, /md:z-|left-\[/, "no z hack and no guessed left offset: the row icon is in the brand row's flow");
+  assert.match(readFileSync(join(process.cwd(), "src/components/Sidebar.tsx"), "utf8"), /<ThemeSwitch where="row" \/>/);
+  assert.match(readFileSync(join(process.cwd(), "src/app/layout.tsx"), "utf8"), /<ThemeSwitch where="strip" \/>/);
   assert.doesNotMatch(box, /md:h-\d|md:w-\d/, "the hit area is 44 px at desktop width too");
 });

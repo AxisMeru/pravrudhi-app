@@ -22,16 +22,27 @@ function subscribe(onChange: () => void): () => void {
 }
 
 const ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
-// z-[55] from md up: the sidebar is a flex item with z-50, so a lower z-index would put its brand row over the button (the click would land on the brand text).
-// One borderless icon, as in a typical app (Advisor Q6, 20 Oct). From md up it sits in the sidebar's brand row (left of the notification bell); on a phone it sits in the top strip the layout reserves
-// above every page, opposite the drawer toggle. The icon is small and borderless; the hit area stays 44 px everywhere (Interim lead P3, 16 Oct). One element for both, so there is one button, one id, one test id.
-const BOX = "fixed right-3 top-1.5 z-30 md:z-[55] flex h-11 w-11 items-center justify-center rounded-md text-[var(--color-text-dim)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 md:left-[8.75rem] md:right-auto md:top-3 print:hidden";
+// One borderless icon, as in a typical app (Advisor Q6, 20 Oct). From md up it sits IN the sidebar's brand row, in the row's own flow beside the notification bell, so nothing depends on where the bell or the brand text ends;
+// on a phone it sits in the top strip the layout reserves above every page, opposite the drawer toggle. The hit area stays 44 px everywhere (Interim lead P3, 16 Oct).
+// Exactly one of the two is rendered at a time (a media query decides), so there is one button, one id and one test id.
+const ROW_BOX = "flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-[var(--color-text-dim)] hover:bg-[var(--color-hover)] hover:text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 print:hidden";
+const STRIP_BOX = `fixed right-3 top-1.5 z-30 ${ROW_BOX}`;
+const subscribeMd = (cb: () => void) => {
+  const m = window.matchMedia("(min-width: 768px)");
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+const mdNow = () => window.matchMedia("(min-width: 768px)").matches;
 
-export function ThemeSwitch() {
+export function ThemeSwitch({ where }: { where: "row" | "strip" }) {
+  const md = useSyncExternalStore(subscribeMd, mdNow, () => true);
+  // the server snapshot is md (the sidebar row); a phone swaps to the strip right after hydration
+
   // Until the stored choice is read (the null server snapshot) the button shows the system strings, the default.
   const stored: ThemeChoice | null = useSyncExternalStore(subscribe, readTheme, () => null);
   const choice: ThemeChoice = stored ?? "system";
   const Icon = ICONS[choice];
+  if ((where === "row") !== md) return null;
   return (
     <button
       type="button"
@@ -44,7 +55,7 @@ export function ThemeSwitch() {
         saveTheme(nextTheme(choice));
         window.dispatchEvent(new Event(EVENT));
       }}
-      className={BOX}
+      className={where === "row" ? ROW_BOX : STRIP_BOX}
     >
       <Icon size={18} aria-hidden />
     </button>
