@@ -10,7 +10,8 @@ import { PREVIEW_CASE as CC } from "@/lib/previewCaseCopy";
 import { PREVIEW_HEARING as HP } from "@/lib/previewHearingCopy";
 import { A1Result, HearingResult, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { BailCard, SynopsisCard } from "@/components/preview/Drafting";
-import { someRegistryToolOff } from "@/lib/workflowRegistry";
+import { toolsOffLineShown } from "@/lib/workflowRegistry";
+import { useEngineWorkflows } from "@/lib/useEngineWorkflows";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
@@ -49,6 +50,7 @@ const GONE_LINE = MATTER_NOTE.matter_gone;
 const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", M.b3Presentation], ["memo", M.b3Memo], ["information", M.b3Information], ["notice", M.b3Notice], ["receipt", M.b3Receipt]];
 
 export default function PreviewPage() {
+  const engineWorkflows = useEngineWorkflows();
   const signedOut = useSignedOut(true); // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
@@ -157,7 +159,7 @@ export default function PreviewPage() {
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
         <PreviewBadge line />
-        {someRegistryToolOff(null) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
+        {toolsOffLineShown(engineWorkflows, DRAFTING_CARDS) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
         {signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
         )}

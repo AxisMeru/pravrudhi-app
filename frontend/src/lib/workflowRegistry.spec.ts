@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, registryAvailable, registryHref, someRegistryToolOff } from "./workflowRegistry";
+import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, DRAFTING_WORKFLOW_KEYS, parseStatusWorkflows, readMap, registryAvailable, registryHref, toolsOffLineShown, type WorkflowsRead } from "./workflowRegistry";
 
 const root = join(__dirname, "..", "..");
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -68,11 +68,52 @@ test("the machine-readable list (workflowRegistry.json) equals the registry: id,
   for (const m of REGISTRY_MACHINE) { assert.match(m.route, /^\/[a-z0-9-]+(\/[a-z0-9-]+)?$/); assert.equal(m.verb, "POST"); assert.equal(m.status, "Available"); }
 });
 
-test("R1's 'some tools are not switched on' line: hidden while all eight are on, shown when a registry tool is off", () => {
-  assert.equal(someRegistryToolOff(null), false, "all eight on (the 0.6.23 set): the line would be untrue");
-  assert.equal(someRegistryToolOff(undefined), false);
-  assert.equal(someRegistryToolOff(Object.fromEntries(REGISTRY.map((e) => [e.key, true]))), false);
-  assert.equal(someRegistryToolOff({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])), wf_a3_chronology: false }), true, "one off: the line is true");
+const ALL8: Record<string, boolean> = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+const ALL10: Record<string, boolean> = { ...ALL8, wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: true };
+const map = (m: Record<string, boolean>): WorkflowsRead => ({ kind: "map", map: m });
+
+test("R1's rule for the 'some tools are not switched on' line (#475): shown only when a tool the page shows is reported off in a present map; hidden when the status is unreadable or loading; the pinned fallback shows it only while the A4/A8 cards are on", () => {
+  assert.deepEqual([...DRAFTING_WORKFLOW_KEYS], ["wf_a4_bail_drafting", "wf_a8_synopsis_list_of_dates"]);
+  // all on -> hidden (cards on and cards off)
+  assert.equal(toolsOffLineShown(map(ALL10), true), false, "all ten on, cards on");
+  assert.equal(toolsOffLineShown(map(ALL8), false), false, "all eight on, cards off (A4/A8 are not shown, so their state is not the page's)");
+  // one registry key off -> shown
+  assert.equal(toolsOffLineShown(map({ ...ALL10, wf_a3_chronology: false }), true), true);
+  assert.equal(toolsOffLineShown(map({ ...ALL8, wf_a3_chronology: false }), false), true);
+  // A4 / A8 off -> shown while their cards are on, not when the cards are off
+  assert.equal(toolsOffLineShown(map({ ...ALL10, wf_a4_bail_drafting: false }), true), true, "a4 off, cards on");
+  assert.equal(toolsOffLineShown(map({ ...ALL10, wf_a8_synopsis_list_of_dates: false }), true), true, "a8 off, cards on");
+  assert.equal(toolsOffLineShown(map({ ...ALL8, wf_a4_bail_drafting: false, wf_a8_synopsis_list_of_dates: false }), false), false, "a4/a8 off but their cards are not shown");
+  // a key missing from a map that exists counts as off
+  const missing = { ...ALL10 }; delete missing.wf_a5_ingredient_agenda;
+  assert.equal(toolsOffLineShown(map(missing), true), true, "registry key missing from a present map");
+  const noA8 = { ...ALL10 }; delete noA8.wf_a8_synopsis_list_of_dates;
+  assert.equal(toolsOffLineShown(map(noA8), true), true, "a8 missing from a present map, cards on");
+  // unreadable or loading -> hidden (never claim a tool is off on a guess)
+  assert.equal(toolsOffLineShown({ kind: "unreadable" }, true), false);
+  assert.equal(toolsOffLineShown({ kind: "unreadable" }, false), false);
+  assert.equal(toolsOffLineShown({ kind: "loading" }, true), false);
+  // readable status, no map (0.6.23 or older): the pinned fallback (registry on, A4/A8 off)
+  assert.equal(toolsOffLineShown({ kind: "none" }, true), true, "fallback with the A4/A8 cards on");
+  assert.equal(toolsOffLineShown({ kind: "none" }, false), false, "fallback with the A4/A8 cards off: all eight on");
   const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
-  assert.match(page, /\{someRegistryToolOff\(null\) && <p[^>]*pv-tools-off-line/, "the page shows the line only through the check");
+  assert.match(page, /\{toolsOffLineShown\(engineWorkflows, DRAFTING_CARDS\) && <p[^>]*pv-tools-off-line/);
+  assert.equal(readMap(map(ALL8)), ALL8);
+  assert.equal(readMap({ kind: "none" }), null);
+  assert.equal(readMap({ kind: "unreadable" }), null);
+});
+
+test("the status workflows field is read as booleans only; absent or malformed means the fallback; a key the engine says is off is off", () => {
+  assert.equal(parseStatusWorkflows(undefined), null);
+  assert.equal(parseStatusWorkflows(null), null);
+  assert.equal(parseStatusWorkflows([true]), null);
+  assert.equal(parseStatusWorkflows("on"), null);
+  assert.deepEqual(parseStatusWorkflows({ wf_a3_chronology: true, wf_a5_ingredient_agenda: false, wf_b3_s138_checklist: "true", wf_x: 1 }), { wf_a3_chronology: true, wf_a5_ingredient_agenda: false });
+  const all = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+  const a = registryAvailable(parseStatusWorkflows({ ...all, wf_a3_chronology: false }));
+  assert.equal(a.wf_a3_chronology, false);
+  assert.equal(a.wf_a5_ingredient_agenda, true);
+  assert.equal(parseStatusWorkflows({}), null, "an object with no boolean is no map");
+  assert.equal(parseStatusWorkflows({ a: "x", b: 1 }), null);
+  assert.deepEqual(Object.values(registryAvailable(parseStatusWorkflows(undefined))).every(Boolean), true, "no field: the 0.6.23 fallback");
 });

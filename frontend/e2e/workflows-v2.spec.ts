@@ -77,3 +77,59 @@ test("flag ON: Workflows leads the work group of the nav", async ({ page }) => {
   // against the links this build has (Citation check and Settings are not in every build's nav)
   for (const later of ["/citations", "/settings", "/safety"]) if (hrefs.includes(later)) expect(w, `Workflows before ${later}`).toBeLessThan(hrefs.indexOf(later));
 });
+
+// #470: the cards read the engine's own list (GET /api/v1/status `workflows`, engine 0.6.24); no field = the 0.6.23 fallback; a key that is off is a Coming card that is not a link.
+const statusWith = (workflows?: Record<string, boolean>) => ({ engine_version: "0.6.24", service_window: null, judge: { state: "unknown", checked_at: null }, ...(workflows ? { workflows } : {}) });
+const ALL_ON = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+
+test("flag ON: a workflow the engine reports off is a Coming card with no link; the others stay Available links", async ({ page }) => {
+  test.skip(!ON, "needs the build with the workflows flag");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith({ ...ALL_ON, wf_a3_chronology: false }) }));
+  await page.goto("/workflows");
+  const card = page.getByTestId("workflow-card-wf_a3_chronology");
+  await expect(card.getByTestId("workflow-card-chip")).toHaveText("Coming");
+  await expect(card.locator("a")).toHaveCount(0);
+  await expect(page.getByTestId("workflow-card-wf_a5_ingredient_agenda").getByTestId("workflow-card-chip")).toHaveText("Available");
+  await expect(page.getByTestId("workflow-card-wf_a5_ingredient_agenda").locator("a")).toHaveCount(1);
+});
+
+test("flag ON: an engine status without the workflows field (older engine) leaves all eight Available (the 0.6.23 fallback)", async ({ page }) => {
+  test.skip(!ON, "needs the build with the workflows flag");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith() }));
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-card-chip")).toHaveCount(8);
+  for (const c of await page.getByTestId("workflow-card-chip").all()) await expect(c).toHaveText("Available");
+});
+
+// R1's rule (#475): the line shows only when a tool the page shows is reported off; hidden when the status cannot be read; no map = the pinned fallback (A4/A8 off).
+const DRAFT = process.env.DRAFTING_BUILD === "1"; // built with the A4/A8 cards on
+const ALL_TEN = { ...ALL_ON, wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: true };
+async function line(page: import("@playwright/test").Page, status: { status?: number; json?: unknown }) {
+  await page.route("**/api/v1/status", (r) => r.fulfill({ status: status.status ?? 200, json: status.json ?? {} }));
+  await page.goto("/matter-tools");
+  await expect(page.getByTestId("pv-matter")).toBeVisible();
+  await page.waitForTimeout(600); // the status read is asynchronous: give it time to land before asserting absence
+  return page.getByTestId("pv-tools-off-line");
+}
+
+test("matter-tools line: all tools the page shows are on -> hidden", async ({ page }) => {
+  await expect(await line(page, { json: statusWith(DRAFT ? ALL_TEN : ALL_ON) })).toHaveCount(0);
+});
+
+test("matter-tools line: a registry tool reported off -> shown", async ({ page }) => {
+  await expect(await line(page, { json: statusWith({ ...(DRAFT ? ALL_TEN : ALL_ON), wf_a6_cheque_case_check: false }) })).toBeVisible();
+});
+
+test("matter-tools line: with the A4/A8 cards on, a4 off or a8 off or a8 missing from the map -> shown", async ({ page }) => {
+  test.skip(!DRAFT, "needs the build with the A4/A8 cards (DRAFTING_BUILD=1)");
+  await expect(await line(page, { json: statusWith({ ...ALL_TEN, wf_a4_bail_drafting: false }) })).toBeVisible();
+});
+
+test("matter-tools line: a status that cannot be read -> hidden (never claim a tool is off on a guess)", async ({ page }) => {
+  await expect(await line(page, { status: 503, json: { detail: "down" } })).toHaveCount(0);
+});
+
+test("matter-tools line: a readable status with no workflows map -> the pinned fallback: hidden with the A4/A8 cards off, shown with them on", async ({ page }) => {
+  const l = await line(page, { json: statusWith() });
+  if (DRAFT) await expect(l).toBeVisible(); else await expect(l).toHaveCount(0);
+});
