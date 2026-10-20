@@ -1,5 +1,6 @@
 "use client";
 
+import { WORKFLOWS_V2 } from "@/lib/workflowsV2Flag";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { ComponentType } from "react";
@@ -27,7 +28,8 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
   const mb = useMbState();
   const onScreening = pathname.startsWith("/screening");
   const by = (href: string) => items.find((i) => i.href === href);
-  const general = ["/citations", "/workflows", "/settings"].map(by).filter((i): i is MbNavItem => !!i);
+  // with the workflows front door (NEXT_PUBLIC_WORKFLOWS_V2=1) Workflows leads the group
+  const general = (WORKFLOWS_V2 ? ["/workflows", "/citations", "/settings"] : ["/citations", "/workflows", "/settings"]).map(by).filter((i): i is MbNavItem => !!i);
   const reference = ["/data-handling", "/guide", "/safety", "/benchmarks", "/demo", "/how-it-was-built"].map(by).filter((i): i is MbNavItem => !!i);
   const link = (i: MbNavItem) => {
     const active = i.href === "/" ? pathname === "/" : pathname.startsWith(i.href);
