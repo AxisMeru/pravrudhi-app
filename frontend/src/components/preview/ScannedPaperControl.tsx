@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { previewPost } from "@/lib/previewApi";
-import { MAX_SCAN_BYTES, SCAN_ACCEPT, SCAN_TEXT, documentLine, mimeOfFile, pageLines, parseScanIngest, repairedLine, scanBody, scanRefusalLine, type ScanIngest } from "@/lib/scannedIntake";
+import { IMAGES_ACCEPTED, MAX_SCAN_BYTES, SCAN_ACCEPT, SCAN_TEXT, documentLine, mimeOfFile, pageLines, parseScanIngest, repairedLine, scanBody, scanRefusalLine, type ScanIngest } from "@/lib/scannedIntake";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
@@ -30,9 +30,9 @@ export function ScannedPaperControl({ matter, busy, onAdded, onKept, onRefusal }
   const add = async (file: File) => {
     setWorking(true); setLast(null); setRefusal(null);
     try {
-      // the size is tested before the file is read: an over-size file is refused without being read into memory
+      // the size and (while the engine refuses photos) the photo type are tested before the file is read: such a file is refused without being read into memory or sent
       const mime = mimeOfFile(file.name, file.type);
-      const pre = file.size > MAX_SCAN_BYTES ? scanBody(matter, file.name, mime, file.size, "") : null;
+      const pre = file.size > MAX_SCAN_BYTES || (!IMAGES_ACCEPTED && /^image\//.test(mime)) ? scanBody(matter, file.name, mime, file.size, "") : null;
       const r = pre ?? scanBody(matter, file.name, mime, file.size, toBase64(await file.arrayBuffer()));
       if (!r.ok) { const line = scanRefusalLine(r.reason, null, null); return line ? setRefusal(line) : onRefusal(422, null); }
       const a = await previewPost("/matter-spans/documents", r.body);
