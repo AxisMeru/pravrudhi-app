@@ -9,7 +9,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { FilmPlayer } from "../../components/films/FilmPlayer";
+import { FilmPlayer, sceneNameLine } from "../../components/films/FilmPlayer";
 import { WEBM_FILMS, filmFile, type FilmManifest } from "./films";
 import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
@@ -273,4 +273,16 @@ test("soundOnPlay: the narrated film has a Mute button (not Turn on sound), star
   const other = renderToStaticMarkup(createElement(FilmPlayer, { id: "nyayasiddhi-narrated", manifest: VOICE_MANIFEST }));
   assert.match(other, /Turn on sound/, "the other narrated films keep Turn on sound");
   assert.doesNotMatch(other, /film-mute/);
+});
+
+test("a scene line ends in one full stop whether or not the manifest's scene name already does (no doubled stop on the film cards)", () => {
+  assert.equal(sceneNameLine("Built"), "Built.");
+  assert.equal(sceneNameLine("Same script. Same ranges."), "Same script. Same ranges.");
+  assert.equal(sceneNameLine("No outside entry yet. Entry is a pull request on the dataset page."), "No outside entry yet. Entry is a pull request on the dataset page.");
+  for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as const) {
+    const m = readManifest(id);
+    const markup = renderToStaticMarkup(createElement(FilmPlayer, { id, manifest: m, posterFirst: true }));
+    assert.doesNotMatch(markup, /\.\.\s*<\/span>/, `${id}: no doubled stop after a scene name`);
+    for (const s of m.scenes) assert.ok(markup.includes(`>${sceneNameLine(s.name).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}</span>`) || sceneNameLine(s.name).match(/["&<>']/), `${id}: ${s.name}`);
+  }
 });

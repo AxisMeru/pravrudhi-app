@@ -203,6 +203,7 @@ test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the
   await mute.click();
   await expect(video).toHaveJSProperty("muted", false);
   expect(await video.locator("track").evaluate((t: HTMLTrackElement) => t.hasAttribute("default"))).toBe(false);
+  expect(await block.getByTestId("film-scenes").innerText(), "no doubled full stop in a scene line").not.toMatch(/\.\./);
   const text = await block.innerText();
   expect(text).not.toMatch(/%|interval|upper bound|accuracy|accurate|best|beats?|rank|outperform/i);
   expect(text, "no claim about the voice").not.toMatch(/human|natural|lifelike|professional/i);
