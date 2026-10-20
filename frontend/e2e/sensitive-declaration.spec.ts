@@ -25,7 +25,7 @@ test("flag ON: the question has no default, the button stays disabled and R1's s
   test.skip(!ON, "needs the build with the declaration flag");
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/bail-draft", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("bail_response_drafted") }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   const run = page.getByTestId("bail-run");
   await expect(page.getByTestId("bail-declaration")).toContainText(LEGEND);
   await expect(page.getByTestId("bail-declaration-none")).not.toBeChecked();
@@ -47,7 +47,7 @@ test("flag ON: choosing 'Yes' sends sensitive and shows the engine's referral, n
   test.skip(!ON, "needs the build with the declaration flag");
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/bail-draft", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("bail_response_referred_sensitive") }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await fillBail(page);
   await page.getByTestId("bail-declaration-sensitive").check();
   await page.getByTestId("bail-run").click();
@@ -58,7 +58,7 @@ test("flag ON: choosing 'Yes' sends sensitive and shows the engine's referral, n
 test("flag ON: the engine's coded refusal (422 sensitive_declaration_required) reads R1's line, never the engine's text", async ({ page }) => {
   test.skip(!ON, "needs the build with the declaration flag");
   await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ status: 422, json: { error: "sensitive_declaration_required", detail: "ENGINE TEXT SHOULD NOT SHOW" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await fillBail(page);
   await page.getByTestId("bail-declaration-none").check();
   await page.getByTestId("bail-run").click();
@@ -73,7 +73,7 @@ test("flag ON: the synopsis card asks the same question and sends the answer", a
   await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, pages_without_text: [], ingest_done: true } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [{ doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: true }], pages_total: 1, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/synopsis-dates", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("synopsis_response_table_only") }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-name").fill("FIR");
   await page.getByTestId("pv-text").fill("The FIR was registered.");
@@ -92,7 +92,7 @@ test("flag ON: a fresh load, a second draft in the same session and a page reloa
   test.skip(!ON, "needs the build with the declaration flag");
   await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ json: fx("bail_response_drafted") }));
   const none = page.getByTestId("bail-declaration-none"), yes = page.getByTestId("bail-declaration-sensitive"), run = page.getByTestId("bail-run");
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await expect(none).not.toBeChecked(); await expect(yes).not.toBeChecked(); await expect(run).toBeDisabled();
   await fillBail(page);
   await none.check();
