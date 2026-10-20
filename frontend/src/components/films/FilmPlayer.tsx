@@ -19,6 +19,9 @@ const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").m
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion, and for a film marked `posterFirst`, the poster stays until the visitor asks for the film with the button (no film bytes, no autoplay). The scene text below is the film's own and is always on the page.
  */
+/** A scene's name followed by one full stop: some scene names (Studio's manifests) already end in one, and "name." + ".": would print "..". */
+export const sceneNameLine = (name: string): string => `${name.replace(/[.\s]+$/, "")}.`;
+
 export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = FILM_DOWNLOAD_LINK, posterAlt, soundOnPlay = false, onPlaybackError }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean; downloadLabel?: string; posterAlt?: string; soundOnPlay?: boolean; onPlaybackError?: () => void }) {
   const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
@@ -104,7 +107,7 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
         <h3 className="text-sm font-medium text-[var(--color-text)]">{FILM_TRANSCRIPT_HEADING}</h3>
         <ol className="mt-1 space-y-1 text-sm text-[var(--color-text-dim)]">
           {film.scenes.map((s) => (
-            <li key={s.startS}><span className="font-mono text-xs">{clock(s.startS)}</span> <span className="text-[var(--color-text)]">{s.name}.</span> {s.text}</li>
+            <li key={s.startS}><span className="font-mono text-xs">{clock(s.startS)}</span> <span className="text-[var(--color-text)]">{sceneNameLine(s.name)}</span> {s.text}</li>
           ))}
         </ol>
         {LAYOUT_MATTER_B && film.scenes.some((s) => s.text.includes("Matter workspace")) && (
