@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
@@ -22,4 +22,9 @@ test("the button and its note are R1's words by hash (MATTER_PAPERS_WORDS_FINAL 
   assert.equal(h16(SAMPLE_TEXT.button), "34d595ccdc53bee8");
   assert.equal(h16(SAMPLE_TEXT.note), "85c10822f2eb8d7f");
   assert.doesNotMatch(`${SAMPLE_TEXT.button} ${SAMPLE_TEXT.note}`, /preview|accura|real case/i);
+});
+
+// R2's advise (#480): two repo guards (caseIdentifiers.spec.ts, noTrainingPromise.spec.ts) skip this whole directory, so it must hold exactly the pinned bundle: a later file here would escape both scans.
+test("src/lib/fixtures/sample/ holds exactly the one pinned bundle file (the directory-wide guard exemptions cover nothing else)", () => {
+  assert.deepEqual(readdirSync(join(__dirname, "fixtures", "sample")), ["SAMPLE_MATTER_INVENTED_v2.json"]);
 });
