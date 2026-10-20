@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { SCAN_TEXT, keptByName, mimeOfFile, docNameOf, repairedLine, rowScan, scanRefusalLine, scanBody, MAX_SCAN_BYTES, canDrawImage, cropRect, documentLine, pageLines, parseCrop, parseScanIngest } from "./scannedIntake";
+import { IMAGES_ACCEPTED, SCAN_ACCEPT, SCAN_TEXT, keptByName, mimeOfFile, docNameOf, repairedLine, rowScan, scanRefusalLine, scanBody, MAX_SCAN_BYTES, canDrawImage, cropRect, documentLine, pageLines, parseCrop, parseScanIngest } from "./scannedIntake";
 
 const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 16);
 
@@ -14,7 +14,9 @@ test("R1's OCR words are exactly hers, by hash (OCR_LIMITS_V2 3d1f0ef19f36)", ()
   assert.equal(h(SCAN_TEXT.timeout), "4f3bc8352bdb2893");
   assert.equal(h(SCAN_TEXT.language_not_supported), "6ceb2553c4ccbae1");
   assert.equal(h(SCAN_TEXT.ocr_unavailable), "1b75b9fead542580");
-  assert.equal(h(SCAN_TEXT.repairedPage), "33150eff994f7bdd");
+  assert.equal(h(SCAN_TEXT.repairedPage), "6d58ad2bbb36f4d0", "R1 20 Oct: the narrower repaired-page line");
+  assert.equal(h(SCAN_TEXT.page_limit), "940c7c869c69f005");
+  assert.equal(h(SCAN_TEXT.photoRefused), "b7857975b161bd99");
   assert.doesNotMatch(Object.values(SCAN_TEXT).join(" "), /garbled|scans?\b|\d+ ?%|accura/i, "R1 v3: no garbled, no scans, no figures");
   assert.equal(h(SCAN_TEXT.cropCaption), "88826b4533d074a7");
   assert.equal(h(SCAN_TEXT.heicRefused), "6e81ca38216b082b");
@@ -48,6 +50,8 @@ test("an unreadable page whose engine line is missing still says R1's exact line
   assert.deepEqual(pageLines(v.pages[0]), ["This page could not be read."]);
   const t = parseScanIngest({ pages: [{ page: 1, source: "unreadable", readable: false, reason: "timeout", line: null }] })!;
   assert.deepEqual(pageLines(t.pages[0]), ["This page could not be read.", "This page took too long to read."]);
+  const L = parseScanIngest({ pages: [{ page: 7, source: "unreadable", readable: false, reason: "page_limit", line: null }] })!;
+  assert.deepEqual(pageLines(L.pages[0]), ["This page could not be read.", "This page was not read because the paper has more pages than the tool reads at once."], "an over-cap page has its own reason line, never the timeout line");
 });
 
 test("a page marked readable:false is never treated as readable, whatever its source", () => {
@@ -84,8 +88,15 @@ test("the documents request carries exactly one of pdf_base64 or image_base64 (+
   assert.ok(r.ok && !("text" in r.body) && !("image_base64" in r.body));
 });
 
-test("refusal lines: HEIC by mime, and any over-size answer (413 / pdf_too_large / over the cap) says R1's line, never the engine's PDF/bytes text; other refusals are not ours", () => {
-  assert.equal(scanRefusalLine("heic", null, null), SCAN_TEXT.heicRefused);
+test("refusal lines: a photo (HEIC by mime, or the engine's image refusal codes) says R1's photo line while photos are refused, and any over-size answer (413 / pdf_too_large / over the cap) says R1's line, never the engine's PDF/bytes text; other refusals are not ours", () => {
+  assert.equal(IMAGES_ACCEPTED, false, "the engine refuses photos until its decoder (PR 3)");
+  assert.equal(scanRefusalLine("heic", null, null), SCAN_TEXT.photoRefused, "no HEIC line while photos are refused");
+  for (const code of ["image_not_supported_yet", "image_not_enabled"]) {
+    assert.equal(scanRefusalLine(null, 422, { error: code }), SCAN_TEXT.photoRefused, code);
+    assert.equal(scanRefusalLine(null, 422, { code }), SCAN_TEXT.photoRefused, code);
+  }
+  assert.doesNotMatch(Object.values(SCAN_TEXT).filter((x) => x !== SCAN_TEXT.heicRefused).join(" "), /JPEG or PNG/, "the save-as line appears nowhere else");
+  assert.equal(SCAN_ACCEPT, ".pdf,application/pdf", "the control offers PDFs only while photos are refused");
   assert.equal(scanRefusalLine("too_big", null, null), SCAN_TEXT.tooLarge);
   assert.equal(scanRefusalLine(null, 413, { detail: "The PDF is larger than 8000000 bytes" }), SCAN_TEXT.tooLarge);
   assert.equal(scanRefusalLine(null, 422, { error: "pdf_too_large" }), SCAN_TEXT.tooLarge);

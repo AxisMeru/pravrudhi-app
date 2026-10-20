@@ -52,7 +52,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   await expect(page.getByTestId("scan-ocr-line")).toHaveText("Pages read from page images may contain mistakes. Check each quote against the page image.");
   await expect(page.getByTestId("scan-doc-line")).toHaveText("1 page(s) could not be read, so this paper is only partly searched.");
   await expect(page.getByTestId("scan-page-unreadable")).toHaveText("Page 3: This page could not be read. This page could not be read well enough.");
-  await expect(page.getByTestId("scan-page-repaired")).toHaveText("Page 2: The text in the file for this page was damaged or missing, so the page was read from its image.");
+  await expect(page.getByTestId("scan-page-repaired")).toHaveText("Page 2: The text in the file for this page was damaged, so the page was read from its image.");
   await expect(page.locator("body")).not.toContainText(/garbled|engine line that the app does not use|91\.4|88%/);
   await page.getByTestId("pv-a3-run").click();
   await expect(page.getByTestId("scan-date-line").first()).toHaveText("Read from a page image: check this date against the page image.");
@@ -60,7 +60,24 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   await expect(page.getByTestId("scan-crop-caption").first()).toHaveText("Page image from your upload.");
 });
 
-test("flag ON: a HEIC file and an over-size file are refused with R1's lines before anything is sent, and a PDF goes as pdf_base64", async ({ page }) => {
+test("flag ON: while the engine refuses photos, the control offers PDFs only and a PNG that the engine refuses (image_not_supported_yet or image_not_enabled) shows R1's photo line, with no save-as-JPEG line", async ({ page }) => {
+  test.skip(!ON, "needs the build with NEXT_PUBLIC_SCANNED_INTAKE=1");
+  let code = "image_not_supported_yet";
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ status: 422, json: { error: code, detail: "Photos cannot be added yet. Add the paper as a PDF." } }));
+  await page.goto("/matter-tools");
+  await page.getByTestId("pv-start").click();
+  await expect(page.getByTestId("scan-file")).toHaveAttribute("accept", ".pdf,application/pdf");
+  for (const c of ["image_not_supported_yet", "image_not_enabled"]) {
+    code = c;
+    await page.getByTestId("scan-file").setInputFiles({ name: "photo.png", mimeType: "image/png", buffer: PNG_2X2 });
+    await expect(page.getByTestId("scan-refusal")).toHaveText("Photos cannot be added here. Add the paper as a PDF.");
+  }
+  await expect(page.locator("body")).not.toContainText(/yet\.|Save it as JPEG or PNG/);
+});
+
+test("flag ON: a HEIC photo (R1's photo line, never the save-as-JPEG line) and an over-size file are refused with R1's lines before anything is sent, and a PDF goes as pdf_base64", async ({ page }) => {
   test.skip(!ON, "needs the build with NEXT_PUBLIC_SCANNED_INTAKE=1");
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
@@ -69,7 +86,8 @@ test("flag ON: a HEIC file and an over-size file are refused with R1's lines bef
   await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "p.heic", mimeType: "image/heic", buffer: Buffer.from("x") });
-  await expect(page.getByTestId("scan-refusal")).toHaveText("This photo format is not supported. Save it as JPEG or PNG and add it again.");
+  await expect(page.getByTestId("scan-refusal")).toHaveText("Photos cannot be added here. Add the paper as a PDF.");
+  await expect(page.locator("body")).not.toContainText("Save it as JPEG or PNG");
   expect(bodies.length).toBe(0);
   await page.getByTestId("scan-file").setInputFiles({ name: "a.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 x") });
   await expect(page.getByTestId("scan-refusal")).toHaveText("This file is too large. The limit is 8 MB. Make the file smaller, or split it, and add it again.");

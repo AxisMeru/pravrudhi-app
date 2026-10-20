@@ -3,20 +3,28 @@
 // Nothing here guesses text: an unreadable page contributes no text and no date, and the crop is drawn only from the user's own kept upload (the engine stores no page image).
 export const SCANNED_INTAKE = process.env.NEXT_PUBLIC_SCANNED_INTAKE === "1";
 
+/**
+ * Does the engine accept photos (PNG/JPEG/TIFF) yet? NOT while it answers image_not_supported_yet / image_not_enabled (engine #574, PR 2): then a photo of ANY type, HEIC included, shows R1's one photo line,
+ * the control offers PDFs only, and the "save it as JPEG or PNG" line is never shown (R1: it would send a person round in a circle). This flips to true in the app change that goes with the engine's decoder (PR 3), and the HEIC line comes back with it.
+ */
+export const IMAGES_ACCEPTED = false;
+
 /** File types the flag-ON control accepts. Flag OFF keeps the existing lists (".txt,.pdf,.docx") untouched. */
-export const SCAN_ACCEPT = ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.heic,application/pdf,image/png,image/jpeg,image/tiff,image/heic";
+export const SCAN_ACCEPT = IMAGES_ACCEPTED ? ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.heic,application/pdf,image/png,image/jpeg,image/tiff,image/heic" : ".pdf,application/pdf";
 
 export const SCAN_TEXT = {
   unreadablePage: "This page could not be read.",
   ocrLine: "Pages read from page images may contain mistakes. Check each quote against the page image.",
   dateLine: "Read from a page image: check this date against the page image.",
-  repairedPage: "The text in the file for this page was damaged or missing, so the page was read from its image.",
+  repairedPage: "The text in the file for this page was damaged, so the page was read from its image.", // R1 (20 Oct, OCR_REASON_LINES ce310fb606eb): the narrower line, shipped by engine #574 (6d58ad2bbb36f4d0)
   low_confidence: "This page could not be read well enough.",
   timeout: "This page took too long to read.",
+  page_limit: "This page was not read because the paper has more pages than the tool reads at once.", // R1: over-cap pages, their own reason (940c7c869c69f005); the cap is never printed
   language_not_supported: "This page is in a language the tool does not read.",
   ocr_unavailable: "Scanned pages cannot be read in this deployment.",
   cropCaption: "Page image from your upload.",
-  heicRefused: "This photo format is not supported. Save it as JPEG or PNG and add it again.",
+  heicRefused: "This photo format is not supported. Save it as JPEG or PNG and add it again.", // shown only when IMAGES_ACCEPTED (PR 3)
+  photoRefused: "Photos cannot be added here. Add the paper as a PDF.", // R1 (OCR_PR2_LINES fe1b36cca793): while the engine refuses images (b7857975b161bd99)
   tooLarge: "This file is too large. The limit is 8 MB. Make the file smaller, or split it, and add it again.",
 } as const;
 
@@ -103,7 +111,9 @@ export function scanBody(matterId: string, name: string, mime: string, size: num
 
 /** R1's two upload refusal lines (OCR_UPLOAD_LINES_R1 ee4baa2862f7): HEIC by mime, and ANY over-size answer (engine code pdf_too_large / HTTP 413, whose own text says "PDF" and shows raw bytes, so it is never shown). Null = not one of these. */
 export function scanRefusalLine(reason: string | null, status: number | null, body: Record<string, unknown> | null): string | null {
-  if (reason === "heic") return SCAN_TEXT.heicRefused;
+  // while the engine refuses images: any photo, HEIC included, and the engine's own image refusal codes, answer R1's one photo line
+  if (body?.error === "image_not_supported_yet" || body?.error === "image_not_enabled" || body?.code === "image_not_supported_yet" || body?.code === "image_not_enabled") return SCAN_TEXT.photoRefused;
+  if (reason === "heic") return IMAGES_ACCEPTED ? SCAN_TEXT.heicRefused : SCAN_TEXT.photoRefused;
   if (reason === "too_big" || status === 413 || body?.error === "pdf_too_large" || body?.code === "pdf_too_large") return SCAN_TEXT.tooLarge;
   return null;
 }
