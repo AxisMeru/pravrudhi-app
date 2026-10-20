@@ -61,6 +61,7 @@ export default function PreviewPage() {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [listShown, setListShown] = useState(false); // the matters list is on screen (it hides when the route is off or the read is refused)
   const [message, setMessage] = useState<string | null>(null);
   const [agenda, setAgenda] = useState<{ key: string; lines: string[] }[] | null>(null);
   const [a5, setA5] = useState<A5View | null>(null);
@@ -168,6 +169,7 @@ export default function PreviewPage() {
         {YOUR_MATTERS && !signedOut && (
           <YourMatters
             current={matter}
+            onShown={setListShown}
             onOpen={(id) => { kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(null); void refresh(id); }}
             onDeleted={(id) => { if (id === matter) { kept.clear(); setMatter(null); setPapers([]); clearResults(); } }}
           />
@@ -203,7 +205,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{(() => { const base = YOUR_MATTERS ? MATTER_NOTE.matter_note_list : MATTER_NOTE.matter_note; return SCANNED_INTAKE ? base.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : base; })()}</p>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{(() => { const base = YOUR_MATTERS && listShown ? MATTER_NOTE.matter_note_list : MATTER_NOTE.matter_note; return SCANNED_INTAKE ? base.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : base; })()}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
 

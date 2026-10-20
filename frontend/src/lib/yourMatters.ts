@@ -11,9 +11,10 @@ export const YOUR_MATTERS_TEXT = {
   confirmCancel: "Cancel", // 19766ed6ccb2f4a3
   deleted: "The matter was deleted.", // 7d20b9389e62301b
   empty: "You have no matters yet.", // 396b162d70db5492
-  truncated: "Showing 50 matters. There are more, and they are not listed here.", // 3d1687352bc99fd5
 } as const;
 
+/** R1 (advise on #483): the cap is configurable (1 to 1000) so the number is the rows returned, never a fixed 50 (template 4b271d81f08ce489). */
+export const truncatedLine = (n: number): string => `Showing ${n} matters. There are more, and they are not listed here.`;
 export const matterLabel = (n: number): string => `Matter ${n}`; // 954edc623f83d36d
 export const papersCount = (n: number): string => (n === 1 ? "1 paper" : `${n} papers`); // aa8d34127537ac13, b29985bdb7fe97ed ({n} papers)
 /** The delete question names the matter number AND its paper count (the numbers renumber after a delete): R1's three forms (531d384b4779f8c1, 142ca35eac49f0a1, f0fb0cbf9e577442). */

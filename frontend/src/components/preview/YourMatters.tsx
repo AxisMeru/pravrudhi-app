@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { parseMyMatters, previewPost, type MyMatter } from "@/lib/previewApi";
-import { YOUR_MATTERS_TEXT as Y, confirmLine, matterLabel, papersCount } from "@/lib/yourMatters";
+import { YOUR_MATTERS_TEXT as Y, confirmLine, matterLabel, papersCount, truncatedLine } from "@/lib/yourMatters";
 
 const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var(--color-border)] px-3 text-sm text-[var(--color-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50";
 
@@ -12,7 +12,7 @@ const BTN = "inline-flex min-h-[44px] items-center rounded-md border border-[var
  * The signed-in organisation's matters, read from the engine (POST /matter-spans/my-matters): rows in the engine's order, numbered for this view only (never an id), each with its paper count, Open and a two-step Delete.
  * The list is a passive read: a 401 or 403 hides the section (nothing navigates away because the page was opened; the visitor's own actions still send them to sign in). A route that is not on (404, 405, 409, 501) hides the whole section: nothing is claimed that the engine cannot do. A truncated answer says so and never reads as the whole list.
  */
-export function YourMatters({ current, onOpen, onDeleted }: { current: string | null; onOpen: (matterId: string) => void; onDeleted: (matterId: string) => void }) {
+export function YourMatters({ current, onOpen, onDeleted, onShown }: { current: string | null; onOpen: (matterId: string) => void; onDeleted: (matterId: string) => void; onShown?: (shown: boolean) => void }) {
   const [state, setState] = useState<{ kind: "loading" } | { kind: "off" } | { kind: "error" } | { kind: "list"; matters: MyMatter[]; truncated: boolean }>({ kind: "loading" });
   const [confirming, setConfirming] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -27,6 +27,9 @@ export function YourMatters({ current, onOpen, onDeleted }: { current: string | 
     }).catch(() => { if (live) setState({ kind: "error" }); });
     return () => { live = false; };
   }, []);
+  const shown = state.kind === "list";
+  // tell the page whether the list is on screen, so the matter note only says "your matters are listed above" when they are (R1)
+  useEffect(() => { onShown?.(shown); }, [shown, onShown]);
   if (state.kind === "loading" || state.kind === "off") return null;
   const remove = async (id: string) => {
     setBusy(true); setMessage(null);
@@ -65,7 +68,7 @@ export function YourMatters({ current, onOpen, onDeleted }: { current: string | 
               </li>
             ))}
           </ul>
-          {state.truncated && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-yourmatters-truncated">{Y.truncated}</p>}
+          {state.truncated && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-yourmatters-truncated">{truncatedLine(state.matters.length)}</p>}
         </>
       )}
       {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-yourmatters-message">{message}</p>}

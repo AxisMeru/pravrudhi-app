@@ -30,6 +30,9 @@ test("flag ON: rows in the engine's order, numbered, with paper counts and no id
   await expect(rows.nth(1)).toContainText("Matter 2");
   await expect(rows.nth(1)).toContainText("1 paper");
   expect(await page.getByTestId("pv-yourmatters").innerText()).not.toContain(A);
+  // the list is on screen, so the matter note may say so (R1: ym_note only when the list rendered)
+  await expect(page.getByTestId("pv-matter-note")).toContainText("Your matters are listed above, and you can open or delete them there.");
+  await expect(page.getByTestId("pv-matter-note")).not.toContainText("cannot be listed here");
   await rows.nth(0).getByTestId("pv-yourmatters-open").click();
   await expect(page.getByTestId("pv-papers")).toContainText("FIR (invented sample)");
   await rows.nth(1).getByTestId("pv-yourmatters-delete").click();
@@ -50,13 +53,17 @@ test("flag ON: an empty list, a truncated list (says only the first 50), and a r
   await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-yourmatters-empty")).toHaveText("You have no matters yet.");
   await page.unroute("**/api/v1/matter-spans/my-matters");
-  await page.route("**/api/v1/matter-spans/my-matters", (r) => r.fulfill({ json: { matters: [{ matter_id: A, papers: 2 }], truncated: true } }));
+  await page.route("**/api/v1/matter-spans/my-matters", (r) => r.fulfill({ json: { matters: [{ matter_id: A, papers: 2 }, { matter_id: B, papers: 0 }], truncated: true } }));
   await page.reload();
-  await expect(page.getByTestId("pv-yourmatters-truncated")).toHaveText("Showing 50 matters. There are more, and they are not listed here.");
+  await expect(page.getByTestId("pv-yourmatters-truncated")).toHaveText("Showing 2 matters. There are more, and they are not listed here.");
   await page.unroute("**/api/v1/matter-spans/my-matters");
   await page.route("**/api/v1/matter-spans/my-matters", (r) => r.fulfill({ status: 404, json: { detail: "Not Found" } }));
   await page.reload();
   await expect(page.getByTestId("pv-matter")).toBeVisible();
   await page.waitForTimeout(500);
   await expect(page.getByTestId("pv-yourmatters")).toHaveCount(0);
+  // the list is hidden, so the matter note must NOT say your matters are listed above (R1): it falls back to the interim note
+  await page.getByTestId("pv-start").click();
+  await expect(page.getByTestId("pv-matter-note")).not.toContainText("listed above");
+  await expect(page.getByTestId("pv-matter-note")).toContainText("your matters cannot be listed here");
 });

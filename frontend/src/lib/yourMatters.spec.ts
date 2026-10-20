@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { parseMyMatters } from "./previewApi";
-import { DH_LIST_LINE, YM_NOTE, YOUR_MATTERS, YOUR_MATTERS_TEXT, confirmLine, matterLabel, papersCount } from "./yourMatters";
+import { DH_LIST_LINE, YM_NOTE, YOUR_MATTERS, YOUR_MATTERS_TEXT, confirmLine, matterLabel, papersCount, truncatedLine } from "./yourMatters";
 import { dataHandlingSections } from "./dataHandling";
 
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -41,7 +41,8 @@ test("every 'Your matters' line is R1's by hash; the delete question names the n
   assert.equal(h16(YOUR_MATTERS_TEXT.confirmCancel), "19766ed6ccb2f4a3");
   assert.equal(h16(YOUR_MATTERS_TEXT.deleted), "7d20b9389e62301b");
   assert.equal(h16(YOUR_MATTERS_TEXT.empty), "396b162d70db5492");
-  assert.equal(h16(YOUR_MATTERS_TEXT.truncated), "3d1687352bc99fd5");
+  assert.equal(h16(truncatedLine(7).replace("7", "{n}")), "4b271d81f08ce489", "R1 advise: the number is the rows returned, never a fixed 50");
+  assert.equal(truncatedLine(3), "Showing 3 matters. There are more, and they are not listed here.");
   assert.equal(h16(matterLabel(0).replace("0", "{n}")), "954edc623f83d36d");
   assert.equal(h16(papersCount(1)), "aa8d34127537ac13");
   assert.equal(h16(papersCount(7).replace("7", "{n}")), "b29985bdb7fe97ed");
