@@ -1,6 +1,6 @@
 // The workflow registry (Advisor Q6, Lead-2 adopted 20 Oct): ONE entry per engine workflow, keyed by the engine's own wf_* flag id, so /workflows and the nav read the same list.
 // WORDS are static and R1's (WORKFLOW_REGISTRY_WORDS_DRAFT_R1_2026-10-20.md sha12 bda372ae9d62; pinned by hash in workflowRegistry.spec.ts). AVAILABILITY is dynamic when the engine reports it:
-// GET /api/v1/status `workflows: {wf_key: bool}` (engine #571, ships in a release after 0.6.24); until the engine serves it the app uses REGISTRY_FALLBACK_ON, pinned to 0.6.23's configs/partner_api.yaml.
+// GET /api/v1/status `workflows: {wf_key: bool}` (engine #571, ships IN engine 0.6.24; registryAvailable() takes it, and the app's runtime read of it is pravrudhi-app#470, so today every card uses REGISTRY_FALLBACK_ON, the 0.6.23 set pinned to configs/partner_api.yaml, which is also what an older engine gets).
 // The page shows these cards only on a build with NEXT_PUBLIC_WORKFLOWS_V2=1 (lib/workflowsV2Flag.ts).
 export type RegistryKey =
   | "wf_a2_span_index"
@@ -59,3 +59,6 @@ export function registryAvailable(statusWorkflows: Record<string, unknown> | nul
 
 /** The machine-readable list for the deploy gate (Track A DRIFT-1/2): id, status, route, verb. Checked in as workflowRegistry.json and pinned equal by workflowRegistry.spec.ts. */
 export const REGISTRY_MACHINE = REGISTRY.map((e) => ({ id: e.key, status: REGISTRY_FALLBACK_ON.includes(e.key) ? "Available" : "Building", route: e.route, verb: "POST" }));
+
+/** R1's "Some tools on this page are not switched on" line is true only when at least one registry tool is unavailable; with all eight on it is not shown. */
+export const someRegistryToolOff = (statusWorkflows: Record<string, unknown> | null | undefined): boolean => Object.values(registryAvailable(statusWorkflows)).some((v) => !v);

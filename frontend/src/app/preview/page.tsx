@@ -10,6 +10,7 @@ import { PREVIEW_CASE as CC } from "@/lib/previewCaseCopy";
 import { PREVIEW_HEARING as HP } from "@/lib/previewHearingCopy";
 import { A1Result, HearingResult, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { BailCard, SynopsisCard } from "@/components/preview/Drafting";
+import { someRegistryToolOff } from "@/lib/workflowRegistry";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
@@ -155,7 +156,7 @@ export default function PreviewPage() {
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
         <PreviewBadge line />
-        <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>
+        {someRegistryToolOff(null) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
         {signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
         )}

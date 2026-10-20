@@ -80,8 +80,10 @@ const NAV: NavEntry[] = [
 // With the workflows front door (NEXT_PUBLIC_WORKFLOWS_V2=1) Workflows leads the work group; otherwise it stays in the reference group as it was.
 if (WORKFLOWS_V2) {
   const i = NAV.findIndex((n) => n.href === "/workflows");
-  const [w] = NAV.splice(i, 1);
-  NAV.unshift({ ...w, group: "work" });
+  if (i >= 0) {
+    const [w] = NAV.splice(i, 1);
+    NAV.unshift({ ...w, group: "work" });
+  }
 }
 const NAV_GROUP_ORDER: NavGroupId[] = ["work", "reference", "account", "studio"];
 

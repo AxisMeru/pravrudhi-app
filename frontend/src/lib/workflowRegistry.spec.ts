@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, registryAvailable, registryHref } from "./workflowRegistry";
+import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, registryAvailable, registryHref, someRegistryToolOff } from "./workflowRegistry";
 
 const root = join(__dirname, "..", "..");
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -66,4 +66,13 @@ test("the machine-readable list (workflowRegistry.json) equals the registry: id,
   const file = JSON.parse(readFileSync(join(root, "src", "lib", "workflowRegistry.json"), "utf8"));
   assert.deepEqual(file, REGISTRY_MACHINE);
   for (const m of REGISTRY_MACHINE) { assert.match(m.route, /^\/[a-z0-9-]+(\/[a-z0-9-]+)?$/); assert.equal(m.verb, "POST"); assert.equal(m.status, "Available"); }
+});
+
+test("R1's 'some tools are not switched on' line: hidden while all eight are on, shown when a registry tool is off", () => {
+  assert.equal(someRegistryToolOff(null), false, "all eight on (the 0.6.23 set): the line would be untrue");
+  assert.equal(someRegistryToolOff(undefined), false);
+  assert.equal(someRegistryToolOff(Object.fromEntries(REGISTRY.map((e) => [e.key, true]))), false);
+  assert.equal(someRegistryToolOff({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])), wf_a3_chronology: false }), true, "one off: the line is true");
+  const page = readFileSync(join(root, "src", "app", "preview", "page.tsx"), "utf8");
+  assert.match(page, /\{someRegistryToolOff\(null\) && <p[^>]*pv-tools-off-line/, "the page shows the line only through the check");
 });
