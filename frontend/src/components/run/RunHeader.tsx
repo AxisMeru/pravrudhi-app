@@ -16,7 +16,7 @@ export function RunHeader({ handle, events }: { handle: RunHandle; events: RunEv
   const Icon = target === "harness" ? Wrench : Sparkles;
 
   return (
-    <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-5 md:pr-20">
+    <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-5">
       <div className="flex flex-wrap items-center gap-3">
         <Icon size={18} className="shrink-0 text-[var(--color-text-dim)]" />
         <h1 className="text-lg font-semibold text-[var(--color-text)]">

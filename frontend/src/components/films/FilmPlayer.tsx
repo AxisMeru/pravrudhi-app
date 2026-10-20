@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_EARLIER_LAYOUT_NOTE, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
+import { FILM_CAPTIONS_HIDE, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_LINK, FILM_EARLIER_LAYOUT_NOTE, FILM_MUTE, FILM_MUTE_ARIA, FILM_NARRATED_NOTE, FILM_PLAY_BUTTON, FILM_SILENT_NOTE, FILM_SOUND_OFF, FILM_SOUND_ON, FILM_SYNTHETIC_VOICE, FILM_TRANSCRIPT_HEADING, FILM_UNMUTE, FILM_UNMUTE_ARIA, FILM_VIDEO_UNSUPPORTED, type FilmId } from "@/lib/films/copy";
 import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import { FILM_MANIFESTS, WEBM_FILMS, clock, filmFile, type FilmManifest } from "@/lib/films/films";
 
@@ -14,15 +14,16 @@ const subscribe = (cb: () => void) => {
 const reducedNow = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
+ * `soundOnPlay` (the narrated default card, R1 20 Oct): the film starts with its sound ON, only after the visitor presses Play (a user gesture), and a visible Mute / Unmute button replaces Turn on sound / Turn off sound; `onPlaybackError` tells the parent the film could not be played.
  * One film, played by the browser's own <video>: narrated but STARTING MUTED (so it can start anywhere; a visible button turns the sound on), captions OFF until the visitor asks (a visible button), controls on,
  * nothing downloaded until the visitor presses play (preload none), the poster first, and a plain link to download the same file.
  * Under prefers-reduced-motion, and for a film marked `posterFirst`, the poster stays until the visitor asks for the film with the button (no film bytes, no autoplay). The scene text below is the film's own and is always on the page.
  */
-export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = FILM_DOWNLOAD_LINK, posterAlt }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean; downloadLabel?: string; posterAlt?: string }) {
+export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = FILM_DOWNLOAD_LINK, posterAlt, soundOnPlay = false, onPlaybackError }: { id: FilmId; manifest?: FilmManifest; posterFirst?: boolean; downloadLabel?: string; posterAlt?: string; soundOnPlay?: boolean; onPlaybackError?: () => void }) {
   const film = manifest ?? (FILM_MANIFESTS as Record<string, FilmManifest>)[id];
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [asked, setAsked] = useState(false);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(!soundOnPlay);
   const [captions, setCaptions] = useState(false); // captions are OFF until asked, on every film (the operator, 16 Oct); the button and the browser's own CC menu turn them on
   const video = useRef<HTMLVideoElement>(null);
   const showVideo = (!reduced && !posterFirst) || asked;
@@ -53,18 +54,19 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
             ref={video}
             className="block aspect-video w-full text-white print:hidden"
             controls
-            muted
+            muted={!soundOnPlay}
             playsInline
             preload="none"
             poster={filmFile(id, "poster.png")}
             aria-label={film.title}
             data-testid="film-video"
             autoPlay={asked}
+            onError={onPlaybackError}
             onVolumeChange={(e) => setMuted(e.currentTarget.muted || e.currentTarget.volume === 0)}
           >
             {/* WebM first (VP9, with Opus when the film has a voice) for a client without H.264/AAC; the mp4 second (Safari) */}
             {hasWebm && <source src={filmFile(id, "film.webm")} type={hasAudio ? 'video/webm; codecs="vp9, opus"' : 'video/webm; codecs="vp9"'} />}
-            <source src={filmFile(id, "film.mp4")} type="video/mp4" />
+            <source src={filmFile(id, "film.mp4")} type="video/mp4" onError={onPlaybackError} />
             <track kind="captions" src={filmFile(id, "captions.vtt")} srcLang="en" label="English" />
             {FILM_VIDEO_UNSUPPORTED}
           </video>
@@ -87,8 +89,8 @@ export function FilmPlayer({ id, manifest, posterFirst = false, downloadLabel = 
         {showVideo && (
           <>
             {hasAudio && (
-              <button type="button" onClick={toggleSound} className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-sound">
-                {muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
+              <button type="button" onClick={toggleSound} aria-label={soundOnPlay ? (muted ? FILM_UNMUTE_ARIA : FILM_MUTE_ARIA) : undefined} className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid={soundOnPlay ? "film-mute" : "film-sound"}>
+                {soundOnPlay ? (muted ? FILM_UNMUTE : FILM_MUTE) : muted ? FILM_SOUND_ON : FILM_SOUND_OFF}
               </button>
             )}
             <button type="button" onClick={() => setCaptions((c) => !c)} className="min-h-11 rounded-md border border-[var(--color-control-border)] px-3 py-1 text-[var(--color-text)]" data-testid="film-captions">

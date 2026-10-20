@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // The bail-drafting and synopsis cards against Track C's sample answers (real engine code, fake model answer): src/lib/fixtures/preview/*.json.
+test.skip(process.env.DRAFTING_BUILD !== "1", "needs the build with the drafting-cards flag (NEXT_PUBLIC_DRAFTING_CARDS=1)");
 const HEX = "0123456789abcdef0123456789abcdef";
 // With the declaration flag ON (DECLARATION_BUILD=1) a draft needs the lawyer's answer first; the helper makes it and the expected bodies carry it.
 const ON = process.env.DECLARATION_BUILD === "1";

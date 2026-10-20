@@ -18,6 +18,7 @@ import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
 import { SectionLookup } from "@/components/preview/SectionLookup";
 import { SECTION_LOOKUP } from "@/lib/sectionLookup";
+import { DRAFTING_CARDS } from "@/lib/draftingCards";
 import { previewRefusal } from "@/lib/previewRefusal";
 import { useSignedOut } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
@@ -263,8 +264,8 @@ export default function PreviewPage() {
         </Card>
 
         {SECTION_LOOKUP && !signedOut && <SectionLookup />}
-        <BailCard />
-        <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />
+        {DRAFTING_CARDS && <BailCard />}
+        {DRAFTING_CARDS && <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />}
       </div>
     </div>
     </KeptUploads.Provider>

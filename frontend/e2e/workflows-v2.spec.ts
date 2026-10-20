@@ -6,7 +6,7 @@ import { REGISTRY } from "../src/lib/workflowRegistry";
 const ON = process.env.WORKFLOWS_BUILD === "1";
 test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } })); });
 
-test("flag OFF: /workflows has no registry cards and Workflows stays in the reference group", async ({ page }) => {
+test("flag OFF: /workflows has no registry cards and Workflows does not lead the nav", async ({ page }) => {
   test.skip(ON, "this is the flag-OFF check");
   await page.goto("/workflows");
   await expect(page.getByTestId("workflow-cards")).toHaveCount(0);
@@ -14,8 +14,10 @@ test("flag OFF: /workflows has no registry cards and Workflows stays in the refe
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/screening");
   const hrefs = await page.locator("nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  expect(hrefs.indexOf("/citations"), "Citation check is in the nav").toBeGreaterThanOrEqual(0);
-  expect(hrefs.indexOf("/workflows"), "Workflows stays after the work group (Citation check)").toBeGreaterThan(hrefs.indexOf("/citations"));
+  const w = hrefs.indexOf("/workflows");
+  expect(w, "Workflows is in the nav").toBeGreaterThanOrEqual(0);
+  // only against links this build has: Workflows comes after Citation check where that is offered (it is not in every build's nav)
+  for (const earlier of ["/citations"]) if (hrefs.includes(earlier)) expect(w, `Workflows stays after ${earlier}`).toBeGreaterThan(hrefs.indexOf(earlier));
 });
 
 test("flag ON: eight cards in the registry order, each a whole-card link to its tool, Available, with Uses your papers and Start here as R1 worded", async ({ page }) => {
@@ -70,7 +72,8 @@ test("flag ON: Workflows leads the work group of the nav", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/screening");
   const hrefs = await page.locator("nav a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  expect(hrefs.indexOf("/workflows"), "Workflows is in the nav").toBeGreaterThanOrEqual(0);
-  expect(hrefs.indexOf("/workflows")).toBeLessThan(hrefs.indexOf("/citations"));
-  expect(hrefs.indexOf("/workflows")).toBeLessThan(hrefs.indexOf("/safety"));
+  const w = hrefs.indexOf("/workflows");
+  expect(w, "Workflows is in the nav").toBeGreaterThanOrEqual(0);
+  // against the links this build has (Citation check and Settings are not in every build's nav)
+  for (const later of ["/citations", "/settings", "/safety"]) if (hrefs.includes(later)) expect(w, `Workflows before ${later}`).toBeLessThan(hrefs.indexOf(later));
 });

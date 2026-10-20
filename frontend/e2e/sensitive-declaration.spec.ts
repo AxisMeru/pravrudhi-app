@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // The mandatory sensitive-case declaration on the bail and synopsis cards (pravrudhi#558, R1 A4_DECLARATION_V4 e21f8c55df95). Only on a build with NEXT_PUBLIC_SENSITIVE_DECLARATION=1 (DECLARATION_BUILD=1).
+test.skip(process.env.DRAFTING_BUILD !== "1", "the cards the declaration sits on exist only on the drafting-cards build");
 const HEX = "0123456789abcdef0123456789abcdef";
 const fx = (n: string) => JSON.parse(readFileSync(join(__dirname, "..", "src", "lib", "fixtures", "preview", `${n}.json`), "utf8")) as unknown;
 const ON = process.env.DECLARATION_BUILD === "1";
