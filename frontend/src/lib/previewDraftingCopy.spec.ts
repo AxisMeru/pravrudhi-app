@@ -24,7 +24,7 @@ const LABEL_PINS: Record<string, string> = {
   bailName: "4abe4799041c98ab",
   bailLine: "db5513d10c620a61",
   synopsisName: "243e6b516834025d",
-  synopsisLine: "5fe35b4d6af1141e",
+  synopsisLine: "d7a7bb3ef381d39b",
   consent: "66b77c0f8c28d3ab",
   consentSynopsis: "4a1689331d640b4f",
   kind: "4fc5a6b4c1ecfa0a",
