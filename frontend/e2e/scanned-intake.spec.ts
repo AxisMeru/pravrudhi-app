@@ -16,7 +16,7 @@ test("flag OFF: there is no scanned-paper control and no image types are offered
   test.skip(ON, "the OFF arm");
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await expect(page.getByTestId("pv-add")).toBeVisible();
   await expect(page.getByTestId("scan-add")).toHaveCount(0);
@@ -42,7 +42,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   const events = (a3.events as Record<string, unknown>[]).slice();
   events[0] = { ...events[0], document_name: "scan1.png", page: 1, from_ocr: true, read_from: "ocr", confidence: 91.4, crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "scan1.png", mimeType: "image/png", buffer: PNG_2X2 });
   await expect(page.getByTestId("scan-result")).toBeVisible();
@@ -66,7 +66,7 @@ test("flag ON: a HEIC file and an over-size file are refused with R1's lines bef
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/matter-spans/documents", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ status: 413, json: { detail: "The PDF is larger than 8000000 bytes", error: "pdf_too_large" } }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "p.heic", mimeType: "image/heic", buffer: Buffer.from("x") });
   await expect(page.getByTestId("scan-refusal")).toHaveText("This photo format is not supported. Save it as JPEG or PNG and add it again.");
@@ -83,7 +83,7 @@ test("flag ON: an over-size file is refused by size BEFORE it is read or sent, a
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/matter-spans/documents", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "x", n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "big.png", mimeType: "image/png", buffer: Buffer.alloc(8_000_001, 1) });
   await expect(page.getByTestId("scan-refusal")).toHaveText("This file is too large. The limit is 8 MB. Make the file smaller, or split it, and add it again.");
@@ -104,7 +104,7 @@ test("flag ON: two papers with one name show no crop, and starting over clears w
   const events = (a3.events as Record<string, unknown>[]).slice();
   events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, read_from: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "scan.png", mimeType: "image/png", buffer: PNG_2X2 });
   await expect(page.getByTestId("scan-result")).toBeVisible();
@@ -123,7 +123,7 @@ async function scanMatter(page: import("@playwright/test").Page, name: string) {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/documents", (r) => { docs.push({ doc_id: "d1", name }); r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name, n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 1, n_chars: 1, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name, mimeType: "image/png", buffer: PNG_2X2 });
   await expect(page.getByTestId("scan-result")).toBeVisible();
@@ -149,7 +149,7 @@ test("flag ON: an upload that finishes after the matter was removed is neither k
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/matter-spans/delete", (r) => r.fulfill({ json: { matter_id: HEX, deleted: true } }));
   await page.route("**/api/v1/matter-spans/documents", async (r) => { await new Promise((res) => setTimeout(res, 1500)); await r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "slow.png", n_pages: 1, n_spans: 1, n_chars: 1, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true, reason: null, line: null }] } }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "slow.png", mimeType: "image/png", buffer: PNG_2X2 });
   await page.getByTestId("pv-remove-all").click();

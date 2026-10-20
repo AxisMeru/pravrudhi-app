@@ -9,14 +9,14 @@ test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.ful
 
 test("flag OFF: there is no Section look-up card", async ({ page }) => {
   test.skip(ON, "the OFF arm");
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-sl")).toHaveCount(0);
 });
 
 async function ask(page: import("@playwright/test").Page, code: "IPC" | "CrPC", section: string, answer: unknown, status = 200) {
   const sent: Record<string, unknown>[] = [];
   await page.route("**/api/v1/section-lookup", (r) => { sent.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); return typeof answer === "string" ? r.fulfill({ status, contentType: "text/html", body: answer }) : r.fulfill({ status, json: answer as object }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId(code === "IPC" ? "pv-sl-ipc" : "pv-sl-crpc").check();
   await page.getByTestId("pv-sl-section").fill(section);
   await page.getByTestId("pv-sl-run").click();
@@ -76,7 +76,7 @@ test("flag ON: a bad section number is not sent; a 422 reads 'Check the section 
   test.skip(!ON, "needs NEXT_PUBLIC_SECTION_LOOKUP=1");
   let n = 0;
   await page.route("**/api/v1/section-lookup", (r) => { n += 1; return r.fulfill({ status: 200, contentType: "text/html", body: "<html>app page</html>" }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   const run = page.getByTestId("pv-sl-run");
   await page.getByTestId("pv-sl-section").fill("12 4");
   await expect(run).toBeDisabled();

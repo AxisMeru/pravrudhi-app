@@ -13,6 +13,11 @@
       "source": "/benchmarks-film-preview/:path*",
       "destination": "/benchmarks",
       "statusCode": 308
+    },
+    {
+      "source": "/preview/:path*",
+      "destination": "/matter-tools",
+      "statusCode": 308
     }
   ],
   "headers": [

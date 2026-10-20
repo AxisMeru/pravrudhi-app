@@ -44,8 +44,8 @@ export const REGISTRY_WORDS = {
   startHere: "Start here",
 } as const;
 
-/** Where a card opens: the matter-tools page (still /preview until it is renamed) at the tool's card. */
-export const REGISTRY_BASE_PATH = "/preview";
+/** Where a card opens: the matter-tools page at the tool's card. */
+export const REGISTRY_BASE_PATH = "/matter-tools";
 export const registryHref = (e: RegistryEntry): string => `${REGISTRY_BASE_PATH}#${e.anchor}`;
 
 /** The engine flags that are ON in the 0.6.23 release (configs/partner_api.yaml: a2, a3, a5, s1, b2, a6, a7, b3 on; a4, a8 off). Used only while the engine's status carries no `workflows` field. */

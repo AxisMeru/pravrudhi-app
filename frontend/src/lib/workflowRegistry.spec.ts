@@ -54,9 +54,9 @@ test("availability: the engine's status field decides when present; the 0.6.23 s
 });
 
 test("every card opens a tool card that exists on the matter-tools page, and no card names a preview", () => {
-  const page = readFileSync(join(root, "src", "app", "preview", "page.tsx"), "utf8");
+  const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
   for (const e of REGISTRY) {
-    assert.match(registryHref(e), /^\/preview#pv-[a-z0-9]+$/);
+    assert.match(registryHref(e), /^\/matter-tools#pv-[a-z0-9]+$/);
     if (e.anchor === "pv-matter") assert.match(page, /id="pv-matter"/);
     else assert.match(page, new RegExp(`<Card id="${e.anchor.slice(3)}"`), e.key);
   }
@@ -73,6 +73,6 @@ test("R1's 'some tools are not switched on' line: hidden while all eight are on,
   assert.equal(someRegistryToolOff(undefined), false);
   assert.equal(someRegistryToolOff(Object.fromEntries(REGISTRY.map((e) => [e.key, true]))), false);
   assert.equal(someRegistryToolOff({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])), wf_a3_chronology: false }), true, "one off: the line is true");
-  const page = readFileSync(join(root, "src", "app", "preview", "page.tsx"), "utf8");
+  const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
   assert.match(page, /\{someRegistryToolOff\(null\) && <p[^>]*pv-tools-off-line/, "the page shows the line only through the check");
 });

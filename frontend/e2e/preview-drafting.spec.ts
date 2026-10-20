@@ -23,7 +23,7 @@ test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.ful
 test("bail: nothing is sent until consent, both dates, a court and a fact are given; the draft shows its label, framing and the unconfirmed line; more notes fold", async ({ page }) => {
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/bail-draft", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("bail_response_drafted") }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   const run = page.getByTestId("bail-run");
   await expect(run).toBeDisabled();
   await expect(page.getByTestId("bail-tick-warning")).toContainText("Tick only facts that are on the applicant's side.");
@@ -46,7 +46,7 @@ test("bail: nothing is sent until consent, both dates, a court and a fact are gi
 test("bail referred: a straddle shows both framings and no draft text; a sensitive section shows the engine's sentence only", async ({ page }) => {
   let n = 0;
   await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ json: fx(n++ === 0 ? "bail_response_referred_straddle" : "bail_response_referred_sensitive") }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await fillBail(page);
   await page.getByTestId("bail-consent").check();
   await answer(page, "bail");
@@ -63,7 +63,7 @@ test("bail referred: a straddle shows both framings and no draft text; a sensiti
 
 test("bail: a 404 (flag off) reads R1's 'not available here' line", async ({ page }) => {
   await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ status: 404, json: { detail: "x" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await fillBail(page);
   await page.getByTestId("bail-consent").check();
   await answer(page, "bail");
@@ -77,7 +77,7 @@ test("synopsis: table only keeps the paper's dates and both readings; unticking 
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [{ doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], incomplete: false }], pages_total: 1, pages_not_read: 0, pages_note: "All pages were read." } }));
   const bodies: Record<string, unknown>[] = [];
   await page.route("**/api/v1/synopsis-dates", (r) => { bodies.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: fx("synopsis_response_table_only") }); });
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-name").fill("FIR");
   await page.getByTestId("pv-text").fill("The FIR was registered.");

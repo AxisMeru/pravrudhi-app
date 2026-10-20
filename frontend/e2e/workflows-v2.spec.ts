@@ -30,7 +30,7 @@ test("flag ON: eight cards in the registry order, each a whole-card link to its 
     await expect(card.getByRole("heading", { level: 2 })).toHaveText(e.title);
     await expect(card).toContainText(e.line);
     await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available");
-    await expect(card.locator("a")).toHaveAttribute("href", `/preview#${e.anchor}`);
+    await expect(card.locator("a")).toHaveAttribute("href", `/matter-tools#${e.anchor}`);
     if (e.usesPapers) await expect(card.getByTestId("workflow-card-papers")).toHaveText("Uses your papers"); else await expect(card.getByTestId("workflow-card-papers")).toHaveCount(0);
     if (e.startHere) await expect(card.getByTestId("workflow-card-start")).toHaveText("Start here"); else await expect(card.getByTestId("workflow-card-start")).toHaveCount(0);
   }
@@ -42,7 +42,7 @@ test("flag ON: clicking a card lands on that tool's card on the matter-tools pag
   test.skip(!ON, "needs the build with the workflows flag");
   await page.goto("/workflows");
   await page.getByTestId("workflow-card-wf_a3_chronology").locator("a").click();
-  await expect(page).toHaveURL(/\/preview\/?#pv-a3$/);
+  await expect(page).toHaveURL(/\/matter-tools\/?#pv-a3$/);
   await expect(page.locator("#pv-a3")).toBeVisible();
 });
 

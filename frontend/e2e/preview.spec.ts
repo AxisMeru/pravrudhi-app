@@ -13,7 +13,7 @@ test("start a matter, add a paper, run the quashing agenda: the engine's sentenc
   await page.route("**/api/v1/matter-spans/documents", (r) => { docs.push({ doc_id: "d1", name: "FIR" }); r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "FIR", n_pages: 1, n_spans: 3, n_chars: 90, pages_without_text: [], indexed_complete: true } }); });
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: 1, pages_not_read: 0, pages_note: "All pages were read." } }));
   await page.route("**/api/v1/quashing-agenda", (r) => r.fulfill({ json: AGENDA }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await expect(page.getByTestId("preview-line")).toContainText("Check each result against your papers");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-name").fill("FIR");
@@ -35,7 +35,7 @@ test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the n
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   let n = 0;
   await page.route("**/api/v1/quashing-agenda", (r) => (n++ === 0 ? r.fulfill({ status: 404, json: { detail: "x", error: "not_found" } }) : r.fulfill({ status: 409, json: { detail: "No papers added yet.", error: "no_papers" } })));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-s3-run").click();
   await expect(page.getByTestId("pv-message")).toHaveText("This workflow is not available here.");
@@ -51,7 +51,7 @@ const sample = (n: string) => (JSON.parse(readFileSync(join(__dirname, "..", "sr
 async function withMatter(page: import("@playwright/test").Page) {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
 }
 
@@ -104,7 +104,7 @@ test("when the engine no longer holds the matter (a restart), the page says so a
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-a3-run").click();
   await expect(page.getByTestId("pv-message")).toContainText("no longer held");
@@ -160,7 +160,7 @@ test("hearing pack: the papers' own dates in order, both readings of an ambiguou
 
 test("signed out: R1's sign-in line with its link above the cards, no Start a matter button, and a 401 reads the sign-in line, never the engine's sentence", async ({ page }) => {
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
-  await page.goto("/preview");
+  await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-signed-out")).toHaveText("Sign in to add papers and use these tools. Sign in");
   await expect(page.getByTestId("pv-signin-link")).toHaveAttribute("href", /\/signin/);
   await expect(page.getByTestId("pv-start")).toHaveCount(0);
