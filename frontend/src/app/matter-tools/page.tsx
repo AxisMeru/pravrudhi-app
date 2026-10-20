@@ -213,7 +213,7 @@ export default function PreviewPage() {
             </>
           )}
           {!matter && !signedOut && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-note">{SAMPLE_TEXT.note}</p>}
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{MATTER_NOTE.matter_note}</p>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{SCANNED_INTAKE ? MATTER_NOTE.matter_note.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : MATTER_NOTE.matter_note}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
 
