@@ -219,13 +219,6 @@ test("print: the film block drops the Play button and the download link, keeps t
   await expect(block.locator("figcaption"), "the silent note stays").toContainText("The film is silent;");
 });
 
-test("/benchmarks-film-preview no longer exists as a page: a request goes to /benchmarks (the film is on /benchmarks only)", async ({ page }) => {
-  await page.goto("/benchmarks-film-preview");
-  await expect(page).toHaveURL(/\/benchmarks\/?$/, { timeout: 10000 });
-  await expect(page.getByTestId("block-film")).toBeVisible();
-  await expect(page.locator("body")).not.toContainText(/review copy|voice review/i);
-});
-
 // 390 px player check (Lead-2, #461): the silent explainer card on a phone has no horizontal scroll, a Play button of at least 44 px in the lower part of the poster, and plays with captions off.
 test("/benchmarks at 390 px: the film card has no horizontal scroll, Play is at least 44 px and sits in the lower part of the poster, every control is at least 44 px tall", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

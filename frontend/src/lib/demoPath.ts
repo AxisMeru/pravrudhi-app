@@ -21,7 +21,7 @@ export function offeredInDemoPath(href: string, on: boolean = DEMO_PATH): boolea
 // palette use `offeredInDemoPath` (above); a TYPED URL or a bookmark is stopped by `routeAllowedOnSurface`, which
 // also lets sign-in through (a user must be able to sign in) and the admin-only API keys page (its link is shown
 // to org admins only, see the Settings page).
-export const SURFACE_ROUTES: readonly string[] = ["/", "/screening", "/matters", "/demo", "/intake", "/how-it-was-built", "/safety", "/benchmarks", "/benchmarks/submit", "/preview", "/citations", "/guide", "/workflows", "/data-handling", "/settings", "/signin", "/partner-keys", "/technical-film", "/benchmarks-film-preview"];
+export const SURFACE_ROUTES: readonly string[] = ["/", "/screening", "/matters", "/demo", "/intake", "/how-it-was-built", "/safety", "/benchmarks", "/benchmarks/submit", "/preview", "/citations", "/guide", "/workflows", "/data-handling", "/settings", "/signin", "/partner-keys", "/technical-film"];
 
 /**
  * The path as the router sees it, with every spelling of the same page folded together: query/hash dropped, slashes

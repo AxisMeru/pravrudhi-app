@@ -22,14 +22,14 @@ const root = join(__dirname, "..", "..", "..");
 const readManifest = (id: string): FilmManifest & { placeholder?: boolean } => JSON.parse(readFileSync(join(root, "public", "films", id, "manifest.json"), "utf8"));
 const manifest = readManifest("nyayasiddhi");
 
-test("the film id is registered, its files are named like the other films', and the old review route is only a redirect to /benchmarks (no preview page exists: operator, 19 Oct)", () => {
+test("the film id is registered, its files are named like the other films', and the old review route is only an edge 308 redirect to /benchmarks (no preview page exists: operator, 19 Oct)", () => {
   assert.ok((FILM_IDS as readonly string[]).includes("nyayasiddhi"));
   assert.match(filmFile("nyayasiddhi", "captions.vtt"), /\/films\/nyayasiddhi\/captions\.vtt$/);
   assert.equal(manifest.audio, false, "silent-first");
-  assert.equal(existsSync(join(root, "src", "app", "benchmarks-film-preview", "layout.tsx")), false, "no layout, no title, no preview page");
-  const page = readFileSync(join(root, "src", "app", "benchmarks-film-preview", "page.tsx"), "utf8");
-  assert.match(page, /redirect\("\/benchmarks"\)/);
-  assert.doesNotMatch(page, /FilmPlayer|loadNyayasiddhiManifest|NYAYASIDDHI_/, "the redirect page holds no player and no film text");
+  assert.equal(existsSync(join(root, "src", "app", "benchmarks-film-preview")), false, "no page, no layout, no title: no preview page exists");
+  const vercel = JSON.parse(readFileSync(join(root, "vercel.json"), "utf8")) as { redirects?: { source: string; destination: string; statusCode?: number }[] };
+  const rule = (vercel.redirects ?? []).filter((r) => r.source.startsWith("/benchmarks-film-preview"));
+  assert.deepEqual(rule, [{ source: "/benchmarks-film-preview/:path*", destination: "/benchmarks", statusCode: 308 }], "the old review route is an edge 308 to /benchmarks (the bare and the slash form), not a page");
   assert.equal(FILM_SILENT_NOTE, "The film is silent; the captions name each scene, and the list below sums up each scene.");
 });
 
@@ -40,7 +40,7 @@ test("public/films holds only the film's cuts (three silent, two narrated previe
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
-test("the old review route is linked from nowhere: only the surface route list names it", () => {
+test("the old review route is named nowhere in src: no page, nav, link, sitemap or route list", () => {
   const SKIP = new Set(["node_modules", ".next", "out", "test-results"]);
   const hits: string[] = [];
   (function walk(d: string): void {
@@ -52,7 +52,7 @@ test("the old review route is linked from nowhere: only the surface route list n
       if (readFileSync(p, "utf8").includes("benchmarks-film-preview")) hits.push(relative(root, p).replace(/\\/g, "/"));
     }
   })(join(root, "src"));
-  assert.deepEqual(hits.sort(), ["src/lib/demoPath.ts"], "only the route allow-list names the route (it redirects to /benchmarks); no nav, link, sitemap or page does");
+  assert.deepEqual(hits.sort(), [], "nothing under src names the route (vercel.json redirects it to /benchmarks)");
 });
 
 // captions.vtt is pinned once Studio's render exists (the placeholder manifest has none). R1 (16 Oct): captions may carry digits ("order of 12 June 2024", "BNS 316 \u00b7 IPC 405"), so the pin is (1) WEBVTT, cues in order inside the manifest duration; (2) every cue text EQUALS a string of STRINGS_948_v5 (the stronger pin: sha256 65282a5a..., vendored as e2e/fixtures/nyayasiddhiFilmStrings.json (a test fixture, not under src: nothing is bundled)); (3) no barred word, whole words, case-insensitive; (4) no count word in the no-fact-cited scene.
