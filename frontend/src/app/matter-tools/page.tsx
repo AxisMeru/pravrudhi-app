@@ -194,7 +194,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
-          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{MATTER_NOTE.matter_note}</p>
+          <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{SCANNED_INTAKE ? MATTER_NOTE.matter_note.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : MATTER_NOTE.matter_note}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
 

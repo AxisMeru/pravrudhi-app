@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { CITATION_EXISTENCE_ONLY } from "./citationExistence";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -19,7 +20,7 @@ test("the data-handling text is R1's exact words, and it answers all three quest
   assert.equal(text("sent"), "When you press Screen these facts, the facts you enter and the offences you select are sent to the Pravrudhi engine. Files you choose are read in your browser; only the text read from them is sent.");
   assert.equal(
     text("kept"),
-    "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier if the service restarts. Signed-in and anonymous runs are kept the same way. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. Partner audit records hold no fact text and are kept for up to 90 days. Requests that run asynchronously are held in memory for about an hour.",
+    "Screening run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier if the service restarts. Signed-in and anonymous runs are kept the same way. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. Partner audit records hold no fact text and are kept for up to 90 days. Requests that run asynchronously are held in memory for about an hour.",
   );
   assert.equal(
     text("where"),
@@ -228,4 +229,17 @@ test("workflowRows: Screening orchestration and Intake read Built only when thei
 
 test("WORKFLOWS (what the page draws) is workflowRows of this build's own flags", () => {
   assert.deepEqual(WORKFLOWS, workflowRows({ assistantOn: process.env.NEXT_PUBLIC_ASSISTANT_ENTRY === "1", intakeOn: process.env.NEXT_PUBLIC_INTAKE === "1" }));
+});
+
+// #478: R1's matter-papers words (MATTER_PAPERS_WORDS_FINAL 9544b4acd0c9), by hash; the 7-day sentence is scoped to screening run records.
+test("the data-handling page says what is true about matter papers: R1's ten lines by hash (the encryption line: Lead-2 yes, R2 reads it before ship), after 'How long it is kept', and the 7-day scope is screening run records only", () => {
+  const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
+  const ids = ROUTE_A.map((s) => s.id);
+  assert.ok(ids.indexOf("papers") === ids.indexOf("kept") + 1, "the papers section follows 'How long it is kept'");
+  const sec = ROUTE_A.find((s) => s.id === "papers")!;
+  assert.equal(h16(sec.heading), "b557f0cc2525cedb");
+  assert.deepEqual(sec.paragraphs.map(h16), ["d9a122b0f02037ae", "1c5a22c04149b6fb", "a2a5ef44a8fd8ab6", "aa7cb512e4276a56", "ef4fe5bd429b67b4", "e71e11d0c454918b", "69186e4be7d6ea71", "147fd14bcc077deb", "be43eb4ec9dd8d32", "9dab5b269052392c"]);
+  assert.equal(h16(text("kept").split(" They are removed")[0]), "05201b332914ed2b", "kept_scope");
+  assert.doesNotMatch(sec.paragraphs.join(" "), /permanent|safe\b|secure|no backup exists|nobody can|irrecoverab/i, "R1: no permanent / safe / secure / 'no backups exist' claim");
+  assert.match(text("kept"), /^Screening run records are kept for up to 7 days\./);
 });

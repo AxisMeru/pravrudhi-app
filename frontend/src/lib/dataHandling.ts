@@ -11,6 +11,21 @@ import { CITATION_RETENTION } from "./surfaceCopy";
 export const DATA_HANDLING_TITLE = "Data handling";
 export const DATA_HANDLING_SUBTITLE = "What leaves your firm when you use Pravrudhi-Nyaya, where it is processed, and how long it is kept.";
 
+// #478 (20 Oct): the matter-papers story, R1's MATTER_PAPERS_WORDS_FINAL (v5 sha12 c2895699052b, from L2A's STORE_FACTS_MATTER_PAPERS a804f4e09c07), pinned by hash in dataHandling.spec.ts.
+export const DH_PAPERS_HEADING = "Papers you add to a matter"; // b557f0cc2525cedb
+export const DH_PAPERS_SENT = "What is sent: each paper you add on Matter tools is sent to our service. Only its text is kept."; // d9a122b0f02037ae
+export const DH_PAPERS_WHERE = "Where it is kept: in our store on a storage volume in the EU (Romania), not in India."; // 1c5a22c04149b6fb
+export const DH_PAPERS_HOW_LONG = "How long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period."; // a2a5ef44a8fd8ab6
+export const DH_PAPERS_DELETE = "What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold."; // aa7cb512e4276a56
+export const DH_PAPERS_WHO = "Who can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\"."; // ef4fe5bd429b67b4
+export const DH_PAPERS_ENCRYPTION = "This service does not encrypt the stored files. People who run the service and its hosting account can read them."; // e71e11d0c454918b: Lead-2 said YES (20 Oct); R2 checks it against L2A's facts before it ships
+export const DH_PAPERS_BACKUP = "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps."; // 69186e4be7d6ea71
+export const DH_PAPERS_RELOAD = "The matter number is lost when you reload the page, and your matters cannot be listed here."; // 147fd14bcc077deb (option A interim, Lead-2 20 Oct)
+export const DH_PAPERS_NO_REQUEST_PATH = "If you lose the matter number, there is not yet a tested way to ask us to delete your papers."; // be43eb4ec9dd8d32 (Lead-2: yes; no tested request path exists). Both interim lines come out in the change that ships "Your matters" with delete.
+export const DH_PAPERS_NOT_RUNS = "Screening run records are a different thing and are described above."; // 9dab5b269052392c
+export const DH_KEPT_SCOPE = "Screening run records are kept for up to 7 days."; // 05201b332914ed2b
+export const DH_GLANCE_KEPT = "Screening run records are kept for up to 7 days; papers you add to a matter are kept until you delete them."; // e9ffe2df25fadb6a
+
 export interface DataHandlingSection {
   id: string;
   heading: string;
@@ -82,10 +97,15 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     id: "kept",
     heading: "How long it is kept",
     paragraphs: [
-      "Run records are kept for up to 7 days. They are removed when the next analysis runs, and can disappear earlier if the service restarts. Signed-in and anonymous runs are kept the same way. " +
+      `${DH_KEPT_SCOPE} They are removed when the next analysis runs, and can disappear earlier if the service restarts. Signed-in and anonymous runs are kept the same way. ` +
         "A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it. " +
         "Partner audit records hold no fact text and are kept for up to 90 days. Requests that run asynchronously are held in memory for about an hour.",
     ],
+  },
+  {
+    id: "papers",
+    heading: DH_PAPERS_HEADING,
+    paragraphs: [DH_PAPERS_SENT, DH_PAPERS_WHERE, DH_PAPERS_HOW_LONG, DH_PAPERS_DELETE, DH_PAPERS_WHO, DH_PAPERS_ENCRYPTION, DH_PAPERS_BACKUP, DH_PAPERS_RELOAD, DH_PAPERS_NO_REQUEST_PATH, DH_PAPERS_NOT_RUNS],
   },
   {
     id: "where",
@@ -165,7 +185,7 @@ export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): Dat
     const sents = splitSentences(s.paragraphs[0]);
     const texts =
       id === "where" ? [`${sents[0]} ${sents[1]}`, firstSentence(DH_WHERE_FALLBACK)]
-      : id === "kept" ? [`${sents[0]} ${sents.find((x) => x.startsWith("A run record can include")) ?? ""}`.trim()]
+      : id === "kept" ? [DH_GLANCE_KEPT, (sents.find((x) => x.startsWith("A run record can include")) ?? "").trim()].filter(Boolean)
       : [sents[0]];
     return { id, heading: s.heading, texts, href: `#dh-${id}` };
   });

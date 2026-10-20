@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { firstSentence, splitSentences } from "./dataHandling";
+import { DH_GLANCE_KEPT, firstSentence, splitSentences } from "./dataHandling";
 import { BANNED } from "./wordingAudit";
 import { promiseHits } from "../../e2e/support/noTrainingPromise";
 import {
@@ -34,12 +34,12 @@ test("the glance: R1's heading, line and link label exactly; three blocks = the 
     "If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there.",
   ]);
   assert.ok(!where.texts.join(" ").includes("described above"), "the fallback's tail would point above at the wrong block");
-  assert.deepEqual(kept.texts, ["Run records are kept for up to 7 days. A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it."]);
+  assert.deepEqual(kept.texts, ["Screening run records are kept for up to 7 days; papers you add to a matter are kept until you delete them.", "A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it."]); // R1 glance_kept e9ffe2df25fadb6a, then the section's own sentence
   const full = (id: string) => secs.find((x) => x.id === id)!.paragraphs.join(" ");
-  for (const [id, b] of [["sent", sent], ["where", where], ["kept", kept]] as const) for (const t of b.texts) for (const sentence of splitSentences(t)) assert.ok(full(id).includes(sentence) || DH_WHERE_FALLBACK.includes(sentence), `${id}: every glance sentence is the section's own words`);
+  for (const [id, b] of [["sent", sent], ["where", where], ["kept", kept]] as const) for (const t of b.texts) for (const sentence of splitSentences(t)) assert.ok(full(id).includes(sentence) || DH_WHERE_FALLBACK.includes(sentence) || DH_GLANCE_KEPT.includes(sentence), `${id}: every glance sentence is the section's own words`);
   assert.match(OFF.glance.blocks[0].texts[0], /^When you press Screen these facts, the facts you enter and the offences you select are sent to the Pravrudhi engine\./);
   assert.match(OFF.glance.blocks[1].texts[0], /^The screening runs on the Pravrudhi engine, hosted on RunPod/);
-  assert.match(OFF.glance.blocks[2].texts[0], /^Run records are kept for up to 7 days\./);
+  assert.match(OFF.glance.blocks[2].texts[0], /^Screening run records are kept for up to 7 days; papers you add/);
 });
 
 test("the glance covers the standard route only and adds no sentence of its own beyond the signed label lines", () => {
@@ -61,7 +61,7 @@ test("assistant flag OFF: route A only. No assistant section, no group label, no
   assert.equal(OFF.assistant, undefined);
   assert.ok(!JSON.stringify(OFF).includes("Anthropic"));
   assert.ok(!JSON.stringify(OFF).includes(DH_ROUTE_A_LABEL) && !JSON.stringify(OFF).includes(DH_ROUTE_B_LABEL));
-  assert.deepEqual(OFF.standard.map((s) => s.id), ["sent", "citations", "kept", "where", "browser", "documents"], "the standard sections are unchanged, in their order");
+  assert.deepEqual(OFF.standard.map((s) => s.id), ["sent", "citations", "kept", "papers", "where", "browser", "documents"], "the standard sections, in their order, with the matter-papers section after 'How long it is kept' (#478)");
 });
 
 test("assistant flag ON: the two groups carry R1's exact labels and only already-signed lines; route A is the one signed 'Without the assistant' line", () => {
@@ -93,7 +93,7 @@ test("R1: the 'where' glance block shows the first signed paragraph AND the fall
     assert.ok(where.texts[0].startsWith("The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre)."));
     assert.equal(where.texts[1], firstSentence(DH_WHERE_FALLBACK));
     assert.match(where.texts[1], /North American data centre for that request, and your facts are sent there/);
-    assert.deepEqual(p.glance.blocks.filter((b) => b.id !== "where").map((b) => b.texts.length), [1, 1]);
+    assert.deepEqual(p.glance.blocks.filter((b) => b.id !== "where").map((b) => b.texts.length), [1, 2], "sent shows one; kept shows R1's scoped glance line and the run-record sentence (#478)");
   }
 });
 

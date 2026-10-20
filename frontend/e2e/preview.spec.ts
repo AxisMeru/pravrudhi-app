@@ -43,6 +43,20 @@ test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the n
   await expect(page.getByTestId("pv-message")).toHaveText("There are no papers to read. Add papers first.");
 });
 
+// #478 (R1 v2 4d8e3a68283a): the matter note says what is true about the papers; the stale 17 Oct sentences are gone.
+test("the matter note: papers are kept as text in the EU store until deleted; the reload/list gap is stated; no stale restart sentence", async ({ page }) => {
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: "0123456789abcdef0123456789abcdef" } }));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: "0123456789abcdef0123456789abcdef", documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
+  await page.goto("/matter-tools");
+  await page.getByTestId("pv-start").click();
+  const note = page.getByTestId("pv-matter-note");
+  await expect(note).toContainText("The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter.");
+  await expect(note).toContainText("Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here.");
+  await expect(note).toContainText("Deleting removes them from this service's store.");
+  await expect(note).not.toContainText(/may remove papers|keep your own copies/);
+  if (process.env.SCANNED_BUILD === "1") await expect(note).toContainText("For a scanned paper, only the text read from its pages is kept; the page images are not written to our store."); else await expect(note).toContainText("Images are not read.");
+});
+
 // The other preview workflows against Track A's sample responses (real engine functions, invented text): src/lib/fixtures/preview/*.json.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
