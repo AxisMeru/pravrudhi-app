@@ -15,6 +15,7 @@ import { useEngineWorkflows } from "@/lib/useEngineWorkflows";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
+import { SAMPLE_PAPERS, SAMPLE_TEXT } from "@/lib/sampleMatter";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
 import { SectionLookup } from "@/components/preview/SectionLookup";
@@ -86,6 +87,18 @@ export default function PreviewPage() {
     const id = matterIdOf(a.body);
     if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
     kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(T.matterStarted);
+  });
+  /** One click: a new matter and the four invented sample papers (Track A's bundle), added one by one through the same routes a visitor's own papers use. A refusal on any paper stops there and says why. */
+  const loadSample = () => run(async () => {
+    const a = await previewPost("/matter-spans/matters", {});
+    const id = matterIdOf(a.body);
+    if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
+    kept.clear(); setMatter(id); setPapers([]); clearResults();
+    for (const p of SAMPLE_PAPERS) {
+      const d = await previewPost("/matter-spans/documents", { matter_id: id, text: p.text, name: p.name });
+      if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body)); }
+    }
+    await refresh(id); setMessage(T.matterStarted);
   });
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
@@ -166,7 +179,12 @@ export default function PreviewPage() {
         <section className={BOX} id="pv-matter" aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (
-            signedOut ? null : <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>
+            signedOut ? null : (
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>
+                <button type="button" className={BTN} onClick={loadSample} disabled={busy} data-testid="pv-sample">{SAMPLE_TEXT.button}</button>
+              </div>
+            )
           ) : (
             <>
               <label className="block text-sm text-[var(--color-text)]">{T.paperNameLabel}
@@ -194,6 +212,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
+          {!matter && !signedOut && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-note">{SAMPLE_TEXT.note}</p>}
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{MATTER_NOTE.matter_note}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
