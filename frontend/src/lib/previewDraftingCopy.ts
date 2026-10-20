@@ -14,7 +14,7 @@ export const DRAFTING_DRAFT = {
   bailName: "Bail application grounds",
   bailLine: "Writes a first draft of the grounds from the facts you enter, for a lawyer to rewrite. It is not advice on how the application will go.",
   synopsisName: "Synopsis and list of dates",
-  synopsisLine: "Writes a first draft of a synopsis and a list of dates from the papers you added and the facts you enter, for a lawyer to rewrite.",
+  synopsisLine: "Shows a list of dates from the papers you added, and a first draft of a synopsis where one can be drafted, for a lawyer to rewrite.", // R1 20 Oct (A4_A8_SWITCHON_V5 2f3f576aa065): template-only A8 drafts no synopsis, so the line no longer promises one
   consent: "I am a lawyer and I will read and rewrite this draft. The facts I enter are sent to our service to build the draft, and, where model-backed drafting is switched on, on to an outside AI model service.",
   consentSynopsis: "I am a lawyer and I will read and rewrite this draft. The facts I enter, and the sentences from my papers that hold the dates, are sent to our service to build the draft, and, where model-backed drafting is switched on, on to an outside AI model service.",
   kind: "Kind of application",
