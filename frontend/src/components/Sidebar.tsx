@@ -34,6 +34,7 @@ import { citationNavOffered } from "@/lib/citationNav";
 import { edition, PRODUCT, STUDIO, type Edition } from "@/lib/edition";
 import { isStudioOnlyHref } from "@/lib/palette";
 import { offeredInDemoPath } from "@/lib/demoPath";
+import { WORKFLOWS_V2 } from "@/lib/workflowsV2Flag";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { GUIDE_NAV_LABEL } from "@/lib/guide/copy";
 import { NAV_GROUP_LABELS, NAV_LABELS } from "@/lib/navCopy";
@@ -77,6 +78,14 @@ const NAV: NavEntry[] = [
   { group: "studio", href: "/models", label: "Models", icon: Package },
   { group: "studio", href: "/install", label: "Install", icon: Download },
 ];
+// With the workflows front door (NEXT_PUBLIC_WORKFLOWS_V2=1) Workflows leads the work group; otherwise it stays in the reference group as it was.
+if (WORKFLOWS_V2) {
+  const i = NAV.findIndex((n) => n.href === "/workflows");
+  if (i >= 0) {
+    const [w] = NAV.splice(i, 1);
+    NAV.unshift({ ...w, group: "work" });
+  }
+}
 const NAV_GROUP_ORDER: NavGroupId[] = ["work", "reference", "account", "studio"];
 
 export function Sidebar() {

@@ -10,6 +10,7 @@ import { PREVIEW_CASE as CC } from "@/lib/previewCaseCopy";
 import { PREVIEW_HEARING as HP } from "@/lib/previewHearingCopy";
 import { A1Result, HearingResult, A3Result, A5Result, B3Result, S1Result } from "@/components/preview/Viewers";
 import { BailCard, SynopsisCard } from "@/components/preview/Drafting";
+import { someRegistryToolOff } from "@/lib/workflowRegistry";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
@@ -35,7 +36,7 @@ const refusal = previewRefusal;
 
 function Card({ id, name, line, children }: { id: string; name: string; line: string; children: React.ReactNode }) {
   return (
-    <section className={BOX} aria-labelledby={`pv-${id}-heading`} data-testid={`pv-${id}`}>
+    <section className={BOX} id={`pv-${id}`} aria-labelledby={`pv-${id}-heading`} data-testid={`pv-${id}`}>
       <h2 id={`pv-${id}-heading`} className="flex flex-wrap items-center gap-2 text-base font-medium text-[var(--color-text)]">{name} <PreviewBadge /></h2>
       <p className="text-sm text-[var(--color-text)]">{line}</p>
       {children}
@@ -156,11 +157,11 @@ export default function PreviewPage() {
       <PageHeader title={T.title} />
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
         <PreviewBadge line />
-        <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>
+        {someRegistryToolOff(null) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
         {signedOut && (
           <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
         )}
-        <section className={BOX} aria-labelledby="pv-matter-heading" data-testid="pv-matter">
+        <section className={BOX} id="pv-matter" aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (
             signedOut ? null : <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>

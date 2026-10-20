@@ -1,0 +1,50 @@
+[
+  {
+    "id": "wf_a2_span_index",
+    "status": "Available",
+    "route": "/matter-spans/query",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_a3_chronology",
+    "status": "Available",
+    "route": "/chronology",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_a5_ingredient_agenda",
+    "status": "Available",
+    "route": "/review-agenda",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_a7_matter_hearing_pack",
+    "status": "Available",
+    "route": "/matter-hearing-pack",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_b2_quashing_agenda",
+    "status": "Available",
+    "route": "/quashing-agenda",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_s1_matter_citation_sweep",
+    "status": "Available",
+    "route": "/matter-citation-sweep",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_b3_s138_checklist",
+    "status": "Available",
+    "route": "/s138-checklist",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_a6_cheque_case_check",
+    "status": "Available",
+    "route": "/cheque-case-check",
+    "verb": "POST"
+  }
+]
