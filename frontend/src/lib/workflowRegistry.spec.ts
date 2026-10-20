@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, registryAvailable, registryHref, someRegistryToolOff } from "./workflowRegistry";
+import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, parseStatusWorkflows, registryAvailable, registryHref, someRegistryToolOff } from "./workflowRegistry";
 
 const root = join(__dirname, "..", "..");
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -74,5 +74,20 @@ test("R1's 'some tools are not switched on' line: hidden while all eight are on,
   assert.equal(someRegistryToolOff(Object.fromEntries(REGISTRY.map((e) => [e.key, true]))), false);
   assert.equal(someRegistryToolOff({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])), wf_a3_chronology: false }), true, "one off: the line is true");
   const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
-  assert.match(page, /\{someRegistryToolOff\(null\) && <p[^>]*pv-tools-off-line/, "the page shows the line only through the check");
+  assert.match(page, /\{\(someRegistryToolOff\(engineWorkflows\) \|\| DRAFTING_CARDS\) && <p[^>]*pv-tools-off-line/, "the page shows the line only through the check, or while the A4/A8 cards are on (R2: they are off-registry and can be off)");
+});
+
+test("the status workflows field is read as booleans only; absent or malformed means the fallback; a key the engine says is off is off", () => {
+  assert.equal(parseStatusWorkflows(undefined), null);
+  assert.equal(parseStatusWorkflows(null), null);
+  assert.equal(parseStatusWorkflows([true]), null);
+  assert.equal(parseStatusWorkflows("on"), null);
+  assert.deepEqual(parseStatusWorkflows({ wf_a3_chronology: true, wf_a5_ingredient_agenda: false, wf_b3_s138_checklist: "true", wf_x: 1 }), { wf_a3_chronology: true, wf_a5_ingredient_agenda: false });
+  const all = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+  const a = registryAvailable(parseStatusWorkflows({ ...all, wf_a3_chronology: false }));
+  assert.equal(a.wf_a3_chronology, false);
+  assert.equal(a.wf_a5_ingredient_agenda, true);
+  assert.equal(someRegistryToolOff(parseStatusWorkflows(all)), false);
+  assert.equal(someRegistryToolOff(parseStatusWorkflows({ ...all, wf_a3_chronology: false })), true);
+  assert.deepEqual(Object.values(registryAvailable(parseStatusWorkflows(undefined))).every(Boolean), true, "no field: the 0.6.23 fallback");
 });

@@ -5,7 +5,7 @@ import { REGISTRY, REGISTRY_WORDS, registryAvailable, registryHref } from "@/lib
 /**
  * The workflows front door (Advisor Q6; only on a build with NEXT_PUBLIC_WORKFLOWS_V2=1): one card per engine workflow, the WHOLE card is the link to the tool, 1 column on a phone and 2 from md.
  * Each card has the title, R1's one line, an Available chip (a card that is not available shows Coming and is not a link), "Uses your papers" where the tool reads a matter's papers, and "Start here" on Papers for a matter.
- * Availability comes from the engine's status `workflows` field when it carries one; until then from the 0.6.23 set (lib/workflowRegistry.ts).
+ * Availability comes from the engine's status `workflows` field when it carries one (read by useEngineWorkflows); otherwise from the 0.6.23 set (lib/workflowRegistry.ts).
  */
 export function WorkflowCards({ statusWorkflows = null }: { statusWorkflows?: Record<string, unknown> | null }) {
   const on = registryAvailable(statusWorkflows);

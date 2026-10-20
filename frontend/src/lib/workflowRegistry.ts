@@ -1,6 +1,6 @@
 // The workflow registry (Advisor Q6, Lead-2 adopted 20 Oct): ONE entry per engine workflow, keyed by the engine's own wf_* flag id, so /workflows and the nav read the same list.
 // WORDS are static and R1's (WORKFLOW_REGISTRY_WORDS_DRAFT_R1_2026-10-20.md sha12 bda372ae9d62; pinned by hash in workflowRegistry.spec.ts). AVAILABILITY is dynamic when the engine reports it:
-// GET /api/v1/status `workflows: {wf_key: bool}` (engine #571, ships IN engine 0.6.24; registryAvailable() takes it, and the app's runtime read of it is pravrudhi-app#470, so today every card uses REGISTRY_FALLBACK_ON, the 0.6.23 set pinned to configs/partner_api.yaml, which is also what an older engine gets).
+// GET /api/v1/status `workflows: {wf_key: bool}` (engine #571, ships IN engine 0.6.24; the app reads it at runtime (useEngineWorkflows, #470); an engine without the field, an anonymous visitor on a hosted engine, or a status that cannot be read uses REGISTRY_FALLBACK_ON, the 0.6.23 set pinned to configs/partner_api.yaml).
 // The page shows these cards only on a build with NEXT_PUBLIC_WORKFLOWS_V2=1 (lib/workflowsV2Flag.ts).
 export type RegistryKey =
   | "wf_a2_span_index"
@@ -50,6 +50,14 @@ export const registryHref = (e: RegistryEntry): string => `${REGISTRY_BASE_PATH}
 
 /** The engine flags that are ON in the 0.6.23 release (configs/partner_api.yaml: a2, a3, a5, s1, b2, a6, a7, b3 on; a4, a8 off). Used only while the engine's status carries no `workflows` field. */
 export const REGISTRY_FALLBACK_ON: readonly RegistryKey[] = REGISTRY.map((e) => e.key);
+
+/** The status answer's `workflows` field as booleans only (a non-boolean entry is dropped, never guessed); null when the field is absent or not an object (an older engine, or no status). */
+export function parseStatusWorkflows(x: unknown): Record<string, boolean> | null {
+  if (x === null || typeof x !== "object" || Array.isArray(x)) return null;
+  const out: Record<string, boolean> = {};
+  for (const [k, v] of Object.entries(x as Record<string, unknown>)) if (typeof v === "boolean") out[k] = v;
+  return out;
+}
 
 /** Available where the engine says so; with no `workflows` field in the status, the fallback set. A status that could not be read never hides a card. */
 export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined): Record<RegistryKey, boolean> {

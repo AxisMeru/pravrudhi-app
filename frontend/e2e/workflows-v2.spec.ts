@@ -77,3 +77,38 @@ test("flag ON: Workflows leads the work group of the nav", async ({ page }) => {
   // against the links this build has (Citation check and Settings are not in every build's nav)
   for (const later of ["/citations", "/settings", "/safety"]) if (hrefs.includes(later)) expect(w, `Workflows before ${later}`).toBeLessThan(hrefs.indexOf(later));
 });
+
+// #470: the cards read the engine's own list (GET /api/v1/status `workflows`, engine 0.6.24); no field = the 0.6.23 fallback; a key that is off is a Coming card that is not a link.
+const statusWith = (workflows?: Record<string, boolean>) => ({ engine_version: "0.6.24", service_window: null, judge: { state: "unknown", checked_at: null }, ...(workflows ? { workflows } : {}) });
+const ALL_ON = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+
+test("flag ON: a workflow the engine reports off is a Coming card with no link; the others stay Available links", async ({ page }) => {
+  test.skip(!ON, "needs the build with the workflows flag");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith({ ...ALL_ON, wf_a3_chronology: false }) }));
+  await page.goto("/workflows");
+  const card = page.getByTestId("workflow-card-wf_a3_chronology");
+  await expect(card.getByTestId("workflow-card-chip")).toHaveText("Coming");
+  await expect(card.locator("a")).toHaveCount(0);
+  await expect(page.getByTestId("workflow-card-wf_a5_ingredient_agenda").getByTestId("workflow-card-chip")).toHaveText("Available");
+  await expect(page.getByTestId("workflow-card-wf_a5_ingredient_agenda").locator("a")).toHaveCount(1);
+});
+
+test("flag ON: an engine status without the workflows field (older engine) leaves all eight Available (the 0.6.23 fallback)", async ({ page }) => {
+  test.skip(!ON, "needs the build with the workflows flag");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith() }));
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-card-chip")).toHaveCount(8);
+  for (const c of await page.getByTestId("workflow-card-chip").all()) await expect(c).toHaveText("Available");
+});
+
+test("the matter-tools 'some tools are not switched on' line shows when the engine reports a tool off, and is absent with all eight on (while the A4/A8 cards are off)", async ({ page }) => {
+  test.skip(process.env.DRAFTING_BUILD === "1", "with the A4/A8 cards on the line stays by design");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith({ ...ALL_ON, wf_a6_cheque_case_check: false }) }));
+  await page.goto("/matter-tools");
+  await expect(page.getByTestId("pv-tools-off-line")).toBeVisible();
+  await page.unroute("**/api/v1/status");
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith(ALL_ON) }));
+  await page.reload();
+  await expect(page.getByTestId("pv-matter")).toBeVisible();
+  await expect(page.getByTestId("pv-tools-off-line")).toHaveCount(0);
+});

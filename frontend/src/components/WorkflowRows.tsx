@@ -11,10 +11,12 @@ import { pausedTreatment } from "@/lib/assistantTier";
 import { ASSISTANT_ENTRY_ENABLED } from "@/lib/assistantFlag";
 import { WORKFLOWS_V2 } from "@/lib/workflowsV2Flag";
 import { WorkflowCards } from "@/components/WorkflowCards";
+import { useEngineWorkflows } from "@/lib/useEngineWorkflows";
 
 /** The assistant workflow (the first row) is greyed when the tier is PAUSED (configured but refused or over budget) or the health read did not answer; the one paused line shows only when PAUSED. Available and not-configured leave the page as it was. All of it only when the assistant is offered (the entry flag): otherwise the row keeps just its note and chip. */
 export function WorkflowRows() {
   const state = useAssistantState();
+  const engineWorkflows = useEngineWorkflows();
   const { line: paused, grey: anyGreyed } = pausedTreatment(state, ASSISTANT_ENTRY_ENABLED);
   return (
     <>
@@ -22,7 +24,7 @@ export function WorkflowRows() {
         <p className="text-sm text-[var(--color-text-dim)]" data-testid="assistant-paused">{ASSISTANT_PAUSED_TEXT}</p>
       )}
       <Link href={WORKSPACE_PATH} className="inline-flex min-h-6 w-fit items-center rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-on-accent)] max-md:min-h-11" data-testid="workflows-start">{START_PANEL_HEADING}</Link>
-      {WORKFLOWS_V2 && <WorkflowCards />}
+      {WORKFLOWS_V2 && <WorkflowCards statusWorkflows={engineWorkflows} />}
       <ul className="grid gap-4 md:grid-cols-2">
         {WORKFLOWS.map((w) => {
           const greyed = anyGreyed && w.name === ASSISTANT_WORKFLOW_NAME;

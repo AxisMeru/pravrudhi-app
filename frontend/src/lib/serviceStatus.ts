@@ -16,6 +16,8 @@ export interface ServiceStatus {
   engine_version: string;
   service_window: ServiceWindowStatus | null;
   judge: { state: "ready" | "warming" | "unavailable" | "unknown"; checked_at: string | null };
+  /** Engine 0.6.24 (engine #571): which workflows are switched on, by their wf_* flag id. Absent on an older engine. Flags only, no secret. */
+  workflows?: Record<string, boolean>;
 }
 
 export type StatusResult =
