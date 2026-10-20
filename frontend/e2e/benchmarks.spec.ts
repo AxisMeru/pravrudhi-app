@@ -163,42 +163,65 @@ test("the NyayaSiddhi choosers show keyboard focus: tabbing to a radio draws an 
   await expect(box.getByTestId("ns-units").locator("label").first()).toHaveCSS("outline-style", "none");
 });
 
-// The NyayaSiddhi film inside the Benchmarks page (operator, 16 Oct; R1's strings hash 9f41ebf6cbd5): the silent explainer cut above the results (film #430, 19 Oct; the narrated cut follows the operator's listening), poster first, nothing requested until Play, captions off, no figure beside it.
-test("/benchmarks: the silent NyayaSiddhi explainer film (#430) sits above the results, poster first, no film request at load, then plays with the captions control and no sound control", async ({ page }) => {
+// The NyayaSiddhi film inside the Benchmarks page (operator, 16 Oct; R1's strings hash 9f41ebf6cbd5; 20 Oct: the NARRATED explainer is the default, sound on at Play with a visible Mute, R1 FILM_MUTE_WORDS 7ed782e9f2b3): poster first, nothing requested until Play, captions off, no figure beside it.
+test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the results, poster first, no film request at load, then plays with sound on, a Mute button and the captions control", async ({ page }) => {
   const filmRequests: string[] = [];
   page.on("request", (r) => { if (/\/films\/[a-z-]+\/film\.(mp4|webm)/.test(r.url())) filmRequests.push(r.url()); });
   await page.goto("/benchmarks");
   await page.waitForLoadState("networkidle");
   const block = page.getByTestId("block-film");
   await expect(block.getByRole("heading", { name: "NyayaSiddhi film", level: 2 })).toBeVisible();
-  // the voice gate has passed (operator, 17:00): the public card carries no "Preview for voice review"; the synthetic-voice disclosure stays
   await expect(block.getByText(/voice review/i), "no voice-review wording on the public card").toHaveCount(0);
   await expect(block.getByTestId("benchmarks-film-label")).toHaveCount(0);
   const poster = block.getByTestId("film-poster");
   await expect(poster).toHaveAttribute("alt", "Poster of the NyayaSiddhi film");
-  await expect(poster).toHaveAttribute("src", /\/films\/nyayasiddhi-explainer-silent\/poster\.png$/);
+  await expect(poster).toHaveAttribute("src", /\/films\/nyayasiddhi-explainer\/poster\.png$/);
   await expect(block.getByTestId("film-play")).toHaveText("Play the film");
   await expect(block.getByTestId("film-video")).toHaveCount(0);
   expect(filmRequests, "no film file before Play").toEqual([]);
-  // above the results: the film block precedes the NyayaSiddhi results view in the page
   const above = await page.evaluate(() => { const f = document.querySelector('[data-testid="block-film"]')!, r = document.querySelector('[data-testid="nyayasiddhi-results"]'); return !r || !!(f.compareDocumentPosition(r) & Node.DOCUMENT_POSITION_FOLLOWING); });
   expect(above).toBe(true);
-  // the silent note sits with the player (no narration, so no synthetic-voice line); the download is labelled by what it is
-  await expect(block.locator("figcaption")).toContainText("The film is silent;");
-  await expect(block.locator("figcaption")).not.toContainText("synthetic voice");
-  await expect(block.getByTestId("film-download")).toHaveText("Download the film");
-  await expect(block.getByTestId("film-download")).toHaveAttribute("href", /\/films\/nyayasiddhi-explainer-silent\/film\.mp4$/);
-  // Play: the video appears, muted, preload none, captions off with a text-named control, a sound control named by text
+  // the narrated note and the synthetic-voice line sit with the player; the download is labelled by what it is
+  await expect(block.locator("figcaption")).toContainText("The film is narrated;");
+  await expect(block.locator("figcaption")).toContainText("The narration is a synthetic voice.");
+  await expect(block.getByTestId("film-download")).toHaveText("Download the narrated film");
+  await expect(block.getByTestId("film-download")).toHaveAttribute("href", /\/films\/nyayasiddhi-explainer\/film\.mp4$/);
+  // Play: sound ON (not muted), preload none, captions off, a visible Mute button (R1's words), no Turn on sound
   await block.getByTestId("film-play").click();
   const video = block.getByTestId("film-video");
   await expect(video).toHaveAttribute("preload", "none");
-  await expect(video).toHaveJSProperty("muted", true);
+  await expect(video).toHaveJSProperty("muted", false);
   await expect(block.getByTestId("film-captions")).toHaveText("Show captions");
-  await expect(block.getByTestId("film-sound"), "a silent film has no sound button").toHaveCount(0);
+  const mute = block.getByTestId("film-mute");
+  await expect(mute).toHaveText("Mute");
+  await expect(mute).toHaveAttribute("aria-label", "Mute the narration");
+  await expect(block.getByTestId("film-sound"), "Mute / Unmute replaces Turn on sound on this card").toHaveCount(0);
+  await mute.click();
+  await expect(video).toHaveJSProperty("muted", true);
+  await expect(mute).toHaveText("Unmute");
+  await expect(mute).toHaveAttribute("aria-label", "Unmute the narration");
+  await mute.click();
+  await expect(video).toHaveJSProperty("muted", false);
   expect(await video.locator("track").evaluate((t: HTMLTrackElement) => t.hasAttribute("default"))).toBe(false);
-  // the film block says nothing that restates a result
   const text = await block.innerText();
   expect(text).not.toMatch(/%|interval|upper bound|accuracy|accurate|best|beats?|rank|outperform/i);
+  expect(text, "no claim about the voice").not.toMatch(/human|natural|lifelike|professional/i);
+});
+
+test("/benchmarks with reduced motion: the SILENT cut is the fallback (silent note, no mute or sound button, no voice line)", async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.goto("/benchmarks");
+  const block = page.getByTestId("block-film");
+  await expect(block.getByTestId("film-poster")).toHaveAttribute("src", /\/films\/nyayasiddhi-explainer-silent\/poster\.png$/);
+  await expect(block.locator("figcaption")).toContainText("The film is silent;");
+  await expect(block.locator("figcaption")).not.toContainText("synthetic voice");
+  await expect(block.getByTestId("film-download")).toHaveText("Download the film");
+  await block.getByTestId("film-play").click();
+  await expect(block.getByTestId("film-video")).toHaveJSProperty("muted", true);
+  await expect(block.getByTestId("film-mute")).toHaveCount(0);
+  await expect(block.getByTestId("film-sound")).toHaveCount(0);
+  await ctx.close();
 });
 
 test("/benchmarks: the film block adds no link to the review route and the signed rows are untouched in number", async ({ page }) => {
@@ -206,8 +229,8 @@ test("/benchmarks: the film block adds no link to the review route and the signe
   expect(await page.locator('a[href*="benchmarks-film-preview"]').count(), "no anchor to the review route").toBe(0);
 });
 
-// app#410 (explorer, 17 Oct): on paper the film block keeps its scene list and its silent note, and drops the controls that do nothing there (the Play button and the download link row).
-test("print: the film block drops the Play button and the download link, keeps the scenes and the silent note (#410)", async ({ page }) => {
+// app#410 (explorer, 17 Oct): on paper the film block keeps its scene list and its narrated note, and drops the controls that do nothing there (the Play button and the download link row).
+test("print: the film block drops the Play button and the download link, keeps the scenes and the narrated note (#410)", async ({ page }) => {
   await page.goto("/benchmarks");
   const block = page.getByTestId("block-film");
   await expect(block.getByTestId("film-play")).toBeVisible();
@@ -216,10 +239,10 @@ test("print: the film block drops the Play button and the download link, keeps t
   await expect(block.getByTestId("film-play"), "no live-looking Play button on paper").toBeHidden();
   await expect(block.getByTestId("film-download"), "no download link on paper").toBeHidden();
   await expect(block.getByTestId("film-scenes"), "the scene list stays").toBeVisible();
-  await expect(block.locator("figcaption"), "the silent note stays").toContainText("The film is silent;");
+  await expect(block.locator("figcaption"), "the narrated note stays").toContainText("The film is narrated;");
 });
 
-// 390 px player check (Lead-2, #461): the silent explainer card on a phone has no horizontal scroll, a Play button of at least 44 px in the lower part of the poster, and plays with captions off.
+// 390 px player check (Lead-2, #461): the narrated explainer card on a phone has no horizontal scroll, a Play button of at least 44 px in the lower part of the poster, and plays with captions off.
 test("/benchmarks at 390 px: the film card has no horizontal scroll, Play is at least 44 px and sits in the lower part of the poster, every control is at least 44 px tall", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/benchmarks");
@@ -234,7 +257,8 @@ test("/benchmarks at 390 px: the film card has no horizontal scroll, Play is at 
   expect(poster.width, "the poster fits the card").toBeLessThanOrEqual(390);
   await block.getByTestId("film-play").click();
   const video = block.getByTestId("film-video");
-  await expect(video).toHaveJSProperty("muted", true);
+  await expect(video).toHaveJSProperty("muted", false);
+  await expect(block.getByTestId("film-mute")).toBeVisible();
   await expect(block.getByTestId("film-captions")).toHaveText("Show captions");
   for (const b of await block.locator("button, a").all()) expect((await b.boundingBox())!.height, await b.innerText()).toBeGreaterThanOrEqual(44);
   const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);

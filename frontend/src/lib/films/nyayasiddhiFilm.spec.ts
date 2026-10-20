@@ -15,7 +15,7 @@ import { EXAMPLES } from "../demo/example";
 import contractElements from "../fixtures/contractElements.json";
 import { CHIP_LABEL } from "../screening/copy";
 import { NYAYASIDDHI_STRINGS } from "../nyayasiddhi";
-import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_NARRATED, FILM_IDS, FILM_SILENT_NOTE } from "./copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT, FILM_CAPTIONS_SHOW, FILM_DOWNLOAD_NARRATED, FILM_IDS, FILM_MUTE, FILM_MUTE_ARIA, FILM_NARRATED_NOTE, FILM_SILENT_NOTE, FILM_SYNTHETIC_VOICE, FILM_UNMUTE, FILM_UNMUTE_ARIA } from "./copy";
 
 // The NyayaSiddhi film (#948): an UNLISTED review route first (/benchmarks-film-preview), then placement under /benchmarks after deploy 21. Silent-first, captions on, no figure in the first cut (Interim lead, 16 Oct).
 const root = join(__dirname, "..", "..", "..");
@@ -194,8 +194,13 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   const page = readFileSync(join(root, "src", "app", "benchmarks", "page.tsx"), "utf8");
   assert.match(page, /parseRows\(rowsFile\)/);
   assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\}( links=\{NYAYASIDDHI_LINKS\})? \/>/);
-  assert.ok(page.indexOf("<FilmPlayer") > 0 && page.indexOf("<FilmPlayer") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
-  assert.match(page, /posterFirst/);
+  assert.ok(page.indexOf("<NarratedDefaultFilm") > 0 && page.indexOf("<NarratedDefaultFilm") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
+  assert.match(page, /loadNyayasiddhiManifest\("nyayasiddhi-explainer"\)/, "the narrated cut is the default");
+  assert.match(page, /loadNyayasiddhiManifest\("nyayasiddhi-explainer-silent"\)/, "the silent cut is the fallback");
+  const wrapper = readFileSync(join(root, "src", "components", "films", "NarratedDefaultFilm.tsx"), "utf8");
+  assert.match(wrapper, /posterFirst/);
+  assert.match(wrapper, /if \(reduced \|\| failed\)/, "silent cut for reduced motion or a playback error");
+  assert.match(wrapper, /key="nyayasiddhi-explainer-silent"/, "each cut keeps its own player state");
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
   assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|voice review/i, "the voice gate passed: the public card does not say it is a preview");
@@ -244,3 +249,28 @@ for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as co
     assert.ok(vtt.includes(norm(FILM_HIDDEN_SET_LINE)), "the film's S9 text is the re-rendered sentence");
   });
 }
+
+// R1 (20 Oct, FILM_MUTE_WORDS_R1_2026-10-20.md sha12 7ed782e9f2b3): the mute control's words and the two voice statements, by hash.
+const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
+test("the narrated-default card's words are R1's by hash: Mute / Unmute, their aria-labels, the narrated note and the synthetic-voice line", () => {
+  assert.equal(h16(FILM_MUTE), "8dd6857baf026850");
+  assert.equal(h16(FILM_UNMUTE), "ce4ee4efc5e324fc");
+  assert.equal(h16(FILM_MUTE_ARIA), "5b0b68a73edae4bc");
+  assert.equal(h16(FILM_UNMUTE_ARIA), "613af7f9bba2b603");
+  assert.equal(h16(FILM_NARRATED_NOTE), "4f2583bc5977cd17");
+  assert.equal(h16(FILM_SYNTHETIC_VOICE), "65c3d3f5e5dab7df");
+});
+
+test("soundOnPlay: the narrated film has a Mute button (not Turn on sound), starts unmuted only after Play, and keeps the narrated note and the synthetic-voice line; a silent film still has none", () => {
+  const voice = renderToStaticMarkup(createElement(FilmPlayer, { id: "nyayasiddhi-narrated", manifest: VOICE_MANIFEST, soundOnPlay: true }));
+  assert.doesNotMatch(voice, /<video[^>]*\smuted/, "no muted attribute: sound starts at Play (the video only exists after Play on a posterFirst film)");
+  const posterFirst = renderToStaticMarkup(createElement(FilmPlayer, { id: "nyayasiddhi-narrated", manifest: VOICE_MANIFEST, soundOnPlay: true, posterFirst: true }));
+  assert.doesNotMatch(posterFirst, /<video/, "poster first: no video before Play");
+  assert.match(posterFirst, new RegExp(FILM_SYNTHETIC_VOICE));
+  assert.match(voice, /data-testid="film-mute"/);
+  assert.match(voice, new RegExp(`aria-label="${FILM_MUTE_ARIA}"`));
+  assert.doesNotMatch(voice, /Turn on sound|Turn off sound/);
+  const other = renderToStaticMarkup(createElement(FilmPlayer, { id: "nyayasiddhi-narrated", manifest: VOICE_MANIFEST }));
+  assert.match(other, /Turn on sound/, "the other narrated films keep Turn on sound");
+  assert.doesNotMatch(other, /film-mute/);
+});
