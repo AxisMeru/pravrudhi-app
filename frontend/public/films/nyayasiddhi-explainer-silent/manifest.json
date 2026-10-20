@@ -1,12 +1,12 @@
 {
   "title": "NyayaSiddhi",
-  "durationS": 136.8,
+  "durationS": 142.20000000000002,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": false,
   "sources": {
-    "filmSha256": "b81d9b7d0a6789dbe30f0ca10f6dddb17aaf4497d478520fd4354b52e1315211",
+    "filmSha256": "729b7e29fb2d2cf6262e3b4013d2180db23991f9bbe5a8c89fdaacf371161309",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
     "gateTokenReplaced": 1
@@ -19,79 +19,79 @@
       "name": "NyayaSiddhi",
       "text": "",
       "startS": 0,
-      "endS": 8.2
+      "endS": 8.4
     },
     {
       "name": "A public order",
       "text": "",
-      "startS": 8.2,
-      "endS": 21.2
+      "startS": 8.4,
+      "endS": 21.4
     },
     {
       "name": "Wrongly supported",
       "text": "",
-      "startS": 21.2,
-      "endS": 43.2
+      "startS": 21.4,
+      "endS": 43.4
     },
     {
       "name": "Entered by the NyayaSiddhi organisers, who also built this system",
       "text": "",
-      "startS": 43.2,
-      "endS": 53.6
+      "startS": 43.4,
+      "endS": 53.8
     },
     {
       "name": "No outside entry yet. Entry is a pull request on the dataset page.",
       "text": "",
-      "startS": 53.6,
-      "endS": 59.800000000000004
+      "startS": 53.8,
+      "endS": 65.5
     },
     {
       "name": "Two released sets",
       "text": "",
-      "startS": 59.800000000000004,
-      "endS": 80.80000000000001
+      "startS": 65.5,
+      "endS": 86.5
     },
     {
       "name": "Same script. Same ranges.",
       "text": "",
-      "startS": 80.80000000000001,
-      "endS": 100.80000000000001
+      "startS": 86.5,
+      "endS": 106.5
     },
     {
       "name": "Built",
       "text": "",
-      "startS": 100.80000000000001,
-      "endS": 113.10000000000001
+      "startS": 106.5,
+      "endS": 118.8
     },
     {
       "name": "Illustration: invented entries",
       "text": "",
-      "startS": 113.10000000000001,
-      "endS": 124.10000000000001
+      "startS": 118.8,
+      "endS": 129.8
     },
     {
-      "name": "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
+      "name": "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet.",
       "text": "",
-      "startS": 124.10000000000001,
-      "endS": 136.8
+      "startS": 129.8,
+      "endS": 142.20000000000002
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 2453420,
-      "sha256": "692ed13a01a80e55f4794aec5b4bd03f371a04a7bd58fefe6906aacb00be698d"
+      "bytes": 2895707,
+      "sha256": "47d2ba0cae438ba7fa79e0f796faeb38f12f588040458ddbc3671a085fcae6c9"
     },
     {
       "name": "poster.png",
-      "bytes": 45712,
-      "sha256": "51280564baaae35da1bc3bc3699797c7fdd71cd8b2520e303f07c561c4e8d58f"
+      "bytes": 76895,
+      "sha256": "6045fd937e98873643db7a0089e2b777f8a87d9437ed8e869a680a92dcf027be"
     },
     {
       "name": "captions.vtt",
-      "bytes": 2373,
-      "sha256": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991"
+      "bytes": 2107,
+      "sha256": "5a872c5450a666a210833330ed39a3a01cef1b9078ccb97648946610f39fbe71"
     }
   ]
 }

@@ -1,13 +1,13 @@
 {
   "source": "worklogs/studio-seat3/film430/STRINGS_430_v3.tsv (Studio, 17 Oct; strings of the NyayaSiddhi explainer film #430; R1 reads the NEW ones)",
-  "sourceSha256": "a4411e23719c40521130b6b6a88db93689658982ff2b0c62d4b432e67c48e364",
+  "sourceSha256": "de4d9e6e6784eb8089392c457a6dffb2829e40432b20894451191b83b67dc54c",
   "note": "Every caption cue of the silent cut must equal one of these strings or one of their sentences; the narrated cut's captions are pinned by hash (the narration script). The S9 hidden-set text equals NS_HIDDEN_SPLIT (test). Vendored: the film's own strings only.",
   "strings": [
     "NyayaSiddhi is a test. It asks one question about Indian criminal law.",
     "Each item is the story of an order. The court either established the offence or it did not. The test checks whether a system says \"supported\" where the court said no.",
     "A row has two numbers, and they are read together. One counts items the court rejected that the system still called supported. The other counts items the court established that the system called supported. Each comes with its range.",
     "Every row says what it was run on, who ran it, and whether we built it. We have seen both released sets, so every figure here is a development figure.",
-    "Anyone can enter a system. Today only we have. The route is open.",
+    "Anyone can enter a system. Today only we have. The route is open, and has been tried only as a local dry run with a synthetic file; no outside entry yet.",
     "Download the two released sets and check their fingerprints. Write one prediction file for one set. Write a short manifest. Put both files in your own folder on the dataset page. Run our checker on your machine until it says pass. Then open a pull request on the dataset page.",
     "We host this, and we also enter. So the scoring rules are written before anyone enters, and every row is scored by the same script, with the same ranges. Our own rows are marked as ours. We plan for an outside party to be able to re-score a row, and that row would then say so.",
     "Today the board lists rows in a fixed order, by set and system name, never by a figure. You can look at each offence group and at each way of deciding. The board does not rank systems.",
@@ -36,7 +36,7 @@
     "Script",
     "Entered by the NyayaSiddhi organisers, who also built this system",
     "Built",
-    "Self-reported",
+    "Reported by the entrant",
     "Planned",
     "Re-scored",
     "Reproduced",
@@ -52,7 +52,7 @@
     "Listed by name, not by result",
     "v0.2",
     "v0.1",
-    "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.",
+    "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet.",
     "AxisMeru/nyayasiddhi",
     "The narration is a synthetic voice."
   ],
@@ -60,6 +60,6 @@
     "Entered by the NyayaSiddhi organisers, who also built this system",
     "Development items; used to design fixes, so seen by us",
     "Entered by the NyayaSiddhi organisers, who also built this system",
-    "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet."
+    "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet."
   ]
 }

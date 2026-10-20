@@ -1,5 +1,5 @@
-// The film captions still carry the hidden-set sentence as worded on 17 Oct ("being built") until the film is re-rendered (R1 ruling, 19 Oct: the film changes at its next re-render, not on its own); the page constant is the 19 Oct wording.
-const FILM_HIDDEN_SET_LINE = "There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.";
+// The film (re-rendered 20 Oct, STRINGS_430_v3) carries the hidden-set sentence as R1 ruled it ("is planned"); the page constant is the same wording.
+const FILM_HIDDEN_SET_LINE = "There is no hidden set yet. The mechanism for one is planned. The organisers would hold it; there is no independent custodian yet.";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -205,11 +205,11 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
 const ex = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "nyayasiddhiExplainerStrings.json"), "utf8")) as { sourceSha256: string; strings: string[]; ruleBException: string[] };
 // the four strings the Rule B exception list v2 (a021853e5598, R2) allows to carry a word the word test bars
 const exException = new Set(ex.ruleBException.flatMap((x) => [norm(x), ...sentences(x)]));
-const EXPLAINER_CAPTIONS_SHA256 = { "nyayasiddhi-explainer": "bcaed7890f48232d073ced8a001e458b27e6345c56757ac39c97996180fbeffe", "nyayasiddhi-explainer-silent": "72f11de6505a5c354341e9ad2d073a72b65b6ae4d0f7cc593d23d338189e1991" } as const;
+const EXPLAINER_CAPTIONS_SHA256 = { "nyayasiddhi-explainer": "d8e2979c61f449b08e76ffb894c19f87603d7d29b5a5534f72ed7a0277d2ffcb", "nyayasiddhi-explainer-silent": "5a872c5450a666a210833330ed39a3a01cef1b9078ccb97648946610f39fbe71" } as const;
 const exAllowed = new Set(ex.strings.flatMap((x) => [norm(x), ...sentences(x)]));
 
-test("the explainer film's vendored strings are STRINGS_430_v3 (sha256 a4411e23719c...), carry no barred word", () => {
-  assert.match(ex.sourceSha256, /^a4411e23719c/);
+test("the explainer film's vendored strings are STRINGS_430_v3 (sha256 de4d9e6e6784...), carry no barred word", () => {
+  assert.match(ex.sourceSha256, /^de4d9e6e6784/);
   assert.ok(ex.strings.length >= 50);
   for (const t of ex.strings) if (!exException.has(norm(t))) assert.doesNotMatch(t, BARRED, t);
 });
@@ -227,7 +227,9 @@ for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as co
       assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
       const text = norm(m[3]);
       // the silent cut: every cue is a STRINGS_430_v3 string (or a sentence of one) or the manifest's own scene name; the narrated cut's captions are the narration script (pinned by hash above)
-      if (id.endsWith("silent")) assert.ok(exAllowed.has(text) || man.scenes.some((sc) => norm(sc.name) === text), `${id}: a cue that is not a STRINGS_430_v3 string: ${text}`);
+      const okText = (x: string): boolean => exAllowed.has(x) || man.scenes.some((sc) => norm(sc.name) === x);
+      // a cue may stack two of the film's strings on separate lines (the title over its question)
+      if (id.endsWith("silent")) assert.ok(okText(text) || m[3].split("\n").map(norm).filter(Boolean).every(okText), `${id}: a cue that is not a STRINGS_430_v3 string: ${text}`);
       if (!exException.has(text)) assert.doesNotMatch(text, BARRED, text);
       cues += 1;
     }
@@ -237,8 +239,8 @@ for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as co
     if (!id.endsWith("silent")) assert.match(vtt, /\n1\n[^\n]*-->[^\n]*\nThe narration is a synthetic voice\.\n/, "the synthetic-voice line is the first cue");
   });
 
-  test(`${id}: the hidden-set scene shows the 17 Oct sentence until the film is re-rendered (R1, 19 Oct)`, { skip: !id.endsWith("silent") }, () => {
+  test(`${id}: the hidden-set scene shows the re-rendered sentence ("is planned", R1)`, { skip: !id.endsWith("silent") }, () => {
     const vtt = norm(readFileSync(join(root, "public", "films", id, "captions.vtt"), "utf8").replace(/\n\d+\n\d\d:[^\n]*/g, " "));
-    assert.ok(vtt.includes(norm(FILM_HIDDEN_SET_LINE)), "the film's S9 text is the 17 Oct sentence");
+    assert.ok(vtt.includes(norm(FILM_HIDDEN_SET_LINE)), "the film's S9 text is the re-rendered sentence");
   });
 }

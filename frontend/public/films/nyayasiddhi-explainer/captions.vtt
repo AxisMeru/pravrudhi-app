@@ -1,7 +1,7 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:03.000
+00:00:00.000 --> 00:00:00.600
 The narration is a synthetic voice.
 
 2
@@ -9,61 +9,111 @@ The narration is a synthetic voice.
 NyayaSiddhi is a test. It asks one question about Indian criminal law.
 
 3
-00:00:08.800 --> 00:00:18.600
-Each item is the story of an order. The court either established the offence or it did not. The test checks whether a system says "supported" where the court said no.
+00:00:09.000 --> 00:00:14.405
+Each item is the story of an order. The court either established the offence or it did not.
 
 4
-00:00:21.800 --> 00:00:29.205
-A row has two numbers, and they are read together. One counts items the court rejected that the system still called supported.
+00:00:14.405 --> 00:00:18.800
+The test checks whether a system says "supported" where the court said no.
 
 5
-00:00:29.205 --> 00:00:35.375
-The other counts items the court established that the system called supported. Each comes with its range.
+00:00:22.000 --> 00:00:24.964
+A row has two numbers, and they are read together.
 
 6
-00:00:43.800 --> 00:00:52.700
-Every row says what it was run on, who ran it, and whether we built it. We have seen both released sets, so every figure here is a development figure.
+00:00:24.964 --> 00:00:29.410
+One counts items the court rejected that the system still called supported.
 
 7
-00:00:54.200 --> 00:00:58.900
-Anyone can enter a system. Today only we have. The route is open.
+00:00:29.410 --> 00:00:34.034
+The other counts items the court established that the system called supported.
 
 8
-00:01:00.400 --> 00:01:07.713
-Download the two released sets and check their fingerprints. Write one prediction file for one set. Write a short manifest.
+00:00:34.034 --> 00:00:35.575
+Each comes with its range.
 
 9
-00:01:07.713 --> 00:01:16.750
-Put both files in your own folder on the dataset page. Run our checker on your machine until it says pass. Then open a pull request on the dataset page.
+00:00:44.000 --> 00:00:48.241
+Every row says what it was run on, who ran it, and whether we built it.
 
 10
-00:01:21.400 --> 00:01:30.422
-We host this, and we also enter. So the scoring rules are written before anyone enters, and every row is scored by the same script, with the same ranges.
+00:00:48.241 --> 00:00:52.900
+We have seen both released sets, so every figure here is a development figure.
 
 11
-00:01:30.422 --> 00:01:37.675
-Our own rows are marked as ours. We plan for an outside party to be able to re-score a row, and that row would then say so.
+00:00:54.400 --> 00:00:57.492
+Anyone can enter a system. Today only we have.
 
 12
-00:01:41.400 --> 00:01:50.291
-Today the board lists rows in a fixed order, by set and system name, never by a figure. You can look at each offence group and at each way of deciding.
+00:00:57.492 --> 00:01:01.055
+The route is open, and has been tried only as a local
 
 13
-00:01:50.291 --> 00:01:52.175
-The board does not rank systems.
+00:01:01.055 --> 00:01:04.550
+dry run with a synthetic file; no outside entry yet.
 
 14
-00:01:53.700 --> 00:01:57.625
-Later, you will be able to open a row and pick a version.
+00:01:06.100 --> 00:01:09.707
+Download the two released sets and check their fingerprints.
 
 15
-00:02:04.700 --> 00:02:09.175
-Today the board holds our own rows. There is no hidden set yet.
+00:01:09.707 --> 00:01:13.433
+Write one prediction file for one set. Write a short manifest.
 
 16
-00:02:13.800 --> 00:02:16.800
-The narration is a synthetic voice.
+00:01:13.433 --> 00:01:16.679
+Put both files in your own folder on the dataset page.
 
 17
-00:02:04.700 --> 00:02:16.700
-There is no hidden set yet. The mechanism for one is being built. The organisers would hold it; there is no independent custodian yet.
+00:01:16.679 --> 00:01:19.745
+Run our checker on your machine until it says pass.
+
+18
+00:01:19.745 --> 00:01:22.450
+Then open a pull request on the dataset page.
+
+19
+00:01:27.100 --> 00:01:32.268
+We host this, and we also enter. So the scoring rules are written before anyone enters,
+
+20
+00:01:32.268 --> 00:01:36.128
+and every row is scored by the same script, with the same ranges.
+
+21
+00:01:36.128 --> 00:01:38.029
+Our own rows are marked as ours.
+
+22
+00:01:38.029 --> 00:01:43.375
+We plan for an outside party to be able to re-score a row, and that row would then say so.
+
+23
+00:01:47.100 --> 00:01:52.251
+Today the board lists rows in a fixed order, by set and system name, never by a figure.
+
+24
+00:01:52.251 --> 00:01:55.980
+You can look at each offence group and at each way of deciding.
+
+25
+00:01:55.980 --> 00:01:57.875
+The board does not rank systems.
+
+26
+00:01:59.400 --> 00:02:03.325
+Later, you will be able to open a row and pick a version.
+
+27
+00:02:10.400 --> 00:02:14.875
+Today the board holds our own rows. There is no hidden set yet.
+
+28
+00:02:14.975 --> 00:02:19.150
+There is no hidden set yet. The mechanism for one is planned.
+The organisers would hold it; there is no independent custodian yet.
+
+
+29
+00:02:19.200 --> 00:02:22.200
+The narration is a synthetic voice.
