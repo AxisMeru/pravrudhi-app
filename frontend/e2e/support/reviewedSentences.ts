@@ -293,10 +293,10 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
   "public/films/client/captions.vtt": {
     reason: "the client film's captions: the narration's own \"text\" (NARRATION_CLIENT_FROZEN v3, narration.json sha256 2ebe69ec11ebf242, R1-confirmed by hash), cut into cues; describes how the product is built and evaluated, not what happens to a submission",
     sentences: [
-      "4 00:00:24.340 --> 00:00:30.450 Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.",
-      "16 00:01:52.200 --> 00:02:02.300 Behind the checklist there are two of our trained models.",
-      "18 00:02:10.100 --> 00:02:14.014 Where does a model like that learn?",
-      "20 00:02:23.383 --> 00:02:31.725 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.",
+      "4 00:00:23.627 --> 00:00:29.175 Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.",
+      "22 00:02:25.500 --> 00:02:35.600 Behind the checklist there are two of our trained models.",
+      "24 00:02:43.400 --> 00:02:46.844 Where does a model like that learn?",
+      "26 00:02:55.086 --> 00:03:02.425 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.",
     ],
   },
   "public/films/technical/captions.vtt": {
