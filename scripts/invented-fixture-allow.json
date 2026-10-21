@@ -438,63 +438,105 @@
     "reason": "invented sample: a day-first date in Track C's real-engine sample response with a fake model answer on invented text; no real case date"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "91da619a00216324460db588534651d3bc11aff9a204bb18331bb96d1264cdcd",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "cc6723d666a4bc85eecaf202949017d984d2a9b0628f19f32c0e76394744c79d",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "70f1a39ec307e99c17fe99e6f87e34b4f950ce8fc7193c050d4b69523e5cf75e",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "a183d78da04c5a94111c0a391e74509e3a6dc1ca1fd0fdb28ec9a59a17fa6cb7",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "988967ac49279b624847cccd9f0a45f45fae229d3ea24e0923e141cbd41b9881",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "c7c2cd1b81f1bbc0a4d2706983790a683914fce41cfd6da251a7cf92ebd32f22",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/e2e/sample-matter.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "bf86e22f165d33fe9ae2935617fe49606a42059a78bd19ed5a7877acd3fcacea",
+    "reason": "test input: an invented date typed over a prefilled sample date to prove the source becomes 'typed'"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "FIR No./FIR Number <number>",
     "line_sha256": "84c2d110592882f90c7c32c3d3b93adb14e8adc42fa8d72111a1c15bacb0dbc8",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "court case-number form 'No. N of YYYY'",
     "line_sha256": "84c2d110592882f90c7c32c3d3b93adb14e8adc42fa8d72111a1c15bacb0dbc8",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "84c2d110592882f90c7c32c3d3b93adb14e8adc42fa8d72111a1c15bacb0dbc8",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "FIR No./FIR Number <number>",
-    "line_sha256": "1eefcfd9b9523fcb9e0d0814153382239b4dd6311667e8c35262a3a367a275ae",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "f9f8364ee0e1da6c30b1e1c56bd6cd35e5378166be05589bb9a48a309cf198d6",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "court case-number form 'No. N of YYYY'",
-    "line_sha256": "1eefcfd9b9523fcb9e0d0814153382239b4dd6311667e8c35262a3a367a275ae",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "f9f8364ee0e1da6c30b1e1c56bd6cd35e5378166be05589bb9a48a309cf198d6",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
-    "line_sha256": "1eefcfd9b9523fcb9e0d0814153382239b4dd6311667e8c35262a3a367a275ae",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "f9f8364ee0e1da6c30b1e1c56bd6cd35e5378166be05589bb9a48a309cf198d6",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "FIR No./FIR Number <number>",
-    "line_sha256": "3b0a65c7181ce9056acb2c9140269ecde112870d74965b5e48522e532d344394",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "10d4c3d0efb0a182b1d5aef567deea1553c17dab30eebc863f1e4b8e2e16b866",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "court case-number form 'No. N of YYYY'",
-    "line_sha256": "3b0a65c7181ce9056acb2c9140269ecde112870d74965b5e48522e532d344394",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "10d4c3d0efb0a182b1d5aef567deea1553c17dab30eebc863f1e4b8e2e16b866",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
-    "line_sha256": "3b0a65c7181ce9056acb2c9140269ecde112870d74965b5e48522e532d344394",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "line_sha256": "10d4c3d0efb0a182b1d5aef567deea1553c17dab30eebc863f1e4b8e2e16b866",
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   },
   {
-    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v3.json",
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_MATTER_INVENTED_v5.json",
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "c5ab5ff92cc7010c4f8e147c667aaedc823ad0cffef74316f3c704f16f594132",
-    "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+    "reason": "invented sample paper in Track A's SAMPLE_MATTER_INVENTED_v5 (ca52ffc05cea): an invented FIR, case number and date of the invented sample papers, no real case"
   }
 ]

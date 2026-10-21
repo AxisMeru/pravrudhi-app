@@ -9,6 +9,7 @@ const PINS: Record<string, string> = {
   a5Name: "998b578bcf6d0cb2",
   a5Line: "04db76a18b03b7d9",
   a5Run: "8ae2fb77eb19e442",
+  a5NotAddedNote: "1ed69458eebf48d6",
   a3Name: "c96cad0be677f0b8",
   a3Line: "2f663aecfbd0f7ea",
   a3Run: "8e9bfb6c3dac96b2",
