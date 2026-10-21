@@ -70,6 +70,7 @@ export function A5Result({ v }: { v: A5View }) {
       )}
       <List heading={v.papersRead.heading} items={v.papersRead.names} />
       <List heading={v.notAdded.heading} items={v.notAdded.rows} />
+      {v.notAdded.rows.length > 0 && <p className={DIM} data-testid="pv-a5-notadded-note">{PREVIEW_MORE.a5NotAddedNote}</p>}
       {v.notAdded.rows.length === 0 && v.notAdded.noneLine && <p className={P}>{v.notAdded.noneLine}</p>}
       <List items={v.notAssessed} />
     </div>

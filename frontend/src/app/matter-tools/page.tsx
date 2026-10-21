@@ -113,7 +113,7 @@ export default function PreviewPage() {
       if (d.status === 404 && (await matterGone(id))) return;
       if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body, "/matter-spans/documents")); }
     }
-    await refresh(id); applyPrefill(id); setMessage(T.matterStarted);
+    await refresh(id); applyPrefill(id); setMessage(SAMPLE_TEXT.loaded);
   });
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
@@ -290,7 +290,7 @@ export default function PreviewPage() {
 
         <Card id="hp" name={HP.name} line={HP.line}>
           <label className="block text-sm text-[var(--color-text)]">{HP.dateLabel}
-            <input className={FIELD} value={hpDate} maxLength={10} placeholder="2026-11-03" onChange={(e) => setHpDate(e.target.value)} data-testid="pv-hp-date" />
+            <input className={FIELD} value={hpDate} maxLength={10} placeholder={HP.datePlaceholder} onChange={(e) => setHpDate(e.target.value)} data-testid="pv-hp-date" />
           </label>
           <button type="button" className={BTN} onClick={() => runOnMatter("/matter-hearing-pack", parseHearing, setHp, /^\d{4}-\d{2}-\d{2}$/.test(hpDate.trim()) ? { hearing_date: hpDate.trim() } : {})} disabled={busy || !matter} data-testid="pv-hp-run">{HP.run}</button>
           {hp && <HearingResult v={hp} />}

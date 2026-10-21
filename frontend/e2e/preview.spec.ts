@@ -87,6 +87,7 @@ test("A5 review agenda: the section's own words, the not-added list and the not-
   await expect(page.getByTestId("pv-a5-ingredients").locator("li")).toHaveCount(6);
   await expect(page.getByTestId("pv-a5-result")).toContainText("Whether the papers show any ingredient.");
   await expect(page.getByTestId("pv-a5-result")).not.toContainText(/\bmet\b/i);
+  await expect(page.getByTestId("pv-a5-notadded-note")).toHaveText("This list goes by the file names you gave; a paper that holds one of these under another name is not matched."); // R1 1ed69458eebf48d6
 });
 
 test("S1 sweep and A1 draft check list each citation with the app's own status words", async ({ page }) => {

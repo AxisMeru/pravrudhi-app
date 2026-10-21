@@ -8,10 +8,10 @@ import { SAMPLE_PAPERS, SAMPLE_TEXT } from "./sampleMatter";
 
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
 
-test("the sample matter is Track A's invented bundle byte for byte (sha12 f3c6f1e10c32): four papers, each opening with the line that says it is invented", () => {
-  const file = readFileSync(join(__dirname, "fixtures", "sample", "SAMPLE_MATTER_INVENTED_v3.json"));
-  assert.equal(createHash("sha256").update(file).digest("hex").slice(0, 12), "f3c6f1e10c32");
-  assert.deepEqual(SAMPLE_PAPERS.map((p) => p.name), ["FIR (invented sample)", "Chargesheet extract (invented sample)", "Bail order (invented sample)", "Cheque memo and notice (invented sample)"]);
+test("the sample matter is Track A's invented bundle byte for byte (sha12 ca52ffc05cea): four papers, each opening with the line that says it is invented", () => {
+  const file = readFileSync(join(__dirname, "fixtures", "sample", "SAMPLE_MATTER_INVENTED_v5.json"));
+  assert.equal(createHash("sha256").update(file).digest("hex").slice(0, 12), "ca52ffc05cea");
+  assert.deepEqual(SAMPLE_PAPERS.map((p) => p.name), ["FIR (invented sample)", "Charge sheet extract (invented sample)", "Bail order (invented sample)", "Cheque return memo and legal notice (invented sample)"]);
   for (const p of SAMPLE_PAPERS) {
     assert.ok(p.text.startsWith("INVENTED SAMPLE PAPER FOR TESTING. Every name, number, date and place below is made up. It is not a real case."), p.name);
     assert.ok(p.text.length > 500 && p.text.length < 10_000_000, p.name);
@@ -26,7 +26,7 @@ test("the button and its note are R1's words by hash (MATTER_PAPERS_WORDS_FINAL 
 
 // R2's advise (#480): two repo guards (caseIdentifiers.spec.ts, noTrainingPromise.spec.ts) skip this whole directory, so it must hold exactly the pinned bundle: a later file here would escape both scans.
 test("src/lib/fixtures/sample/ holds exactly the two pinned files (the bundle and the prefill) (the directory-wide guard exemptions cover nothing else)", () => {
-  assert.deepEqual(readdirSync(join(__dirname, "fixtures", "sample")).sort(), ["SAMPLE_MATTER_INVENTED_v3.json", "SAMPLE_PREFILL_INVENTED_v2.json"]);
+  assert.deepEqual(readdirSync(join(__dirname, "fixtures", "sample")).sort(), ["SAMPLE_MATTER_INVENTED_v5.json", "SAMPLE_PREFILL_INVENTED_v2.json"]);
 });
 
 // The sample prefill (Track A SAMPLE_PREFILL_INVENTED_v2, sha12 71dc7af17823): B3 dates with their source labels, ALL UNCONFIRMED (R1: the checklist counts from dates you confirm), five bail facts with sides, one draft paste; R1's two lines by hash.

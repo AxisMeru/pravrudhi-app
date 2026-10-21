@@ -53,6 +53,8 @@ test("Load a sample matter: the checklist dates, the draft paste and (drafting b
   await expect(page.getByTestId("pv-b3-cheque")).toHaveValue("");
   await page.getByTestId("pv-sample").click();
   await expect(page.getByTestId("pv-papers").locator("li")).toHaveCount(4);
+  await expect(page.getByTestId("pv-message")).toHaveText("The sample matter is loaded."); // R1: after a SAMPLE load only (0fc805c57248aeda)
+  await expect(page.getByTestId("pv-hp-date")).toHaveAttribute("placeholder", "yyyy-mm-dd");
   await expect(page.getByTestId("pv-sample-dates-line")).toHaveText(SAMPLE_PREFILL_TEXT.datesLine);
   for (const k of ["b3", "a1"]) await expect(page.getByTestId(`pv-prefill-line-${k}`)).toHaveText(SAMPLE_PREFILL_TEXT.line);
   for (const [k, v] of Object.entries(SAMPLE_PREFILL.b3)) await expect(page.getByTestId(`pv-b3-${k}`)).toHaveValue(v.value);
