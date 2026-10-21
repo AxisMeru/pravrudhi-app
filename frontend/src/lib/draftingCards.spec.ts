@@ -12,7 +12,7 @@ test("the drafting cards flag is OFF unless NEXT_PUBLIC_DRAFTING_CARDS is exactl
   const src = readFileSync(join(root, "src", "lib", "draftingCards.ts"), "utf8");
   assert.match(src, /NEXT_PUBLIC_DRAFTING_CARDS === "1"/);
   const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
-  assert.match(page, /\{DRAFTING_CARDS && <BailCard \/>\}/);
+  assert.match(page, /\{DRAFTING_CARDS && <BailCard\b[^>]*\/>\}/);
   assert.match(page, /\{DRAFTING_CARDS && <SynopsisCard /);
   assert.doesNotMatch(page, /^\s*<(BailCard|SynopsisCard)\b/m, "no unconditional A4/A8 card");
 });

@@ -496,5 +496,47 @@
     "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
     "line_sha256": "c5ab5ff92cc7010c4f8e147c667aaedc823ad0cffef74316f3c704f16f594132",
     "reason": "the invented SAMPLE matter (Track A's SAMPLE_MATTER_INVENTED_v2, sha12 b5e5ccdbffaa; Lead-2 P0, 20 Oct): an invented paper that looks like a real one on purpose so the tools can run; opens with 'INVENTED SAMPLE PAPER FOR TESTING', every name, number, date and place is made up; R2 re-grepped the names (clean); the real-name check still runs on it"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "91da619a00216324460db588534651d3bc11aff9a204bb18331bb96d1264cdcd",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "cc6723d666a4bc85eecaf202949017d984d2a9b0628f19f32c0e76394744c79d",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "70f1a39ec307e99c17fe99e6f87e34b4f950ce8fc7193c050d4b69523e5cf75e",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "a183d78da04c5a94111c0a391e74509e3a6dc1ca1fd0fdb28ec9a59a17fa6cb7",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "988967ac49279b624847cccd9f0a45f45fae229d3ea24e0923e141cbd41b9881",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/src/lib/fixtures/sample/SAMPLE_PREFILL_INVENTED_v2.json",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "c7c2cd1b81f1bbc0a4d2706983790a683914fce41cfd6da251a7cf92ebd32f22",
+    "reason": "invented sample date in Track A's SAMPLE_PREFILL_INVENTED_v2 (71dc7af17823): the date of the invented sample papers, no real case"
+  },
+  {
+    "file": "frontend/e2e/sample-matter.spec.ts",
+    "id": "numeric date (dd.mm.yyyy, dd/mm/yyyy or dd-mm-yyyy)",
+    "line_sha256": "bf86e22f165d33fe9ae2935617fe49606a42059a78bd19ed5a7877acd3fcacea",
+    "reason": "test input: an invented date typed over a prefilled sample date to prove the source becomes 'typed'"
   }
 ]
