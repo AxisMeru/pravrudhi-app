@@ -78,7 +78,7 @@ export default function PreviewPage() {
   async function refresh(m: string) {
     const a = await previewPost("/matter-spans/list", { matter_id: m });
     if (a.status === 200) { const p = parsePapers(a.body); setPapers(p.papers); setPagesNote(p.pagesNote); }
-    else if (a.status === 404) { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }
+    else if (a.status === 404) { kept.clear(); setMatter(null); setPapers([]); clearPrefill(); setMessage(GONE_LINE); }
   }
   async function run(f: () => Promise<void>): Promise<void> {
     setBusy(true); setMessage(null);

@@ -57,9 +57,10 @@ test("the page fills the forms only from a loaded sample matter, sends each pref
 });
 
 // R2 advise on #493: the prefill goes away wherever the matter changes, not only at start and remove-all.
-test("clearPrefill runs at every place the open matter is dropped or replaced: start, remove all, gone, opened from Your matters, deleted from Your matters", () => {
+test("clearPrefill runs at every place the open matter is dropped or replaced: start, remove all, matterGone, refresh() finding the matter gone, opened from Your matters, deleted from Your matters", () => {
   const page = readFileSync(join(__dirname, "..", "app", "matter-tools", "page.tsx"), "utf8");
-  assert.equal((page.match(/clearPrefill\(\)/g) ?? []).length, 5 + 0, "start, remove all, matterGone, onOpen, onDeleted");
+  assert.equal((page.match(/clearPrefill\(\)/g) ?? []).length, 6, "start, remove all, matterGone, refresh, onOpen, onDeleted");
+  assert.match(page, /setPapers\(\[\]\); clearPrefill\(\); setMessage\(GONE_LINE\); \}\n  \}/, "refresh()'s 404 branch clears the prefill");
   assert.match(page, /setMessage\(GONE_LINE\);\s*return true/);
   assert.match(page, /clearResults\(\); clearPrefill\(\); setMessage\(GONE_LINE\)/);
   assert.match(page, /onOpen=\{\(id\) => \{[^}]*clearPrefill\(\)/);
