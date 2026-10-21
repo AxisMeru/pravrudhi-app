@@ -85,3 +85,47 @@ test("Load a sample matter: the checklist dates, the draft paste and (drafting b
   await expect(page.getByTestId("pv-b3-cheque")).toHaveValue("");
   await expect(page.getByTestId("pv-a1-text")).toHaveValue("");
 });
+
+// R2 advise on #493: when the store no longer holds the sample matter (a restart), the prefill and its lines go with it.
+test("Load a sample matter: when the matter is gone (404 and the list route says so) the prefilled dates, the draft paste and R1's lines are cleared", async ({ page }) => {
+  const docs: { name: string; text: string }[] = [];
+  let gone = false;
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => { const b = JSON.parse(r.request().postData() ?? "{}") as { name: string; text: string }; docs.push(b); r.fulfill({ json: { matter_id: HEX, doc_id: `d${docs.length}`, name: b.name, n_pages: 1, n_spans: 3, n_chars: b.text.length, pages_without_text: [], ingest_done: true, indexed_complete: true } }); });
+  await page.route("**/api/v1/matter-spans/list", (r) => (gone ? r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }) : r.fulfill({ json: { matter_id: HEX, documents: docs.map((d, i) => ({ doc_id: `d${i + 1}`, name: d.name, n_pages: 1, n_spans: 3, n_chars: d.text.length, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } })));
+  await page.route("**/api/v1/chronology", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
+  await page.goto("/matter-tools");
+  await page.getByTestId("pv-sample").click();
+  await expect(page.getByTestId("pv-prefill-line-b3")).toBeVisible();
+  gone = true;
+  await page.getByTestId("pv-a3-run").click();
+  await expect(page.getByTestId("pv-message")).toContainText("no longer held");
+  await expect(page.getByTestId("pv-prefill-line-b3")).toHaveCount(0);
+  await expect(page.getByTestId("pv-sample-dates-line")).toHaveCount(0);
+  gone = false;
+  await page.getByTestId("pv-start").click();
+  await expect(page.getByTestId("pv-b3-cheque")).toHaveValue("");
+  await expect(page.getByTestId("pv-b3-mode")).toHaveValue("");
+  await expect(page.getByTestId("pv-a1-text")).toHaveValue("");
+});
+
+// R2 advise on #494: a paper removed after the store lost the matter (refresh() sees the 404) clears the prefill too.
+test("Load a sample matter: removing a paper when the store has lost the matter clears the prefill and R1's lines", async ({ page }) => {
+  const docs: { name: string; text: string }[] = [];
+  let gone = false;
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => { const b = JSON.parse(r.request().postData() ?? "{}") as { name: string; text: string }; docs.push(b); r.fulfill({ json: { matter_id: HEX, doc_id: `d${docs.length}`, name: b.name, n_pages: 1, n_spans: 3, n_chars: b.text.length, pages_without_text: [], ingest_done: true, indexed_complete: true } }); });
+  await page.route("**/api/v1/matter-spans/list", (r) => (gone ? r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }) : r.fulfill({ json: { matter_id: HEX, documents: docs.map((d, i) => ({ doc_id: `d${i + 1}`, name: d.name, n_pages: 1, n_spans: 3, n_chars: d.text.length, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } })));
+  await page.route("**/api/v1/matter-spans/delete", (r) => r.fulfill({ json: { deleted: true } }));
+  await page.goto("/matter-tools");
+  await page.getByTestId("pv-sample").click();
+  await expect(page.getByTestId("pv-prefill-line-b3")).toBeVisible();
+  gone = true;
+  await page.getByTestId("pv-papers").getByRole("button").first().click();
+  await expect(page.getByTestId("pv-message")).toContainText("no longer held");
+  await expect(page.getByTestId("pv-prefill-line-b3")).toHaveCount(0);
+  gone = false;
+  await page.getByTestId("pv-start").click();
+  await expect(page.getByTestId("pv-b3-cheque")).toHaveValue("");
+  await expect(page.getByTestId("pv-a1-text")).toHaveValue("");
+});
