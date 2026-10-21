@@ -5,6 +5,8 @@
 
 import { parseAppendix, parseAssistantBlock, parseAssistantInfo, type AssistantBlock, type ScreeningAppendix } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
+import { runWake, type WakeIO } from "./wake/wakeRun";
+import type { WakeView } from "./wake/wake";
 
 function detectBase(): string {
   const configured = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "");
@@ -1340,6 +1342,13 @@ export class InvalidEngineAnswerError extends Error {
     this.runId = runId;
   }
 }
+/** #1038: a start the engine began but could not finish (or that could not be followed). Carries R1's line; nothing was scored. */
+export class WakeStoppedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "WakeStoppedError";
+  }
+}
 /** The run-record download for an unreadable answer: a machine marker and the run id, nothing else. */
 export const invalidAnswerRecord = (runId: string | null): string => JSON.stringify({ invalid_engine_answer: true, run_id: runId }, null, 2);
 
@@ -1585,6 +1594,48 @@ export interface AnalyseFactsOptions {
    * plain analyse-facts route (the assisted route is consent-bearing and paid: no retry until Track C says it is safe), and only when the caller shows the line. The second timeout is the ordinary error.
    */
   onTimeoutRetry?: () => void;
+  /**
+   * #1038 cold start with progress. Given only by the screening page, and only on the plain route. When the engine refuses with judges_offline, the app asks it to start the models (a wake job); a refusal
+   * that wake is not allowed, or ANY other answer to that ask, leaves today's refusal exactly as it was. While a start is in progress this is called with what to show.
+   */
+  onWake?: (view: WakeView) => void;
+}
+
+/** #1038: the wake job's start and poll over the engine (signed-in session, same auth as the sync screening). Any answer but 202 with a job id is "not allowed": today's refusal stands. */
+function wakeIO(facts: string[], contractIds: string[], narrative: string | undefined, signal: AbortSignal | undefined, onView: (v: WakeView) => void): WakeIO {
+  const base = `${detectBase()}/api/v1/analyse-facts/jobs`;
+  const call = async (url: string, init: RequestInit) => {
+    const localTok = await localToken();
+    return engineFetch(url, { ...init, headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) }, signal, authOptional: true });
+  };
+  return {
+    signal,
+    onView,
+    sleep: (ms, sig) => new Promise<void>((resolve, reject) => {
+      const t = setTimeout(resolve, ms);
+      sig?.addEventListener("abort", () => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); }, { once: true });
+    }),
+    start: async () => {
+      try {
+        const r = await call(base, { method: "POST", body: JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", wake: true }) });
+        if (r.status !== 202) return { kind: "not_allowed" };
+        const b = (await r.json()) as { job_id?: unknown; poll_after_s?: unknown; wake?: unknown };
+        if (typeof b.job_id !== "string" || b.job_id === "") return { kind: "not_allowed" };
+        const w = (b.wake ?? {}) as { poll_after_s?: unknown };
+        const pa = Number(b.poll_after_s ?? w.poll_after_s);
+        return { kind: "started", jobId: b.job_id, pollAfterS: pa, wake: b.wake };
+      } catch (e) {
+        if ((e as { name?: string } | null)?.name === "AbortError") throw e;
+        return { kind: "not_allowed" };
+      }
+    },
+    poll: async (jobId) => {
+      const r = await call(`${base}/${encodeURIComponent(jobId)}`, { method: "GET" });
+      if (!r.ok) throw new ApiError(r.status, "/api/v1/analyse-facts/jobs");
+      const b = (await r.json()) as { status?: unknown; wake?: unknown; result?: unknown };
+      return { status: typeof b.status === "string" ? b.status : "", wake: b.wake, result: b.result };
+    },
+  };
 }
 
 export async function analyseFacts(
@@ -1602,6 +1653,7 @@ export async function analyseFacts(
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once (plain route only, #338); a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
   let res: Response;
+  let wakeWire: AnalyseFactsWire | undefined;
   try {
     res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
   } catch (e) {
@@ -1622,9 +1674,14 @@ export async function analyseFacts(
       const plain = await analyseFacts(facts, contractIds, narrative, signal, { ...opts, assisted: false });
       return { ...plain, assistant: { used: false, outcome: "refused", reason: "error", steps: [] } };
     }
-    if (!res.ok) throw err;
+    if (!res.ok && !opts.assisted && opts.onWake && res.status === 503 && err.code === "judges_offline") {
+      const o = await runWake(wakeIO(facts, contractIds, narrative, signal, opts.onWake));
+      if (o.kind === "stopped") throw new WakeStoppedError(o.view.warning ?? "");
+      if (o.kind === "done") wakeWire = o.wire as AnalyseFactsWire;
+    }
+    if (!res.ok && wakeWire === undefined) throw err;
   }
-  const wire = (await res.json()) as AnalyseFactsWire;
+  const wire = wakeWire ?? ((await res.json()) as AnalyseFactsWire);
   const result = await withFactText(wire, facts);
   const raw = wire as unknown as Record<string, unknown>;
   // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
