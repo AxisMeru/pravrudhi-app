@@ -1,0 +1,173 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:00.600
+The narration is a synthetic voice.
+
+2
+00:00:00.600 --> 00:00:04.293
+This guide shows how to use Pravrudhi-Nyaya on a matter.
+
+3
+00:00:04.293 --> 00:00:08.250
+This is a screening aid, not legal advice. A lawyer decides.
+
+4
+00:00:09.800 --> 00:00:12.415
+On Matter tools you add the papers of a matter.
+
+5
+00:00:12.415 --> 00:00:15.420
+The papers you add here are kept as text in our store,
+
+6
+00:00:15.420 --> 00:00:18.871
+in the EU (Romania), until you delete the paper or the matter.
+
+7
+00:00:18.871 --> 00:00:22.265
+Keep the matter number: it is lost when you reload this page,
+
+8
+00:00:22.265 --> 00:00:27.162
+and your matters cannot be listed here. Deleting removes them from this service's store.
+
+9
+00:00:27.162 --> 00:00:28.275
+Images are not read.
+
+10
+00:00:32.000 --> 00:00:34.943
+The tools below use those papers, except the Section
+
+11
+00:00:34.943 --> 00:00:39.017
+138 checklist, which counts from dates you confirm. Papers for a matter.
+
+12
+00:00:39.017 --> 00:00:42.752
+Add the papers of a matter and find a passage in them. Chronology.
+
+13
+00:00:42.752 --> 00:00:47.449
+Lists the dates it reads in your papers, each with its sentence. May be incomplete.
+
+14
+00:00:47.449 --> 00:00:52.825
+Review agenda. Lists the ingredients of the cheque-dishonour offence and the papers to look in.
+
+15
+00:00:52.825 --> 00:00:57.975
+Citation sweep. Checks that each citation in your papers exists in our index, nothing more.
+
+16
+00:00:59.500 --> 00:01:00.491
+Quashing agenda.
+
+17
+00:01:00.491 --> 00:01:05.444
+Lists the Supreme Court's quashing categories; does not say whether any applies.
+
+18
+00:01:05.444 --> 00:01:11.326
+Cheque case check. Shows the review agenda and candidate dates per step; you confirm each date.
+
+19
+00:01:11.326 --> 00:01:17.022
+Hearing pack. Gathers the dates, papers still to add and citations to look up for a hearing.
+
+20
+00:01:17.022 --> 00:01:18.384
+Section 138 checklist.
+
+21
+00:01:18.384 --> 00:01:23.275
+Counts section 138 periods from dates you confirm: a checklist, not a decision.
+
+22
+00:01:24.800 --> 00:01:26.413
+Papers you add to a matter.
+
+23
+00:01:26.413 --> 00:01:32.090
+What is sent: each paper you add on Matter tools is sent to our service. Only its text is kept.
+
+24
+00:01:32.090 --> 00:01:37.169
+Where it is kept: in our store on a storage volume in the EU (Romania), not in India.
+
+25
+00:01:37.169 --> 00:01:40.216
+How long: until you delete the paper or the matter.
+
+26
+00:01:40.216 --> 00:01:44.100
+Nothing expires it, and we make no promise of a retention period.
+
+27
+00:01:50.200 --> 00:01:53.489
+What delete does: deleting a paper or a matter removes it,
+
+28
+00:01:53.489 --> 00:01:56.155
+and its stored text, from this service's store.
+
+29
+00:01:56.155 --> 00:02:00.125
+We have not tested what the underlying hosting storage may still hold.
+
+30
+00:02:00.125 --> 00:02:03.698
+Who can read it: only your organisation, through the product or
+
+31
+00:02:03.698 --> 00:02:07.498
+your organisation's API key; another organisation gets "not found".
+
+32
+00:02:07.498 --> 00:02:10.164
+This service does not encrypt the stored files.
+
+33
+00:02:10.164 --> 00:02:13.850
+People who run the service and its hosting account can read them.
+
+34
+00:02:16.200 --> 00:02:17.270
+Backup: none known.
+
+35
+00:02:17.270 --> 00:02:21.942
+This service makes no copy, and we have not tested what our hosting provider keeps.
+
+36
+00:02:21.942 --> 00:02:27.065
+The matter number is lost when you reload the page, and your matters cannot be listed here.
+
+37
+00:02:27.065 --> 00:02:32.300
+If you lose the matter number, there is not yet a tested way to ask us to delete your papers.
+
+38
+00:02:36.800 --> 00:02:40.895
+To try the tools without your own papers, load a sample matter.
+
+39
+00:02:40.895 --> 00:02:45.315
+The sample matter is invented: an invented FIR, chargesheet extract,
+
+40
+00:02:45.315 --> 00:02:48.500
+bail order and cheque memo, with no real parties.
+
+41
+00:02:50.000 --> 00:02:55.718
+Each tool has a line saying what it does. This is a screening aid, not legal advice.
+
+42
+00:02:55.718 --> 00:02:56.875
+A lawyer decides.
+
+43
+00:02:56.875 --> 00:02:57.800
+The narration is a synthetic voice.

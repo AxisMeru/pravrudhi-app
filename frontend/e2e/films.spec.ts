@@ -2,7 +2,8 @@ import { expect, test } from "./support/engineTest";
 
 // #251 (#253, #254, #256): the two motion films play INSIDE the app with the browser's own <video>: narrated but starting MUTED with a visible Turn on sound button, controls, captions OFF by default with a visible Show captions toggle, a Download the film link, nothing fetched until the visitor presses play, the poster first;
 // under reduced motion the poster waits for the visitor's button. At 400 px and on a desktop the page does not scroll sideways. The only committed source is the H.264 MP4 (Interim lead, 15 Oct). Playwright's own Chromium cannot decode H.264, so the play step runs only where the browser says it can; the rest (source, poster, captions, preload, no fetch before play, layout) is checked everywhere.
-const PAGES = [["/guide", "client"], ["/technical-film", "technical"], ["/how-it-was-built", "technical"]] as const;
+const GUIDE_V2 = process.env.GUIDE_FILM_V2_BUILD === "1"; // with the guide-v2 flag /guide shows the narrated film (e2e/guide-film-v2.spec.ts), not the client film
+const PAGES = [...(GUIDE_V2 ? [] : [["/guide", "client"] as const]), ["/technical-film", "technical"], ["/how-it-was-built", "technical"]] as const;
 const VIEWPORTS = [{ width: 400, height: 800 }, { width: 1280, height: 800 }];
 
 for (const [path, id] of PAGES) for (const viewport of VIEWPORTS) {

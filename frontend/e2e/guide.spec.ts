@@ -47,7 +47,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
     await expect(page.getByTestId("guide-step").nth(6)).toContainText("so keep them as you would the matter file.");
     await expect(step1.locator("img")).toHaveAttribute("src", "/guide/01-screening-input.png");
   }
-  const imgs = page.locator('[data-testid="guide"] img:not([data-testid="film-poster-print"])'); // the film's print-only poster (app#414) is not a guide screenshot
+  const imgs = page.locator('[data-testid="guide"] img:not([data-testid^="film-poster"])'); // the film's posters (print-only app#414, and the narrated guide film's poster) are not guide screenshots
   await expect(imgs).toHaveCount(IMAGES);
   for (let i = 0; i < IMAGES; i++) {
     await imgs.nth(i).scrollIntoViewIfNeeded();
