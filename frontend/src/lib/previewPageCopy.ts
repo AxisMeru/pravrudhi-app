@@ -10,6 +10,10 @@ export const PREVIEW_PAGE = {
   papersHeading: "Papers added",
   removePaper: "Remove",
   removeAll: "Remove all the papers and the matter",
+  // R1 (WEB_UX_POLISH_R1_ANSWERS fe5051df8a55): the two-step confirm, built on the signed Your-matters wording; the starting button above keeps its signed text
+  removeAllQuestion: "Remove all the papers and the matter? They are removed from this service's store. This cannot be undone.", // dbbb42544bbeb438
+  removeAllYes: "Yes, remove all", // fac76e76b4216f9c
+  removeAllCancel: "Cancel", // 19766ed6ccb2f4a3 (the signed ym_cancel)
   s3Name: "Quashing agenda",
   s3Line: "Lists the categories the Supreme Court gave for quashing an FIR or complaint, and the papers you added. It does not say whether any category applies.",
   s3Run: "Make the quashing agenda",

@@ -80,6 +80,7 @@ test("Load a sample matter: the checklist dates, the draft paste and (drafting b
   }
   // removing the matter takes the prefill and its lines away
   await page.getByTestId("pv-remove-all").click();
+  await page.getByTestId("pv-remove-all-yes").click();
   await expect(page.getByTestId("pv-sample")).toBeVisible();
   await page.getByTestId("pv-start").click(); // an empty matter of the visitor's own
   await expect(page.getByTestId("pv-prefill-line-b3")).toHaveCount(0);

@@ -131,7 +131,9 @@ export default function PreviewPage() {
     kept.delete(docId);
     await refresh(matter);
   });
+  const [confirmingAll, setConfirmingAll] = useState(false); // the two-step "Remove all": the first press only asks (R1, #1 of the UX polish list)
   const removeAll = () => run(async () => {
+    setConfirmingAll(false);
     if (!matter) return;
     const a = await previewPost("/matter-spans/delete", { matter_id: matter });
     if (a.status !== 200) return setMessage(refusal(a.status, a.body));
@@ -244,7 +246,16 @@ export default function PreviewPage() {
                   {sampleOn && <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-dates-line">{SAMPLE_PREFILL_TEXT.datesLine}</p>}
                 </div>
               )}
-              <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
+              <button type="button" className={BTN} onClick={() => setConfirmingAll(true)} disabled={busy || confirmingAll} aria-expanded={confirmingAll} data-testid="pv-remove-all">{T.removeAll}</button>
+              {confirmingAll && (
+                <div role="alertdialog" aria-label={T.removeAllQuestion} className="space-y-2 rounded-md border border-[var(--color-border)] p-3" data-testid="pv-remove-all-confirm">
+                  <p className="text-sm text-[var(--color-text)]">{T.removeAllQuestion}</p>
+                  <span className="flex gap-2">
+                    <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all-yes">{T.removeAllYes}</button>
+                    <button type="button" className={BTN} onClick={() => setConfirmingAll(false)} disabled={busy} data-testid="pv-remove-all-cancel">{T.removeAllCancel}</button>
+                  </span>
+                </div>
+              )}
             </>
           )}
           {!matter && signedIn && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-note">{SAMPLE_TEXT.note}</p>}
