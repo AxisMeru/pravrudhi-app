@@ -42,7 +42,7 @@ test("wake: rows and R1's lines show while the models start, then the result; no
 
 test("wake: a partial load shows the warning above the result; nothing is shown as supported", async ({ page }) => {
   await setup(page, { start: STARTED, polls: [{ status: "done", wake: w("partial", "ready", "failed", "second_judge_unavailable"), result: RESULT("second_judge_unavailable") }] });
-  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not start. The first model's result is shown, but no ingredient is shown as supported: each ingredient the first model supported goes to a lawyer, because the second model did not check it.", { timeout: 20_000 });
+  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
 });
 
@@ -66,8 +66,9 @@ test("wake: the warning also shows when the finished result says the second judg
 test("wake: a second screening while the first start may still be open resumes that job and starts no second wake (R2)", async ({ page }) => {
   let starts = 0;
   let polls = 0;
+  const polled: string[] = [];
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: CONTRACTS }));
-  await page.route("**/api/v1/analyse-facts/jobs/**", (r) => (++polls <= 3 ? r.fulfill({ status: 500, json: { detail: "x" } }) : r.fulfill({ json: { status: "done", wake: w("ready", "ready", "ready"), result: RESULT("uncertain") } })));
+  await page.route("**/api/v1/analyse-facts/jobs/**", (r) => (polled.push(r.request().url().split("/").pop() ?? ""), ++polls <= 3 ? r.fulfill({ status: 500, json: { detail: "x" } }) : r.fulfill({ json: { status: "done", wake: w("ready", "ready", "ready"), result: RESULT("uncertain") } })));
   await page.route("**/api/v1/analyse-facts/jobs", (r) => { starts++; return r.fulfill(STARTED); });
   await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ status: 503, json: { error: "judges_offline" } }));
   await page.goto("/screening");
@@ -80,4 +81,27 @@ test("wake: a second screening while the first start may still be open resumes t
   await expect(page.getByTestId("screening-error")).toHaveCount(0, { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0, { timeout: 20_000 });
   expect(starts).toBe(1);
+  expect(new Set(polled)).toEqual(new Set(["j1"]));
+});
+
+test("wake: stop a wake, change one fact, run again: a NEW start is posted and the old job's result never shows (R2 BLOCK)", async ({ page }) => {
+  let starts = 0;
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: CONTRACTS }));
+  await page.route("**/api/v1/analyse-facts/jobs/**", (r) => (r.request().url().endsWith("/j1") ? r.fulfill({ status: 500, json: { detail: "x" } }) : r.fulfill({ json: { status: "done", wake: w("ready", "ready", "ready"), result: { ...RESULT("uncertain"), run_id: "r-new-job" } } })));
+  await page.route("**/api/v1/analyse-facts/jobs", (r) => { starts++; return r.fulfill({ status: 202, json: { job_id: `j${starts}`, status: "pending", wake: w("waking", "waiting", "waiting") } }); });
+  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ status: 503, json: { error: "judges_offline" } }));
+  await page.goto("/screening");
+  const box = page.getByLabel("Paste the FIR, complaint or narrative");
+  await box.fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toContainText("We could not check whether the analysis models started", { timeout: 20_000 });
+  expect(starts).toBe(1);
+  await box.fill(`${F1} Meena paid the sum the next day.`);
+  await page.getByTestId("split-facts").click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect.poll(() => starts, { timeout: 20_000 }).toBe(2);
+  await expect(page.getByTestId("screening-error")).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.getByTestId("wake-progress")).toHaveCount(0, { timeout: 20_000 });
 });

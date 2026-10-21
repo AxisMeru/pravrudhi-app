@@ -1605,7 +1605,11 @@ export interface AnalyseFactsOptions {
 
 /** #1038: the wake job's start and poll over the engine (signed-in session, same auth as the sync screening). Any answer but 202 with a job id is "not allowed": today's refusal stands. */
 /** R2 (#509): the page stops following a start after its own limit (or a cancel, or unreadable polls) but the engine's job may still be open; a retry resumes THAT job and never starts a second wake. Cleared when the job reports done or failed, or after the lease. */
-let openWake: { jobId: string; at: number } | null = null;
+let openWake: { key: string; jobId: string; at: number } | null = null;
+/** R2 (#509 BLOCK): an open wake is resumed only by the SAME request (facts, contracts, narrative) from the SAME signed-in user; anything else starts fresh. */
+function wakeKey(userId: string | null, facts: string[], contractIds: string[], narrative: string | undefined): string {
+  return JSON.stringify([userId, facts, contractIds, narrative ?? ""]);
+}
 const OPEN_WAKE_LEASE_MS = 15 * 60 * 1000;
 
 function wakeIO(facts: string[], contractIds: string[], narrative: string | undefined, signal: AbortSignal | undefined, onView: (v: WakeView) => void): WakeIO {
@@ -1622,7 +1626,10 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
       sig?.addEventListener("abort", () => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); }, { once: true });
     }),
     start: async () => {
-      if (openWake && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS) return { kind: "started", jobId: openWake.jobId, pollAfterS: 2, wake: null };
+      const { currentSession } = await import("./auth");
+      const userId = currentSession()?.id ?? null;
+      const key = wakeKey(userId, facts, contractIds, narrative);
+      if (openWake && openWake.key === key && userId !== null && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS) return { kind: "started", jobId: openWake.jobId, pollAfterS: 2, wake: null };
       openWake = null;
       try {
         const r = await call(base, { method: "POST", body: JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", wake: true }) });
@@ -1631,7 +1638,7 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
         if (typeof b.job_id !== "string" || b.job_id === "") return { kind: "not_allowed" };
         const w = (b.wake ?? {}) as { poll_after_s?: unknown };
         const pa = Number(b.poll_after_s ?? w.poll_after_s);
-        openWake = { jobId: b.job_id, at: Date.now() };
+        openWake = { key, jobId: b.job_id, at: Date.now() };
         return { kind: "started", jobId: b.job_id, pollAfterS: pa, wake: b.wake };
       } catch (e) {
         if ((e as { name?: string } | null)?.name === "AbortError") throw e;
@@ -1640,7 +1647,10 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
     },
     poll: async (jobId) => {
       const r = await call(`${base}/${encodeURIComponent(jobId)}`, { method: "GET" });
-      if (!r.ok) throw new ApiError(r.status, "/api/v1/analyse-facts/jobs");
+      if (!r.ok) {
+        if (r.status === 404 || r.status === 401) openWake = null;
+        throw new ApiError(r.status, "/api/v1/analyse-facts/jobs");
+      }
       const b = (await r.json()) as { status?: unknown; wake?: unknown; result?: unknown };
       const status = typeof b.status === "string" ? b.status : "";
       if (status === "done" || status === "failed") openWake = null;

@@ -10,7 +10,7 @@ const h = (s: string) => createHash("sha256").update(s, "utf8").digest("hex").sl
 test("R1's cold-start words are pinned by hash", () => {
   const pins: Record<string, string> = {
     WAKE_GLOSS: "91152916bbe39545", WAKE_PROGRESS_ALL: "6830eb86aa822ed5", WAKE_PROGRESS_FIRST_READY: "d9e9fac24bd90f36", WAKE_PROGRESS_SECOND_READY: "44a9c6cc2eebd005",
-    WAKE_DONE_BOTH: "6e9c35e86b932820", WAKE_WARN_SECOND_FAILED: "8a17cf99690fb1d9", WAKE_WARN_FIRST_FAILED: "e5802acdfade5b7d", WAKE_FAIL_BOTH: "d53d5a8d10bfef84",
+    WAKE_DONE_BOTH: "6e9c35e86b932820", WAKE_WARN_SECOND_FAILED: "73878a22f2177baa", WAKE_WARN_FIRST_FAILED: "e5802acdfade5b7d", WAKE_FAIL_BOTH: "d53d5a8d10bfef84",
     WAKE_FAIL_TIMEOUT_TAIL: "f0f88970b7f2f2b3", WAKE_POLL_ERROR: "48532b162248a874", WAKE_REFUSAL_KEEP: "19206a8cb431cbb4",
   };
   for (const [k, v] of Object.entries(pins)) assert.equal(h((C as unknown as Record<string, string>)[k]), v, k);
