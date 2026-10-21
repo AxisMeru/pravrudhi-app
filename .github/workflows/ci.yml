@@ -104,9 +104,13 @@ jobs:
   # The interface on a real product engine: the pinned release wheels (engine/ENGINE_VERSION) serve this
   # repository's built pages through PRAVRUDHI_FRONTEND_DIR, from a root `pravrudhi init` made a moment ago,
   # exactly as the desktop shell arranges it on a user's machine.
-  e2e:
+  e2e-shard:
     runs-on: ubuntu-latest
     needs: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
 
@@ -156,19 +160,57 @@ jobs:
           PRAVRUDHI_EDITION=studio PRAVRUDHI_STUDIO_LOOPBACK_ONLY=1 PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$STUDIO_ROOT" --no-browser --port 8302 --host 127.0.0.1 > "$RUNNER_TEMP/engine-studio.log" 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8302/api/health > /dev/null && break; sleep 1; done
           curl -sf http://127.0.0.1:8302/api/me
-          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test
+          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test --shard=${{ matrix.shard }}/3 --reporter=blob
+
+      - name: keep this shard's report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blobplain-${{ matrix.shard }}
+          path: frontend/blob-report
+          retention-days: 3
+          if-no-files-found: error
 
       - name: engine log on failure
         if: failure()
         run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true
 
+  # The check named `e2e` is now the AGGREGATE of the three shards above (same name as before, so the branch rules and the merge guard read it unchanged): it fails unless every shard passed, and it merges
+  # the shard reports into one so the run shows the whole suite.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: e2e-shard
+    if: always()
+    steps:
+      - name: every shard passed
+        run: |
+          test "${{ needs.e2e-shard.result }}" = "success" || { echo "e2e shards: ${{ needs.e2e-shard.result }}"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: blobplain-*
+          path: frontend/all-blob-reports
+          merge-multiple: true
+      - name: merged report
+        working-directory: frontend
+        run: npx playwright merge-reports --reporter=line ./all-blob-reports
+
   # The SHIPPED configuration (Lead-2, 14 Oct): the same suite, built with the flags the production deploy carries, so the flag-gated specs (assistant entry and run, Run again, the
   # assistant provider read, the running view, the memo steps, the intake page) RUN instead of skipping. The env names are exactly the ones Track A's pre-deploy run uses:
   # NEXT_PUBLIC_ASSISTANT_ENTRY=1, NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED=1, NEXT_PUBLIC_INTAKE=1 at build time, and INTAKE_BUILD=1 for the intake specs. The default `e2e` job above stays
   # as is (flags off), so its check name is unchanged. Citations are NOT in this entry: they are added only if production turns citations on.
-  e2e-shipped:
+  e2e-shipped-shard:
     runs-on: ubuntu-latest
     needs: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     # The production flags, written ONCE here for the build and the test step (the specs read them to decide whether to skip).
     env:
       NEXT_PUBLIC_ASSISTANT_ENTRY: "1"
@@ -224,13 +266,47 @@ jobs:
           PRAVRUDHI_EDITION=studio PRAVRUDHI_STUDIO_LOOPBACK_ONLY=1 PRAVRUDHI_FRONTEND_DIR="$PWD/out" "$ENGINE" app --root "$STUDIO_ROOT" --no-browser --port 8302 --host 127.0.0.1 > "$RUNNER_TEMP/engine-studio.log" 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8302/api/health > /dev/null && break; sleep 1; done
           curl -sf http://127.0.0.1:8302/api/me
-          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 PLAYWRIGHT_JSON_OUTPUT_NAME="$RUNNER_TEMP/pw-report.json" npx playwright test --reporter=line,json
+          LOCAL_ENGINE_URL=http://127.0.0.1:8301 STUDIO_ENGINE_URL=http://127.0.0.1:8302 npx playwright test --shard=${{ matrix.shard }}/3 --reporter=blob
+
+      - name: keep this shard's report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blobshipped-${{ matrix.shard }}
+          path: frontend/blob-report
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: engine log on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true
+
+  # The check named `e2e-shipped` is the AGGREGATE of the shards above (same name as before): every shard must pass, the reports are merged into ONE JSON report, and the flag-gated-specs-ran check
+  # reads that merged report (a single shard holds only part of the suite, so the check cannot run per shard).
+  e2e-shipped:
+    runs-on: ubuntu-latest
+    needs: e2e-shipped-shard
+    if: always()
+    steps:
+      - name: every shard passed
+        run: |
+          test "${{ needs.e2e-shipped-shard.result }}" = "success" || { echo "e2e-shipped shards: ${{ needs.e2e-shipped-shard.result }}"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: blobshipped-*
+          path: frontend/all-blob-reports
+          merge-multiple: true
+      - name: merged JSON report
+        working-directory: frontend
+        run: PLAYWRIGHT_JSON_OUTPUT_NAME="$RUNNER_TEMP/pw-report.json" npx playwright merge-reports --reporter=json ./all-blob-reports
 
       # A Playwright run exits 0 when specs SKIP: if the flags stopped reaching the test process, the flag-gated specs would skip and this job would stay green. Fail unless each required spec file ran
       # (assistant-run, intake and anonymous-assistant: no skips; assistant-tier skips one test on purpose in a flags-ON build, so it needs passes only). Same groups as the pre-deploy gate.
       - name: the flag-gated specs ran (not skipped)
         run: node scripts/check-flag-specs-ran.mjs "$RUNNER_TEMP/pw-report.json"
-
-      - name: engine log on failure
-        if: failure()
-        run: cat "$RUNNER_TEMP/engine.log" "$RUNNER_TEMP/engine-studio.log" || true
