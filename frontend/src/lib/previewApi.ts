@@ -8,9 +8,10 @@ export interface PreviewAnswer {
 }
 
 /** POST a JSON body to /api/v1<path>; any status is returned (the caller maps 409/422/503 to R1's lines), a network failure throws. */
-export async function previewPost(path: string, body: unknown, signal?: AbortSignal): Promise<PreviewAnswer> {
+export async function previewPost(path: string, body: unknown, signal?: AbortSignal, passive = false): Promise<PreviewAnswer> {
   await requireSession({ signal });
-  const res = await engineFetch(`${apiBase()}/api/v1${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal });
+  // passive: a read the page makes on its own (the matters list): a 401 answers as a status instead of sending the visitor to sign in, so merely opening the page never navigates away
+  const res = await engineFetch(`${apiBase()}/api/v1${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal, authOptional: passive });
   let parsed: unknown = null;
   try { parsed = await res.json(); } catch { /* not JSON */ }
   return { status: res.status, body: typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : null };
@@ -33,6 +34,19 @@ export function parsePapers(b: Record<string, unknown> | null): { papers: PaperR
     return [{ docId, name, pages: num(r.n_pages), pagesWithoutText: Array.isArray(r.pages_without_text) ? (r.pages_without_text as unknown[]).filter((p): p is number => typeof p === "number") : [], complete: r.indexed_complete === true }];
   });
   return { papers, pagesNote: str(b?.pages_note) };
+}
+
+export interface MyMatter { matterId: string; papers: number }
+/** The engine's list of the signed-in organisation's matters (POST /matter-spans/my-matters; engine #597/#599): {matters: [{matter_id, papers}], truncated}. Only well-formed rows are kept (a 32-hex id and a non-negative whole count); `truncated` is true only when the engine says so. No names or text exist in this answer. */
+export function parseMyMatters(b: Record<string, unknown> | null): { matters: MyMatter[]; truncated: boolean } | null {
+  if (!b || !Array.isArray(b.matters)) return null;
+  const matters = (b.matters as unknown[]).flatMap((m): MyMatter[] => {
+    if (typeof m !== "object" || m === null) return [];
+    const r = m as Record<string, unknown>;
+    const id = matterIdOf(r), n = num(r.papers);
+    return id && n !== null && Number.isInteger(n) && n >= 0 ? [{ matterId: id, papers: n }] : [];
+  });
+  return { matters, truncated: b.truncated === true };
 }
 
 /** Every string inside a value, in the engine's order (a string, a list of strings, or an object whose values are strings); anything else is skipped. */

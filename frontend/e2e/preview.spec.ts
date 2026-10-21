@@ -51,6 +51,7 @@ test("the matter note: papers are kept as text in the EU store until deleted; th
   await page.getByTestId("pv-start").click();
   const note = page.getByTestId("pv-matter-note");
   await expect(note).toContainText("The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter.");
+  // here the matters list is not served (not mocked), so even on a YOUR_MATTERS build the section is hidden and the note keeps the interim wording (it only says "listed above" while the list is on screen)
   await expect(note).toContainText("Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here.");
   await expect(note).toContainText("Deleting removes them from this service's store.");
   await expect(note).not.toContainText(/may remove papers|keep your own copies/);

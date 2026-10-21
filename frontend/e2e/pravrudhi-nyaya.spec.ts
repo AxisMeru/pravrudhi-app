@@ -48,7 +48,8 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   await expect(body.getByTestId("dh-papers")).toContainText("Backup: none known.");
   await expect(body.getByTestId("dh-papers")).toContainText("This service does not encrypt the stored files. People who run the service and its hosting account can read them.");
   await expect(body.getByTestId("dh-papers")).toContainText("Who can read it: only your organisation");
-  await expect(body.getByTestId("dh-papers")).toContainText("If you lose the matter number, there is not yet a tested way to ask us to delete your papers.");
+  if (process.env.YOUR_MATTERS_BUILD === "1") await expect(body.getByTestId("dh-papers")).toContainText("You can list your matters on Matter tools, open one, and delete a paper or the whole matter.");
+  else await expect(body.getByTestId("dh-papers")).toContainText("If you lose the matter number, there is not yet a tested way to ask us to delete your papers.");
   await expect(body.getByTestId("dh-papers")).not.toContainText(/permanent|we will remove|we will look into/i);
   await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
   await expect(body.getByTestId("dh-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
