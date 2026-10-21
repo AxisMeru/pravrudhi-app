@@ -88,25 +88,27 @@ export default function PreviewPage() {
   const start = () => run(async () => {
     const a = await previewPost("/matter-spans/matters", {});
     const id = matterIdOf(a.body);
-    if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
+    if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body, "/matter-spans/matters"));
     kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(T.matterStarted);
   });
   /** One click: a new matter and the four invented sample papers (Track A's bundle), added one by one through the same routes a visitor's own papers use. A refusal on any paper stops there and says why. */
   const loadSample = () => run(async () => {
     const a = await previewPost("/matter-spans/matters", {});
     const id = matterIdOf(a.body);
-    if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
+    if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body, "/matter-spans/matters"));
     kept.clear(); setMatter(id); setPapers([]); clearResults();
     for (const p of SAMPLE_PAPERS) {
       const d = await previewPost("/matter-spans/documents", { matter_id: id, text: p.text, name: p.name });
-      if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body)); }
+      if (d.status === 404 && (await matterGone(id))) return;
+      if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body, "/matter-spans/documents")); }
     }
     await refresh(id); setMessage(T.matterStarted);
   });
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
     const a = await previewPost("/matter-spans/documents", { matter_id: matter, text, name: name.trim().slice(0, 200) || "paper" });
-    if (a.status !== 200) return setMessage(refusal(a.status, a.body));
+    if (a.status === 404 && (await matterGone(matter))) return; // a matter deleted elsewhere: its own line, never "not switched on"
+    if (a.status !== 200) return setMessage(refusal(a.status, a.body, "/matter-spans/documents"));
     setText(""); setName(""); await refresh(matter);
   });
   const removePaper = (docId: string) => run(async () => {
@@ -133,7 +135,7 @@ export default function PreviewPage() {
     if (!matter) return;
     const a = await previewPost(path, { matter_id: matter, ...extra });
     if (a.status === 404 && (await matterGone(matter))) return;
-    if (a.status !== 200) { set(null); return setMessage(refusal(a.status, a.body)); }
+    if (a.status !== 200) { set(null); return setMessage(refusal(a.status, a.body, path)); }
     const v = parse(a.body);
     if (!v) return setMessage(PREVIEW.wf_error);
     set(v);
@@ -141,7 +143,7 @@ export default function PreviewPage() {
   const runA1 = () => run(async () => {
     if (!draft.trim()) return;
     const a = await previewPost("/draft-citation-check", { text: draft });
-    if (a.status !== 200) { setA1(null); return setMessage(refusal(a.status, a.body)); }
+    if (a.status !== 200) { setA1(null); return setMessage(refusal(a.status, a.body, "/draft-citation-check")); }
     const v = parseA1(a.body);
     if (!v) return setMessage(PREVIEW.wf_error);
     setA1(v);
@@ -156,7 +158,7 @@ export default function PreviewPage() {
     if (b3f.validity.trim() && Number.isInteger(months) && months >= 1 && months <= 60) body.validity_months = months;
     if (b3f.mode) body.notice_mode = b3f.mode;
     const a = await previewPost("/s138-checklist", body);
-    if (a.status !== 200) { setB3(null); return setMessage(refusal(a.status, a.body)); }
+    if (a.status !== 200) { setB3(null); return setMessage(refusal(a.status, a.body, "/s138-checklist")); }
     const v = parseB3(a.body);
     if (!v) return setMessage(PREVIEW.wf_error);
     setB3(v);
@@ -177,7 +179,10 @@ export default function PreviewPage() {
         <PreviewBadge line />
         {toolsOffLineShown(engineWorkflows, DRAFTING_CARDS) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
         {signedOut && (
-          <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
+          <>
+            <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
+            <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out-sample">{T.signedOutSample}</p>
+          </>
         )}
         {YOUR_MATTERS && !signedOut && (
           <YourMatters
@@ -263,7 +268,7 @@ export default function PreviewPage() {
         </Card>
 
         <Card id="cc" name={CC.name} line={CC.line}>
-          <CaseCheck matter={matter} />
+          <CaseCheck matter={matter} matterGone={() => (matter ? matterGone(matter) : Promise.resolve(false))} />
         </Card>
 
         <Card id="hp" name={HP.name} line={HP.line}>
@@ -297,7 +302,7 @@ export default function PreviewPage() {
 
         {SECTION_LOOKUP && !signedOut && <SectionLookup />}
         {DRAFTING_CARDS && <BailCard />}
-        {DRAFTING_CARDS && <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />}
+        {DRAFTING_CARDS && <SynopsisCard matter={matter} hasPapers={papers.length > 0} matterGone={() => (matter ? matterGone(matter) : Promise.resolve(false))} />}
       </div>
     </div>
     </KeptUploads.Provider>

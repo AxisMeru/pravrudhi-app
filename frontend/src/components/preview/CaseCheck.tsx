@@ -19,7 +19,7 @@ type Pick = { c: CaseCandidate; reading: string | null };
 const refusal = previewRefusal;
 
 /** One screen for a cheque case: A5's agenda, the candidate dates per step from the papers, the user's pick and confirmation per step, then B3's checklist beside the agenda. Nothing is picked for the user. */
-export function CaseCheck({ matter }: { matter: string | null }) {
+export function CaseCheck({ matter, matterGone }: { matter: string | null; matterGone?: () => Promise<boolean> }) {
   const [view, setView] = useState<CaseCheckView | null>(null);
   const [picks, setPicks] = useState<Partial<Record<Role, Pick>>>({});
   const [validity, setValidity] = useState("");
@@ -31,7 +31,8 @@ export function CaseCheck({ matter }: { matter: string | null }) {
     setBusy(true); setMessage(null);
     try {
       const a = await previewPost("/cheque-case-check", { matter_id: matter, ...extra });
-      if (a.status !== 200) { setMessage(refusal(a.status, a.body)); return null; }
+      if (a.status === 404 && matterGone && (await matterGone())) return null; // the matter is gone: the page says so and starts over; only then is a 404 the route being off (R1 21 Oct)
+      if (a.status !== 200) { setMessage(refusal(a.status, a.body, "/cheque-case-check")); return null; }
       const v = parseCaseCheck(a.body);
       if (!v) { setMessage(PREVIEW.wf_error); return null; }
       return v;
