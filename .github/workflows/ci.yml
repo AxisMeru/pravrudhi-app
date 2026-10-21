@@ -166,7 +166,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: blob-e2e-${{ matrix.shard }}
+          name: blobplain-${{ matrix.shard }}
           path: frontend/blob-report
           retention-days: 3
           if-no-files-found: error
@@ -193,7 +193,7 @@ jobs:
         run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          pattern: blob-e2e-*
+          pattern: blobplain-*
           path: frontend/all-blob-reports
           merge-multiple: true
       - name: merged report
@@ -272,7 +272,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: blob-e2e-shipped-${{ matrix.shard }}
+          name: blobshipped-${{ matrix.shard }}
           path: frontend/blob-report
           retention-days: 3
           if-no-files-found: error
@@ -299,7 +299,7 @@ jobs:
         run: npm ci
       - uses: actions/download-artifact@v4
         with:
-          pattern: blob-e2e-shipped-*
+          pattern: blobshipped-*
           path: frontend/all-blob-reports
           merge-multiple: true
       - name: merged JSON report
