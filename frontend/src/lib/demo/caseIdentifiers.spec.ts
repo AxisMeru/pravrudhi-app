@@ -13,6 +13,9 @@ const SELF = new Set(["frontend/src/lib/demo/caseIdentifiers.spec.ts", "frontend
 // Lead-2 14 Oct (deliberate loosening of the 12 Oct guard): each example is identified exactly as the court publishes it, and that is its CITATION: a separate pinned field in example.ts, checked by
 // example.spec.ts against the only allowed shapes. Those `citation:` lines alone are exempt here; everything else in the repository still carries no real case, crime or FIR number.
 const CITATION_FILE = "frontend/src/lib/demo/example.ts";
+// The invented SAMPLE matter (Lead-2 P0, 20 Oct): four invented papers (an FIR, a chargesheet extract, a bail order, a cheque memo) that look like real papers ON PURPOSE so the tools can be run; every one opens with "INVENTED SAMPLE PAPER FOR TESTING. Every name, number, date and place below is made up."
+// They are pinned byte for byte by sampleMatter.spec.ts, read by R1 and R2 as fixtures, and carry no real party (CI names check). This directory alone is exempt from the case-number scan.
+const SAMPLE_DIR = "frontend/src/lib/fixtures/sample/";
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
@@ -36,7 +39,7 @@ test("no source, test, fixture or doc file of the app carries a case, crime or F
     try { files = walk(dir); } catch { continue; }
     for (const f of files) {
       const rel = relative(repo, f);
-      if (SELF.has(rel)) continue;
+      if (SELF.has(rel) || rel.startsWith(SAMPLE_DIR)) continue;
       readFileSync(f, "utf8").split("\n").forEach((line, i) => { if (rel === CITATION_FILE && /^\s*citation:/.test(line)) return; if (ID.test(line)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 120)}`); });
     }
   }
