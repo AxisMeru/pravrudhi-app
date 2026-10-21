@@ -1,6 +1,7 @@
 // Calls to the engine's preview-workflow routes (Track C's contract ENGINE_API_CONTRACT_PREVIEW_WORKFLOWS_2026-10-17.md sha12 32da95801e55, Track A's responses 2a65124eacbb).
 // The routes are not in OpenAPI, so every answer is read through small guards: a field of the wrong type is dropped, never shown half. Strings the engine words are shown as given by the caller.
 import { apiBase, engineFetch, requireSession } from "./api";
+import { rowScan, type RowScan } from "./scannedIntake";
 
 export interface PreviewAnswer {
   status: number;
@@ -22,7 +23,7 @@ export const num = (x: unknown): number | null => (typeof x === "number" && Numb
 const HEX32 = /^[0-9a-f]{32}$/;
 export const matterIdOf = (b: Record<string, unknown> | null): string | null => (b && typeof b.matter_id === "string" && HEX32.test(b.matter_id) ? b.matter_id : null);
 
-export interface PaperRow { docId: string; name: string; pages: number | null; pagesWithoutText: number[]; complete: boolean }
+export interface PaperRow { docId: string; name: string; pages: number | null; pagesWithoutText: number[]; complete: boolean; scan?: RowScan }
 
 export function parsePapers(b: Record<string, unknown> | null): { papers: PaperRow[]; pagesNote: string | null } {
   const docs = Array.isArray(b?.documents) ? (b!.documents as unknown[]) : [];
@@ -31,7 +32,7 @@ export function parsePapers(b: Record<string, unknown> | null): { papers: PaperR
     const r = d as Record<string, unknown>;
     const docId = str(r.doc_id), name = str(r.name);
     if (!docId || name === null) return [];
-    return [{ docId, name, pages: num(r.n_pages), pagesWithoutText: Array.isArray(r.pages_without_text) ? (r.pages_without_text as unknown[]).filter((p): p is number => typeof p === "number") : [], complete: r.indexed_complete === true }];
+    return [{ docId, name, pages: num(r.n_pages), pagesWithoutText: Array.isArray(r.pages_without_text) ? (r.pages_without_text as unknown[]).filter((p): p is number => typeof p === "number") : [], complete: r.indexed_complete === true, ...(((x: RowScan | undefined) => (x ? { scan: x } : {}))(rowScan(r, name))) }];
   });
   return { papers, pagesNote: str(b?.pages_note) };
 }

@@ -212,7 +212,7 @@ export default function PreviewPage() {
                   <ul className="mt-1 space-y-1 text-sm text-[var(--color-text)]">
                     {papers.map((p) => (
                       <li key={p.docId} className="flex items-center justify-between gap-2">
-                        <span className="break-words">{p.name}</span>
+                        <span className="break-words">{p.name}{p.scan?.fromOcr && p.scan.marker && <span className="block text-xs text-[var(--color-text-dim)]" data-testid="scan-ocr-marker">{p.scan.marker}</span>}</span>
                         <button type="button" className={BTN} onClick={() => removePaper(p.docId)} disabled={busy}>{T.removePaper}</button>
                       </li>
                     ))}

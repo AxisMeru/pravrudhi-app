@@ -42,7 +42,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 3, n_spans: 5, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: false })), pages_total: 3, pages_not_read: 0, pages_note: "" } }));
   const a3 = fx("a3_chronology").response;
   const events = (a3.events as Record<string, unknown>[]).slice();
-  events[0] = { ...events[0], document_name: "scan1.png", page: 1, from_ocr: true, read_from: "ocr", confidence: 91.4, crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
+  events[0] = { ...events[0], document_name: "scan1.png", page: 1, from_ocr: true, ocr_marker: "Read from a scanned page: check this against the paper.", read_from: "ocr", confidence: 91.4, crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
   await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
@@ -57,7 +57,7 @@ test("flag ON: a photo of a page is sent as image_base64, the unreadable and rep
   await expect(page.getByTestId("scan-page-repaired")).toHaveText("Page 2: The text in the file for this page was damaged, so the page was read from its image.");
   await expect(page.locator("body")).not.toContainText(/garbled|engine line that the app does not use|91\.4|88%/);
   await page.getByTestId("pv-a3-run").click();
-  await expect(page.getByTestId("scan-date-line").first()).toHaveText("Read from a page image: check this date against the page image.");
+  await expect(page.getByTestId("scan-ocr-marker").first()).toHaveText("Read from a scanned page: check this against the paper.");
   await expect(page.getByTestId("scan-crop").first()).toBeVisible();
   await expect(page.getByTestId("scan-crop-caption").first()).toHaveText("Page image from your upload.");
 });
@@ -124,7 +124,7 @@ test("flag ON: two papers with one name show no crop, and starting over clears w
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 1, n_chars: 1, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: docs.length, pages_not_read: 0, pages_note: "" } }));
   const a3 = fx("a3_chronology").response;
   const events = (a3.events as Record<string, unknown>[]).slice();
-  events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, read_from: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
+  events[0] = { ...events[0], document_name: "scan.png", page: 1, from_ocr: true, ocr_marker: "Read from a scanned page: check this against the paper.", read_from: "ocr", crop: { page: 1, x: 0, y: 0, w: 1, h: 1, page_w: 2, page_h: 2, unit: "px at ocr_dpi" } };
   await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
   await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
@@ -135,7 +135,7 @@ test("flag ON: two papers with one name show no crop, and starting over clears w
   await page.getByTestId("scan-file").setInputFiles({ name: "scan.png", mimeType: "image/png", buffer: PNG_2X2 }); // a second paper with the same name
   await expect(page.getByTestId("pv-papers").locator("li, div").filter({ hasText: "scan.png" }).first()).toBeVisible();
   await page.getByTestId("pv-a3-run").click();
-  await expect(page.getByTestId("scan-date-line").first()).toBeVisible();
+  await expect(page.getByTestId("scan-ocr-marker").first()).toBeVisible();
   await expect(page.getByTestId("scan-crop")).toHaveCount(0);
 });
 
@@ -157,11 +157,11 @@ test("flag ON: a cheque-case candidate and an A8 list-of-dates row read from an 
   await scanMatter(page, "cheque-memo-A");
   const cc = fx("cheque_case_step1_no_b3").response as { candidates: { roles: Record<string, Record<string, unknown>[]> } };
   const cheque = cc.candidates.roles.cheque.slice();
-  cheque[0] = { ...cheque[0], read_from: "ocr", from_ocr: true, crop: CROP };
+  cheque[0] = { ...cheque[0], read_from: "ocr", from_ocr: true, ocr_marker: "Read from a scanned page: check this against the paper.", crop: CROP };
   await page.route("**/api/v1/cheque-case-check", (r) => r.fulfill({ json: { ...cc, candidates: { ...cc.candidates, roles: { ...cc.candidates.roles, cheque } } } }));
   await page.getByTestId("pv-cc-run").click();
   const role = page.getByTestId("pv-cc-role-cheque");
-  await expect(role.getByTestId("scan-date-line")).toHaveText("Read from a page image: check this date against the page image.");
+  await expect(role.getByTestId("scan-ocr-marker")).toHaveText("Read from a scanned page: check this against the paper.");
   await expect(role.getByTestId("scan-crop")).toBeVisible();
   await expect(role).toContainText("cheque-memo-A p.1");
 });
@@ -179,4 +179,34 @@ test("flag ON: an upload that finishes after the matter was removed is neither k
   await page.getByTestId("pv-remove-all").click();
   await page.waitForTimeout(2500);
   await expect(page.getByTestId("scan-result")).toHaveCount(0);
+});
+
+// OCR_MARKER_FIELD_CONTRACT (fc8683d55b51): the engine's ocr_marker line is rendered as sent beside every item with from_ocr true (papers list, chronology date row, citation sweep next to the status), and nothing beside a text-layer item. A PDF is used: photos stay refused (the JPEG line is asserted above).
+const MARKER = "Read from a scanned page: check this against the paper.";
+test("flag ON: the engine's ocr_marker shows beside a scanned paper, a chronology row and a citation (next to its status); a text-layer row has none", async ({ page }) => {
+  test.skip(!ON, "needs NEXT_PUBLIC_SCANNED_INTAKE=1");
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+  await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "scan.pdf", n_pages: 2, n_spans: 2, n_chars: 9, pages_without_text: [], ingest_done: true, pages: [{ page: 1, source: "ocr", readable: true }, { page: 2, source: "text_layer", readable: true }], pages_unreadable: 0, indexed_complete: true } }));
+  await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [{ doc_id: "d1", name: "scan.pdf", n_pages: 2, n_spans: 2, n_chars: 9, ingest_done: true, pages_without_text: [], indexed_complete: true, from_ocr: true, ocr_pages: [1], ocr_marker: MARKER }, { doc_id: "d2", name: "typed.pdf", n_pages: 1, n_spans: 1, n_chars: 4, ingest_done: true, pages_without_text: [], indexed_complete: true, from_ocr: false }], pages_total: 3, pages_not_read: 0, pages_note: "" } }));
+  const a3 = fx("a3_chronology").response;
+  const events = (a3.events as Record<string, unknown>[]).slice();
+  events[0] = { ...events[0], document_name: "scan.pdf", page: 1, from_ocr: true, ocr_marker: MARKER };
+  if (events[1]) events[1] = { ...events[1], document_name: "typed.pdf", page: 1, from_ocr: false };
+  await page.route("**/api/v1/chronology", (r) => r.fulfill({ json: { ...a3, events } }));
+  const s1 = fx("s1_matter_citation_sweep").response as { papers_read: { name: string; citations: Record<string, unknown>[] }[] };
+  const papers_read = s1.papers_read.map((p, i) => (i === 0 ? { ...p, name: "scan.pdf", citations: p.citations.map((c, k) => (k === 0 ? { ...c, from_ocr: true, ocr_marker: MARKER } : { ...c, from_ocr: false })) } : p));
+  await page.route("**/api/v1/matter-citation-sweep", (r) => r.fulfill({ json: { ...s1, papers_read } }));
+  await page.goto("/matter-tools");
+  await page.getByTestId("pv-start").click();
+  await page.getByTestId("scan-file").setInputFiles({ name: "scan.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 x") });
+  await expect(page.getByTestId("pv-papers").getByTestId("scan-ocr-marker")).toHaveCount(1);
+  await expect(page.getByTestId("pv-papers").getByTestId("scan-ocr-marker")).toHaveText(MARKER);
+  await page.getByTestId("pv-a3-run").click();
+  const a3r = page.getByTestId("pv-a3-result");
+  await expect(a3r.getByTestId("scan-ocr-marker")).toHaveCount(1);
+  await expect(a3r.getByTestId("scan-ocr-marker")).toHaveText(MARKER);
+  await page.getByTestId("pv-s1-run").click();
+  const s1r = page.getByTestId("pv-s1-result");
+  await expect(s1r.getByTestId("scan-ocr-marker")).toHaveCount(1);
+  await expect(s1r.getByTestId("pv-citations").first().locator("li").first()).toContainText(MARKER);
 });

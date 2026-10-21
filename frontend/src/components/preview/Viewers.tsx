@@ -34,7 +34,7 @@ function CitationList({ rows }: { rows: CitationRow[] }) {
   return (
     <ul className="space-y-1" data-testid="pv-citations">
       {rows.map((c, i) => (
-        <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span></li>
+        <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span><RowCrop scan={c.scan} /></li>
       ))}
     </ul>
   );

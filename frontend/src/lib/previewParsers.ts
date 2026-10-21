@@ -66,17 +66,17 @@ export function parseA3(b: Rec | null): A3View | null {
 }
 
 // ---------- S1 matter citation sweep and A1 draft citation check ----------
-export interface CitationRow { text: string; status: string; reporter: string | null }
+export interface CitationRow { scan?: RowScan; text: string; status: string; reporter: string | null }
 export interface S1View { lines: string[]; heading: string | null; papers: { name: string; citations: CitationRow[] }[]; notAssessed: string[]; wording: string | null }
-export function parseCitationRows(x: unknown): CitationRow[] {
-  return arr(x).flatMap((c) => { const r = rec(c); const t = str(r?.text), s = str(r?.status); return r && t && s ? [{ text: t, status: s, reporter: str(r.reporter) }] : []; });
+export function parseCitationRows(x: unknown, docName: string | null = null): CitationRow[] {
+  return arr(x).flatMap((c) => { const r = rec(c); const t = str(r?.text), s = str(r?.status); return r && t && s ? [{ text: t, status: s, reporter: str(r.reporter), ...scanOf(r, docName) }] : []; });
 }
 export function parseS1(b: Rec | null): S1View | null {
   if (!b || typeof b.run_id !== "string") return null;
   return {
     lines: [b.summary, b.statement, b.heading_line, b.snapshot_line, b.duplicates_line, b.order_label, b.cut_line].flatMap((x) => (typeof x === "string" ? [x] : [])).concat(strs(b.notes)),
     heading: str(b.heading),
-    papers: arr(b.papers_read).flatMap((p) => { const r = rec(p); const n = str(r?.name); return r && n !== null ? [{ name: n, citations: parseCitationRows(r.citations) }] : []; }),
+    papers: arr(b.papers_read).flatMap((p) => { const r = rec(p); const n = str(r?.name); return r && n !== null ? [{ name: n, citations: parseCitationRows(r.citations, n) }] : []; }),
     notAssessed: strs(b.not_assessed),
     wording: str(b.wording),
   };

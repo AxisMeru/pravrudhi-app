@@ -15,7 +15,7 @@ export const SCAN_ACCEPT = IMAGES_ACCEPTED ? ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.h
 export const SCAN_TEXT = {
   unreadablePage: "This page could not be read.",
   ocrLine: "Pages read from page images may contain mistakes. Check each quote against the page image.",
-  dateLine: "Read from a page image: check this date against the page image.",
+  ocrMarker: "Read from a scanned page: check this against the paper.", // R1 (21 Oct, 00e62215531c5b12): the ENGINE sends it as `ocr_marker` beside every item with `from_ocr: true` and the page renders that string; this copy is used only if the engine says from_ocr and the string is missing
   repairedPage: "The text in the file for this page was damaged, so the page was read from its image.", // R1 (20 Oct, OCR_REASON_LINES ce310fb606eb): the narrower line, shipped by engine #574 (6d58ad2bbb36f4d0)
   low_confidence: "This page could not be read well enough.",
   timeout: "This page took too long to read.",
@@ -65,11 +65,14 @@ export function pageLines(p: ScanPage): string[] {
 export const repairedLine = (p: ScanPage): string | null => (p.repaired ? SCAN_TEXT.repairedPage : null);
 
 /** What a quote or date row carries from a page image (flag ON only): where the crop comes from, the crop box, and whether its date was read from the image. */
-export interface RowScan { docName: string | null; crop: Crop | null; fromOcr: boolean }
+export interface RowScan { docName: string | null; crop: Crop | null; fromOcr: boolean; marker: string | null }
 export function rowScan(r: Record<string, unknown>, docName: string | null, enabled: boolean = SCANNED_INTAKE): RowScan | undefined {
   if (!enabled) return undefined;
   const crop = parseCrop(r.crop), fromOcr = r.from_ocr === true || r.read_from === "ocr"; // `read_from` (Track C, 19 Oct): a row's own `source` key keeps its old meaning (document and page text) and is never read here
-  return crop || fromOcr ? { docName, crop, fromOcr } : undefined;
+  // OCR_MARKER_FIELD_CONTRACT (fc8683d55b51): `ocr_marker` is the engine's line and is rendered as sent, only for from_ocr true; absent from_ocr = not from a scanned page = nothing shown
+  const sent = typeof r.ocr_marker === "string" && r.ocr_marker.trim() ? r.ocr_marker : null;
+  const marker = fromOcr ? sent ?? SCAN_TEXT.ocrMarker : null;
+  return crop || fromOcr ? { docName, crop, fromOcr, marker } : undefined;
 }
 
 /** The document name of a "name p. N" / "name, p. N" source string. */

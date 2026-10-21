@@ -55,7 +55,9 @@ export function parseBail(b: Rec | null): BailView | null {
   };
 }
 
-export interface RowDate { written: string; readings: string[]; ambiguous: boolean }
+/** The row's scan info: its own, or (a date inside the row was read from a scanned page) the first date's, so the engine's marker always shows beside the row. */
+const scanOf1 = (r: Rec, docName: string | null, dates: { scan?: RowScan }[] = []): { scan?: RowScan } => { const x = rowScan(r, docName) ?? dates.find((d) => d.scan?.fromOcr)?.scan; return x ? { scan: x } : {}; };
+export interface RowDate { written: string; readings: string[]; ambiguous: boolean; scan?: RowScan }
 export interface DateRow {
   scan?: RowScan;
   rowId: number | null;
@@ -90,9 +92,9 @@ export function parseSynopsis(b: Rec | null): SynopsisView | null {
         const r = rec(x);
         const written = str(r?.date_as_written);
         if (!r || written === null) return [];
-        const own = arr(r.dates).flatMap((x): RowDate[] => { const q = rec(x); const w = str(q?.date_as_written) ?? str(q?.written); return q && w !== null ? [{ written: w, readings: strs(q.readings), ambiguous: q.ambiguous === true }] : []; });
+        const own = arr(r.dates).flatMap((x): RowDate[] => { const q = rec(x); const w = str(q?.date_as_written) ?? str(q?.written); return q && w !== null ? [{ written: w, readings: strs(q.readings), ambiguous: q.ambiguous === true, ...scanOf1(q, str(r.document_name) ?? docNameOf(str(r.source))) }] : []; });
         const dates = own.length > 0 ? own : [{ written, readings: strs(r.readings), ambiguous: r.ambiguous === true }];
-        return [{ rowId: num(r.row_id), ref: str(r.ref), dateAsWritten: written, dates, readings: strs(r.readings), ambiguous: r.ambiguous === true, eventLine: str(r.event_line), eventQuote: str(r.event_quote), source: str(r.source), ...((): { scan?: RowScan } => { const x = rowScan(r, str(r.document_name) ?? docNameOf(str(r.source))); return x ? { scan: x } : {}; })() }];
+        return [{ rowId: num(r.row_id), ref: str(r.ref), dateAsWritten: written, dates, readings: strs(r.readings), ambiguous: r.ambiguous === true, eventLine: str(r.event_line), eventQuote: str(r.event_quote), source: str(r.source), ...scanOf1(r, str(r.document_name) ?? docNameOf(str(r.source)), dates) }];
       }),
       noneLine: str(l.none_line),
       cutLine: str(l.cut_line),
