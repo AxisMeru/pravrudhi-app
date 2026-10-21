@@ -66,17 +66,17 @@ export function parseA3(b: Rec | null): A3View | null {
 }
 
 // ---------- S1 matter citation sweep and A1 draft citation check ----------
-export interface CitationRow { text: string; status: string; reporter: string | null }
+export interface CitationRow { scan?: RowScan; text: string; status: string; reporter: string | null }
 export interface S1View { lines: string[]; heading: string | null; papers: { name: string; citations: CitationRow[] }[]; notAssessed: string[]; wording: string | null }
-export function parseCitationRows(x: unknown): CitationRow[] {
-  return arr(x).flatMap((c) => { const r = rec(c); const t = str(r?.text), s = str(r?.status); return r && t && s ? [{ text: t, status: s, reporter: str(r.reporter) }] : []; });
+export function parseCitationRows(x: unknown, docName: string | null = null): CitationRow[] {
+  return arr(x).flatMap((c) => { const r = rec(c); const t = str(r?.text), s = str(r?.status); return r && t && s ? [{ text: t, status: s, reporter: str(r.reporter), ...scanOf(r, docName) }] : []; });
 }
 export function parseS1(b: Rec | null): S1View | null {
   if (!b || typeof b.run_id !== "string") return null;
   return {
     lines: [b.summary, b.statement, b.heading_line, b.snapshot_line, b.duplicates_line, b.order_label, b.cut_line].flatMap((x) => (typeof x === "string" ? [x] : [])).concat(strs(b.notes)),
     heading: str(b.heading),
-    papers: arr(b.papers_read).flatMap((p) => { const r = rec(p); const n = str(r?.name); return r && n !== null ? [{ name: n, citations: parseCitationRows(r.citations) }] : []; }),
+    papers: arr(b.papers_read).flatMap((p) => { const r = rec(p); const n = str(r?.name); return r && n !== null ? [{ name: n, citations: parseCitationRows(r.citations, n) }] : []; }),
     notAssessed: strs(b.not_assessed),
     wording: str(b.wording),
   };
@@ -162,7 +162,7 @@ export function caseB3Body(picks: Partial<Record<(typeof CASE_ROLES)[number], { 
 }
 // ---------- Matter hearing pack (Track A's samples matter_hearing_pack_*.json; engine PR #541; route is Track C's) ----------
 export interface HearingRow { scan?: RowScan; dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
-export interface HearingCitation { text: string; where: string[]; status: string }
+export interface HearingCitation { scan?: RowScan; text: string; where: string[]; status: string }
 export interface HearingView {
   statement: string | null; hearingDateGiven: string | null;
   nextDates: { heading: string | null; rows: HearingRow[]; noneLine: string | null };
@@ -179,7 +179,9 @@ const hearingCitations = (x: unknown): HearingCitation[] => arr(x).flatMap((v): 
   const r = rec(v); const t = str(r?.text);
   if (!r || !t) return [];
   const where = arr(r.where).flatMap((w) => { const q = rec(w); const n = str(q?.document_name); const p = num(q?.page); return n ? [p !== null ? `${n} p.${p}` : n] : []; });
-  return [{ text: t, where, status: strs(r.statuses)[0] ?? "not_checked" }];
+  // the citation is marked when the entry says so, or when any page it was read from does (R1, 21 Oct: the same citation is marked in the sweep list, so it is marked here too)
+  const scan = rowScan(r, null) ?? arr(r.where).map((w) => { const q = rec(w); return q ? rowScan(q, str(q.document_name)) : undefined; }).find((x) => x?.fromOcr);
+  return [{ text: t, where, status: strs(r.statuses)[0] ?? "not_checked", ...(scan ? { scan } : {}) }];
 });
 export function parseHearing(b: Rec | null): HearingView | null {
   if (!b || typeof b.run_id !== "string") return null;

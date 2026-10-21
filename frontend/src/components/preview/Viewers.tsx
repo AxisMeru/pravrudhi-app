@@ -34,7 +34,7 @@ function CitationList({ rows }: { rows: CitationRow[] }) {
   return (
     <ul className="space-y-1" data-testid="pv-citations">
       {rows.map((c, i) => (
-        <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span></li>
+        <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span><RowCrop scan={c.scan} /></li>
       ))}
     </ul>
   );
@@ -214,7 +214,7 @@ export function HearingResult({ v }: { v: HearingView }) {
         {[...v.citations.needsAttention, ...v.citations.notChecked].length > 0 && (
           <ul className="mt-1 space-y-1">
             {[...v.citations.needsAttention, ...v.citations.notChecked].map((c, i) => (
-              <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span>{c.where.length > 0 && <span className={DIM}>{c.where.join("; ")}</span>}</li>
+              <li key={i} className={`${P} flex flex-wrap gap-x-3`}><span className="break-words font-medium">{c.text}</span><span>{citationStatusText(c.status)}</span>{c.where.length > 0 && <span className={DIM}>{c.where.join("; ")}</span>}<RowCrop scan={c.scan} /></li>
             ))}
           </ul>
         )}

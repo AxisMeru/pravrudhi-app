@@ -9,7 +9,7 @@ const h = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 1
 test("R1's OCR words are exactly hers, by hash (OCR_LIMITS_V2 3d1f0ef19f36)", () => {
   assert.equal(h(SCAN_TEXT.unreadablePage), "27d902d9a913ef3a");
   assert.equal(h(SCAN_TEXT.ocrLine), "b2497ad790916492");
-  assert.equal(h(SCAN_TEXT.dateLine), "02dcab75a2b5c7d4");
+  assert.equal(h(SCAN_TEXT.ocrMarker), "00e62215531c5b12", "R1 21 Oct: the one marker line, which the engine sends as ocr_marker (the old date line is gone)");
   assert.equal(h(SCAN_TEXT.low_confidence), "c83d9723e60da83d");
   assert.equal(h(SCAN_TEXT.timeout), "4f3bc8352bdb2893");
   assert.equal(h(SCAN_TEXT.language_not_supported), "6ceb2553c4ccbae1");
@@ -138,7 +138,7 @@ test("rows from the sample: an OCR quote carries its crop, the doc name and the 
   assert.equal(on.fromOcr, true);
   assert.equal(rowScan(text, "FIR", true), undefined);
   assert.equal(rowScan(ocr, "x", false), undefined);
-  assert.deepEqual(rowScan({ from_ocr: true }, "d", true), { docName: "d", crop: null, fromOcr: true });
+  assert.deepEqual(rowScan({ from_ocr: true }, "d", true), { docName: "d", crop: null, fromOcr: true, marker: SCAN_TEXT.ocrMarker });
 });
 
 test("the paper name behind a 'name p. N' source string", () => {
@@ -183,6 +183,6 @@ test("the mime type falls back to the extension when the browser gives none", ()
 test("a row's own `source` key (document and page text) is never read as the way it was read: only read_from, crop and from_ocr decide", () => {
   assert.equal(rowScan({ source: "ocr" }, "d", true), undefined);
   assert.equal(rowScan({ source: "courier-note-B p.1" }, "courier-note-B", true), undefined);
-  assert.deepEqual(rowScan({ source: "courier-note-B p.1", read_from: "ocr" }, "courier-note-B", true), { docName: "courier-note-B", crop: null, fromOcr: true });
+  assert.deepEqual(rowScan({ source: "courier-note-B p.1", read_from: "ocr" }, "courier-note-B", true), { docName: "courier-note-B", crop: null, fromOcr: true, marker: SCAN_TEXT.ocrMarker });
   assert.equal(rowScan({ source: "x", read_from: "text_layer" }, "d", true), undefined);
 });
