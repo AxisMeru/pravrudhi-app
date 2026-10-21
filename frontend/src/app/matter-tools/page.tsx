@@ -78,7 +78,7 @@ export default function PreviewPage() {
   async function refresh(m: string) {
     const a = await previewPost("/matter-spans/list", { matter_id: m });
     if (a.status === 200) { const p = parsePapers(a.body); setPapers(p.papers); setPagesNote(p.pagesNote); }
-    else if (a.status === 404) { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }
+    else if (a.status === 404) { kept.clear(); setMatter(null); setPapers([]); clearPrefill(); setMessage(GONE_LINE); }
   }
   async function run(f: () => Promise<void>): Promise<void> {
     setBusy(true); setMessage(null);
@@ -139,7 +139,7 @@ export default function PreviewPage() {
   const matterGone = async (m: string): Promise<boolean> => {
     const l = await previewPost("/matter-spans/list", { matter_id: m });
     if (l.status !== 404) return false;
-    kept.clear(); setMatter(null); setPapers([]); clearResults(); setMessage(GONE_LINE);
+    kept.clear(); setMatter(null); setPapers([]); clearResults(); clearPrefill(); setMessage(GONE_LINE);
     return true;
   };
   const runOnMatter = <V,>(path: string, parse: (b: Answer) => V | null, set: (v: V | null) => void, extra: Record<string, unknown> = {}) => run(async () => {
@@ -203,8 +203,8 @@ export default function PreviewPage() {
           <YourMatters
             current={matter}
             onShown={setListShown}
-            onOpen={(id) => { kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(null); void refresh(id); }}
-            onDeleted={(id) => { if (id === matter) { kept.clear(); setMatter(null); setPapers([]); clearResults(); } }}
+            onOpen={(id) => { kept.clear(); setMatter(id); setPapers([]); clearResults(); clearPrefill(); setMessage(null); void refresh(id); }}
+            onDeleted={(id) => { if (id === matter) { kept.clear(); setMatter(null); setPapers([]); clearResults(); clearPrefill(); } }}
           />
         )}
         <section className={BOX} id="pv-matter" aria-labelledby="pv-matter-heading" data-testid="pv-matter">
