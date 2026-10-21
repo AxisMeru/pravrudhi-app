@@ -131,7 +131,8 @@ for (const gone of [true, false]) {
     await page.getByTestId("pv-add").click();
     if (gone) await expect(page.getByTestId("pv-message")).toContainText("no longer held");
     else await expect(page.getByTestId("pv-message")).toHaveText("Papers for a matter is not switched on in this deployment.");
-    await expect(page.locator("body")).not.toContainText(gone ? /not switched on/ : /no longer held/);
+    // the page-level tools-off notice ("Some tools on this page are not switched on...") may be on screen; only the result messages are checked
+    await expect(page.locator('[data-testid="pv-message"], [data-testid="pv-cc-message"]').filter({ hasText: gone ? /not switched on/ : /no longer held/ })).toHaveCount(0);
   });
 }
 
