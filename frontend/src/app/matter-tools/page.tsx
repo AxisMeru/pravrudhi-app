@@ -173,7 +173,7 @@ export default function PreviewPage() {
     <KeptUploads.Provider value={keptByName(papers, kept)}>
     <div>
       <PageHeader title={T.title} />
-      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="preview-page">
+      <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="matter-tools-page">
         <PreviewBadge line />
         {toolsOffLineShown(engineWorkflows, DRAFTING_CARDS) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
         {signedOut && (
