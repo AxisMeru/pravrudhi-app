@@ -15,7 +15,7 @@ import { useEngineWorkflows } from "@/lib/useEngineWorkflows";
 import { PREVIEW } from "@/lib/previewWorkflows";
 import { PREVIEW_PAGE as T } from "@/lib/previewPageCopy";
 import { MATTER_NOTE } from "@/lib/previewMatterNote";
-import { SAMPLE_PAPERS, SAMPLE_TEXT } from "@/lib/sampleMatter";
+import { SAMPLE_PAPERS, SAMPLE_PREFILL, SAMPLE_PREFILL_TEXT, SAMPLE_TEXT } from "@/lib/sampleMatter";
 import { B3_MODES, PREVIEW_MORE as M } from "@/lib/previewMoreCopy";
 import { parseA1, parseA3, parseA5, parseB3, parseHearing, parseS1, type HearingView, type A1View, type A3View, type A5View, type B3View, type S1View } from "@/lib/previewParsers";
 import { SectionLookup } from "@/components/preview/SectionLookup";
@@ -85,11 +85,22 @@ export default function PreviewPage() {
     try { await f(); } catch { setMessage(PREVIEW.wf_error); } finally { setBusy(false); }
   }
   const clearResults = () => { setAgenda(null); setA5(null); setA3(null); setS1(null); };
+  /** The sample prefill (Track A v2): the six B3 dates with their source labels, all UNCONFIRMED; the mode; the draft paste; the bail facts reach the bail card through sampleKey. Only a loaded sample matter fills them. */
+  const applyPrefill = (id: string) => {
+    const keys = Object.keys(SAMPLE_PREFILL.b3) as (keyof typeof SAMPLE_PREFILL.b3)[];
+    setB3f({ cheque: "", presentation: "", memo: "", information: "", notice: "", receipt: "", validity: "", mode: SAMPLE_PREFILL.mode, ...Object.fromEntries(keys.map((k) => [k, SAMPLE_PREFILL.b3[k].value])) });
+    setB3src(Object.fromEntries(keys.map((k) => [k, SAMPLE_PREFILL.b3[k].source])));
+    setB3c({}); setB3(null); setDraft(SAMPLE_PREFILL.draftPaste); setSampleFor(id); setSampleKey((n) => n + 1);
+  };
+  const clearPrefill = () => {
+    if (sampleFor === null) return;
+    setB3f({ cheque: "", presentation: "", memo: "", information: "", notice: "", receipt: "", validity: "", mode: "" }); setB3src({}); setB3c({}); setB3(null); setDraft(""); setSampleFor(null);
+  };
   const start = () => run(async () => {
     const a = await previewPost("/matter-spans/matters", {});
     const id = matterIdOf(a.body);
     if (a.status !== 200 || !id) return setMessage(refusal(a.status, a.body));
-    kept.clear(); setMatter(id); setPapers([]); clearResults(); setMessage(T.matterStarted);
+    kept.clear(); setMatter(id); setPapers([]); clearResults(); clearPrefill(); setMessage(T.matterStarted);
   });
   /** One click: a new matter and the four invented sample papers (Track A's bundle), added one by one through the same routes a visitor's own papers use. A refusal on any paper stops there and says why. */
   const loadSample = () => run(async () => {
@@ -101,7 +112,7 @@ export default function PreviewPage() {
       const d = await previewPost("/matter-spans/documents", { matter_id: id, text: p.text, name: p.name });
       if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body)); }
     }
-    await refresh(id); setMessage(T.matterStarted);
+    await refresh(id); applyPrefill(id); setMessage(T.matterStarted);
   });
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
@@ -120,7 +131,7 @@ export default function PreviewPage() {
     if (!matter) return;
     const a = await previewPost("/matter-spans/delete", { matter_id: matter });
     if (a.status !== 200) return setMessage(refusal(a.status, a.body));
-    kept.clear(); setMatter(null); setPapers([]); clearResults();
+    kept.clear(); setMatter(null); setPapers([]); clearResults(); clearPrefill();
   });
   /** A 404 on a matter workflow can mean the store no longer holds the matter (a restart): check with the list route and, if it is gone, start over and say so. */
   const matterGone = async (m: string): Promise<boolean> => {
@@ -148,7 +159,7 @@ export default function PreviewPage() {
   });
   // B3: every date is sent as typed with source "typed"; a date is confirmed only by sending it again with confirmed_as equal to the engine's own reading (read_as) that the user pressed Confirm on.
   const runB3 = (confirmed: Record<string, string>) => run(async () => {
-    const one = (key: string) => { const value = b3f[key].trim(); return value ? [{ value, source: "typed", ...(confirmed[key] ? { confirmed: true, confirmed_as: confirmed[key] } : { confirmed: false }) }] : []; };
+    const one = (key: string) => { const value = b3f[key].trim(); return value ? [{ value, source: b3src[key] ?? "typed", ...(confirmed[key] ? { confirmed: true, confirmed_as: confirmed[key] } : { confirmed: false }) }] : []; };
     const body: Record<string, unknown> = { presentations: one("presentation"), return_memos: one("memo"), information_received: one("information"), notices: one("notice"), notice_receipts: one("receipt") };
     const cheque = one("cheque")[0];
     if (cheque) body.cheque_date = cheque;
@@ -163,11 +174,15 @@ export default function PreviewPage() {
     setB3c(confirmed);
   });
   const [b3c, setB3c] = useState<Record<string, string>>({});
+  const [b3src, setB3src] = useState<Record<string, string>>({}); // a source label per prefilled date; an edited date is "typed" again
+  const [sampleFor, setSampleFor] = useState<string | null>(null); // the matter a sample prefill was loaded with: R1's lines show only while that matter is the open one
+  const [sampleKey, setSampleKey] = useState(0); // each sample load bumps it so the bail card re-applies its facts
+  const sampleOn = matter !== null && sampleFor === matter;
   const confirmB3 = (i: { text: string; readAs: string }) => {
     const key = B3_FIELDS.map(([k]) => k).find((k) => b3f[k].trim() === i.text && !b3c[k]);
     if (key) void runB3({ ...b3c, [key]: i.readAs });
   };
-  const editB3 = (k: string, v: string) => { setB3f((f) => ({ ...f, [k]: v })); setB3c((c) => { const n = { ...c }; delete n[k]; return n; }); };
+  const editB3 = (k: string, v: string) => { setB3f((f) => ({ ...f, [k]: v })); setB3c((c) => { const n = { ...c }; delete n[k]; return n; }); setB3src((s) => { const n = { ...s }; delete n[k]; return n; }); };
 
   return (
     <KeptUploads.Provider value={keptByName(papers, kept)}>
@@ -218,6 +233,7 @@ export default function PreviewPage() {
                     ))}
                   </ul>
                   {pagesNote && <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="pv-pages-note">{pagesNote}</p>}
+                  {sampleOn && <p className="mt-2 text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-dates-line">{SAMPLE_PREFILL_TEXT.datesLine}</p>}
                 </div>
               )}
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
@@ -255,6 +271,7 @@ export default function PreviewPage() {
         </Card>
 
         <Card id="a1" name={M.a1Name} line={M.a1Line}>
+          {sampleOn && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-prefill-line-a1">{SAMPLE_PREFILL_TEXT.line}</p>}
           <label className="block text-sm text-[var(--color-text)]">{M.a1Label}
             <textarea className={`${FIELD} min-h-32`} value={draft} onChange={(e) => setDraft(e.target.value)} data-testid="pv-a1-text" />
           </label>
@@ -275,6 +292,7 @@ export default function PreviewPage() {
         </Card>
 
         <Card id="b3" name={M.b3Name} line={M.b3Line}>
+          {sampleOn && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-prefill-line-b3">{SAMPLE_PREFILL_TEXT.line}</p>}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {B3_FIELDS.map(([k, label]) => (
               <label key={k} className="block text-sm text-[var(--color-text)]">{label}
@@ -296,7 +314,7 @@ export default function PreviewPage() {
         </Card>
 
         {SECTION_LOOKUP && !signedOut && <SectionLookup />}
-        {DRAFTING_CARDS && <BailCard />}
+        {DRAFTING_CARDS && <BailCard prefill={sampleOn ? { key: sampleKey, facts: SAMPLE_PREFILL.facts } : null} prefillLine={SAMPLE_PREFILL_TEXT.line} />}
         {DRAFTING_CARDS && <SynopsisCard matter={matter} hasPapers={papers.length > 0} onGone={() => { kept.clear(); setMatter(null); setPapers([]); setMessage(GONE_LINE); }} />}
       </div>
     </div>

@@ -25,6 +25,33 @@ test("the button and its note are R1's words by hash (MATTER_PAPERS_WORDS_FINAL 
 });
 
 // R2's advise (#480): two repo guards (caseIdentifiers.spec.ts, noTrainingPromise.spec.ts) skip this whole directory, so it must hold exactly the pinned bundle: a later file here would escape both scans.
-test("src/lib/fixtures/sample/ holds exactly the one pinned bundle file (the directory-wide guard exemptions cover nothing else)", () => {
-  assert.deepEqual(readdirSync(join(__dirname, "fixtures", "sample")), ["SAMPLE_MATTER_INVENTED_v3.json"]);
+test("src/lib/fixtures/sample/ holds exactly the two pinned files (the bundle and the prefill) (the directory-wide guard exemptions cover nothing else)", () => {
+  assert.deepEqual(readdirSync(join(__dirname, "fixtures", "sample")).sort(), ["SAMPLE_MATTER_INVENTED_v3.json", "SAMPLE_PREFILL_INVENTED_v2.json"]);
+});
+
+// The sample prefill (Track A SAMPLE_PREFILL_INVENTED_v2, sha12 71dc7af17823): B3 dates with their source labels, ALL UNCONFIRMED (R1: the checklist counts from dates you confirm), five bail facts with sides, one draft paste; R1's two lines by hash.
+import { SAMPLE_PREFILL, SAMPLE_PREFILL_TEXT } from "./sampleMatter";
+test("the prefill is Track A's invented file byte for byte, every B3 date is unconfirmed with its source label, and R1's lines are pinned by hash", () => {
+  const file = readFileSync(join(__dirname, "fixtures", "sample", "SAMPLE_PREFILL_INVENTED_v2.json"));
+  assert.equal(createHash("sha256").update(file).digest("hex").slice(0, 12), "71dc7af17823");
+  const raw = JSON.parse(file.toString("utf8")) as { b3_s138_checklist: Record<string, unknown> };
+  const dates = [raw.b3_s138_checklist.cheque_date, ...(raw.b3_s138_checklist.presentations as unknown[]), ...(raw.b3_s138_checklist.return_memos as unknown[]), ...(raw.b3_s138_checklist.information_received as unknown[]), ...(raw.b3_s138_checklist.notices as unknown[]), ...(raw.b3_s138_checklist.notice_receipts as unknown[])] as Record<string, unknown>[];
+  assert.equal(dates.length, 6);
+  for (const d of dates) { assert.equal(d.confirmed, false, "no date is confirmed for the visitor"); assert.equal("confirmed_as" in d, false); }
+  assert.deepEqual(Object.keys(SAMPLE_PREFILL.b3).sort(), ["cheque", "information", "memo", "notice", "presentation", "receipt"]);
+  assert.deepEqual(Object.fromEntries(Object.entries(SAMPLE_PREFILL.b3).map(([k, v]) => [k, h16(v.source)])), { cheque: "7285495838a4e4e1", presentation: "0e021d2cabfdd30c", memo: "0e021d2cabfdd30c", information: "b1cd9e7625a198e6", notice: "4a15dc149654ce79", receipt: "b0b653f92072292d" }, "R1's five source labels by hash");
+  assert.equal(SAMPLE_PREFILL.mode, "registered_post");
+  assert.equal(SAMPLE_PREFILL.facts.length, 5);
+  assert.deepEqual(SAMPLE_PREFILL.facts.map((f) => f.applicant), [true, true, true, true, false]);
+  assert.equal(SAMPLE_PREFILL.draftPaste, "The applicant also refers to (2014) 8 SCC 273.");
+  assert.equal(h16(SAMPLE_PREFILL_TEXT.line), "e90e8ac8e2b1a371");
+  assert.equal(h16(SAMPLE_PREFILL_TEXT.datesLine), "4659ab106742e3ae");
+});
+test("the page fills the forms only from a loaded sample matter, sends each prefilled date with its source label and confirmed false, and keeps the dates line out of the sample note", () => {
+  const page = readFileSync(join(__dirname, "..", "app", "matter-tools", "page.tsx"), "utf8");
+  assert.match(page, /applyPrefill\(id\)/);
+  assert.match(page, /source: b3src\[key\] \?\? "typed"/);
+  assert.match(page, /\{ confirmed: false \}/);
+  assert.match(page, /sampleOn && <p[^>]*data-testid="pv-sample-dates-line"/);
+  assert.doesNotMatch(SAMPLE_TEXT.note, /differ on purpose/, "the note (85c10822f2eb8d7f) is on screen in the guide film and does not change");
 });

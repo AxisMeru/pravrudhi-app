@@ -108,13 +108,18 @@ function DeclarationChoice({ id, value, onChange }: { id: string; value: Declara
   );
 }
 
-export function BailCard() {
+export function BailCard({ prefill = null, prefillLine }: { prefill?: { key: number; facts: { text: string; applicant: boolean }[] } | null; prefillLine?: string }) {
   const [consent, setConsent] = useState(false);
   const [kind, setKind] = useState<"bail" | "anticipatory_bail">("bail");
   const [forum, setForum] = useState<"trial_court" | "sessions_or_high_court" | "">("");
   const [offence, setOffence] = useState("");
   const [fir, setFir] = useState("");
   const [facts, setFacts] = useState<FactIn[]>([emptyFact()]);
+  // a loaded sample matter's five invented facts, with their sides (R1: one line says who filled them); applied once per load, then they are the visitor's to edit
+  const [filled, setFilled] = useState(false);
+  const [appliedKey, setAppliedKey] = useState<number | null>(null);
+  if (prefill && appliedKey !== prefill.key) { setAppliedKey(prefill.key); setFacts(prefill.facts.map((f) => ({ ...emptyFact(), text: f.text, applicant: f.applicant }))); setFilled(true); }
+  if (!prefill && appliedKey !== null) { setAppliedKey(null); setFilled(false); setFacts([emptyFact()]); }
   const [tags, setTags] = useState<string[]>([]);
   const [sections, setSections] = useState("");
   const [busy, setBusy] = useState(false);
@@ -138,6 +143,7 @@ export function BailCard() {
   }
   return (
     <Box id="bail" name={D.bailName} line={D.bailLine}>
+      {filled && prefillLine && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-prefill-line-bail">{prefillLine}</p>}
       <label className={`flex items-start gap-2 ${P}`}><input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="bail-consent" /> {D.consent}</label>
       <div className="flex flex-wrap gap-3">
         <label className={P}>{D.kind}

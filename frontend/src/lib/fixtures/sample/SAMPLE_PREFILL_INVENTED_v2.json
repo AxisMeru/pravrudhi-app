@@ -1,0 +1,69 @@
+{
+ "note": "INVENTED values for the sample matter (SAMPLE_MATTER_INVENTED_v3.json f3c6f1e10c32); v2 (R1, 21 Oct): every B3 date is UNCONFIRMED (confirmed false, no confirmed_as), source labels kept, so the checklist's own line 'dates you confirm' stays true; Web adds R1's line 'These values are filled in from the sample papers. Check each one against the papers before you use it.' Every date and fact is taken from the four invented papers; no real person, number or place. Shapes: s138_checklist.ChecklistRequest, synopsis_dates.SynopsisFact.",
+ "b3_s138_checklist": {
+  "cheque_date": {
+   "value": "14.03.2024",
+   "source": "the cheque, as listed in the chargesheet extract",
+   "confirmed": false
+  },
+  "presentations": [
+   {
+    "value": "18.03.2024",
+    "source": "the cheque return memo",
+    "confirmed": false
+   }
+  ],
+  "return_memos": [
+   {
+    "value": "20.03.2024",
+    "source": "the cheque return memo",
+    "confirmed": false
+   }
+  ],
+  "information_received": [
+   {
+    "value": "21.03.2024",
+    "source": "the legal notice",
+    "confirmed": false
+   }
+  ],
+  "notices": [
+   {
+    "value": "12.04.2024",
+    "source": "the legal notice and its postal receipt",
+    "confirmed": false
+   }
+  ],
+  "notice_receipts": [
+   {
+    "value": "15.04.2024",
+    "source": "the legal notice (postal tracking)",
+    "confirmed": false
+   }
+  ],
+  "notice_mode": "registered_post"
+ },
+ "bail_facts": [
+  {
+   "text": "The charge sheet has been filed and the investigation is complete.",
+   "side": "applicant"
+  },
+  {
+   "text": "The applicant has an address and has given his statement to the police.",
+   "side": "applicant"
+  },
+  {
+   "text": "The dispute arises from a business transaction, and the cheque transaction is being dealt with under section 138 of the Negotiable Instruments Act, 1881.",
+   "side": "applicant"
+  },
+  {
+   "text": "The offences are punishable with imprisonment of up to seven years.",
+   "side": "applicant"
+  },
+  {
+   "text": "The Public Prosecutor says that the applicant closed his shop and could not be traced for some days.",
+   "side": "other"
+  }
+ ],
+ "draft_paste": "The applicant also refers to (2014) 8 SCC 273."
+}
