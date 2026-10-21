@@ -111,55 +111,55 @@
   "scenes": [
     {
       "name": "Pravrudhi-Nyaya",
-      "text": "",
+      "text": "Pravrudhi-Nyaya\nUser guide",
       "startS": 0,
       "endS": 9.2
     },
     {
       "name": "Matter tools",
-      "text": "",
+      "text": "Matter tools\nThe papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. Images are not read.",
       "startS": 9.2,
       "endS": 31.4
     },
     {
-      "name": "Papers for a matter",
-      "text": "",
+      "name": "The tools, part 1",
+      "text": "Papers for a matter\nAdd the papers of a matter and find a passage in them.\nUses your papers\nChronology\nLists the dates it reads in your papers, each with its sentence. May be incomplete.\nUses your papers\nReview agenda\nLists the ingredients of the cheque-dishonour offence and the papers to look in.\nUses your papers\nCitation sweep\nChecks that each citation in your papers exists in our index, nothing more.\nUses your papers",
       "startS": 31.4,
       "endS": 58.9
     },
     {
-      "name": "Quashing agenda",
-      "text": "",
+      "name": "The tools, part 2",
+      "text": "Quashing agenda\nLists the Supreme Court's quashing categories; does not say whether any applies.\nUses your papers\nCheque case check\nShows the review agenda and candidate dates per step; you confirm each date.\nUses your papers\nHearing pack\nGathers the dates, papers still to add and citations to look up for a hearing.\nUses your papers\nSection 138 checklist\nCounts section 138 periods from dates you confirm: a checklist, not a decision.",
       "startS": 58.9,
       "endS": 84.2
     },
     {
-      "name": "Papers you add to a matter",
-      "text": "",
+      "name": "What is kept, part 1",
+      "text": "Papers you add to a matter\nWhat is sent: each paper you add on Matter tools is sent to our service. Only its text is kept.\nWhere it is kept: in our store on a storage volume in the EU (Romania), not in India.\nHow long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period.",
       "startS": 84.2,
       "endS": 109.6
     },
     {
-      "name": "What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold.",
-      "text": "",
+      "name": "What is kept, part 2",
+      "text": "What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold.\nWho can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\".\nThis service does not encrypt the stored files. People who run the service and its hosting account can read them.",
       "startS": 109.6,
       "endS": 135.6
     },
     {
-      "name": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.",
-      "text": "",
+      "name": "What is kept, part 3",
+      "text": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.\nThe matter number is lost when you reload the page, and your matters cannot be listed here.\nIf you lose the matter number, there is not yet a tested way to ask us to delete your papers.",
       "startS": 135.6,
       "endS": 156.2
     },
     {
-      "name": "Load a sample matter",
-      "text": "",
+      "name": "Sample matter",
+      "text": "Load a sample matter\nThe sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties.",
       "startS": 156.2,
       "endS": 169.39999999999998
     },
     {
       "name": "This is a screening aid, not legal advice. A lawyer decides.",
-      "text": "",
+      "text": "This is a screening aid, not legal advice. A lawyer decides.",
       "startS": 169.39999999999998,
       "endS": 177.79999999999998
     }

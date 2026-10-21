@@ -81,3 +81,19 @@ test("the embed is built in only with NEXT_PUBLIC_GUIDE_FILM_V2=1 (app #480 live
   const page = readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8");
   assert.match(page, /GUIDE_FILM_V2 \? <NarratedDefaultFilm/);
 });
+
+// Studio's manifest fix (21 Oct, deliver/SHA256SUMS cc23327b8ccb, R1 cleared diff-only): the nine scene names are R1's cleared labels and each scene's text is that beat's signed strings verbatim, newline-separated.
+const V2_MANIFEST_SHA256 = {
+  "guide-v2": "e2c090603f0eb5b7a84d799b100eacaedecf6e76a5f8a18c839773ed9fd91e29",
+  "guide-v2-silent": "7ad8c844f491c4306c51f4ea9afffc873c2fec89297fe9aceb04c7875822e3e2",
+} as const;
+test("the guide-v2 manifests are the files Studio re-delivered (by hash); each scene's text holds only lines of GUIDE_STRINGS_v2 (2, 2, 12, 11, 4, 3, 3, 2, 1 lines per scene), the same in both cuts", () => {
+  for (const id of ["guide-v2", "guide-v2-silent"] as const) assert.equal(createHash("sha256").update(readFileSync(join(root, "public", "films", id, "manifest.json"))).digest("hex"), V2_MANIFEST_SHA256[id], `${id} manifest`);
+  const s = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "guideFilmStrings.json"), "utf8")) as { strings: { text: string }[] };
+  const known = new Set(s.strings.map((x) => x.text));
+  for (const m of [GUIDE_V2.narrated, GUIDE_V2.silent]) {
+    assert.deepEqual(m.scenes.map((sc) => sc.text.split("\n").length), [2, 2, 12, 11, 4, 3, 3, 2, 1]);
+    for (const sc of m.scenes) for (const line of sc.text.split("\n")) assert.ok(known.has(line) || known.has(line.trim()), `scene "${sc.name.slice(0, 40)}": a line is not in GUIDE_STRINGS_v2: ${line.slice(0, 60)}`);
+  }
+  assert.deepEqual(GUIDE_V2.narrated.scenes.map((sc) => sc.name), GUIDE_V2.silent.scenes.map((sc) => sc.name), "both cuts carry the same cleared scene names");
+});
