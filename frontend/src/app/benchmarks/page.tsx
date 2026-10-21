@@ -9,6 +9,7 @@ import rowsFile from "@/data/nyayasiddhi/rows.json";
 import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT } from "@/lib/films/copy";
 import { NS_SUBMIT_LINK_TEXT } from "@/lib/nyayasiddhiSubmit";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
+import { NS_LINKS, NS_LINKS_HEADING, NS_LINKS_NOTE } from "@/lib/nyayasiddhiLinks";
 import { parseRows } from "@/lib/nyayasiddhiRows";
 import { parseRowLinks } from "@/lib/nyayasiddhiRowLinks";
 import rowLinksFile from "@/data/nyayasiddhi/row_links.json";
@@ -41,6 +42,17 @@ export default async function BenchmarksPage() {
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
           <NarratedDefaultFilm narrated={narratedManifest} silent={silentManifest} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
+        </section>
+        <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="ns-links-heading" data-testid="block-ns-links">
+          <h2 id="ns-links-heading" className="text-base font-medium text-[var(--color-text)]">{NS_LINKS_HEADING}</h2>
+          <p className="text-sm text-[var(--color-text)]">{NS_LINKS_NOTE}</p>
+          <ul className="space-y-1">
+            {NS_LINKS.map((l) => (
+              <li key={l.key}>
+                <a href={l.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center text-sm text-[var(--color-accent)] underline max-md:min-h-11" data-testid={`ns-links-${l.key}`}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} links={NYAYASIDDHI_LINKS} />
         <NyayaSiddhiComing rows={NYAYASIDDHI_ROWS} />
