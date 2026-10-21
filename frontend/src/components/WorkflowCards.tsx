@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DRAFTING_CARDS } from "@/lib/draftingCards";
+import { SECTION_LOOKUP } from "@/lib/sectionLookup";
 import { REGISTRY_WORDS, registryAvailable, registryEntries, registryHref } from "@/lib/workflowRegistry";
 
 /**
@@ -12,7 +13,7 @@ export function WorkflowCards({ statusWorkflows = null }: { statusWorkflows?: Re
   const on = registryAvailable(statusWorkflows);
   return (
     <ul className="grid gap-4 md:grid-cols-2" data-testid="workflow-cards">
-      {registryEntries(DRAFTING_CARDS).map((e) => {
+      {registryEntries(DRAFTING_CARDS, SECTION_LOOKUP).map((e) => {
         const body = (
           <>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
