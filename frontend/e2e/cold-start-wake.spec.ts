@@ -57,3 +57,27 @@ test("wake not allowed: today's refusal, exactly, and no wake rows", async ({ pa
   await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.");
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
 });
+
+test("wake: the warning also shows when the finished result says the second judge did not run, even if the wake block reads ready (R2)", async ({ page }) => {
+  await setup(page, { start: STARTED, polls: [{ status: "done", wake: w("ready", "ready", "ready"), result: { ...RESULT("second_judge_unavailable"), second_judge_ran: false } }] });
+  await expect(page.getByTestId("wake-warning")).toBeVisible({ timeout: 20_000 });
+});
+
+test("wake: a second screening while the first start may still be open resumes that job and starts no second wake (R2)", async ({ page }) => {
+  let starts = 0;
+  let polls = 0;
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: CONTRACTS }));
+  await page.route("**/api/v1/analyse-facts/jobs/**", (r) => (++polls <= 3 ? r.fulfill({ status: 500, json: { detail: "x" } }) : r.fulfill({ json: { status: "done", wake: w("ready", "ready", "ready"), result: RESULT("uncertain") } })));
+  await page.route("**/api/v1/analyse-facts/jobs", (r) => { starts++; return r.fulfill(STARTED); });
+  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ status: 503, json: { error: "judges_offline" } }));
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toContainText("We could not check whether the analysis models started", { timeout: 20_000 });
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toHaveCount(0, { timeout: 20_000 });
+  await expect(page.getByTestId("wake-progress")).toHaveCount(0, { timeout: 20_000 });
+  expect(starts).toBe(1);
+});

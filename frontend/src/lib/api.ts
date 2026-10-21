@@ -1435,6 +1435,8 @@ export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
 
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
+  /** #1038 (R2): set only on a run that came through a wake, when the engine's raw answer says the second judge did not run (at the top or on a contract). The page then shows the partial-load warning whatever the wake block said. */
+  second_judge_did_not_run?: true;
   /** Present only on an assisted run (#125): the app's kept part of the engine's assistant block. */
   assistant?: AssistantBlock;
   /** Present only on a finished assisted run whose answer carried a readable appendix (#169): the memo prints its steps. */
@@ -1602,6 +1604,10 @@ export interface AnalyseFactsOptions {
 }
 
 /** #1038: the wake job's start and poll over the engine (signed-in session, same auth as the sync screening). Any answer but 202 with a job id is "not allowed": today's refusal stands. */
+/** R2 (#509): the page stops following a start after its own limit (or a cancel, or unreadable polls) but the engine's job may still be open; a retry resumes THAT job and never starts a second wake. Cleared when the job reports done or failed, or after the lease. */
+let openWake: { jobId: string; at: number } | null = null;
+const OPEN_WAKE_LEASE_MS = 15 * 60 * 1000;
+
 function wakeIO(facts: string[], contractIds: string[], narrative: string | undefined, signal: AbortSignal | undefined, onView: (v: WakeView) => void): WakeIO {
   const base = `${detectBase()}/api/v1/analyse-facts/jobs`;
   const call = async (url: string, init: RequestInit) => {
@@ -1616,6 +1622,8 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
       sig?.addEventListener("abort", () => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); }, { once: true });
     }),
     start: async () => {
+      if (openWake && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS) return { kind: "started", jobId: openWake.jobId, pollAfterS: 2, wake: null };
+      openWake = null;
       try {
         const r = await call(base, { method: "POST", body: JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", wake: true }) });
         if (r.status !== 202) return { kind: "not_allowed" };
@@ -1623,6 +1631,7 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
         if (typeof b.job_id !== "string" || b.job_id === "") return { kind: "not_allowed" };
         const w = (b.wake ?? {}) as { poll_after_s?: unknown };
         const pa = Number(b.poll_after_s ?? w.poll_after_s);
+        openWake = { jobId: b.job_id, at: Date.now() };
         return { kind: "started", jobId: b.job_id, pollAfterS: pa, wake: b.wake };
       } catch (e) {
         if ((e as { name?: string } | null)?.name === "AbortError") throw e;
@@ -1633,7 +1642,9 @@ function wakeIO(facts: string[], contractIds: string[], narrative: string | unde
       const r = await call(`${base}/${encodeURIComponent(jobId)}`, { method: "GET" });
       if (!r.ok) throw new ApiError(r.status, "/api/v1/analyse-facts/jobs");
       const b = (await r.json()) as { status?: unknown; wake?: unknown; result?: unknown };
-      return { status: typeof b.status === "string" ? b.status : "", wake: b.wake, result: b.result };
+      const status = typeof b.status === "string" ? b.status : "";
+      if (status === "done" || status === "failed") openWake = null;
+      return { status, wake: b.wake, result: b.result };
     },
   };
 }
@@ -1674,7 +1685,7 @@ export async function analyseFacts(
       const plain = await analyseFacts(facts, contractIds, narrative, signal, { ...opts, assisted: false });
       return { ...plain, assistant: { used: false, outcome: "refused", reason: "error", steps: [] } };
     }
-    if (!res.ok && !opts.assisted && opts.onWake && res.status === 503 && err.code === "judges_offline") {
+    if (!res.ok && !opts.assisted && !opts.allowAnonymous && opts.onWake && res.status === 503 && err.code === "judges_offline") {
       const o = await runWake(wakeIO(facts, contractIds, narrative, signal, opts.onWake));
       if (o.kind === "stopped") throw new WakeStoppedError(o.view.warning ?? "");
       if (o.kind === "done") wakeWire = o.wire as AnalyseFactsWire;
@@ -1686,7 +1697,8 @@ export async function analyseFacts(
   const raw = wire as unknown as Record<string, unknown>;
   // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
   if (!Array.isArray(raw.contracts) || !Array.isArray(raw.facts)) throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null);
-  if (!opts.assisted) return result;
+  const secondSkipped = wakeWire !== undefined && (raw.second_judge_ran === false || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).second_judge_ran === false));
+  if (!opts.assisted) return secondSkipped ? { ...result, second_judge_did_not_run: true } : result;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   const appendix = parseAppendix(raw.appendix);
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable), ...(appendix ? { appendix } : {}) };

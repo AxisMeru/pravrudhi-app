@@ -51,6 +51,7 @@ import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, typ
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
 import { WakeProgress, WakeWarning } from "@/components/WakeProgress";
 import type { WakeView } from "@/lib/wake/wake";
+import { WAKE_WARN_SECOND_FAILED } from "@/lib/wake/wakeCopy";
 import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, offenceMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
@@ -289,7 +290,7 @@ export default function ScreeningPage() {
     abortRef.current = ac;
     try {
       const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true), onWake: (v) => { setWake(v); wakeLast.v = v; } });
-      if (wakeLast.v?.phase === "partial") setWakeWarning(wakeLast.v.warning);
+      if (wakeLast.v && (wakeLast.v.phase === "partial" || r.second_judge_did_not_run === true)) setWakeWarning(WAKE_WARN_SECOND_FAILED);
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
       if (LAYOUT_MATTER_B) setView("result");
