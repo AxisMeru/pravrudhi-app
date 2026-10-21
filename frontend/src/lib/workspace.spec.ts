@@ -87,3 +87,16 @@ test("the Intake line: R1's sentence, shown only when the flag is on and the use
     assert.equal(intakeLineShown(on, signedIn), on && signedIn === true, `flag ${on}, signed in ${signedIn}`);
   }
 });
+
+// UX polish #6 (Lead-2, 21 Oct): Matter tools gets a sidebar entry next to Workflows; R1's label "Matter tools" (03c5481ef61b7703), nothing else on the entry.
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+test("the Matter tools nav entry: R1's label by hash, an entry for /matter-tools directly after Workflows in the same group, in the flat sidebar and the layout-B General group", () => {
+  assert.equal(createHash("sha256").update(NAV_LABELS.matterTools).digest("hex").slice(0, 16), "03c5481ef61b7703");
+  const side = readFileSync(join(__dirname, "..", "components", "Sidebar.tsx"), "utf8");
+  assert.ok(side.includes('href: "/matter-tools", label: NAV_LABELS.matterTools'));
+  assert.ok(side.includes('NAV.findIndex((n) => n.href === "/workflows") + 1'), "directly after Workflows");
+  const mb = readFileSync(join(__dirname, "..", "components", "MatterBNav.tsx"), "utf8");
+  assert.ok(mb.includes('["/workflows", "/matter-tools", "/citations", "/settings"]'), "layout B General: Workflows, Matter tools, Citation check, Settings");
+});

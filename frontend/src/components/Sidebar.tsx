@@ -24,6 +24,7 @@ import {
   BookOpen,
   Workflow,
   ShieldCheck,
+  FolderOpen,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { MatterBNav } from "@/components/MatterBNav";
@@ -59,6 +60,8 @@ const NAV: NavEntry[] = [
   // /matters ("Offence rules", the contract-picker form) is not offered in the product nav (Lead-2, 14 Oct: it shows raw contract ids); the route and the page stay.
   { group: "work", href: "/citations", label: NAV_LABELS.citations, icon: Library },
   { group: "reference", href: "/workflows", label: NAV_LABELS.workflows, icon: Workflow },
+  // Matter tools is the core workspace (Lead-2, 21 Oct): its own entry, next to Workflows wherever Workflows sits
+  { group: "reference", href: "/matter-tools", label: NAV_LABELS.matterTools, icon: FolderOpen },
   { group: "reference", href: "/safety", label: NAV_LABELS.safety, icon: Gavel },
   { group: "reference", href: "/benchmarks", label: NAV_LABELS.benchmarks, icon: LineChart },
   { group: "reference", href: "/demo", label: NAV_LABELS.demo, icon: Scale },
@@ -84,6 +87,16 @@ if (WORKFLOWS_V2) {
   if (i >= 0) {
     const [w] = NAV.splice(i, 1);
     NAV.unshift({ ...w, group: "work" });
+  }
+}
+// Matter tools sits directly after Workflows, in the same group.
+{
+  const w = NAV.findIndex((n) => n.href === "/workflows");
+  const m = NAV.findIndex((n) => n.href === "/matter-tools");
+  if (w >= 0 && m >= 0) {
+    const group = NAV[w].group;
+    const [entry] = NAV.splice(m, 1);
+    NAV.splice(NAV.findIndex((n) => n.href === "/workflows") + 1, 0, { ...entry, group });
   }
 }
 const NAV_GROUP_ORDER: NavGroupId[] = ["work", "reference", "account", "studio"];

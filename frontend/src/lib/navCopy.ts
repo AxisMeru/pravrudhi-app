@@ -21,6 +21,7 @@ export const NAV_LABELS = {
   matters: "Offence rules",
   citations: "Citation check",
   workflows: "Workflows",
+  matterTools: "Matter tools", // 03c5481ef61b7703 (R1 WEB_UX_POLISH_R1_STRINGS 42e7a5eb51a6): nothing else on the entry, no badge, count or description
   dataHandling: "Data handling",
   settings: "Settings",
   safety: "Safety record",
