@@ -10,7 +10,8 @@ const PINS: Record<string, string> = {
   toolsOffLine: "4baa8fa91ce90387",
   signedOutLine: "da7525cf1ae1bc45",
   signedOutLink: "bfd402b2f6f38125",
-  signedOutSample: "511c43e85a780657", // R1 21 Oct, TOOL_OFF_LINES_R1 27fd5ce28704
+  signedOutSample: "511c43e85a780657",
+  sessionUnverified: "bc8e6c589eb7bc03", // R1 21 Oct, TOOL_OFF_LINES_R1 27fd5ce28704
   signed401: "157d2ec7a61a23c3",
   matterHeading: "1ec1a29ecd3f03f9",
   startMatter: "a9d2db888c2e1b15",
