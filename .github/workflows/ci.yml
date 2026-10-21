@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: guard tests
         run: node --test scripts/test/*.test.mjs
       - name: no recorded-looking ids, emails or home paths in fixtures and e2e specs
@@ -56,7 +56,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
 
       - name: frontend dependencies
         working-directory: frontend
@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
 
       - name: desktop dependencies
         working-directory: desktop
@@ -115,7 +115,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
 
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
@@ -133,10 +133,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npm run build
 
+      - name: cache the pinned engine release
+        id: engine-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/app-home
+          key: engine-${{ runner.os }}-py3.13-${{ hashFiles('engine/ENGINE_VERSION') }}
+
       - name: install the pinned engine release
+        if: steps.engine-cache.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
+
+      - name: cache the Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: browsers
         working-directory: frontend
@@ -187,7 +201,7 @@ jobs:
           test "${{ needs.e2e-shard.result }}" = "success" || { echo "e2e shards: ${{ needs.e2e-shard.result }}"; exit 1; }
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: frontend dependencies
         working-directory: frontend
         run: npm ci
@@ -221,7 +235,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
 
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
@@ -239,10 +253,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npm run build
 
+      - name: cache the pinned engine release
+        id: engine-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/app-home
+          key: engine-${{ runner.os }}-py3.13-${{ hashFiles('engine/ENGINE_VERSION') }}
+
       - name: install the pinned engine release
+        if: steps.engine-cache.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
+
+      - name: cache the Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
 
       - name: browsers
         working-directory: frontend
@@ -293,7 +321,7 @@ jobs:
           test "${{ needs.e2e-shipped-shard.result }}" = "success" || { echo "e2e-shipped shards: ${{ needs.e2e-shipped-shard.result }}"; exit 1; }
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: "22" }
+        with: { node-version: "22", cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: frontend dependencies
         working-directory: frontend
         run: npm ci
