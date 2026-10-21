@@ -15,6 +15,7 @@ export const PREVIEW_PAGE = {
   s3Run: "Make the quashing agenda",
   working: "Working",
   signedOutLine: "Sign in to add papers and use these tools.",
+  signedOutSample: "After you sign in, you can try the tools on a sample matter.", // R1 21 Oct (TOOL_OFF_LINES_R1 27fd5ce28704, 511c43e85a780657): states a fact; the button is not on the page signed-out
   signedOutLink: "Sign in",
   signed401: "Sign in to add papers.",
   toolsOffLine: "Some tools on this page are not switched on in this deployment. A tool that is off says so when you use it.",

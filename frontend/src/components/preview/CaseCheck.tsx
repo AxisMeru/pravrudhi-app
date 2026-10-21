@@ -31,7 +31,7 @@ export function CaseCheck({ matter }: { matter: string | null }) {
     setBusy(true); setMessage(null);
     try {
       const a = await previewPost("/cheque-case-check", { matter_id: matter, ...extra });
-      if (a.status !== 200) { setMessage(refusal(a.status, a.body)); return null; }
+      if (a.status !== 200) { setMessage(refusal(a.status, a.body, "/cheque-case-check")); return null; }
       const v = parseCaseCheck(a.body);
       if (!v) { setMessage(PREVIEW.wf_error); return null; }
       return v;

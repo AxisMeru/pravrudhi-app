@@ -30,7 +30,7 @@ test("start a matter, add a paper, run the quashing agenda: the engine's sentenc
   expect(keys).toEqual(["pv-s3-standing_line", "pv-s3-heading", "pv-s3-stem", "pv-s3-caution", "pv-s3-categories", "pv-s3-papers", "pv-s3-not_assessed"]);
 });
 
-test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the no-papers line", async ({ page }) => {
+test("a 404 on a tool whose route is off reads R1's per-tool 'not switched on' line (the matter is still there) and a 409 no_papers reads the no-papers line", async ({ page }) => {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   let n = 0;
@@ -38,7 +38,7 @@ test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the n
   await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-s3-run").click();
-  await expect(page.getByTestId("pv-message")).toHaveText("This workflow is not available here.");
+  await expect(page.getByTestId("pv-message")).toHaveText("Quashing agenda is not switched on in this deployment.");
   await page.getByTestId("pv-s3-run").click();
   await expect(page.getByTestId("pv-message")).toHaveText("There are no papers to read. Add papers first.");
 });
@@ -177,6 +177,8 @@ test("signed out: R1's sign-in line with its link above the cards, no Start a ma
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
   await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-signed-out")).toHaveText("Sign in to add papers and use these tools. Sign in");
+  await expect(page.getByTestId("pv-signed-out-sample")).toHaveText("After you sign in, you can try the tools on a sample matter.");
+  await expect(page.getByTestId("pv-sample")).toHaveCount(0); // the button itself is not on the page signed-out
   await expect(page.getByTestId("pv-signin-link")).toHaveAttribute("href", /\/signin/);
   await expect(page.getByTestId("pv-start")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/stored papers/i);
