@@ -1,0 +1,91 @@
+{
+  "title": "Pravrudhi-Nyaya user guide",
+  "durationS": 177.79999999999998,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "70e5ddabbabc18cfcbb38ac6974b701cd6cb78689edb9ad827a565a70fcb697b",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "Pravrudhi-Nyaya",
+      "text": "",
+      "startS": 0,
+      "endS": 9.2
+    },
+    {
+      "name": "Matter tools",
+      "text": "",
+      "startS": 9.2,
+      "endS": 31.4
+    },
+    {
+      "name": "Papers for a matter",
+      "text": "",
+      "startS": 31.4,
+      "endS": 58.9
+    },
+    {
+      "name": "Quashing agenda",
+      "text": "",
+      "startS": 58.9,
+      "endS": 84.2
+    },
+    {
+      "name": "Papers you add to a matter",
+      "text": "",
+      "startS": 84.2,
+      "endS": 109.6
+    },
+    {
+      "name": "What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold.",
+      "text": "",
+      "startS": 109.6,
+      "endS": 135.6
+    },
+    {
+      "name": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.",
+      "text": "",
+      "startS": 135.6,
+      "endS": 156.2
+    },
+    {
+      "name": "Load a sample matter",
+      "text": "",
+      "startS": 156.2,
+      "endS": 169.39999999999998
+    },
+    {
+      "name": "This is a screening aid, not legal advice. A lawyer decides.",
+      "text": "",
+      "startS": 169.39999999999998,
+      "endS": 177.79999999999998
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 4907017,
+      "sha256": "fe8968b31df618c6237606fb77375115edd9e5ca6cba063be4a71e0c33644315"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 54465,
+      "sha256": "50f5ebce5f2ed0a95d755e56a452c4a2e9b3e75764c9da58bcd51053fd5619df"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 3485,
+      "sha256": "7cc4b4c7149a0971a3ddfd114d6628f605bcb533833e9ab2baff0a3bf35222ef"
+    }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "title": "Pravrudhi-Nyaya user guide",
+  "durationS": 177.79999999999998,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "bf_emma (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "2ff8fd8fbad10e6e52e2d1c8d58bd2b8a1a9a2cf83ddd6a09e9c572ae2f6efb7",
+    "timingsSha256": "caefa4a7f91072fdb4266f03279aa0b710d9871e25fdc83fba0229aed21220b7",
+    "scenes": [
+      {
+        "id": "intro",
+        "audioS": 7.65,
+        "durS": 9.2,
+        "origDurS": 9.2,
+        "stretch": 1,
+        "wavSha256": "faad0ae6771260e04bac8c62b27ff3e2e23e432f429a9ef7d25147ae32f7abdd"
+      },
+      {
+        "id": "tools",
+        "audioS": 18.48,
+        "durS": 22.2,
+        "origDurS": 22.2,
+        "stretch": 1,
+        "wavSha256": "8765ed558a6985393618f981e965ed48331299534ae004a5556c1d8554fd13ab"
+      },
+      {
+        "id": "tools1",
+        "audioS": 25.98,
+        "durS": 27.5,
+        "origDurS": 27.5,
+        "stretch": 1,
+        "wavSha256": "b06f1ec9928ea3a448b86c46a572ec9aeb822317b8ad0683a9804237d54fe55d"
+      },
+      {
+        "id": "tools2",
+        "audioS": 23.78,
+        "durS": 25.3,
+        "origDurS": 25.3,
+        "stretch": 1,
+        "wavSha256": "54ce25f35e10f09969394a33f02e345f258e1445f47e6b20afc8cef17972d860"
+      },
+      {
+        "id": "kept1",
+        "audioS": 19.3,
+        "durS": 25.4,
+        "origDurS": 25.4,
+        "stretch": 1,
+        "wavSha256": "5c6892c6b1d9cc6f5fcca2b8fd3bd7d71742464809e1126e074e6777e22dcce6"
+      },
+      {
+        "id": "kept2",
+        "audioS": 23.65,
+        "durS": 26,
+        "origDurS": 26,
+        "stretch": 1,
+        "wavSha256": "9d33e2733dcb0358eed9b717496dd05a11b34e1860c31cb97bcbf6cf7ce1f534"
+      },
+      {
+        "id": "kept3",
+        "audioS": 16.1,
+        "durS": 20.6,
+        "origDurS": 20.6,
+        "stretch": 1,
+        "wavSha256": "00155222b898c1d5b03a5e798f8ea77bc31577e86551d9bca8c882ab526972f0"
+      },
+      {
+        "id": "sample",
+        "audioS": 11.7,
+        "durS": 13.2,
+        "origDurS": 13.2,
+        "stretch": 1,
+        "wavSha256": "e9fb6ecac9c15290a819292bd6607be717055624fd6a0038cc240cb0fba5cf70"
+      },
+      {
+        "id": "close",
+        "audioS": 6.88,
+        "durS": 8.4,
+        "origDurS": 8.4,
+        "stretch": 1,
+        "wavSha256": "ffb6d685c4d9cb611989786ec7a44461a0dbaf51a56ec8dd7cee06f4ac60ef73"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.617,
+      "speechRmsDb": -23.2,
+      "peakBeforeLimit": 1.105,
+      "limiterGain": 0.878,
+      "scoreSeconds": 178.8,
+      "scoreLufs": -18.99
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "90a9becc025eb16995592f9b8ea4653a153c919847f1b61baf17cffd2f006203",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "Pravrudhi-Nyaya",
+      "text": "",
+      "startS": 0,
+      "endS": 9.2
+    },
+    {
+      "name": "Matter tools",
+      "text": "",
+      "startS": 9.2,
+      "endS": 31.4
+    },
+    {
+      "name": "Papers for a matter",
+      "text": "",
+      "startS": 31.4,
+      "endS": 58.9
+    },
+    {
+      "name": "Quashing agenda",
+      "text": "",
+      "startS": 58.9,
+      "endS": 84.2
+    },
+    {
+      "name": "Papers you add to a matter",
+      "text": "",
+      "startS": 84.2,
+      "endS": 109.6
+    },
+    {
+      "name": "What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold.",
+      "text": "",
+      "startS": 109.6,
+      "endS": 135.6
+    },
+    {
+      "name": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.",
+      "text": "",
+      "startS": 135.6,
+      "endS": 156.2
+    },
+    {
+      "name": "Load a sample matter",
+      "text": "",
+      "startS": 156.2,
+      "endS": 169.39999999999998
+    },
+    {
+      "name": "This is a screening aid, not legal advice. A lawyer decides.",
+      "text": "",
+      "startS": 169.39999999999998,
+      "endS": 177.79999999999998
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 6071008,
+      "sha256": "87dca4823444fdeb8610c62c76b7a0ab025b2ba8bce16a8b2afedffbaaa48e25"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 59985,
+      "sha256": "b23b68f6c09355233a15951fa7c018ad650380d40d0f5d145e9180d93a5174b3"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 4171,
+      "sha256": "86b936f32d0fa3e20e09961e1ba236c0dd74f79f7f383315a4db7b56f64a42cb"
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+WEBVTT
+
+1
+00:00:00.300 --> 00:00:07.300
+Pravrudhi-Nyaya
+User guide
+
+2
+00:00:09.500 --> 00:00:12.600
+Matter tools
+
+3
+00:00:12.600 --> 00:00:19.600
+The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. Images are not read.
+
+4
+00:00:31.700 --> 00:00:34.000
+Papers for a matter
+Add the papers of a matter and find a passage in them.
+
+5
+00:00:34.000 --> 00:00:36.300
+Uses your papers
+
+6
+00:00:36.300 --> 00:00:39.100
+Chronology
+Lists the dates it reads in your papers, each with its sentence. May be incomplete.
+
+7
+00:00:39.100 --> 00:00:41.900
+Uses your papers
+
+8
+00:00:41.900 --> 00:00:44.367
+Review agenda
+Lists the ingredients of the cheque-dishonour offence and the papers to look in.
+
+9
+00:00:44.367 --> 00:00:46.833
+Uses your papers
+
+10
+00:00:46.833 --> 00:00:52.867
+Citation sweep
+Checks that each citation in your papers exists in our index, nothing more.
+
+11
+00:00:52.867 --> 00:00:58.900
+Uses your papers
+
+12
+00:00:59.200 --> 00:01:01.500
+Quashing agenda
+Lists the Supreme Court's quashing categories; does not say whether any applies.
+
+13
+00:01:01.500 --> 00:01:03.800
+Uses your papers
+
+14
+00:01:03.800 --> 00:01:06.267
+Cheque case check
+Shows the review agenda and candidate dates per step; you confirm each date.
+
+15
+00:01:06.267 --> 00:01:08.733
+Uses your papers
+
+16
+00:01:08.733 --> 00:01:11.533
+Hearing pack
+Gathers the dates, papers still to add and citations to look up for a hearing.
+
+17
+00:01:11.533 --> 00:01:14.333
+Uses your papers
+
+18
+00:01:14.333 --> 00:01:21.333
+Section 138 checklist
+Counts section 138 periods from dates you confirm: a checklist, not a decision.
+
+19
+00:01:24.500 --> 00:01:27.600
+Papers you add to a matter
+
+20
+00:01:27.600 --> 00:01:34.600
+What is sent: each paper you add on Matter tools is sent to our service. Only its text is kept.
+
+21
+00:01:34.867 --> 00:01:41.467
+Where it is kept: in our store on a storage volume in the EU (Romania), not in India.
+
+22
+00:01:41.467 --> 00:01:48.467
+How long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period.
+
+23
+00:01:49.900 --> 00:01:56.900
+What delete does: deleting a paper or a matter removes it, and its stored text, from this service's store. We have not tested what the underlying hosting storage may still hold.
+
+24
+00:02:00.833 --> 00:02:07.833
+Who can read it: only your organisation, through the product or your organisation's API key; another organisation gets "not found".
+
+25
+00:02:08.100 --> 00:02:15.100
+This service does not encrypt the stored files. People who run the service and its hosting account can read them.
+
+26
+00:02:15.900 --> 00:02:22.500
+Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.
+
+27
+00:02:22.500 --> 00:02:28.767
+The matter number is lost when you reload the page, and your matters cannot be listed here.
+
+28
+00:02:28.767 --> 00:02:35.767
+If you lose the matter number, there is not yet a tested way to ask us to delete your papers.
+
+29
+00:02:36.500 --> 00:02:40.100
+Load a sample matter
+
+30
+00:02:40.100 --> 00:02:47.100
+The sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties.
+
+31
+00:02:49.700 --> 00:02:56.700
+This is a screening aid, not legal advice. A lawyer decides.
