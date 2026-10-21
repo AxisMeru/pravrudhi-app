@@ -29,7 +29,7 @@ export function YourMatters({ current, onOpen, onDeleted, onShown }: { current: 
   }, []);
   const shown = state.kind === "list";
   // tell the page whether the list is on screen, so the matter note only says "your matters are listed above" when they are (R1)
-  useEffect(() => { onShown?.(shown); }, [shown, onShown]);
+  useEffect(() => { onShown?.(shown); return () => onShown?.(false); }, [shown, onShown]);
   if (state.kind === "loading" || state.kind === "off") return null;
   const remove = async (id: string) => {
     setBusy(true); setMessage(null);

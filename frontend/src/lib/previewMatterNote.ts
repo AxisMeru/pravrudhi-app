@@ -4,7 +4,7 @@ export const MATTER_NOTE = {
   matter_note: "The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. Images are not read.",
   /** Replaces the \"Images are not read.\" sentence only once scanned papers are on (NEXT_PUBLIC_SCANNED_INTAKE=1) in production AND tested end to end (R1): until then the note says images are not read. */
   matter_note_images: "For a scanned paper, only the text read from its pages is kept; the page images are not written to our store.",
-  /** With the list on (NEXT_PUBLIC_YOUR_MATTERS=1), R1 ym_note (d987979ae082ab27) replaces matter_note; the scanned-paper sentence swap applies the same way. */
+  /** With the list on (NEXT_PUBLIC_YOUR_MATTERS=1), R1 ym_note (559d274110ed22e2) replaces matter_note; the scanned-paper sentence swap applies the same way. */
   matter_note_list: YM_NOTE,
   matter_gone: "This matter is no longer held. Start a matter and add the papers again.",
 } as const;
