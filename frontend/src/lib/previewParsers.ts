@@ -162,7 +162,7 @@ export function caseB3Body(picks: Partial<Record<(typeof CASE_ROLES)[number], { 
 }
 // ---------- Matter hearing pack (Track A's samples matter_hearing_pack_*.json; engine PR #541; route is Track C's) ----------
 export interface HearingRow { scan?: RowScan; dateAsWritten: string; readings: string[]; readAs: string | null; quote: string | null; source: string | null }
-export interface HearingCitation { text: string; where: string[]; status: string }
+export interface HearingCitation { scan?: RowScan; text: string; where: string[]; status: string }
 export interface HearingView {
   statement: string | null; hearingDateGiven: string | null;
   nextDates: { heading: string | null; rows: HearingRow[]; noneLine: string | null };
@@ -179,7 +179,9 @@ const hearingCitations = (x: unknown): HearingCitation[] => arr(x).flatMap((v): 
   const r = rec(v); const t = str(r?.text);
   if (!r || !t) return [];
   const where = arr(r.where).flatMap((w) => { const q = rec(w); const n = str(q?.document_name); const p = num(q?.page); return n ? [p !== null ? `${n} p.${p}` : n] : []; });
-  return [{ text: t, where, status: strs(r.statuses)[0] ?? "not_checked" }];
+  // the citation is marked when the entry says so, or when any page it was read from does (R1, 21 Oct: the same citation is marked in the sweep list, so it is marked here too)
+  const scan = rowScan(r, null) ?? arr(r.where).map((w) => { const q = rec(w); return q ? rowScan(q, str(q.document_name)) : undefined; }).find((x) => x?.fromOcr);
+  return [{ text: t, where, status: strs(r.statuses)[0] ?? "not_checked", ...(scan ? { scan } : {}) }];
 });
 export function parseHearing(b: Rec | null): HearingView | null {
   if (!b || typeof b.run_id !== "string") return null;

@@ -25,6 +25,10 @@ test("every surface carries the marker per row: chronology, cheque case, hearing
   assert.equal(hp.timeline.rows[0].scan?.marker, MARK);
   assert.equal(hp.timeline.rows[1].scan, undefined);
   assert.equal(hp.nextDates.rows[0].scan?.marker, MARK);
+  const hc = parseHearing({ run_id: "r", citations: { switched_on: true, needs_attention: [{ text: "(2086) 1 SCC 99", statuses: ["not_found"], from_ocr: true, ocr_marker: MARK, where: [{ document_name: "scan.pdf", page: 1 }] }, { text: "(2087) 4 SCC 512", statuses: ["not_found"], where: [{ document_name: "scan.pdf", page: 1, from_ocr: true, ocr_marker: MARK }] }], not_checked: [{ text: "(2088) 2 SCC 7", statuses: ["not_checked"], from_ocr: false, where: [{ document_name: "typed.pdf", page: 1 }] }] } })!;
+  assert.equal(hc.citations.needsAttention[0].scan?.marker, MARK, "entry-level marker");
+  assert.equal(hc.citations.needsAttention[1].scan?.marker, MARK, "a page it was read from is from a scan");
+  assert.equal(hc.citations.notChecked[0].scan, undefined);
   const s1 = parseS1({ run_id: "r", papers_read: [{ name: "scan.pdf", citations: [{ text: "(2086) 1 SCC 99", status: "not_found", page: 1, from_ocr: true, ocr_marker: MARK }, { text: "(2087) 4 SCC 512", status: "found", page: 2, from_ocr: false }] }] })!;
   assert.equal(s1.papers[0].citations[0].scan?.marker, MARK);
   assert.equal(s1.papers[0].citations[0].status, "not_found");

@@ -205,6 +205,13 @@ test("flag ON: the engine's ocr_marker shows beside a scanned paper, a chronolog
   const a3r = page.getByTestId("pv-a3-result");
   await expect(a3r.getByTestId("scan-ocr-marker")).toHaveCount(1);
   await expect(a3r.getByTestId("scan-ocr-marker")).toHaveText(MARKER);
+  const hp = fx("matter_hearing_pack_with_sweep").response as { citations: { needs_attention: Record<string, unknown>[] } };
+  await page.route("**/api/v1/matter-hearing-pack", (r) => r.fulfill({ json: { ...hp, citations: { ...hp.citations, needs_attention: hp.citations.needs_attention.map((c, i) => (i === 0 ? { ...c, from_ocr: true, ocr_marker: MARKER } : c)) } } }));
+  await page.getByTestId("pv-hp-date").fill("2026-11-03");
+  await page.getByTestId("pv-hp-run").click();
+  const hpc = page.getByTestId("pv-hp-citations");
+  await expect(hpc.getByTestId("scan-ocr-marker")).toHaveCount(1);
+  await expect(hpc.locator("li").first()).toContainText(MARKER);
   await page.getByTestId("pv-s1-run").click();
   const s1r = page.getByTestId("pv-s1-result");
   await expect(s1r.getByTestId("scan-ocr-marker")).toHaveCount(1);
