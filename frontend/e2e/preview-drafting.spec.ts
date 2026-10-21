@@ -62,14 +62,14 @@ test("bail referred: a straddle shows both framings and no draft text; a sensiti
   await expect(page.getByTestId("bail-text")).toHaveCount(0);
 });
 
-test("bail: a 404 (flag off) reads R1's 'not available here' line", async ({ page }) => {
+test("bail: a 404 (flag off) reads R1's 'not switched on' line for the grounds", async ({ page }) => {
   await page.route("**/api/v1/bail-draft", (r) => r.fulfill({ status: 404, json: { detail: "x" } }));
   await page.goto("/matter-tools");
   await fillBail(page);
   await page.getByTestId("bail-consent").check();
   await answer(page, "bail");
   await page.getByTestId("bail-run").click();
-  await expect(page.getByTestId("bail-message")).toHaveText("This workflow is not available here.");
+  await expect(page.getByTestId("bail-message")).toHaveText("Drafting the grounds is not switched on in this deployment.");
 });
 
 test("synopsis: table only keeps the paper's dates and both readings; unticking a row sends the kept row ids", async ({ page }) => {

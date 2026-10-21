@@ -135,7 +135,7 @@ export function BailCard({ prefill = null, prefillLine }: { prefill?: { key: num
     try {
       const a = await previewPost("/bail-draft", body);
       if (isDeclarationRefusal(a.status, a.body)) return setMessage(DECLARATION_TEXT.missing);
-      if (a.status !== 200) return setMessage(refusal(a.status, a.body));
+      if (a.status !== 200) return setMessage(refusal(a.status, a.body, "/bail-draft"));
       const v = parseBail(a.body);
       if (!v) return setMessage(PREVIEW.wf_error);
       setView(v);
@@ -223,7 +223,7 @@ function SynopsisResult({ v, kept, setKept, onUpdate, busy, updateBlocked }: { v
   );
 }
 
-export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | null; hasPapers: boolean; onGone: () => void }) {
+export function SynopsisCard({ matter, hasPapers, matterGone }: { matter: string | null; hasPapers: boolean; matterGone: () => Promise<boolean> }) {
   const [consent, setConsent] = useState(false);
   const [declared, setDeclared] = useState<Declaration>(""); // flag ON: no choice made, every time
   const [facts, setFacts] = useState<FactIn[]>([emptyFact()]);
@@ -240,7 +240,7 @@ export function SynopsisCard({ matter, hasPapers, onGone }: { matter: string | n
     try {
       const a = await previewPost("/synopsis-dates", body);
       if (isDeclarationRefusal(a.status, a.body)) { setView(null); return setMessage(DECLARATION_TEXT.missing); }
-      if (a.status === 404) { setView(null); onGone(); return setMessage(PREVIEW.wf_unavailable); }
+      if (a.status === 404) { setView(null); if (await matterGone()) return; return setMessage(refusal(404, a.body, "/synopsis-dates")); } // gone: the page says so and starts over; otherwise the route is off (R1 21 Oct)
       if (a.status !== 200) { setView(null); return setMessage(refusal(a.status, a.body)); }
       const v = parseSynopsis(a.body);
       if (!v) { setView(null); return setMessage(PREVIEW.wf_error); }
