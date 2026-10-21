@@ -9,6 +9,9 @@ import type { FilmId } from "./copy";
 import clientManifest from "../../../public/films/client/manifest.json";
 import guideV2Manifest from "../../../public/films/guide-v2/manifest.json";
 import guideV2SilentManifest from "../../../public/films/guide-v2-silent/manifest.json";
+import guideV3Manifest from "../../../public/films/guide-v3/manifest.json";
+import guideV3SilentManifest from "../../../public/films/guide-v3-silent/manifest.json";
+import { SCANNED_INTAKE } from "../scannedIntake";
 
 export const GUIDE_FILM_V2 = process.env.NEXT_PUBLIC_GUIDE_FILM_V2 === "1";
 
@@ -23,3 +26,16 @@ export const GUIDE_V2 = {
   narrated: guideV2Manifest as FilmManifest,
   silent: guideV2SilentManifest as FilmManifest,
 };
+
+// guide-v3 (Studio, 21 Oct, deliver3 SHA256SUMS e277245ecf5a, strings GUIDE_STRINGS_v3 e059a4c79318, R1 CLEARED bb58fe356b55): the film re-rendered for the switched-on scanned-paper product (Lead-2 condition 7, GO_OCR_SWITCHON d949a46b7f7d).
+// It ships in the SAME app deploy as NEXT_PUBLIC_SCANNED_INTAKE=1, never before: v3 is built in only when BOTH NEXT_PUBLIC_GUIDE_FILM_V2=1 and NEXT_PUBLIC_SCANNED_INTAKE=1 are set. With the film flag on and scanned papers off the page keeps guide-v2;
+// with the film flag off it shows the earlier film ('client'), whatever the scanned flag says. So the film and the product can never disagree by deploy order.
+export const GUIDE_FILM_V3 = GUIDE_FILM_V2 && SCANNED_INTAKE;
+export const GUIDE_V3 = {
+  narratedId: "guide-v3" as FilmId,
+  silentId: "guide-v3-silent" as FilmId,
+  narrated: guideV3Manifest as FilmManifest,
+  silent: guideV3SilentManifest as FilmManifest,
+};
+/** The narrated pair the page renders when the film flag is on: v3 with scanned papers on, else v2. */
+export const GUIDE_FILM_PICK = GUIDE_FILM_V3 ? GUIDE_V3 : GUIDE_V2;

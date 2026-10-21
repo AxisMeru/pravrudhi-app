@@ -4,7 +4,7 @@ import Link from "next/link";
 import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
 import { FilmPlayer } from "@/components/films/FilmPlayer";
 import { GUIDE_FILM_HEADING } from "@/lib/films/copy";
-import { GUIDE_FILM_ID, GUIDE_FILM_MANIFEST, GUIDE_FILM_V2, GUIDE_V2 } from "@/lib/films/guideFilm";
+import { GUIDE_FILM_ID, GUIDE_FILM_MANIFEST, GUIDE_FILM_PICK, GUIDE_FILM_V2 } from "@/lib/films/guideFilm";
 import { NarratedDefaultFilm } from "@/components/films/NarratedDefaultFilm";
 import {
   GUIDE_ABOUT, GUIDE_ABOUT_HEADING, GUIDE_BEFORE, GUIDE_BEFORE_HEADING, GUIDE_BEFORE_LINK, GUIDE_COVERED, GUIDE_COVERED_HEADING, GUIDE_COVERED_NOTE, GUIDE_GLOSSARY, GUIDE_GLOSSARY_HEADING,
@@ -26,7 +26,7 @@ export default function GuidePage() {
         </section>
         <section id="film" data-testid="guide-film">
           <h2 className="mb-2 text-base font-medium text-[var(--color-text)]">{GUIDE_FILM_HEADING}</h2>
-          {GUIDE_FILM_V2 ? <NarratedDefaultFilm narrated={GUIDE_V2.narrated} silent={GUIDE_V2.silent} narratedId={GUIDE_V2.narratedId} silentId={GUIDE_V2.silentId} /> : <FilmPlayer id={GUIDE_FILM_ID} manifest={GUIDE_FILM_MANIFEST} />}
+          {GUIDE_FILM_V2 ? <NarratedDefaultFilm narrated={GUIDE_FILM_PICK.narrated} silent={GUIDE_FILM_PICK.silent} narratedId={GUIDE_FILM_PICK.narratedId} silentId={GUIDE_FILM_PICK.silentId} /> : <FilmPlayer id={GUIDE_FILM_ID} manifest={GUIDE_FILM_MANIFEST} />}
         </section>
         <section data-testid="guide-about">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_ABOUT_HEADING}</h2>

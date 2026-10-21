@@ -9,7 +9,7 @@ export interface FilmManifest { title: string; durationS: number; width: number;
 export const FILM_MANIFESTS: Record<"client" | "technical", FilmManifest> = { client: clientManifest as FilmManifest, technical: technicalManifest as FilmManifest };
 
 /** The NyayaSiddhi cuts that ship a film.webm beside the mp4 (the manifests list only the mp4; Studio's v6 delivery adds the WebM for all five). The player lists the WebM first for these. */
-export const WEBM_FILMS: ReadonlySet<string> = new Set(["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "guide-v2", "guide-v2-silent"]);
+export const WEBM_FILMS: ReadonlySet<string> = new Set(["nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "guide-v2", "guide-v2-silent", "guide-v3", "guide-v3-silent"]);
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 /** The URL of one rendered file of a film (static export: the build's base path is added by hand). */

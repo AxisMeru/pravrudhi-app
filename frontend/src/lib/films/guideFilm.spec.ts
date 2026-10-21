@@ -97,3 +97,45 @@ test("the guide-v2 manifests are the files Studio re-delivered (by hash); each s
   }
   assert.deepEqual(GUIDE_V2.narrated.scenes.map((sc) => sc.name), GUIDE_V2.silent.scenes.map((sc) => sc.name), "both cuts carry the same cleared scene names");
 });
+
+// guide-v3 (Studio deliver3, SHA256SUMS e277245ecf5a; strings GUIDE_STRINGS_v3 e059a4c79318; R1 CLEARED bb58fe356b55): the film for the switched-on scanned-paper product. Registered, files kept, pinned by hash, and built in only with BOTH flags.
+import { GUIDE_FILM_PICK, GUIDE_FILM_V3, GUIDE_V3 } from "./guideFilm";
+const V3_PINS = {
+  "guide-v3": { captions: "c96205f8a090e4ea4bf1af5911b982ba55bcaf75fd863d6a1ad86271f2ce6607", manifest: "009078ef4f6430ecb10fa46fbe573c65d1449961263ddb3a866a11c97ac884db" },
+  "guide-v3-silent": { captions: "ca1938b743f23744dd11daa8bd2ecc45cb9c40deecffd758f6e660d20ff6d000", manifest: "9e3271bd4fe82d6fbef77361bd0812036adef25a4303690c3ce251d270110deb" },
+} as const;
+test("guide-v3 and guide-v3-silent are registered with their five files, captions and manifests pinned by hash; audio only on the narrated cut; earlier versions stay", () => {
+  for (const id of ["guide-v3", "guide-v3-silent"] as const) {
+    assert.ok((FILM_IDS as readonly string[]).includes(id), id);
+    assert.ok(WEBM_FILMS.has(id), `${id} has a webm`);
+    const dir = join(root, "public", "films", id);
+    assert.deepEqual(readdirSync(dir).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], id);
+    for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(dir, n), "utf8"), /\/home\/|\/tmp\//, `${id}/${n}`);
+    assert.equal(createHash("sha256").update(readFileSync(join(dir, "captions.vtt"))).digest("hex"), V3_PINS[id].captions, `${id} captions`);
+    assert.equal(createHash("sha256").update(readFileSync(join(dir, "manifest.json"))).digest("hex"), V3_PINS[id].manifest, `${id} manifest`);
+    assert.ok(readFileSync(join(dir, "captions.vtt"), "utf8").startsWith("WEBVTT"));
+  }
+  for (const id of ["guide-v2", "guide-v2-silent", "client"]) assert.ok(existsSync(join(root, "public", "films", id, "manifest.json")), `${id} is kept`);
+  assert.deepEqual(GUIDE_V3.narrated, JSON.parse(readFileSync(join(root, "public", "films", "guide-v3", "manifest.json"), "utf8")));
+  assert.deepEqual(GUIDE_V3.silent, JSON.parse(readFileSync(join(root, "public", "films", "guide-v3-silent", "manifest.json"), "utf8")));
+  assert.equal(GUIDE_V3.narrated.audio, true);
+  assert.equal(GUIDE_V3.silent.audio, false);
+  assert.deepEqual(GUIDE_V3.narrated.scenes.map((sc) => sc.name), GUIDE_V3.silent.scenes.map((sc) => sc.name));
+  assert.equal(GUIDE_V3.narrated.scenes.length, 9);
+});
+test("every scene line of guide-v3 is a line of GUIDE_STRINGS_v3 (e059a4c79318, 49 lines), in both cuts", () => {
+  const s = JSON.parse(readFileSync(join(root, "e2e", "fixtures", "guideFilmStringsV3.json"), "utf8")) as { sourceSha256: string; strings: { text: string }[] };
+  assert.match(s.sourceSha256, /^e059a4c79318/);
+  assert.equal(s.strings.length, 49);
+  const known = new Set(s.strings.map((x) => x.text));
+  for (const m of [GUIDE_V3.narrated, GUIDE_V3.silent]) for (const sc of m.scenes) for (const line of sc.text.split("\n")) assert.ok(known.has(line) || known.has(line.trim()), `a scene line is not in GUIDE_STRINGS_v3: ${line.slice(0, 60)}`);
+});
+test("guide-v3 ships ONLY with scanned papers: built in when both NEXT_PUBLIC_GUIDE_FILM_V2 and NEXT_PUBLIC_SCANNED_INTAKE are 1; the page takes the pair from one constant", () => {
+  const slot = readFileSync(join(root, "src", "lib", "films", "guideFilm.ts"), "utf8");
+  assert.match(slot, /GUIDE_FILM_V3 = GUIDE_FILM_V2 && SCANNED_INTAKE/);
+  assert.match(slot, /GUIDE_FILM_PICK = GUIDE_FILM_V3 \? GUIDE_V3 : GUIDE_V2/);
+  assert.equal(GUIDE_FILM_V3, process.env.NEXT_PUBLIC_GUIDE_FILM_V2 === "1" && process.env.NEXT_PUBLIC_SCANNED_INTAKE === "1");
+  assert.equal(GUIDE_FILM_PICK, GUIDE_FILM_V3 ? GUIDE_V3 : GUIDE_V2);
+  const page = readFileSync(join(root, "src", "app", "guide", "page.tsx"), "utf8");
+  assert.match(page, /narratedId=\{GUIDE_FILM_PICK\.narratedId\}/);
+});

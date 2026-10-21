@@ -1,6 +1,7 @@
 import { expect, test } from "./support/engineTest";
 import { isLayoutB } from "./support/layout";
 import guideV2 from "../public/films/guide-v2/manifest.json";
+import guideV3 from "../public/films/guide-v3/manifest.json";
 
 // With the narrated guide film on /guide (build flag NEXT_PUBLIC_GUIDE_FILM_V2=1, e2e marker GUIDE_FILM_V2_BUILD=1) the scene list is the guide-v2 film's, not the earlier film's: this spec then checks that list
 // (each scene holds its signed strings verbatim) and keeps the earlier film's checks for the OFF arm.
@@ -13,7 +14,7 @@ test("the film's scene text is byte-unchanged; the earlier-layout line is on lay
   const scenes = page.getByTestId("film-scenes").first();
   if (GUIDE_V2) {
     await expect(scenes).not.toContainText(SCENE);
-    for (const sc of guideV2.scenes) await expect(scenes).toContainText(sc.text.split("\n")[0]);
+    for (const sc of (process.env.GUIDE_FILM_V3_BUILD === "1" ? guideV3 : guideV2).scenes) await expect(scenes).toContainText(sc.text.split("\n")[0]);
     return;
   }
   await expect(scenes).toContainText(SCENE);
