@@ -9,6 +9,7 @@ const PINS: Record<string, string> = {
   name: "c30f3734394fd70d",
   line: "28769912899bc73e",
   dateLabel: "122bf2d2fb7692fd",
+  datePlaceholder: "51a498bc1a85fc9c",
   run: "f9c1fca13a1acd0a",
 };
 

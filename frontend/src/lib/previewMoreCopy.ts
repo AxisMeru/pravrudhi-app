@@ -3,6 +3,7 @@ export const PREVIEW_MORE = {
   a5Name: "Review agenda",
   a5Line: "Lists the ingredients of the cheque-dishonour offence in the section's own words and the papers to look in. It is not a finding about your case.",
   a5Run: "Make the review agenda",
+  a5NotAddedNote: "This list goes by the file names you gave; a paper that holds one of these under another name is not matched.", // 1ed69458eebf48d6 (R1, 21 Oct): beside "Papers not added yet that may matter"
   a3Name: "Chronology",
   a3Line: "Lists the dates it reads in your papers, with the sentence each came from. It may be incomplete.",
   a3Run: "Make the chronology",

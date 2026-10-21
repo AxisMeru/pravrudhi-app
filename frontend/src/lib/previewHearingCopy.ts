@@ -3,5 +3,6 @@ export const PREVIEW_HEARING = {
   name: "Hearing pack",
   line: "Gathers, from the papers you added, the dates they mention, the papers still to add and the citations to look up. It does not say what matters for the hearing, what is missing from the case, or what any case held.",
   dateLabel: "Hearing date, if you want it shown (year-month-day, optional)",
+  datePlaceholder: "yyyy-mm-dd", // 51a498bc1a85fc9c (R1, 21 Oct): a format hint, never a date from the papers
   run: "Make the hearing pack",
 } as const;
