@@ -14,6 +14,9 @@ test("Remove all asks first: Cancel keeps everything, Yes removes (one delete ca
   await page.getByTestId("pv-start").click();
   await expect(page.getByTestId("pv-papers")).toBeVisible();
   await expect(page.getByTestId("pv-remove-all-confirm")).toHaveCount(0);
+  // UX polish #5: the destructive button is the LAST thing in the matter block, after the notes, away from them
+  const order = await page.evaluate(() => { const note = document.querySelector('[data-testid="pv-matter-note"]')!, btn = document.querySelector('[data-testid="pv-remove-all"]')!, list = document.querySelector('[data-testid="pv-papers"]')!; return { afterList: !!(list.compareDocumentPosition(btn) & Node.DOCUMENT_POSITION_FOLLOWING), afterNote: !!(note.compareDocumentPosition(btn) & Node.DOCUMENT_POSITION_FOLLOWING) }; });
+  expect(order).toEqual({ afterList: true, afterNote: true });
   await page.getByTestId("pv-remove-all").click();
   const box = page.getByTestId("pv-remove-all-confirm");
   await expect(box).toBeVisible();
