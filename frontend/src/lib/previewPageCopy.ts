@@ -15,6 +15,7 @@ export const PREVIEW_PAGE = {
   s3Run: "Make the quashing agenda",
   working: "Working",
   signedOutLine: "Sign in to add papers and use these tools.",
+  sessionUnverified: "We could not check your sign-in. Reload the page to try again.", // bc8e6c589eb7bc03 (R1 21 Oct, #499): a failed or timed-out identity check offers nothing and says only this
   signedOutSample: "After you sign in, you can try the tools on a sample matter.", // R1 21 Oct (TOOL_OFF_LINES_R1 27fd5ce28704, 511c43e85a780657): states a fact; the button is not on the page signed-out
   signedOutLink: "Sign in",
   signed401: "Sign in to add papers.",

@@ -54,9 +54,9 @@ const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", 
 
 export default function PreviewPage() {
   const engineWorkflows = useEngineWorkflows();
-  const { signedOut, checked: sessionChecked } = useSessionCheck(true);
+  const { signedOut, state: sessionState } = useSessionCheck(true);
   // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse; and (R1 D50B_LIVE_RENDER db7f6b1e611f) nothing is offered to a signed-in visitor either, and no sign-in line is shown, until the identity check has come back, so the server-rendered HTML and the first paint carry neither
-  const signedIn = sessionChecked && !signedOut;
+  const signedIn = sessionState === "in";
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
   const [kept] = useState(() => new Map<string, File>()); // flag-ON only: the user's own uploads by the engine's doc_id, kept in this browser so a crop can be drawn from them; cleared when the matter changes
@@ -195,6 +195,7 @@ export default function PreviewPage() {
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-8" data-testid="matter-tools-page">
         <PreviewBadge line />
         {toolsOffLineShown(engineWorkflows, DRAFTING_CARDS) && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-tools-off-line">{T.toolsOffLine}</p>}
+        {sessionState === "unverified" && <p className="text-sm text-[var(--color-text)]" data-testid="pv-session-unverified">{T.sessionUnverified}</p>}
         {signedOut && (
           <>
             <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out">{T.signedOutLine} <Link href="/signin" className="inline-flex min-h-6 items-center text-[var(--color-accent)] underline" data-testid="pv-signin-link">{T.signedOutLink}</Link></p>
