@@ -12,7 +12,8 @@ export type RegistryKey =
   | "wf_a7_matter_hearing_pack"
   | "wf_b3_s138_checklist"
   | "wf_a4_bail_drafting"
-  | "wf_a8_synopsis_list_of_dates";
+  | "wf_a8_synopsis_list_of_dates"
+  | "wf_b1_section_lookup";
 
 export interface RegistryEntry {
   key: RegistryKey;
@@ -51,8 +52,14 @@ export const REGISTRY_DRAFTING: readonly RegistryEntry[] = [
   { key: "wf_a8_synopsis_list_of_dates", route: "/synopsis-dates", title: "Synopsis and list of dates", line: "Lists dates with sources; drafts a synopsis only where it can, for a lawyer to rewrite.", anchor: "pv-synopsis", usesPapers: true, startHere: false, note: DECLARATION_NOTE },
 ];
 
-/** The entries /workflows lists: the eight, plus the two drafting rows on a build that has the drafting cards. */
-export const registryEntries = (draftingCards: boolean): readonly RegistryEntry[] => (draftingCards ? [...REGISTRY, ...REGISTRY_DRAFTING] : REGISTRY);
+/**
+ * The section look-up row (B1; Lead-2, 21 Oct: an 11th row). Listed ONLY on a build with NEXT_PUBLIC_SECTION_LOOKUP=1, the flag of the card it opens, and never Available unless the engine's own status map says wf_b1_section_lookup is true (the older-engine fallback is the original eight).
+ * R1's words (REGISTRY_B1_ROW_R1_2026-10-21.md sha12 ce7f2fb654ea) are pinned in workflowRegistry.spec.ts. It is not in the machine list the deploy gate reads (REGISTRY_MACHINE): that list is the always-on rows.
+ */
+export const REGISTRY_LOOKUP: RegistryEntry = { key: "wf_b1_section_lookup", route: "/section-lookup", title: "Old section look-up", line: "Shows the table's section for an old IPC or CrPC number; old CrPC text is not held.", anchor: "pv-sl", usesPapers: false, startHere: false };
+
+/** The entries /workflows lists: the eight, plus the two drafting rows on a build that has the drafting cards, plus the look-up row on a build with the look-up card. */
+export const registryEntries = (draftingCards: boolean, sectionLookup = false): readonly RegistryEntry[] => [...REGISTRY, ...(draftingCards ? REGISTRY_DRAFTING : []), ...(sectionLookup ? [REGISTRY_LOOKUP] : [])];
 
 export const REGISTRY_WORDS = {
   tagUsesPapers: "Uses your papers",
@@ -79,7 +86,7 @@ export function parseStatusWorkflows(x: unknown): Record<string, boolean> | null
 /** Available where the engine says so; with no `workflows` field in the status, the fallback set. A status that could not be read never hides a card. */
 export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined): Record<RegistryKey, boolean> {
   const has = statusWorkflows !== null && typeof statusWorkflows === "object";
-  return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING].map((e) => [e.key, has ? statusWorkflows[e.key] === true : REGISTRY_FALLBACK_ON.includes(e.key)])) as Record<RegistryKey, boolean>;
+  return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING, REGISTRY_LOOKUP].map((e) => [e.key, has ? statusWorkflows[e.key] === true : REGISTRY_FALLBACK_ON.includes(e.key)])) as Record<RegistryKey, boolean>;
 }
 
 /** The machine-readable list for the deploy gate (Track A DRIFT-1/2): id, status, route, verb. Checked in as workflowRegistry.json and pinned equal by workflowRegistry.spec.ts. */

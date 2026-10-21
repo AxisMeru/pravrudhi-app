@@ -52,7 +52,7 @@ export function SectionLookup() {
 
   const bodies = view ? readingOrder(view) : [];
   return (
-    <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="pv-sl-heading" data-testid="pv-sl">
+    <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" id="pv-sl" aria-labelledby="pv-sl-heading" data-testid="pv-sl">
       <h2 id="pv-sl-heading" className="text-base font-medium text-[var(--color-text)]">{C.heading}</h2>
       {view && <p className={DIM} data-testid="pv-sl-source">{view.tableSourceLine}</p>}
       <fieldset className="flex flex-wrap items-center gap-4">

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { REGISTRY, REGISTRY_DRAFTING, registryEntries, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, DRAFTING_WORKFLOW_KEYS, parseStatusWorkflows, readMap, registryAvailable, registryHref, toolsOffLineShown, type WorkflowsRead } from "./workflowRegistry";
+import { REGISTRY, REGISTRY_DRAFTING, REGISTRY_LOOKUP, registryEntries, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, DRAFTING_WORKFLOW_KEYS, parseStatusWorkflows, readMap, registryAvailable, registryHref, toolsOffLineShown, type WorkflowsRead } from "./workflowRegistry";
 
 const root = join(__dirname, "..", "..");
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -140,7 +140,7 @@ test("the A4 and A8 rows: R1's titles, lines and the declaration line by hash, o
   assert.match(draft, /<Box id="synopsis"/);
   for (const e of REGISTRY_DRAFTING) assert.match(registryHref(e), /^\/matter-tools#pv-(bail|synopsis)$/);
   const cards = readFileSync(join(root, "src", "components", "WorkflowCards.tsx"), "utf8");
-  assert.match(cards, /registryEntries\(DRAFTING_CARDS\)/);
+  assert.match(cards, /registryEntries\(DRAFTING_CARDS(, SECTION_LOOKUP)?\)/);
   assert.match(cards, /data-testid="workflow-card-note"/);
   const fb = registryAvailable(undefined);
   assert.equal(fb.wf_a4_bail_drafting, false);
@@ -148,4 +148,34 @@ test("the A4 and A8 rows: R1's titles, lines and the declaration line by hash, o
   assert.equal(REGISTRY_MACHINE.length, 10);
   assert.equal(REGISTRY_MACHINE.filter((m) => m.status === "Available").length, 10);
   assert.deepEqual(REGISTRY_MACHINE.slice(8), [{ id: "wf_a4_bail_drafting", status: "Available", route: "/bail-draft", verb: "POST" }, { id: "wf_a8_synopsis_list_of_dates", status: "Available", route: "/synopsis-dates", verb: "POST" }]);
+});
+
+// The 11th row, section look-up (R1's REGISTRY_B1_ROW_R1_2026-10-21.md sha12 ce7f2fb654ea): listed only with NEXT_PUBLIC_SECTION_LOOKUP, never Available unless the engine's status map says so, not in the always-on machine list.
+test("the section look-up row: R1's title and line by hash, last of eleven, only with the look-up flag, Available only when the engine map says wf_b1_section_lookup is true", () => {
+  assert.equal(REGISTRY_LOOKUP.key, "wf_b1_section_lookup");
+  assert.deepEqual([h16(REGISTRY_LOOKUP.title), h16(REGISTRY_LOOKUP.line)], ["6d86b06c3a340542", "ea40e5b9dd6801ac"]);
+  assert.ok(REGISTRY_LOOKUP.line.length <= 90);
+  assert.equal(REGISTRY_LOOKUP.note, undefined);
+  assert.equal(REGISTRY_LOOKUP.usesPapers, false, "R1: no tag, it works from a typed number");
+  assert.doesNotMatch(`${REGISTRY_LOOKUP.title} ${REGISTRY_LOOKUP.line}`, /equivalent|replaces|converted|updated law|\bmodel\b|preview|accura|\d/i);
+  assert.equal(REGISTRY_LOOKUP.anchor, "pv-sl");
+  assert.equal(registryHref(REGISTRY_LOOKUP), "/matter-tools#pv-sl");
+  assert.deepEqual(registryEntries(true, true).map((e) => e.key).slice(-3), ["wf_a4_bail_drafting", "wf_a8_synopsis_list_of_dates", "wf_b1_section_lookup"]);
+  assert.equal(registryEntries(true, true).length, 11);
+  assert.equal(registryEntries(true, false).length, 10, "no look-up flag: ten");
+  assert.equal(registryEntries(false, false).length, 8);
+  assert.ok(!registryEntries(true, false).some((e) => e.key === "wf_b1_section_lookup"));
+  assert.equal(registryAvailable(undefined).wf_b1_section_lookup, false, "never Available on the older-engine fallback");
+  assert.equal(registryAvailable({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])) }).wf_b1_section_lookup, false, "a map that omits it: off");
+  assert.equal(registryAvailable({ wf_b1_section_lookup: false }).wf_b1_section_lookup, false);
+  assert.equal(registryAvailable({ wf_b1_section_lookup: true }).wf_b1_section_lookup, true);
+  assert.ok(!REGISTRY_MACHINE.some((m) => m.id === "wf_b1_section_lookup"), "the always-on machine list (the gate's ten) does not carry it");
+  const cards = readFileSync(join(root, "src", "components", "WorkflowCards.tsx"), "utf8");
+  assert.match(cards, /registryEntries\(DRAFTING_CARDS, SECTION_LOOKUP\)/);
+  const sl = readFileSync(join(root, "src", "components", "preview", "SectionLookup.tsx"), "utf8");
+  assert.match(sl, /id="pv-sl"/, "the look-up card carries the id the row links to");
+  // R2 (#503 follow-up): the look-up flag is read in ONE place, lib/sectionLookup.ts (=== "1"); the row takes it from there, no second env read
+  assert.match(cards, /import \{ SECTION_LOOKUP \} from "@\/lib\/sectionLookup";/);
+  assert.doesNotMatch(cards, /process\.env/);
+  assert.doesNotMatch(readFileSync(join(root, "src", "lib", "workflowRegistry.ts"), "utf8"), /process\.env/);
 });

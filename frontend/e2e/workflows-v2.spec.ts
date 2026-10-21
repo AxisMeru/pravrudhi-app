@@ -6,7 +6,9 @@ import { REGISTRY, registryEntries } from "../src/lib/workflowRegistry";
 const ON = process.env.WORKFLOWS_BUILD === "1";
 // A build with the drafting cards (DRAFTING_BUILD=1) also lists the A4 and A8 rows on /workflows (#502, R1 8e64dfe094a2): ten cards, the two after Cheque case check.
 const DRAFTING = process.env.DRAFTING_BUILD === "1";
-const ENTRIES = registryEntries(DRAFTING);
+// The section look-up row (an 11th registry card, #503 follow-up; R1 words) appears only on a build with NEXT_PUBLIC_SECTION_LOOKUP=1, the card's own flag; the e2e marker is the same SECTION_BUILD=1 that section-lookup.spec.ts keys on.
+const LOOKUP = process.env.SECTION_BUILD === "1";
+const ENTRIES = registryEntries(DRAFTING, LOOKUP);
 const DRAFT = DRAFTING; // the name the later checks use
 test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } })); });
 
@@ -36,7 +38,7 @@ test("flag ON: eight cards in the registry order, each a whole-card link to its 
     await expect(card.getByRole("heading", { level: 2 })).toHaveText(e.title);
     await expect(card).toContainText(e.line);
     if (e.note) await expect(card.getByTestId("workflow-card-note")).toHaveText(e.note); else await expect(card.getByTestId("workflow-card-note")).toHaveCount(0);
-    if (REGISTRY.includes(e)) await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available"); // the drafting rows' chip follows the local engine's own flags
+    if (REGISTRY.includes(e)) await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available"); // the drafting and look-up rows' chip follows the local engine's own flags
     if (REGISTRY.includes(e)) await expect(card.locator("a")).toHaveAttribute("href", `/matter-tools#${e.anchor}`);
     if (e.usesPapers) await expect(card.getByTestId("workflow-card-papers")).toHaveText("Uses your papers"); else await expect(card.getByTestId("workflow-card-papers")).toHaveCount(0);
     if (e.startHere) await expect(card.getByTestId("workflow-card-start")).toHaveText("Start here"); else await expect(card.getByTestId("workflow-card-start")).toHaveCount(0);
@@ -137,4 +139,33 @@ test("matter-tools line: a status that cannot be read -> hidden (never claim a t
 test("matter-tools line: a readable status with no workflows map -> the pinned fallback: hidden with the A4/A8 cards off, shown with them on", async ({ page }) => {
   const l = await line(page, { json: statusWith() });
   if (DRAFT) await expect(l).toBeVisible(); else await expect(l).toHaveCount(0);
+});
+
+// The section look-up row: absent without its flag; with it, a registry card (not one of the engine-status rows the deploy gate counts) that is Available ONLY when the engine's status map says wf_b1_section_lookup is true, never on the older-engine fallback.
+test("the section look-up row: absent with the flag off", async ({ page }) => {
+  test.skip(!ON || LOOKUP, "needs the workflows build WITHOUT the look-up flag");
+  await page.goto("/workflows");
+  await expect(page.getByTestId("workflow-card-wf_b1_section_lookup")).toHaveCount(0);
+});
+test("the section look-up row: with the flag, the 11th-or-last card opens the look-up card and is Available only where the engine says so", async ({ page }) => {
+  test.skip(!ON || !LOOKUP, "needs the build with NEXT_PUBLIC_SECTION_LOOKUP=1 (SECTION_BUILD=1) and the workflows flag");
+  const on = { ...ALL_ON, wf_b1_section_lookup: true };
+  await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith(on) }));
+  await page.goto("/workflows");
+  const card = page.getByTestId("workflow-card-wf_b1_section_lookup");
+  await expect(card).toHaveCount(1);
+  await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available");
+  await expect(card.locator("a")).toHaveAttribute("href", "/matter-tools#pv-sl");
+  await expect(page.getByTestId("workflow-cards").locator("li").last()).toHaveAttribute("data-testid", "workflow-card-wf_b1_section_lookup");
+});
+test("the section look-up row: route off (status map says false, or omits it, or no map at all) is Coming with no link", async ({ page }) => {
+  test.skip(!ON || !LOOKUP, "needs the build with NEXT_PUBLIC_SECTION_LOOKUP=1 (SECTION_BUILD=1) and the workflows flag");
+  for (const json of [statusWith({ ...ALL_ON, wf_b1_section_lookup: false }), statusWith(ALL_ON), statusWith()]) {
+    await page.route("**/api/v1/status", (r) => r.fulfill({ json }));
+    await page.goto("/workflows");
+    const card = page.getByTestId("workflow-card-wf_b1_section_lookup");
+    await expect(card.getByTestId("workflow-card-chip")).toHaveText("Coming");
+    await expect(card.locator("a")).toHaveCount(0);
+    await page.unroute("**/api/v1/status");
+  }
 });
