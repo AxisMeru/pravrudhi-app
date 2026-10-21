@@ -133,7 +133,15 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npm run build
 
+      - name: cache the pinned engine release
+        id: engine-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/app-home
+          key: engine-${{ runner.os }}-py3.13-${{ hashFiles('engine/ENGINE_VERSION') }}
+
       - name: install the pinned engine release
+        if: steps.engine-cache.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
@@ -239,7 +247,15 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npm run build
 
+      - name: cache the pinned engine release
+        id: engine-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/app-home
+          key: engine-${{ runner.os }}-py3.13-${{ hashFiles('engine/ENGINE_VERSION') }}
+
       - name: install the pinned engine release
+        if: steps.engine-cache.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: PRAVRUDHI_APP_HOME="$RUNNER_TEMP/app-home" ./scripts/install-engine.sh
