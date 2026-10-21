@@ -55,3 +55,13 @@ test("the page fills the forms only from a loaded sample matter, sends each pref
   assert.match(page, /sampleOn && <p[^>]*data-testid="pv-sample-dates-line"/);
   assert.doesNotMatch(SAMPLE_TEXT.note, /differ on purpose/, "the note (85c10822f2eb8d7f) is on screen in the guide film and does not change");
 });
+
+// R2 advise on #493: the prefill goes away wherever the matter changes, not only at start and remove-all.
+test("clearPrefill runs at every place the open matter is dropped or replaced: start, remove all, gone, opened from Your matters, deleted from Your matters", () => {
+  const page = readFileSync(join(__dirname, "..", "app", "matter-tools", "page.tsx"), "utf8");
+  assert.equal((page.match(/clearPrefill\(\)/g) ?? []).length, 5 + 0, "start, remove all, matterGone, onOpen, onDeleted");
+  assert.match(page, /setMessage\(GONE_LINE\);\s*return true/);
+  assert.match(page, /clearResults\(\); clearPrefill\(\); setMessage\(GONE_LINE\)/);
+  assert.match(page, /onOpen=\{\(id\) => \{[^}]*clearPrefill\(\)/);
+  assert.match(page, /onDeleted=\{\(id\) => \{ if \(id === matter\) \{[^}]*clearPrefill\(\)/);
+});
