@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/PageHeader";
 import rowsFile from "@/data/nyayasiddhi/rows.json";
-import { BENCHMARKS_FILM_HEADING } from "@/lib/films/copy";
+import { BENCHMARKS_FILM_HEADING, BENCHMARKS_FILM_POSTER_ALT } from "@/lib/films/copy";
 import { NS_SUBMIT_LINK_TEXT } from "@/lib/nyayasiddhiSubmit";
 import { loadNyayasiddhiManifest } from "@/lib/films/nyayasiddhiFilms";
 import { parseRows } from "@/lib/nyayasiddhiRows";
@@ -40,7 +40,7 @@ export default async function BenchmarksPage() {
         </section>
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
-          <NarratedDefaultFilm narrated={narratedManifest} silent={silentManifest} />
+          <NarratedDefaultFilm narrated={narratedManifest} silent={silentManifest} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <NyayaSiddhiResults rows={NYAYASIDDHI_ROWS} links={NYAYASIDDHI_LINKS} />
         <NyayaSiddhiComing rows={NYAYASIDDHI_ROWS} />

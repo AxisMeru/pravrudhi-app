@@ -200,7 +200,8 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   const wrapper = readFileSync(join(root, "src", "components", "films", "NarratedDefaultFilm.tsx"), "utf8");
   assert.match(wrapper, /posterFirst/);
   assert.match(wrapper, /if \(reduced \|\| failed\)/, "silent cut for reduced motion or a playback error");
-  assert.match(wrapper, /key="nyayasiddhi-explainer-silent"/, "each cut keeps its own player state");
+  assert.match(wrapper, /key=\{silentId\}/, "each cut keeps its own player state");
+  assert.match(wrapper, /silentId = "nyayasiddhi-explainer-silent"/, "the benchmarks default silent cut");
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
   assert.doesNotMatch(page, /NYAYASIDDHI_VOICE_PREVIEW_LABEL|voice review/i, "the voice gate passed: the public card does not say it is a preview");

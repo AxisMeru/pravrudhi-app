@@ -14,7 +14,7 @@ test("start a matter, add a paper, run the quashing agenda: the engine's sentenc
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: docs.map((d) => ({ ...d, n_pages: 1, n_spans: 3, n_chars: 90, ingest_done: true, pages_without_text: [], indexed_complete: true })), pages_total: 1, pages_not_read: 0, pages_note: "All pages were read." } }));
   await page.route("**/api/v1/quashing-agenda", (r) => r.fulfill({ json: AGENDA }));
   await page.goto("/matter-tools");
-  await expect(page.getByTestId("preview-line")).toContainText("Check each result against your papers");
+  await expect(page.getByTestId("workflow-line")).toContainText("Check each result against your papers");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-name").fill("FIR");
   await page.getByTestId("pv-text").fill("The accused is said to have taken the lorry.");
@@ -30,7 +30,7 @@ test("start a matter, add a paper, run the quashing agenda: the engine's sentenc
   expect(keys).toEqual(["pv-s3-standing_line", "pv-s3-heading", "pv-s3-stem", "pv-s3-caution", "pv-s3-categories", "pv-s3-papers", "pv-s3-not_assessed"]);
 });
 
-test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the no-papers line", async ({ page }) => {
+test("a 404 on a tool whose route is off reads R1's per-tool 'not switched on' line (the matter is still there) and a 409 no_papers reads the no-papers line", async ({ page }) => {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } }));
   let n = 0;
@@ -38,7 +38,7 @@ test("a 404 reads R1's 'not available here' line and a 409 no_papers reads the n
   await page.goto("/matter-tools");
   await page.getByTestId("pv-start").click();
   await page.getByTestId("pv-s3-run").click();
-  await expect(page.getByTestId("pv-message")).toHaveText("This workflow is not available here.");
+  await expect(page.getByTestId("pv-message")).toHaveText("Quashing agenda is not switched on in this deployment.");
   await page.getByTestId("pv-s3-run").click();
   await expect(page.getByTestId("pv-message")).toHaveText("There are no papers to read. Add papers first.");
 });
@@ -115,6 +115,26 @@ test("B3 checklist: the first run sends unconfirmed dates; Confirm resends the d
   expect(bodies[1].cheque_date).toEqual({ value: "01.02.2013", source: "typed", confirmed: true, confirmed_as: "2013-02-01" });
 });
 
+// R1 on #492: "<tool> is not switched on in this deployment." is false for a matter that is gone (the engine answers 404 then too), so the matter-gone check runs FIRST at every place that shows a per-tool line.
+for (const gone of [true, false]) {
+  test(`${gone ? "a matter deleted elsewhere" : "a route that is off (the matter is still held)"}: the cheque case check and adding a paper say ${gone ? "the matter is no longer held, never 'not switched on'" : "'not switched on'"}`, async ({ page }) => {
+    await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+    await page.route("**/api/v1/matter-spans/list", (r) => (gone ? r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }) : r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } })));
+    await page.route("**/api/v1/cheque-case-check", (r) => r.fulfill({ status: 404, json: { detail: "x", error: gone ? "matter_not_found" : "not_found" } }));
+    await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ status: 404, json: { detail: "x", error: gone ? "matter_not_found" : "not_found" } }));
+    await page.goto("/matter-tools");
+    await page.getByTestId("pv-start").click();
+    await page.getByTestId("pv-cc-run").click();
+    if (gone) { await expect(page.getByTestId("pv-message")).toContainText("no longer held"); await expect(page.getByTestId("pv-start")).toBeVisible(); await page.getByTestId("pv-start").click(); }
+    else await expect(page.getByTestId("pv-cc-message")).toHaveText("Cheque case check is not switched on in this deployment.");
+    await page.getByTestId("pv-text").fill("An invented paper.");
+    await page.getByTestId("pv-add").click();
+    if (gone) await expect(page.getByTestId("pv-message")).toContainText("no longer held");
+    else await expect(page.getByTestId("pv-message")).toHaveText("Papers for a matter is not switched on in this deployment.");
+    await expect(page.locator("body")).not.toContainText(gone ? /not switched on/ : /no longer held/);
+  });
+}
+
 test("when the engine no longer holds the matter (a restart), the page says so and offers to start again", async ({ page }) => {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
@@ -177,6 +197,8 @@ test("signed out: R1's sign-in line with its link above the cards, no Start a ma
   await page.route("**/api/me", (r) => r.fulfill({ status: 401, json: { error: "unauthorized" } }));
   await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-signed-out")).toHaveText("Sign in to add papers and use these tools. Sign in");
+  await expect(page.getByTestId("pv-signed-out-sample")).toHaveText("After you sign in, you can try the tools on a sample matter.");
+  await expect(page.getByTestId("pv-sample")).toHaveCount(0); // the button itself is not on the page signed-out
   await expect(page.getByTestId("pv-signin-link")).toHaveAttribute("href", /\/signin/);
   await expect(page.getByTestId("pv-start")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(/stored papers/i);
