@@ -53,7 +53,7 @@ export const REGISTRY_DRAFTING: readonly RegistryEntry[] = [
 ];
 
 /**
- * The section look-up row (B1; Lead-2, 21 Oct: an 11th row). Listed ONLY on a build with NEXT_PUBLIC_SECTION_LOOKUP=1, the flag of the card it opens, and never Available unless the engine's own status map says wf_b1_section_lookup is true (the older-engine fallback is the original eight).
+ * The section look-up row (B1; Lead-2, 21 Oct: an 11th row). Listed ONLY on a build with NEXT_PUBLIC_SECTION_LOOKUP=1, the flag of the card it opens, and, when the engine's status map is readable, Available only if that map says wf_b1_section_lookup is true; with no usable map it is Coming (never Available) on a build that lists it.
  * R1's words (REGISTRY_B1_ROW_R1_2026-10-21.md sha12 ce7f2fb654ea) are pinned in workflowRegistry.spec.ts. It is not in the machine list the deploy gate reads (REGISTRY_MACHINE): that list is the always-on rows.
  */
 export const REGISTRY_LOOKUP: RegistryEntry = { key: "wf_b1_section_lookup", route: "/section-lookup", title: "Old section look-up", line: "Shows the table's section for an old IPC or CrPC number; old CrPC text is not held.", anchor: "pv-sl", usesPapers: false, startHere: false };
@@ -83,10 +83,19 @@ export function parseStatusWorkflows(x: unknown): Record<string, boolean> | null
   return Object.keys(out).length > 0 ? out : null; // an object with no boolean in it is no usable map (never "all off")
 }
 
-/** Available where the engine says so; with no `workflows` field in the status, the fallback set. A status that could not be read never hides a card. */
-export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined): Record<RegistryKey, boolean> {
+/** Which rows a build lists, for the fallback: `drafting` = the build has the drafting cards (NEXT_PUBLIC_DRAFTING_CARDS=1); default false (the eight only). */
+export interface RegistryBuild { drafting?: boolean }
+
+/**
+ * Available where the engine says so (a readable map decides: a key it omits is off). With NO usable map (an anonymous visitor, a status that could not be read, or an older engine) the fallback is the shipped engine config
+ * (Lead-2, 21 Oct): the eight, plus A4 and A8 (on since 0.6.24) on a build that lists them (chip and link point at the real routes). The section look-up row is NEVER Available in the fallback (R1: his cleared B1 row says Available only when the
+ * engine's status says wf_b1_section_lookup true): on a build that lists it, it shows Coming with its line and no link. A row the build does not list is never reported.
+ */
+export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined, build: RegistryBuild = {}): Record<RegistryKey, boolean> {
   const has = statusWorkflows !== null && typeof statusWorkflows === "object";
-  return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING, REGISTRY_LOOKUP].map((e) => [e.key, has ? statusWorkflows[e.key] === true : REGISTRY_FALLBACK_ON.includes(e.key)])) as Record<RegistryKey, boolean>;
+  const fallbackOn = (key: RegistryKey): boolean =>
+    REGISTRY_FALLBACK_ON.includes(key) || (build.drafting === true && REGISTRY_DRAFTING.some((d) => d.key === key));
+  return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING, REGISTRY_LOOKUP].map((e) => [e.key, has ? statusWorkflows[e.key] === true : fallbackOn(e.key)])) as Record<RegistryKey, boolean>;
 }
 
 /** The machine-readable list for the deploy gate (Track A DRIFT-1/2): id, status, route, verb. Checked in as workflowRegistry.json and pinned equal by workflowRegistry.spec.ts. */
@@ -101,12 +110,12 @@ export const DRAFTING_WORKFLOW_KEYS = ["wf_a4_bail_drafting", "wf_a8_synopsis_li
 
 /**
  * R1's rule (20 Oct, #475): the "Some tools on this page are not switched on in this deployment" line is true, so shown, ONLY when a tool the page shows (a registry tool, or the A4/A8 card when those cards are on) is reported off.
- * A map that exists counts a missing key as off. A status that cannot be read, or has not been read yet, HIDES the line (never claim a tool is off on a guess). A readable status with no map (0.6.23 or older) uses the pinned fallback:
- * the eight registry tools on, A4/A8 off, so the line shows only when the A4/A8 cards are on.
+ * A map that exists counts a missing key as off. A status that cannot be read, or has not been read yet, HIDES the line (never claim a tool is off on a guess). A readable status with no map uses the same fallback as /workflows
+ * (Lead-2, 21 Oct: the shipped engine config, the eight plus A4/A8 on): every tool the page shows is on in it, so the line is hidden there too and never contradicts an Available card.
  */
 export function toolsOffLineShown(read: WorkflowsRead, draftingCardsOn: boolean): boolean {
   if (read.kind === "loading" || read.kind === "unreadable") return false;
-  if (read.kind === "none") return draftingCardsOn;
+  if (read.kind === "none") return false;
   const shown: string[] = [...REGISTRY.map((e) => e.key), ...(draftingCardsOn ? DRAFTING_WORKFLOW_KEYS : [])];
   return shown.some((k) => read.map[k] !== true);
 }

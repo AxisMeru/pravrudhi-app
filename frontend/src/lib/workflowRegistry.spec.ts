@@ -46,7 +46,7 @@ test("every title and line is R1's by hash, at most 90 characters, and says noth
 test("availability: the engine's status field decides when present; the 0.6.23 set is the fallback; a failed read never hides a card", () => {
   for (const fb of [registryAvailable(undefined), registryAvailable(null)]) {
     assert.ok(REGISTRY.every((e) => fb[e.key]), "the eight are on in the fallback");
-    assert.equal(fb.wf_a4_bail_drafting, false, "an engine with no status map is not claimed to serve A4 (the fallback is the 0.6.23 set)");
+    assert.equal(fb.wf_a4_bail_drafting, false, "a build that does not list A4/A8 reports them off (they are not rows there)");
     assert.equal(fb.wf_a8_synopsis_list_of_dates, false);
   }
   const some = registryAvailable({ wf_a3_chronology: true, wf_b3_s138_checklist: false });
@@ -96,8 +96,8 @@ test("R1's rule for the 'some tools are not switched on' line (#475): shown only
   assert.equal(toolsOffLineShown({ kind: "unreadable" }, true), false);
   assert.equal(toolsOffLineShown({ kind: "unreadable" }, false), false);
   assert.equal(toolsOffLineShown({ kind: "loading" }, true), false);
-  // readable status, no map (0.6.23 or older): the pinned fallback (registry on, A4/A8 off)
-  assert.equal(toolsOffLineShown({ kind: "none" }, true), true, "fallback with the A4/A8 cards on");
+  // readable status, no map: the fallback is the shipped engine config (the eight + A4/A8 on), so nothing the page shows is off there: the line is hidden on both builds
+  assert.equal(toolsOffLineShown({ kind: "none" }, true), false, "fallback with the A4/A8 cards on: all on, line hidden (Lead-2, 21 Oct)");
   assert.equal(toolsOffLineShown({ kind: "none" }, false), false, "fallback with the A4/A8 cards off: all eight on");
   const page = readFileSync(join(root, "src", "app", "matter-tools", "page.tsx"), "utf8");
   assert.match(page, /\{toolsOffLineShown\(engineWorkflows, DRAFTING_CARDS\) && <p[^>]*pv-tools-off-line/);
@@ -165,7 +165,7 @@ test("the section look-up row: R1's title and line by hash, last of eleven, only
   assert.equal(registryEntries(true, false).length, 10, "no look-up flag: ten");
   assert.equal(registryEntries(false, false).length, 8);
   assert.ok(!registryEntries(true, false).some((e) => e.key === "wf_b1_section_lookup"));
-  assert.equal(registryAvailable(undefined).wf_b1_section_lookup, false, "never Available on the older-engine fallback");
+  assert.equal(registryAvailable(undefined).wf_b1_section_lookup, false, "a build without the look-up card: not on in the fallback");
   assert.equal(registryAvailable({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])) }).wf_b1_section_lookup, false, "a map that omits it: off");
   assert.equal(registryAvailable({ wf_b1_section_lookup: false }).wf_b1_section_lookup, false);
   assert.equal(registryAvailable({ wf_b1_section_lookup: true }).wf_b1_section_lookup, true);
@@ -178,4 +178,30 @@ test("the section look-up row: R1's title and line by hash, last of eleven, only
   assert.match(cards, /import \{ SECTION_LOOKUP \} from "@\/lib\/sectionLookup";/);
   assert.doesNotMatch(cards, /process\.env/);
   assert.doesNotMatch(readFileSync(join(root, "src", "lib", "workflowRegistry.ts"), "utf8"), /process\.env/);
+});
+
+// Lead-2 (21 Oct, decision b): the anonymous / unreadable-status fallback follows the shipped engine config: on a drafting build A4 and A8 are Available WITH links when the status map cannot be read; the section look-up row is NEVER Available in the fallback
+// (R1: Coming with its line, no link, where the build lists it); a readable map still decides everything (an omitted key is off).
+test("fallback by build: eight only / drafting build adds A4 and A8 / the look-up is never Available in it; a readable map decides; no map and unreadable status are the same fallback", () => {
+  const eight = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
+  for (const noMap of [undefined, null]) {
+    const plain = registryAvailable(noMap, {});
+    assert.deepEqual(REGISTRY.map((e) => plain[e.key]), REGISTRY.map(() => true));
+    assert.equal(plain.wf_a4_bail_drafting, false); assert.equal(plain.wf_a8_synopsis_list_of_dates, false); assert.equal(plain.wf_b1_section_lookup, false);
+    const draft = registryAvailable(noMap, { drafting: true });
+    assert.equal(draft.wf_a4_bail_drafting, true); assert.equal(draft.wf_a8_synopsis_list_of_dates, true); assert.equal(draft.wf_b1_section_lookup, false, "the look-up row is not in the fallback on a drafting-only build");
+    // R1: the look-up row is NEVER Available in the fallback, on any build ("Coming" with its line and no link where the build lists it)
+    for (const b of [{}, { drafting: true }]) assert.equal(registryAvailable(noMap, b).wf_b1_section_lookup, false);
+  }
+  // a readable map decides on every build: an omitted key is off (even with the build flags), a true key is on
+  for (const b of [{}, { drafting: true }]) {
+    const m = registryAvailable(eight, b);
+    assert.deepEqual([m.wf_a4_bail_drafting, m.wf_a8_synopsis_list_of_dates, m.wf_b1_section_lookup], [false, false, false], "a map without them: off");
+    const on = registryAvailable({ ...eight, wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: false, wf_b1_section_lookup: true }, b);
+    assert.deepEqual([on.wf_a4_bail_drafting, on.wf_a8_synopsis_list_of_dates, on.wf_b1_section_lookup], [true, false, true]);
+  }
+  // an unusable object (no boolean) is no map: parseStatusWorkflows -> null -> the fallback
+  assert.equal(registryAvailable(parseStatusWorkflows({ a: "x" }), { drafting: true }).wf_a4_bail_drafting, true);
+  const cards = readFileSync(join(root, "src", "components", "WorkflowCards.tsx"), "utf8");
+  assert.match(cards, /registryAvailable\(statusWorkflows, \{ drafting: DRAFTING_CARDS \}\)/);
 });

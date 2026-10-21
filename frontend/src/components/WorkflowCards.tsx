@@ -10,7 +10,7 @@ import { REGISTRY_WORDS, registryAvailable, registryEntries, registryHref } from
  * Availability comes from the engine's status `workflows` field when it carries one (read by useEngineWorkflows); otherwise from the 0.6.23 set (lib/workflowRegistry.ts).
  */
 export function WorkflowCards({ statusWorkflows = null }: { statusWorkflows?: Record<string, unknown> | null }) {
-  const on = registryAvailable(statusWorkflows);
+  const on = registryAvailable(statusWorkflows, { drafting: DRAFTING_CARDS });
   return (
     <ul className="grid gap-4 md:grid-cols-2" data-testid="workflow-cards">
       {registryEntries(DRAFTING_CARDS, SECTION_LOOKUP).map((e) => {
