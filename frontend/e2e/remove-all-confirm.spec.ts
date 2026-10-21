@@ -11,7 +11,10 @@ test("Remove all asks first: Cancel keeps everything, Yes removes (one delete ca
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ json: { matter_id: HEX, documents: [{ doc_id: "d1", name: "paper one", n_pages: 1, n_spans: 1, n_chars: 5, ingest_done: true, pages_without_text: [], indexed_complete: true }], pages_total: 1, pages_not_read: 0, pages_note: "" } }));
   await page.route("**/api/v1/matter-spans/delete", (r) => { deletes.push(JSON.parse(r.request().postData() ?? "{}") as Record<string, unknown>); r.fulfill({ json: { deleted: true } }); });
   await page.goto("/matter-tools");
+  await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ json: { matter_id: HEX, doc_id: "d1", name: "paper one", n_pages: 1, n_spans: 1, n_chars: 5, pages_without_text: [], ingest_done: true, indexed_complete: true } }));
   await page.getByTestId("pv-start").click();
+  await page.getByTestId("pv-text").fill("An invented paper.");
+  await page.getByTestId("pv-add").click();
   await expect(page.getByTestId("pv-papers")).toBeVisible();
   await expect(page.getByTestId("pv-remove-all-confirm")).toHaveCount(0);
   // UX polish #5: the destructive button is the LAST thing in the matter block, after the notes, away from them
