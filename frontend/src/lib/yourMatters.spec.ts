@@ -24,7 +24,7 @@ test("the list is read as the engine sends it: well-formed rows in order, a trun
 test("the flag is off unless NEXT_PUBLIC_YOUR_MATTERS is exactly 1; the page shows the list only behind it and only for a signed-in visitor; a number labels a row, never an id", () => {
   assert.equal(YOUR_MATTERS, process.env.NEXT_PUBLIC_YOUR_MATTERS === "1");
   const page = readFileSync(join(__dirname, "..", "app", "matter-tools", "page.tsx"), "utf8");
-  assert.match(page, /\{YOUR_MATTERS && !signedOut && \(\s*<YourMatters/);
+  assert.match(page, /\{YOUR_MATTERS && signedIn && \(\s*<YourMatters/);
   assert.equal(matterLabel(2), "Matter 2");
   assert.equal(papersCount(1), "1 paper");
   assert.equal(papersCount(3), "3 papers");

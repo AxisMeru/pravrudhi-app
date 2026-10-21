@@ -22,7 +22,7 @@ import { SectionLookup } from "@/components/preview/SectionLookup";
 import { SECTION_LOOKUP } from "@/lib/sectionLookup";
 import { DRAFTING_CARDS } from "@/lib/draftingCards";
 import { previewRefusal } from "@/lib/previewRefusal";
-import { useSignedOut } from "@/components/citations/useSignedOut";
+import { useSessionCheck } from "@/components/citations/useSignedOut";
 import { matterIdOf, parseAgenda, parsePapers, previewPost, type PaperRow } from "@/lib/previewApi";
 import { ScannedPaperControl } from "@/components/preview/ScannedPaperControl";
 import { SCANNED_INTAKE, keptByName } from "@/lib/scannedIntake";
@@ -54,7 +54,9 @@ const B3_FIELDS: [string, string][] = [["cheque", M.b3Cheque], ["presentation", 
 
 export default function PreviewPage() {
   const engineWorkflows = useEngineWorkflows();
-  const signedOut = useSignedOut(true); // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse
+  const { signedOut, checked: sessionChecked } = useSessionCheck(true);
+  // R1: a signed-out visitor is told to sign in and is offered no button that is certain to refuse; and (R1 D50B_LIVE_RENDER db7f6b1e611f) nothing is offered to a signed-in visitor either, and no sign-in line is shown, until the identity check has come back, so the server-rendered HTML and the first paint carry neither
+  const signedIn = sessionChecked && !signedOut;
   const [matter, setMatter] = useState<string | null>(null);
   const [papers, setPapers] = useState<PaperRow[]>([]);
   const [kept] = useState(() => new Map<string, File>()); // flag-ON only: the user's own uploads by the engine's doc_id, kept in this browser so a crop can be drawn from them; cleared when the matter changes
@@ -199,7 +201,7 @@ export default function PreviewPage() {
             <p className="text-sm text-[var(--color-text)]" data-testid="pv-signed-out-sample">{T.signedOutSample}</p>
           </>
         )}
-        {YOUR_MATTERS && !signedOut && (
+        {YOUR_MATTERS && signedIn && (
           <YourMatters
             current={matter}
             onShown={setListShown}
@@ -210,7 +212,7 @@ export default function PreviewPage() {
         <section className={BOX} id="pv-matter" aria-labelledby="pv-matter-heading" data-testid="pv-matter">
           <h2 id="pv-matter-heading" className="text-base font-medium text-[var(--color-text)]">{T.matterHeading}</h2>
           {!matter ? (
-            signedOut ? null : (
+            !signedIn ? null : (
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" className={BTN} onClick={start} disabled={busy} data-testid="pv-start">{T.startMatter}</button>
                 <button type="button" className={BTN} onClick={loadSample} disabled={busy} data-testid="pv-sample">{SAMPLE_TEXT.button}</button>
@@ -244,7 +246,7 @@ export default function PreviewPage() {
               <button type="button" className={BTN} onClick={removeAll} disabled={busy} data-testid="pv-remove-all">{T.removeAll}</button>
             </>
           )}
-          {!matter && !signedOut && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-note">{SAMPLE_TEXT.note}</p>}
+          {!matter && signedIn && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-sample-note">{SAMPLE_TEXT.note}</p>}
           <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-matter-note">{(() => { const base = YOUR_MATTERS && listShown ? MATTER_NOTE.matter_note_list : MATTER_NOTE.matter_note; return SCANNED_INTAKE ? base.replace(" Images are not read.", ` ${MATTER_NOTE.matter_note_images}`) : base; })()}</p>
           {message && <p role="status" className="text-sm text-[var(--color-text)]" data-testid="pv-message">{message}</p>}
         </section>
@@ -318,7 +320,7 @@ export default function PreviewPage() {
           {b3 && <B3Result v={b3} onConfirm={confirmB3} busy={busy} />}
         </Card>
 
-        {SECTION_LOOKUP && !signedOut && <SectionLookup />}
+        {SECTION_LOOKUP && signedIn && <SectionLookup />}
         {DRAFTING_CARDS && <BailCard prefill={sampleOn ? { key: sampleKey, facts: SAMPLE_PREFILL.facts } : null} prefillLine={SAMPLE_PREFILL_TEXT.line} />}
         {DRAFTING_CARDS && <SynopsisCard matter={matter} hasPapers={papers.length > 0} matterGone={() => (matter ? matterGone(matter) : Promise.resolve(false))} />}
       </div>
