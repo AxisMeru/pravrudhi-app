@@ -1,0 +1,300 @@
+{
+ "source": "worklogs/studio-on-seat2/guide-film/GUIDE_STRINGS_v3.tsv (Studio, 21 Oct; strings of the /guide user-guide film v3 for the scanned-paper product; R1 CLEARED bb58fe356b55)",
+ "sourceSha256": "e059a4c7931845c55c486837659a77b1548b85f6fa74e938105102656a600b3f",
+ "strings": [
+  {
+   "kind": "screen",
+   "scene": "intro",
+   "sha256_16": "6bbe88d59c04d7f9",
+   "text": "Pravrudhi-Nyaya"
+  },
+  {
+   "kind": "screen",
+   "scene": "intro",
+   "sha256_16": "86a2a9ba70bc0260",
+   "text": "User guide"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools",
+   "sha256_16": "03c5481ef61b7703",
+   "text": "Matter tools"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools",
+   "sha256_16": "64d4a1d51ff62aba",
+   "text": "The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. For a scanned paper, the text read from its pages is kept, with the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read; the page images are not written to our store."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "1ec1a29ecd3f03f9",
+   "text": "Papers for a matter"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "25c519a8b94feacf",
+   "text": "Add the papers of a matter and find a passage in them."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "c96cad0be677f0b8",
+   "text": "Chronology"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "b6fdf8f2e4cd746f",
+   "text": "Lists the dates it reads in your papers, each with its sentence. May be incomplete."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "998b578bcf6d0cb2",
+   "text": "Review agenda"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "23fce3f5bc49c806",
+   "text": "Lists the ingredients of the cheque-dishonour offence and the papers to look in."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "a43b0c3543c11808",
+   "text": "Citation sweep"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "93c987008a0b5b6e",
+   "text": "Checks that each citation in your papers exists in our index, nothing more."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools1",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "9ad16331df1763d0",
+   "text": "Quashing agenda"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e3fb596532aaa23f",
+   "text": "Lists the Supreme Court's quashing categories; does not say whether any applies."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "d73f98d51a9f2765",
+   "text": "Cheque case check"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e8188623a6b4296d",
+   "text": "Shows the review agenda and candidate dates per step; you confirm each date."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "c30f3734394fd70d",
+   "text": "Hearing pack"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e3990fe0ed316c81",
+   "text": "Gathers the dates, papers still to add and citations to look up for a hearing."
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "e00835a96f841381",
+   "text": "Uses your papers"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "c7ba09d8299c6f2c",
+   "text": "Section 138 checklist"
+  },
+  {
+   "kind": "screen",
+   "scene": "tools2",
+   "sha256_16": "3277342a0ffb5328",
+   "text": "Counts section 138 periods from dates you confirm: a checklist, not a decision."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept1",
+   "sha256_16": "b557f0cc2525cedb",
+   "text": "Papers you add to a matter"
+  },
+  {
+   "kind": "screen",
+   "scene": "kept1",
+   "sha256_16": "74e16984654e96ca",
+   "text": "What is sent: each paper you add on Matter tools is sent to our service. Only its text is kept; for a scanned paper, that includes the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept1",
+   "sha256_16": "1c5a22c04149b6fb",
+   "text": "Where it is kept: in our store on a storage volume in the EU (Romania), not in India."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept1",
+   "sha256_16": "a2a5ef44a8fd8ab6",
+   "text": "How long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept2",
+   "sha256_16": "5920104875ec6019",
+   "text": "What delete does: deleting a paper or a matter removes it, its stored text and the details kept with it, from this service's store. We have not tested what the underlying hosting storage may still hold."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept2",
+   "sha256_16": "ef4fe5bd429b67b4",
+   "text": "Who can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\"."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept2",
+   "sha256_16": "e71e11d0c454918b",
+   "text": "This service does not encrypt the stored files. People who run the service and its hosting account can read them."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept3",
+   "sha256_16": "69186e4be7d6ea71",
+   "text": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept3",
+   "sha256_16": "147fd14bcc077deb",
+   "text": "The matter number is lost when you reload the page, and your matters cannot be listed here."
+  },
+  {
+   "kind": "screen",
+   "scene": "kept3",
+   "sha256_16": "be43eb4ec9dd8d32",
+   "text": "If you lose the matter number, there is not yet a tested way to ask us to delete your papers."
+  },
+  {
+   "kind": "screen",
+   "scene": "sample",
+   "sha256_16": "34d595ccdc53bee8",
+   "text": "Load a sample matter"
+  },
+  {
+   "kind": "screen",
+   "scene": "sample",
+   "sha256_16": "85c10822f2eb8d7f",
+   "text": "The sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties."
+  },
+  {
+   "kind": "screen",
+   "scene": "close",
+   "sha256_16": "726c9d239f783389",
+   "text": "This is a screening aid, not legal advice. A lawyer decides."
+  },
+  {
+   "kind": "voice",
+   "scene": "intro",
+   "sha256_16": "dfcbd3ba63e6609c",
+   "text": "This guide shows how to use Pravrudhi-Nyaya on a matter. This is a screening aid, not legal advice. A lawyer decides."
+  },
+  {
+   "kind": "voice",
+   "scene": "tools",
+   "sha256_16": "cc292e57f73e5394",
+   "text": "On Matter tools you add the papers of a matter. The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. For a scanned paper, the text read from its pages is kept, with the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read; the page images are not written to our store."
+  },
+  {
+   "kind": "voice",
+   "scene": "tools1",
+   "sha256_16": "f8ddab21fe93ee45",
+   "text": "The tools below use those papers, except the Section 138 checklist, which counts from dates you confirm. Papers for a matter. Add the papers of a matter and find a passage in them. Chronology. Lists the dates it reads in your papers, each with its sentence. May be incomplete. Review agenda. Lists the ingredients of the cheque-dishonour offence and the papers to look in. Citation sweep. Checks that each citation in your papers exists in our index, nothing more."
+  },
+  {
+   "kind": "voice",
+   "scene": "tools2",
+   "sha256_16": "ceb9ca8a6db6c876",
+   "text": "Quashing agenda. Lists the Supreme Court's quashing categories; does not say whether any applies. Cheque case check. Shows the review agenda and candidate dates per step; you confirm each date. Hearing pack. Gathers the dates, papers still to add and citations to look up for a hearing. Section 138 checklist. Counts section 138 periods from dates you confirm: a checklist, not a decision."
+  },
+  {
+   "kind": "voice",
+   "scene": "kept1",
+   "sha256_16": "ea9b20b62aedf854",
+   "text": "Papers you add to a matter. What is sent: each paper you add on Matter tools is sent to our service. Only its text is kept; for a scanned paper, that includes the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read. Where it is kept: in our store on a storage volume in the EU (Romania), not in India. How long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period."
+  },
+  {
+   "kind": "voice",
+   "scene": "kept2",
+   "sha256_16": "d4afc35adf94c6bc",
+   "text": "What delete does: deleting a paper or a matter removes it, its stored text and the details kept with it, from this service's store. We have not tested what the underlying hosting storage may still hold. Who can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\". This service does not encrypt the stored files. People who run the service and its hosting account can read them."
+  },
+  {
+   "kind": "voice",
+   "scene": "kept3",
+   "sha256_16": "4a44c44799073da8",
+   "text": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps. The matter number is lost when you reload the page, and your matters cannot be listed here. If you lose the matter number, there is not yet a tested way to ask us to delete your papers."
+  },
+  {
+   "kind": "voice",
+   "scene": "sample",
+   "sha256_16": "a3204243fdab7725",
+   "text": "To try the tools without your own papers, load a sample matter. The sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties."
+  },
+  {
+   "kind": "voice",
+   "scene": "close",
+   "sha256_16": "f5aedfe372ad4849",
+   "text": "Each tool has a line saying what it does. This is a screening aid, not legal advice. A lawyer decides."
+  }
+ ]
+}

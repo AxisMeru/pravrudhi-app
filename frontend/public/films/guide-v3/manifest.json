@@ -1,0 +1,185 @@
+{
+  "title": "Pravrudhi-Nyaya user guide",
+  "durationS": 203.39999999999998,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "bf_emma (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "a4158cc0b7962db8541ece6e84bb42260750b0065f33f55e37ebde56c573a01e",
+    "timingsSha256": "3d0a147875eac7d5d06fca86ae163465de0ea1466b33e8b9c8b5bf09fa486d0b",
+    "scenes": [
+      {
+        "id": "intro",
+        "audioS": 7.65,
+        "durS": 9.2,
+        "origDurS": 9.2,
+        "stretch": 1,
+        "wavSha256": "096864d297b541b4b2ea715c7d7f85ed5fbe25be092e0654e60cdaf934c648e7"
+      },
+      {
+        "id": "tools",
+        "audioS": 31,
+        "durS": 36.2,
+        "origDurS": 36.2,
+        "stretch": 1,
+        "wavSha256": "657d3e19d04605135593c5000eb3a0fe7810bfd97258c34885efd238411965d7"
+      },
+      {
+        "id": "tools1",
+        "audioS": 25.98,
+        "durS": 27.5,
+        "origDurS": 27.5,
+        "stretch": 1,
+        "wavSha256": "5a26b009d018937dc1199c8c1517f957ae16dd142b5ccff06d3823bcc6c8c69d"
+      },
+      {
+        "id": "tools2",
+        "audioS": 23.78,
+        "durS": 25.3,
+        "origDurS": 25.3,
+        "stretch": 1,
+        "wavSha256": "664ffea8a00eda24db0914369c0a086ffb6b07d692e3b5db9082beea02877e96"
+      },
+      {
+        "id": "kept1",
+        "audioS": 26.65,
+        "durS": 35.4,
+        "origDurS": 35.4,
+        "stretch": 1,
+        "wavSha256": "ae66d7fb16a142bc996e365063fbbdd37b6aba7cfc593af5c24c3538bde58416"
+      },
+      {
+        "id": "kept2",
+        "audioS": 24.63,
+        "durS": 27.6,
+        "origDurS": 27.6,
+        "stretch": 1,
+        "wavSha256": "57fbdae6576524b7f0ccb7bf9e1f99b0df6c0fb80c2113177dd63693157e6521"
+      },
+      {
+        "id": "kept3",
+        "audioS": 16.1,
+        "durS": 20.6,
+        "origDurS": 20.6,
+        "stretch": 1,
+        "wavSha256": "cd172291cd8db4cd5967188e5df2e7e47d558718dc4ee2d0bbd11878aebe411b"
+      },
+      {
+        "id": "sample",
+        "audioS": 11.7,
+        "durS": 13.2,
+        "origDurS": 13.2,
+        "stretch": 1,
+        "wavSha256": "1b73c29f33b9dc0e551c651accebac7e53941940b07ced2df70ffdbc270fcd50"
+      },
+      {
+        "id": "close",
+        "audioS": 6.88,
+        "durS": 8.4,
+        "origDurS": 8.4,
+        "stretch": 1,
+        "wavSha256": "e2405bfe6093ce5d537bf166da720eede58ff01e1375848e042548e0aadf9a49"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.63,
+      "speechRmsDb": -23.2,
+      "peakBeforeLimit": 1.018,
+      "limiterGain": 0.952,
+      "scoreSeconds": 204.4,
+      "scoreLufs": -18.99
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "c0a31bb5e3344e336f72bc81e208ab14266fba3a101c7c26e589589c4ccac3dd",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "Pravrudhi-Nyaya",
+      "text": "Pravrudhi-Nyaya\nUser guide",
+      "startS": 0,
+      "endS": 9.2
+    },
+    {
+      "name": "Matter tools",
+      "text": "Matter tools\nThe papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. For a scanned paper, the text read from its pages is kept, with the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read; the page images are not written to our store.",
+      "startS": 9.2,
+      "endS": 45.400000000000006
+    },
+    {
+      "name": "The tools, part 1",
+      "text": "Papers for a matter\nAdd the papers of a matter and find a passage in them.\nUses your papers\nChronology\nLists the dates it reads in your papers, each with its sentence. May be incomplete.\nUses your papers\nReview agenda\nLists the ingredients of the cheque-dishonour offence and the papers to look in.\nUses your papers\nCitation sweep\nChecks that each citation in your papers exists in our index, nothing more.\nUses your papers",
+      "startS": 45.400000000000006,
+      "endS": 72.9
+    },
+    {
+      "name": "The tools, part 2",
+      "text": "Quashing agenda\nLists the Supreme Court's quashing categories; does not say whether any applies.\nUses your papers\nCheque case check\nShows the review agenda and candidate dates per step; you confirm each date.\nUses your papers\nHearing pack\nGathers the dates, papers still to add and citations to look up for a hearing.\nUses your papers\nSection 138 checklist\nCounts section 138 periods from dates you confirm: a checklist, not a decision.",
+      "startS": 72.9,
+      "endS": 98.2
+    },
+    {
+      "name": "What is kept, part 1",
+      "text": "Papers you add to a matter\nWhat is sent: each paper you add on Matter tools is sent to our service. Only its text is kept; for a scanned paper, that includes the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read.\nWhere it is kept: in our store on a storage volume in the EU (Romania), not in India.\nHow long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period.",
+      "startS": 98.2,
+      "endS": 133.6
+    },
+    {
+      "name": "What is kept, part 2",
+      "text": "What delete does: deleting a paper or a matter removes it, its stored text and the details kept with it, from this service's store. We have not tested what the underlying hosting storage may still hold.\nWho can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\".\nThis service does not encrypt the stored files. People who run the service and its hosting account can read them.",
+      "startS": 133.6,
+      "endS": 161.2
+    },
+    {
+      "name": "What is kept, part 3",
+      "text": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.\nThe matter number is lost when you reload the page, and your matters cannot be listed here.\nIf you lose the matter number, there is not yet a tested way to ask us to delete your papers.",
+      "startS": 161.2,
+      "endS": 181.79999999999998
+    },
+    {
+      "name": "Sample matter",
+      "text": "Load a sample matter\nThe sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties.",
+      "startS": 181.79999999999998,
+      "endS": 194.99999999999997
+    },
+    {
+      "name": "This is a screening aid, not legal advice. A lawyer decides.",
+      "text": "This is a screening aid, not legal advice. A lawyer decides.",
+      "startS": 194.99999999999997,
+      "endS": 203.39999999999998
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 7686013,
+      "sha256": "95638e9f8c10f80c266e0ff3d6d6f9af851efefc429fa3375ae29ddf211f4364"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 59985,
+      "sha256": "b23b68f6c09355233a15951fa7c018ad650380d40d0f5d145e9180d93a5174b3"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 4776,
+      "sha256": "c96205f8a090e4ea4bf1af5911b982ba55bcaf75fd863d6a1ad86271f2ce6607"
+    }
+  ]
+}

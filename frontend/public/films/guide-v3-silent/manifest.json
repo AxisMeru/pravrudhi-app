@@ -1,0 +1,91 @@
+{
+  "title": "Pravrudhi-Nyaya user guide",
+  "durationS": 203.39999999999998,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": false,
+  "sources": {
+    "filmSha256": "1e0eb54c497a33319a8929bf890557a23d801ad1a1159ecd8a1447ed868f8b03",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "dedd2a5e9772817126110b20d8bc53751b938b57826d3edcf5a5713b87e86720",
+    "gateTokenReplaced": 1
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc, GStreamer)"
+  },
+  "scenes": [
+    {
+      "name": "Pravrudhi-Nyaya",
+      "text": "Pravrudhi-Nyaya\nUser guide",
+      "startS": 0,
+      "endS": 9.2
+    },
+    {
+      "name": "Matter tools",
+      "text": "Matter tools\nThe papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter. Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store. For a scanned paper, the text read from its pages is kept, with the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read; the page images are not written to our store.",
+      "startS": 9.2,
+      "endS": 45.400000000000006
+    },
+    {
+      "name": "The tools, part 1",
+      "text": "Papers for a matter\nAdd the papers of a matter and find a passage in them.\nUses your papers\nChronology\nLists the dates it reads in your papers, each with its sentence. May be incomplete.\nUses your papers\nReview agenda\nLists the ingredients of the cheque-dishonour offence and the papers to look in.\nUses your papers\nCitation sweep\nChecks that each citation in your papers exists in our index, nothing more.\nUses your papers",
+      "startS": 45.400000000000006,
+      "endS": 72.9
+    },
+    {
+      "name": "The tools, part 2",
+      "text": "Quashing agenda\nLists the Supreme Court's quashing categories; does not say whether any applies.\nUses your papers\nCheque case check\nShows the review agenda and candidate dates per step; you confirm each date.\nUses your papers\nHearing pack\nGathers the dates, papers still to add and citations to look up for a hearing.\nUses your papers\nSection 138 checklist\nCounts section 138 periods from dates you confirm: a checklist, not a decision.",
+      "startS": 72.9,
+      "endS": 98.2
+    },
+    {
+      "name": "What is kept, part 1",
+      "text": "Papers you add to a matter\nWhat is sent: each paper you add on Matter tools is sent to our service. Only its text is kept; for a scanned paper, that includes the position of each passage on its page, the page's pixel size, the reading confidence and a note of how each page was read.\nWhere it is kept: in our store on a storage volume in the EU (Romania), not in India.\nHow long: until you delete the paper or the matter. Nothing expires it, and we make no promise of a retention period.",
+      "startS": 98.2,
+      "endS": 133.6
+    },
+    {
+      "name": "What is kept, part 2",
+      "text": "What delete does: deleting a paper or a matter removes it, its stored text and the details kept with it, from this service's store. We have not tested what the underlying hosting storage may still hold.\nWho can read it: only your organisation, through the product or your organisation's API key; another organisation gets \"not found\".\nThis service does not encrypt the stored files. People who run the service and its hosting account can read them.",
+      "startS": 133.6,
+      "endS": 161.2
+    },
+    {
+      "name": "What is kept, part 3",
+      "text": "Backup: none known. This service makes no copy, and we have not tested what our hosting provider keeps.\nThe matter number is lost when you reload the page, and your matters cannot be listed here.\nIf you lose the matter number, there is not yet a tested way to ask us to delete your papers.",
+      "startS": 161.2,
+      "endS": 181.79999999999998
+    },
+    {
+      "name": "Sample matter",
+      "text": "Load a sample matter\nThe sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties.",
+      "startS": 181.79999999999998,
+      "endS": 194.99999999999997
+    },
+    {
+      "name": "This is a screening aid, not legal advice. A lawyer decides.",
+      "text": "This is a screening aid, not legal advice. A lawyer decides.",
+      "startS": 194.99999999999997,
+      "endS": 203.39999999999998
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 6434163,
+      "sha256": "83f1ce0b3eb16f50dddd3e15df188cec927ee0be331fc1cb6b00ebfe08fa9fef"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 54465,
+      "sha256": "50f5ebce5f2ed0a95d755e56a452c4a2e9b3e75764c9da58bcd51053fd5619df"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 3886,
+      "sha256": "ca1938b743f23744dd11daa8bd2ecc45cb9c40deecffd758f6e660d20ff6d000"
+    }
+  ]
+}
