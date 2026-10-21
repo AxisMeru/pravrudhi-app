@@ -46,5 +46,17 @@
     "status": "Available",
     "route": "/cheque-case-check",
     "verb": "POST"
+  },
+  {
+    "id": "wf_a4_bail_drafting",
+    "status": "Available",
+    "route": "/bail-draft",
+    "verb": "POST"
+  },
+  {
+    "id": "wf_a8_synopsis_list_of_dates",
+    "status": "Available",
+    "route": "/synopsis-dates",
+    "verb": "POST"
   }
 ]

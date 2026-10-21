@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import { REGISTRY, REGISTRY_WORDS, registryAvailable, registryHref } from "@/lib/workflowRegistry";
+import { DRAFTING_CARDS } from "@/lib/draftingCards";
+import { REGISTRY_WORDS, registryAvailable, registryEntries, registryHref } from "@/lib/workflowRegistry";
 
 /**
  * The workflows front door (Advisor Q6; only on a build with NEXT_PUBLIC_WORKFLOWS_V2=1): one card per engine workflow, the WHOLE card is the link to the tool, 1 column on a phone and 2 from md.
@@ -11,7 +12,7 @@ export function WorkflowCards({ statusWorkflows = null }: { statusWorkflows?: Re
   const on = registryAvailable(statusWorkflows);
   return (
     <ul className="grid gap-4 md:grid-cols-2" data-testid="workflow-cards">
-      {REGISTRY.map((e) => {
+      {registryEntries(DRAFTING_CARDS).map((e) => {
         const body = (
           <>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -19,6 +20,7 @@ export function WorkflowCards({ statusWorkflows = null }: { statusWorkflows?: Re
               <span className={`text-xs font-medium ${on[e.key] ? "text-[var(--color-accent)]" : "text-[var(--color-text-dim)]"}`} data-testid="workflow-card-chip">{on[e.key] ? REGISTRY_WORDS.chipAvailable : REGISTRY_WORDS.chipComing}</span>
             </div>
             <p className="text-sm text-[var(--color-text-dim)]">{e.line}</p>
+            {e.note && <p className="text-sm text-[var(--color-text-dim)]" data-testid="workflow-card-note">{e.note}</p>}
             {(e.usesPapers || e.startHere) && (
               <p className="flex flex-wrap gap-2 text-xs text-[var(--color-text-dim)]">
                 {e.usesPapers && <span data-testid="workflow-card-papers">{REGISTRY_WORDS.tagUsesPapers}</span>}

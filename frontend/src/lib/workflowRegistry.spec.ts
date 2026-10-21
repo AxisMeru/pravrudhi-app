@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 
-import { REGISTRY, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, DRAFTING_WORKFLOW_KEYS, parseStatusWorkflows, readMap, registryAvailable, registryHref, toolsOffLineShown, type WorkflowsRead } from "./workflowRegistry";
+import { REGISTRY, REGISTRY_DRAFTING, registryEntries, REGISTRY_FALLBACK_ON, REGISTRY_MACHINE, REGISTRY_WORDS, DRAFTING_WORKFLOW_KEYS, parseStatusWorkflows, readMap, registryAvailable, registryHref, toolsOffLineShown, type WorkflowsRead } from "./workflowRegistry";
 
 const root = join(__dirname, "..", "..");
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);
@@ -44,8 +44,11 @@ test("every title and line is R1's by hash, at most 90 characters, and says noth
 });
 
 test("availability: the engine's status field decides when present; the 0.6.23 set is the fallback; a failed read never hides a card", () => {
-  assert.ok(Object.values(registryAvailable(undefined)).every(Boolean));
-  assert.ok(Object.values(registryAvailable(null)).every(Boolean));
+  for (const fb of [registryAvailable(undefined), registryAvailable(null)]) {
+    assert.ok(REGISTRY.every((e) => fb[e.key]), "the eight are on in the fallback");
+    assert.equal(fb.wf_a4_bail_drafting, false, "an engine with no status map is not claimed to serve A4 (the fallback is the 0.6.23 set)");
+    assert.equal(fb.wf_a8_synopsis_list_of_dates, false);
+  }
   const some = registryAvailable({ wf_a3_chronology: true, wf_b3_s138_checklist: false });
   assert.equal(some.wf_a3_chronology, true);
   assert.equal(some.wf_b3_s138_checklist, false);
@@ -115,5 +118,34 @@ test("the status workflows field is read as booleans only; absent or malformed m
   assert.equal(a.wf_a5_ingredient_agenda, true);
   assert.equal(parseStatusWorkflows({}), null, "an object with no boolean is no map");
   assert.equal(parseStatusWorkflows({ a: "x", b: 1 }), null);
-  assert.deepEqual(Object.values(registryAvailable(parseStatusWorkflows(undefined))).every(Boolean), true, "no field: the 0.6.23 fallback");
+  const fbk = registryAvailable(parseStatusWorkflows(undefined));
+  assert.deepEqual(REGISTRY.every((e) => fbk[e.key]), true, "no field: the 0.6.23 fallback (the eight)");
+});
+
+// #502 (Lead-2: what is built must show in production): the two drafting rows, R1's words (REGISTRY_A4_A8_ROWS_R1_2026-10-21.md sha12 8e64dfe094a2) pinned by hash. Listed only on a build with the drafting cards.
+test("the A4 and A8 rows: R1's titles, lines and the declaration line by hash, order after the eight, anchors that exist on the page, one tag only on A8, no model claim", () => {
+  assert.deepEqual(REGISTRY_DRAFTING.map((e) => e.key), ["wf_a4_bail_drafting", "wf_a8_synopsis_list_of_dates"]);
+  const [a4, a8] = REGISTRY_DRAFTING;
+  assert.deepEqual([h16(a4.title), h16(a4.line), h16(a4.note ?? "")], ["4abe4799041c98ab", "dfebbbbdc67e4aa2", "d01a5f640a2e2d8f"]);
+  assert.deepEqual([h16(a8.title), h16(a8.line), h16(a8.note ?? "")], ["243e6b516834025d", "f124ae97efc3e705", "d01a5f640a2e2d8f"]);
+  assert.ok(a4.line.length <= 90 && a8.line.length <= 90 && (a4.note ?? "").length <= 90);
+  assert.equal(a4.usesPapers, false);
+  assert.equal(a8.usesPapers, true);
+  assert.doesNotMatch(`${a4.title} ${a4.line} ${a4.note} ${a8.title} ${a8.line} ${a8.note}`, /\bmodel\b|AI\b|template|fixed|preview|accura/i, "R1: no model claim on the rows");
+  assert.deepEqual(registryEntries(false).map((e) => e.key), REGISTRY.map((e) => e.key), "no drafting cards on the build: the eight only");
+  assert.deepEqual(registryEntries(true).map((e) => e.key), [...REGISTRY.map((e) => e.key), ...REGISTRY_DRAFTING.map((e) => e.key)], "the two follow Cheque case check");
+  const draft = readFileSync(join(root, "src", "components", "preview", "Drafting.tsx"), "utf8");
+  assert.match(draft, /<section className=\{BOX\} id=\{`pv-\$\{id\}`\}/, "the boxes carry the id the rows link to");
+  assert.match(draft, /<Box id="bail"/);
+  assert.match(draft, /<Box id="synopsis"/);
+  for (const e of REGISTRY_DRAFTING) assert.match(registryHref(e), /^\/matter-tools#pv-(bail|synopsis)$/);
+  const cards = readFileSync(join(root, "src", "components", "WorkflowCards.tsx"), "utf8");
+  assert.match(cards, /registryEntries\(DRAFTING_CARDS\)/);
+  assert.match(cards, /data-testid="workflow-card-note"/);
+  const fb = registryAvailable(undefined);
+  assert.equal(fb.wf_a4_bail_drafting, false);
+  assert.deepEqual(registryAvailable({ wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: true }).wf_a8_synopsis_list_of_dates, true);
+  assert.equal(REGISTRY_MACHINE.length, 10);
+  assert.equal(REGISTRY_MACHINE.filter((m) => m.status === "Available").length, 10);
+  assert.deepEqual(REGISTRY_MACHINE.slice(8), [{ id: "wf_a4_bail_drafting", status: "Available", route: "/bail-draft", verb: "POST" }, { id: "wf_a8_synopsis_list_of_dates", status: "Available", route: "/synopsis-dates", verb: "POST" }]);
 });
