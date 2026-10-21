@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { REGISTRY } from "../src/lib/workflowRegistry";
+import { REGISTRY, registryEntries } from "../src/lib/workflowRegistry";
 
 // The workflows front door (Advisor Q6; NEXT_PUBLIC_WORKFLOWS_V2=1, WORKFLOWS_BUILD=1). ON: eight registry cards, the whole card is the link, 1 column on a phone and 2 at md, Papers for a matter first and marked Start here, Workflows leads the work nav. OFF: nothing of it.
 const ON = process.env.WORKFLOWS_BUILD === "1";
+// A build with the drafting cards (DRAFTING_BUILD=1) also lists the A4 and A8 rows on /workflows (#502, R1 8e64dfe094a2): ten cards, the two after Cheque case check.
+const DRAFTING = process.env.DRAFTING_BUILD === "1";
+const ENTRIES = registryEntries(DRAFTING);
+const DRAFT = DRAFTING; // the name the later checks use
 test.beforeEach(async ({ page }) => { await page.route("**/api/me", (r) => r.fulfill({ json: { email: "invented@example.invalid" } })); });
 
 test("flag OFF: /workflows has no registry cards and Workflows does not lead the nav", async ({ page }) => {
@@ -24,15 +28,16 @@ test("flag ON: eight cards in the registry order, each a whole-card link to its 
   test.skip(!ON, "needs the build with the workflows flag");
   await page.goto("/workflows");
   const cards = page.getByTestId("workflow-cards").locator("li");
-  await expect(cards).toHaveCount(8);
-  for (let i = 0; i < REGISTRY.length; i++) {
-    const e = REGISTRY[i];
+  await expect(cards).toHaveCount(ENTRIES.length);
+  for (let i = 0; i < ENTRIES.length; i++) {
+    const e = ENTRIES[i];
     const card = cards.nth(i);
     await expect(card).toHaveAttribute("data-testid", `workflow-card-${e.key}`);
     await expect(card.getByRole("heading", { level: 2 })).toHaveText(e.title);
     await expect(card).toContainText(e.line);
-    await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available");
-    await expect(card.locator("a")).toHaveAttribute("href", `/matter-tools#${e.anchor}`);
+    if (e.note) await expect(card.getByTestId("workflow-card-note")).toHaveText(e.note); else await expect(card.getByTestId("workflow-card-note")).toHaveCount(0);
+    if (REGISTRY.includes(e)) await expect(card.getByTestId("workflow-card-chip")).toHaveText("Available"); // the drafting rows' chip follows the local engine's own flags
+    if (REGISTRY.includes(e)) await expect(card.locator("a")).toHaveAttribute("href", `/matter-tools#${e.anchor}`);
     if (e.usesPapers) await expect(card.getByTestId("workflow-card-papers")).toHaveText("Uses your papers"); else await expect(card.getByTestId("workflow-card-papers")).toHaveCount(0);
     if (e.startHere) await expect(card.getByTestId("workflow-card-start")).toHaveText("Start here"); else await expect(card.getByTestId("workflow-card-start")).toHaveCount(0);
   }
@@ -97,12 +102,12 @@ test("flag ON: an engine status without the workflows field (older engine) leave
   test.skip(!ON, "needs the build with the workflows flag");
   await page.route("**/api/v1/status", (r) => r.fulfill({ json: statusWith() }));
   await page.goto("/workflows");
-  await expect(page.getByTestId("workflow-card-chip")).toHaveCount(8);
-  for (const c of await page.getByTestId("workflow-card-chip").all()) await expect(c).toHaveText("Available");
+  await expect(page.getByTestId("workflow-card-chip")).toHaveCount(ENTRIES.length);
+  const chips = await page.getByTestId("workflow-card-chip").all();
+  for (const [i, c] of chips.entries()) await expect(c).toHaveText(i < REGISTRY.length ? "Available" : "Coming"); // the fallback is the 0.6.23 eight: an engine with no status map is not claimed to serve A4/A8
 });
 
 // R1's rule (#475): the line shows only when a tool the page shows is reported off; hidden when the status cannot be read; no map = the pinned fallback (A4/A8 off).
-const DRAFT = process.env.DRAFTING_BUILD === "1"; // built with the A4/A8 cards on
 const ALL_TEN = { ...ALL_ON, wf_a4_bail_drafting: true, wf_a8_synopsis_list_of_dates: true };
 async function line(page: import("@playwright/test").Page, status: { status?: number; json?: unknown }) {
   await page.route("**/api/v1/status", (r) => r.fulfill({ status: status.status ?? 200, json: status.json ?? {} }));

@@ -10,7 +10,9 @@ export type RegistryKey =
   | "wf_b2_quashing_agenda"
   | "wf_a6_cheque_case_check"
   | "wf_a7_matter_hearing_pack"
-  | "wf_b3_s138_checklist";
+  | "wf_b3_s138_checklist"
+  | "wf_a4_bail_drafting"
+  | "wf_a8_synopsis_list_of_dates";
 
 export interface RegistryEntry {
   key: RegistryKey;
@@ -23,6 +25,8 @@ export interface RegistryEntry {
   route: string;
   usesPapers: boolean;
   startHere: boolean;
+  /** An optional second short line under the card (R1, #502: the declaration the drafting rows require). */
+  note?: string;
 }
 
 // Display order (Advisor): Add papers first and marked "Start here", then the papers-based tools, then the cheque checklist and the cheque case check.
@@ -36,6 +40,19 @@ export const REGISTRY: readonly RegistryEntry[] = [
   { key: "wf_b3_s138_checklist", route: "/s138-checklist", title: "Section 138 checklist", line: "Counts section 138 periods from dates you confirm: a checklist, not a decision.", anchor: "pv-b3", usesPapers: false, startHere: false },
   { key: "wf_a6_cheque_case_check", route: "/cheque-case-check", title: "Cheque case check", line: "Shows the review agenda and candidate dates per step; you confirm each date.", anchor: "pv-cc", usesPapers: true, startHere: false },
 ];
+
+/**
+ * The two drafting workflows (A4 bail drafting, A8 synopsis with a list of dates; #502, Lead-2: what is built must show in production): live on /matter-tools and ON in the engine since 0.6.24, template only (no model).
+ * They are listed on /workflows only on a build that has their cards (NEXT_PUBLIC_DRAFTING_CARDS=1), so no card links to an anchor that is not on the page. R1's words for both rows are pinned in workflowRegistry.spec.ts.
+ */
+const DECLARATION_NOTE = "You first say if a person under 18, a sexual offence or trafficking is involved."; // R1 d01a5f640a2e2d8f (REGISTRY_A4_A8_ROWS_R1 8e64dfe094a2): the second line under EACH drafting row
+export const REGISTRY_DRAFTING: readonly RegistryEntry[] = [
+  { key: "wf_a4_bail_drafting", route: "/bail-draft", title: "Bail application grounds", line: "A first draft of bail grounds from facts you enter, for a lawyer to rewrite.", anchor: "pv-bail", usesPapers: false, startHere: false, note: DECLARATION_NOTE },
+  { key: "wf_a8_synopsis_list_of_dates", route: "/synopsis-dates", title: "Synopsis and list of dates", line: "Lists dates with sources; drafts a synopsis only where it can, for a lawyer to rewrite.", anchor: "pv-synopsis", usesPapers: true, startHere: false, note: DECLARATION_NOTE },
+];
+
+/** The entries /workflows lists: the eight, plus the two drafting rows on a build that has the drafting cards. */
+export const registryEntries = (draftingCards: boolean): readonly RegistryEntry[] => (draftingCards ? [...REGISTRY, ...REGISTRY_DRAFTING] : REGISTRY);
 
 export const REGISTRY_WORDS = {
   tagUsesPapers: "Uses your papers",
@@ -62,11 +79,11 @@ export function parseStatusWorkflows(x: unknown): Record<string, boolean> | null
 /** Available where the engine says so; with no `workflows` field in the status, the fallback set. A status that could not be read never hides a card. */
 export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined): Record<RegistryKey, boolean> {
   const has = statusWorkflows !== null && typeof statusWorkflows === "object";
-  return Object.fromEntries(REGISTRY.map((e) => [e.key, has ? statusWorkflows[e.key] === true : REGISTRY_FALLBACK_ON.includes(e.key)])) as Record<RegistryKey, boolean>;
+  return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING].map((e) => [e.key, has ? statusWorkflows[e.key] === true : REGISTRY_FALLBACK_ON.includes(e.key)])) as Record<RegistryKey, boolean>;
 }
 
 /** The machine-readable list for the deploy gate (Track A DRIFT-1/2): id, status, route, verb. Checked in as workflowRegistry.json and pinned equal by workflowRegistry.spec.ts. */
-export const REGISTRY_MACHINE = REGISTRY.map((e) => ({ id: e.key, status: REGISTRY_FALLBACK_ON.includes(e.key) ? "Available" : "Building", route: e.route, verb: "POST" }));
+export const REGISTRY_MACHINE = [...REGISTRY, ...REGISTRY_DRAFTING].map((e) => ({ id: e.key, status: "Available", route: e.route, verb: "POST" })); // ten rows: the eight, then A4 and A8 (on in the engine since 0.6.24)
 
 
 /** What the app knows about the engine's workflows: still reading, could not read, a readable status with no `workflows` field (an older engine), or the engine's own map. */

@@ -23,7 +23,7 @@ const refusal = previewRefusal;
 
 function Box({ id, name, line, children }: { id: string; name: string; line: string; children: React.ReactNode }) {
   return (
-    <section className={BOX} aria-labelledby={`pv-${id}-heading`} data-testid={`pv-${id}`}>
+    <section className={BOX} id={`pv-${id}`} aria-labelledby={`pv-${id}-heading`} data-testid={`pv-${id}`}>
       <h2 id={`pv-${id}-heading`} className="flex flex-wrap items-center gap-2 text-base font-medium text-[var(--color-text)]">{name} <PreviewBadge /></h2>
       <p className={P}>{line}</p>
       {children}
