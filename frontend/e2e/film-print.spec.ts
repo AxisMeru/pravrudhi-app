@@ -1,9 +1,12 @@
 import { expect, test } from "./support/engineTest";
 
 // app#414 (Track B's #412 probe): on paper a <video> prints as a blank box with the browser's native controls, so a played film (and the video-first pages) print the film's poster instead.
+// With the narrated guide film on /guide (GUIDE_FILM_V2_BUILD=1) the page shows its poster first (no <video> until Play), like /benchmarks: the same print checks run after Play there.
+const GUIDE_V2 = process.env.GUIDE_FILM_V2_BUILD === "1";
 for (const path of ["/guide", "/how-it-was-built", "/technical-film"]) {
   test(`print: ${path} shows the film's poster, not a video box`, async ({ page }) => {
     await page.goto(path);
+    if (GUIDE_V2 && path === "/guide") await page.getByTestId("film-play").click();
     const video = page.getByTestId("film-video");
     await expect(video).toBeVisible();
     await expect(page.getByTestId("film-poster-print"), "the poster is not on screen").toBeHidden();
