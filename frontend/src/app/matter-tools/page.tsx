@@ -99,6 +99,7 @@ export default function PreviewPage() {
     kept.clear(); setMatter(id); setPapers([]); clearResults();
     for (const p of SAMPLE_PAPERS) {
       const d = await previewPost("/matter-spans/documents", { matter_id: id, text: p.text, name: p.name });
+      if (d.status === 404 && (await matterGone(id))) return;
       if (d.status !== 200) { await refresh(id); return setMessage(refusal(d.status, d.body, "/matter-spans/documents")); }
     }
     await refresh(id); setMessage(T.matterStarted);
@@ -106,6 +107,7 @@ export default function PreviewPage() {
   const addPaper = () => run(async () => {
     if (!matter || !text.trim()) return;
     const a = await previewPost("/matter-spans/documents", { matter_id: matter, text, name: name.trim().slice(0, 200) || "paper" });
+    if (a.status === 404 && (await matterGone(matter))) return; // a matter deleted elsewhere: its own line, never "not switched on"
     if (a.status !== 200) return setMessage(refusal(a.status, a.body, "/matter-spans/documents"));
     setText(""); setName(""); await refresh(matter);
   });
@@ -266,7 +268,7 @@ export default function PreviewPage() {
         </Card>
 
         <Card id="cc" name={CC.name} line={CC.line}>
-          <CaseCheck matter={matter} />
+          <CaseCheck matter={matter} matterGone={() => (matter ? matterGone(matter) : Promise.resolve(false))} />
         </Card>
 
         <Card id="hp" name={HP.name} line={HP.line}>

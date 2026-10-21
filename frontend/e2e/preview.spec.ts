@@ -115,6 +115,26 @@ test("B3 checklist: the first run sends unconfirmed dates; Confirm resends the d
   expect(bodies[1].cheque_date).toEqual({ value: "01.02.2013", source: "typed", confirmed: true, confirmed_as: "2013-02-01" });
 });
 
+// R1 on #492: "<tool> is not switched on in this deployment." is false for a matter that is gone (the engine answers 404 then too), so the matter-gone check runs FIRST at every place that shows a per-tool line.
+for (const gone of [true, false]) {
+  test(`${gone ? "a matter deleted elsewhere" : "a route that is off (the matter is still held)"}: the cheque case check and adding a paper say ${gone ? "the matter is no longer held, never 'not switched on'" : "'not switched on'"}`, async ({ page }) => {
+    await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
+    await page.route("**/api/v1/matter-spans/list", (r) => (gone ? r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }) : r.fulfill({ json: { matter_id: HEX, documents: [], pages_total: 0, pages_not_read: 0, pages_note: "" } })));
+    await page.route("**/api/v1/cheque-case-check", (r) => r.fulfill({ status: 404, json: { detail: "x", error: gone ? "matter_not_found" : "not_found" } }));
+    await page.route("**/api/v1/matter-spans/documents", (r) => r.fulfill({ status: 404, json: { detail: "x", error: gone ? "matter_not_found" : "not_found" } }));
+    await page.goto("/matter-tools");
+    await page.getByTestId("pv-start").click();
+    await page.getByTestId("pv-cc-run").click();
+    if (gone) { await expect(page.getByTestId("pv-message")).toContainText("no longer held"); await expect(page.getByTestId("pv-start")).toBeVisible(); await page.getByTestId("pv-start").click(); }
+    else await expect(page.getByTestId("pv-cc-message")).toHaveText("Cheque case check is not switched on in this deployment.");
+    await page.getByTestId("pv-text").fill("An invented paper.");
+    await page.getByTestId("pv-add").click();
+    if (gone) await expect(page.getByTestId("pv-message")).toContainText("no longer held");
+    else await expect(page.getByTestId("pv-message")).toHaveText("Papers for a matter is not switched on in this deployment.");
+    await expect(page.locator("body")).not.toContainText(gone ? /not switched on/ : /no longer held/);
+  });
+}
+
 test("when the engine no longer holds the matter (a restart), the page says so and offers to start again", async ({ page }) => {
   await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: HEX } }));
   await page.route("**/api/v1/matter-spans/list", (r) => r.fulfill({ status: 404, json: { detail: "x", error: "matter_not_found" } }));
