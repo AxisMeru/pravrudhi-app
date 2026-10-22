@@ -1,5 +1,5 @@
 // The guide section "Access and the analysis models" (app#522; operator 22 Oct: in the user guide, with edits and redactions where needed). Words: R1 (ACCESS_GUIDE_522_R1_v2).
-// This is the ON version (d60 swap, R1 ACCESS_GUIDE_522_ON_R1): ships only with cold start ON in production AND the any-signed-in rule applied (v3d read back). If Run A/B fail and the flag goes OFF, this PR is not deployed (the OFF text, #525, is then the true one). ACCESS_OFF stays for that day.
+// This is the ON version (d60 swap, R1 ACCESS_GUIDE_522_ON_R1): ships only with cold start ON in production AND every account that can sign in is allowed to start the models (the any-signed-in rule is live and read back; nothing is invited before then). If Run A/B fail and the flag goes OFF, this PR is not deployed (the OFF text, #525, is then the true one). If the flag goes back OFF, restore ACCESS_OFF. Deploy only after: flag ON read back, #509 live, the waker in live mode (R2).
 // Redacted on purpose: no email, user id, endpoint id, dollar figure, limit, machine name or the helper that starts the models; no statement about who can create an account.
 export const ACCESS_REFUSAL = "The analysis models are switched off at the moment. Nothing was scored. Try again later."; // the app's own refusal line (signedStrings judges_offline, first two sentences + third), shown verbatim
 
