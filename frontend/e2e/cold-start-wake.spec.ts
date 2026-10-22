@@ -18,6 +18,7 @@ const w = (state: string, first: string, second: string, reason: string | null =
   ...extra,
 });
 const TICKET = { ticket: { value: "tkt-invented-123", mode: "partial", expires_in_s: 600 } };
+const FULL_TICKET = { ticket: { value: "tkt-full-456", mode: "full", expires_in_s: 600 } };
 
 interface Mock { start: { status: number; json: unknown }; polls: Array<{ status?: number; json?: unknown }>; result?: unknown }
 async function setup(page: import("@playwright/test").Page, m: Mock) {
@@ -35,9 +36,7 @@ async function setup(page: import("@playwright/test").Page, m: Mock) {
     const ticket = r.request().headers()["x-wake-ticket"];
     seen.screenings.push({ ticket, body: r.request().postData() ?? "" });
     if (!ready && !ticket) return r.fulfill({ status: 503, json: { error: "judges_offline" } });
-    // second_judge_ran (engine 0.6.31) is not in the pinned engine schema yet, so a result that carries it is sent as a raw body: the schema guard checks `json` answers only, and a field the engine WILL send must not fail the mock.
-    const result = m.result ?? RESULT("uncertain");
-    return "second_judge_ran" in (result as object) ? r.fulfill({ contentType: "application/json", body: JSON.stringify(result) }) : r.fulfill({ json: result });
+    return r.fulfill({ json: m.result ?? RESULT("uncertain") });
   });
   await page.goto("/screening");
   await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
@@ -49,7 +48,7 @@ async function setup(page: import("@playwright/test").Page, m: Mock) {
 const STARTED = { status: 202, json: w("waking", "waiting", "waiting") };
 
 test("wake: rows and R1's lines show while the models start, then the page sends the screening itself; no running/scoring words during the wait", async ({ page }) => {
-  const seen = await setup(page, { start: STARTED, polls: [{ json: w("waking", "ready", "starting") }, { json: w("waking", "ready", "starting") }, { json: w("ready", "ready", "ready") }] });
+  const seen = await setup(page, { start: STARTED, polls: [{ json: w("waking", "ready", "starting") }, { json: w("waking", "ready", "starting") }, { json: w("ready", "ready", "ready", null, FULL_TICKET) }] });
   await expect(page.getByTestId("wake-line")).toHaveText("Starting the analysis models. Nothing has been scored yet. This can take a few minutes.");
   await expect(page.getByTestId("wake-row-first")).toHaveText("First model: Waiting to start");
   await expect(page.getByTestId("wake-gloss")).toBeVisible();
@@ -62,12 +61,13 @@ test("wake: rows and R1's lines show while the models start, then the page sends
   await expect(page.getByText("Run id").or(page.getByText("Needs your review")).first()).toBeVisible();
   expect(seen.wakeStarts).toBe(1);
   expect(seen.screenings).toHaveLength(2);
-  expect(seen.screenings[1].ticket, "a full wake sends no ticket").toBeUndefined();
+  expect(seen.screenings[1].ticket, "a ready wake sends its optional full ticket (it only extends the judge leases)").toBe("tkt-full-456");
+  expect(await page.locator("body").innerText()).not.toContain("tkt-full-456");
   expect(seen.screenings[1].body, "the screening carries the user's facts (the wake call carried none)").toContain("toy lorry");
 });
 
 test("wake: a partial load sends the ticket from the status body as X-Wake-Ticket, shows the neutral warning above the result, and keeps the ticket off the page", async ({ page }) => {
-  const seen = await setup(page, { start: STARTED, polls: [{ json: w("partial", "ready", "failed", "second_judge_unavailable", TICKET) }], result: RESULT("second_judge_unavailable", { second_judge_ran: false }) });
+  const seen = await setup(page, { start: STARTED, polls: [{ json: w("partial", "ready", "failed", "second_judge_unavailable", TICKET) }], result: RESULT("second_judge_unavailable") });
   await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
   expect(seen.screenings[1].ticket).toBe("tkt-invented-123");
@@ -87,8 +87,8 @@ test("wake not allowed: today's refusal, exactly, and no wake rows", async ({ pa
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
 });
 
-test("wake: the warning also shows when the finished result says the second judge did not run, even if the wake block reads ready (R2)", async ({ page }) => {
-  await setup(page, { start: STARTED, polls: [{ json: w("ready", "ready", "ready") }], result: { ...RESULT("second_judge_unavailable"), second_judge_ran: false } });
+test("wake: the warning also shows when a contract of the finished result carries reason second_judge_unavailable, even if the wake block reads ready (R2; engine 0.6.31 has no second_judge_ran)", async ({ page }) => {
+  await setup(page, { start: STARTED, polls: [{ json: w("ready", "ready", "ready") }], result: RESULT("second_judge_unavailable") });
   await expect(page.getByTestId("wake-warning")).toBeVisible({ timeout: 20_000 });
 });
 
@@ -104,4 +104,10 @@ test("wake: stop following a wake, run again: the open wake is followed (no seco
   await expect(page.getByTestId("wake-progress")).toHaveCount(0, { timeout: 20_000 });
   expect(seen.wakeStarts, "no second wake while the first may be open").toBe(1);
   expect(seen.screenings.at(-1)!.body).toContain("paid the sum the next day");
+});
+
+test("wake: a status that answers not allowed (503 judges_offline, the allowlist gate on the status route) leaves today's refusal and never shows a state or a poll error", async ({ page }) => {
+  await setup(page, { start: STARTED, polls: [{ status: 503, json: { error: "judges_offline", wake: "not_allowed" } }] });
+  await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.", { timeout: 20_000 });
+  await expect(page.getByTestId("wake-progress")).toHaveCount(0);
 });

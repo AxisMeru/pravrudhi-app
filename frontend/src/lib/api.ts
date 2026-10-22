@@ -1436,7 +1436,7 @@ export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
 
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
-  /** #1038 (R2): set only on a run that came through a wake, when the engine's raw answer says the second judge did not run (at the top or on a contract). The page then shows the partial-load warning whatever the wake block said. */
+  /** #1038 (R2): set only on a run that came through a wake, when the wake was partial or a contract of the answer carries reason second_judge_unavailable (engine 0.6.31: no second_judge_ran field). The page then shows the partial-load warning whatever the wake block said. */
   second_judge_did_not_run?: true;
   /** Present only on an assisted run (#125): the app's kept part of the engine's assistant block. */
   assistant?: AssistantBlock;
@@ -1631,7 +1631,7 @@ function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, 
     }),
     start: async () => {
       try {
-        const r = await call(base, { method: "POST", body: "{}" });
+        const r = await call(base, { method: "POST" });
         if (r.status !== 200 && r.status !== 202) return { kind: "not_allowed" };
         openWake = { userId: userId ?? "session", at: Date.now() };
         return { kind: "started", body: await r.json() };
@@ -1643,6 +1643,10 @@ function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, 
     poll: async () => {
       const r = await call(`${base}/status`, { method: "GET" });
       if (!r.ok) {
+        if (r.status === 503) {
+          const e = await apiErrorFrom(r, "/api/v1/analyse-facts/wake/status");
+          if (e.code === "judges_offline") { openWake = null; const n = new Error("wake not allowed"); n.name = "WakeNotAllowedError"; throw n; }
+        }
         if (r.status === 401 || r.status === 403) { openWake = null; onTerminal(); }
         throw new ApiError(r.status, "/api/v1/analyse-facts/wake/status");
       }
@@ -1699,7 +1703,8 @@ export async function analyseFacts(
         // the engine no longer runs the screening for the user: the page sends it itself, with the one-time ticket when only the first model is up (the ticket stays in memory and is never shown)
         if (o.kind === "partial" && !o.ticket) throw new WakeStoppedError(WAKE_POLL_ERROR);
         wakeMode = o.kind;
-        res = await analyseFactsAttempt(path, body, signal, false, o.kind === "partial" && o.ticket ? { "x-wake-ticket": o.ticket } : {});
+        // the ticket is required for partial and optional for ready (it only lets the engine extend the judge leases)
+        res = await analyseFactsAttempt(path, body, signal, false, o.ticket ? { "x-wake-ticket": o.ticket } : {});
         if (!res.ok) throw await apiErrorFrom(res, path);
       }
     }
@@ -1710,7 +1715,8 @@ export async function analyseFacts(
   const raw = wire as unknown as Record<string, unknown>;
   // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
   if (!Array.isArray(raw.contracts) || !Array.isArray(raw.facts)) throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null);
-  const secondSkipped = wakeMode !== null && (wakeMode === "partial" || raw.second_judge_ran === false || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).second_judge_ran === false));
+  // engine 0.6.31: the screening answer carries no second_judge_ran; a partial run shows per contract: reason second_judge_unavailable means the second judge did not read it
+  const secondSkipped = wakeMode !== null && (wakeMode === "partial" || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).reason === "second_judge_unavailable"));
   if (!opts.assisted) return secondSkipped ? { ...result, second_judge_did_not_run: true } : result;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   const appendix = parseAppendix(raw.appendix);

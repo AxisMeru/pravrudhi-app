@@ -35,14 +35,14 @@ test("not allowed: no view, the caller keeps today's refusal", async () => {
 
 test("both ready: views walk waiting -> first ready -> scoring, polled at the engine's cadence; the page then sends the screening (outcome ready)", async () => {
   const { base, views, sleeps } = io([body("waking", "ready", "starting"), body("ready", "ready", "ready")]);
-  assert.deepEqual(await runWake(base), { kind: "ready" });
+  assert.deepEqual(await runWake(base), { kind: "ready", ticket: null });
   assert.deepEqual(views.map((v) => v.line).filter(Boolean), [C.WAKE_PROGRESS_ALL, C.WAKE_PROGRESS_FIRST_READY, C.WAKE_DONE_BOTH]);
   assert.deepEqual(sleeps, [5000, 5000]);
 });
 
 test("already up: the start answers ready at once and nothing is polled", async () => {
   const { base, sleeps } = io([], { start: async () => ({ kind: "started", body: body("ready", "ready", "ready") }) });
-  assert.deepEqual(await runWake(base), { kind: "ready" });
+  assert.deepEqual(await runWake(base), { kind: "ready", ticket: null });
   assert.deepEqual(sleeps, []);
 });
 
@@ -54,7 +54,11 @@ test("partial: the outcome carries the ticket from the status body (partial only
   const b = io([body("partial", "ready", "failed", "second_judge_unavailable")]);
   assert.deepEqual(await runWake(b.base), { kind: "partial", ticket: null });
   const c = io([body("ready", "ready", "ready", null, t)]);
-  assert.deepEqual(await runWake(c.base), { kind: "ready" });
+  assert.deepEqual(await runWake(c.base), { kind: "ready", ticket: null }, "a partial-mode ticket on a ready wake is ignored");
+  const c2 = io([body("ready", "ready", "ready", null, { ticket: { value: "tkt-full", mode: "full", expires_in_s: 600 } })]);
+  assert.deepEqual(await runWake(c2.base), { kind: "ready", ticket: "tkt-full" }, "a full ticket on a ready wake is kept (optional: it only extends the judge leases)");
+  const e2 = io([body("partial", "ready", "failed", "second_judge_unavailable", { ticket: { value: "tkt-full", mode: "full" } })]);
+  assert.deepEqual(await runWake(e2.base), { kind: "partial", ticket: null }, "a full ticket on a partial wake is not accepted");
   const d = io([body("partial", "ready", "failed", "second_judge_unavailable", { ticket: { value: "x", mode: "full" } })]);
   assert.deepEqual(await runWake(d.base), { kind: "partial", ticket: null });
 });
@@ -77,13 +81,21 @@ test("an unreadable status, an unknown state and three failed polls stop with th
 
 test("resume follows an open wake without a start call; one failed poll is retried; the page's limit (the engine's deadline plus a margin) stops it; cancel throws", async () => {
   const r = io([body("ready", "ready", "ready")], { resume: true });
-  assert.deepEqual(await runWake(r.base), { kind: "ready" });
+  assert.deepEqual(await runWake(r.base), { kind: "ready", ticket: null });
   assert.equal(r.starts(), 0);
   const ok = await runWake(io([new Error("x"), body("ready", "ready", "ready")]).base);
-  assert.deepEqual(ok, { kind: "ready" });
+  assert.deepEqual(ok, { kind: "ready", ticket: null });
   const slow = await runWake(io([body("waking", "starting", "starting")]).base);
   assert.equal(slow.kind === "stopped" && slow.view.warning, C.failBothLine(true));
   const ac = new AbortController();
   ac.abort();
   await assert.rejects(runWake(io([body("waking", "waiting", "waiting")], { signal: ac.signal }).base), { name: "AbortError" });
+});
+
+test("the status is allowlist-gated like the start: a poll that answers not allowed ends as not_allowed (today's refusal), never as a state or a poll error", async () => {
+  const gated = new Error("wake not allowed");
+  gated.name = "WakeNotAllowedError";
+  const { base, views } = io([gated]);
+  assert.deepEqual(await runWake(base), { kind: "not_allowed" });
+  assert.equal(views.filter((v) => v.warning).length, 0);
 });

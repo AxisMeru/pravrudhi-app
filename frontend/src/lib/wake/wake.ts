@@ -81,14 +81,16 @@ export const WAKE_UNREADABLE_VIEW: WakeView = { phase: "stopped", rows: [], line
 export { WAKE_FAIL_BOTH };
 
 /**
- * The engine's wake status body (0.6.31): {wake: {...}, ticket?: {value, mode: "partial", expires_in_s}}. The ticket is read ONLY when the wake is partial and only a non-empty string value with mode "partial" counts;
- * anything else is no ticket (the screening then gets today's 503). The ticket stays in memory, is never shown and never stored.
+ * The engine's wake status body (0.6.31): {wake: {...}, ticket?: {value, mode: "full" | "partial", expires_in_s}}. The ticket comes with ready (mode full: optional, it only lets the engine extend the judge leases) and with
+ * partial (mode partial: REQUIRED for the screening). It is read only when its mode matches the wake state (ready -> full, partial -> partial) and its value is a non-empty string; anything else is no ticket
+ * (a partial screening then gets today's 503). The ticket stays in memory, is never shown and never stored.
  */
 export function parseWakeBody(raw: unknown): { wake: Wake | null; ticket: string | null } {
   if (typeof raw !== "object" || raw === null) return { wake: null, ticket: null };
   const o = raw as Record<string, unknown>;
   const wake = parseWake(o.wake);
-  const t = o.ticket;
-  const ticket = wake?.state === "partial" && typeof t === "object" && t !== null && (t as Record<string, unknown>).mode === "partial" && typeof (t as Record<string, unknown>).value === "string" && ((t as Record<string, unknown>).value as string) !== "" ? ((t as Record<string, unknown>).value as string) : null;
+  const t = o.ticket as Record<string, unknown> | null | undefined;
+  const want = wake?.state === "ready" ? "full" : wake?.state === "partial" ? "partial" : null;
+  const ticket = want !== null && typeof t === "object" && t !== null && t.mode === want && typeof t.value === "string" && t.value !== "" ? t.value : null;
   return { wake, ticket };
 }

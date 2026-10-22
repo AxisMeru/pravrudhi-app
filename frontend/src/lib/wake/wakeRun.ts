@@ -20,7 +20,7 @@ export interface WakeIO {
   maxMs?: number;
   now?: () => number;
 }
-export type WakeOutcome = { kind: "not_allowed" } | { kind: "ready" } | { kind: "partial"; ticket: string | null } | { kind: "stopped"; view: WakeView; terminal: boolean };
+export type WakeOutcome = { kind: "not_allowed" } | { kind: "ready"; ticket: string | null } | { kind: "partial"; ticket: string | null } | { kind: "stopped"; view: WakeView; terminal: boolean };
 
 const MIN_POLL_S = 2;
 const MAX_POLL_S = 10;
@@ -42,7 +42,7 @@ export async function runWake(io: WakeIO): Promise<WakeOutcome> {
     if (p.wake.deadlineS !== null) limitMs = Math.min(limitMs, (p.wake.deadlineS + DEADLINE_MARGIN_S) * 1000);
     const v = wakeView(p.wake);
     io.onView(v);
-    if (p.wake.state === "ready") return { kind: "ready" };
+    if (p.wake.state === "ready") return { kind: "ready", ticket: cur.ticket };
     if (p.wake.state === "partial") return { kind: "partial", ticket: cur.ticket };
     if (v.phase === "stopped") return { kind: "stopped", view: v, terminal: true };
     return null;
@@ -65,6 +65,8 @@ export async function runWake(io: WakeIO): Promise<WakeOutcome> {
       body = await io.poll();
     } catch (e) {
       if ((e as { name?: string } | null)?.name === "AbortError") throw e;
+      // the status is allowlist-gated like the start: a user who may not wake reads 503 not_allowed (never a state): today's refusal stands
+      if ((e as { name?: string } | null)?.name === "WakeNotAllowedError") return { kind: "not_allowed" };
       if (++failures >= MAX_POLL_FAILURES) return stop(WAKE_UNREADABLE_VIEW, io);
       continue;
     }
