@@ -9,7 +9,7 @@ export const DEMO_HOME = "/screening";
 
 // The demo path plus the settings page (keys, account). Nothing here is labelled experimental yet, so
 // nothing experimental is offered.
-export const DEMO_PATH_HREFS: readonly string[] = ["/screening", "/matters", "/citations", "/demo", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings"];
+export const DEMO_PATH_HREFS: readonly string[] = ["/screening", "/matters", "/citations", "/demo", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings", "/about"];
 
 export function offeredInDemoPath(href: string, on: boolean = DEMO_PATH): boolean {
   return !on || DEMO_PATH_HREFS.includes(href);
@@ -21,7 +21,7 @@ export function offeredInDemoPath(href: string, on: boolean = DEMO_PATH): boolea
 // palette use `offeredInDemoPath` (above); a TYPED URL or a bookmark is stopped by `routeAllowedOnSurface`, which
 // also lets sign-in through (a user must be able to sign in) and the admin-only API keys page (its link is shown
 // to org admins only, see the Settings page).
-export const SURFACE_ROUTES: readonly string[] = ["/", "/screening", "/matters", "/demo", "/intake", "/how-it-was-built", "/safety", "/benchmarks", "/benchmarks/submit", "/matter-tools", "/citations", "/guide", "/workflows", "/data-handling", "/settings", "/signin", "/partner-keys", "/technical-film"];
+export const SURFACE_ROUTES: readonly string[] = ["/", "/screening", "/matters", "/demo", "/intake", "/how-it-was-built", "/safety", "/benchmarks", "/benchmarks/submit", "/matter-tools", "/citations", "/guide", "/workflows", "/data-handling", "/settings", "/signin", "/partner-keys", "/technical-film", "/about"];
 
 /**
  * The path as the router sees it, with every spelling of the same page folded together: query/hash dropped, slashes

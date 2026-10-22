@@ -28,4 +28,5 @@ export const NAV_LABELS = {
   benchmarks: "Benchmarks",
   demo: "How it works",
   howBuilt: "How it was built",
+  about: "About", // app#519: the versions page; R1 reads it with the About strings
 } as const;

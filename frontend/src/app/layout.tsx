@@ -6,6 +6,7 @@ import { CommandPalette } from "@/components/palette/CommandPalette";
 import { KeyboardShortcuts } from "@/components/keyboard/KeyboardShortcuts";
 import { WorkspaceBootstrap } from "@/components/WorkspaceBootstrap";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
+import { SiteFooter } from "@/components/SiteFooter";
 import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/lib/productCopy";
 import { LAYOUT_ATTRIBUTE } from "@/lib/layoutFlag";
 import { LOOK_ATTRIBUTE } from "@/lib/look";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto print:overflow-visible">
               <EditionGate>{children}</EditionGate>
+              <SiteFooter />
             </main>
           </div>
         </div>

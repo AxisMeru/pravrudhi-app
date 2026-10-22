@@ -41,7 +41,7 @@ test("build.json: a missing or malformed sha is 'unknown', never anything else",
 
 test("build.json is wired as the prebuild step and the generated file is gitignored", () => {
   const pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "package.json"), "utf8")) as { scripts: Record<string, string> };
-  assert.equal(pkg.scripts.prebuild, "node scripts/write-build-json.mjs");
+  assert.equal(pkg.scripts.prebuild, "node scripts/write-build-json.mjs && node scripts/write-build-info.mjs"); // app#519: the About page's build time and sha, written once by a second step; build.json itself is unchanged
   const ignore = readFileSync(join(__dirname, "..", "..", "..", ".gitignore"), "utf8").split("\n").map((l) => l.trim());
   assert.ok(ignore.includes("frontend/public/build.json"), "public/build.json is generated, not committed");
 });

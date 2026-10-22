@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/write-build-json.mjs",
+    "prebuild": "node scripts/write-build-json.mjs && node scripts/write-build-info.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

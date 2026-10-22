@@ -16,7 +16,7 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second model reviewer.");
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
   // everything outside the NyayaSiddhi results view
-  const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"], [data-testid="block-film"], [data-testid="block-ns-links"]').forEach((n) => n.remove()); return c.innerText; });
+  const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"], [data-testid="block-film"], [data-testid="block-ns-links"], [data-testid="site-footer"]').forEach((n) => n.remove()); return c.innerText; });
   expect(text).not.toMatch(/%|interval|upper bound|Result pending|Registered bar|Inconclusive/i);
   expect(text.replace(/NyayaSiddhi v0\.2/, "")).not.toMatch(/\d/);
   // the Links block (R1): file names such as s6_scorer.py carry a digit, so it is read apart: no percent, no count of files
