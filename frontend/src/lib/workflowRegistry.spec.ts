@@ -165,7 +165,7 @@ test("the section look-up row: R1's title and line by hash, last of eleven, only
   assert.equal(registryEntries(true, false).length, 10, "no look-up flag: ten");
   assert.equal(registryEntries(false, false).length, 8);
   assert.ok(!registryEntries(true, false).some((e) => e.key === "wf_b1_section_lookup"));
-  assert.equal(registryAvailable(undefined).wf_b1_section_lookup, false, "a build without the look-up card: not on in the fallback");
+  assert.equal(registryAvailable(undefined).wf_b1_section_lookup, true, "the fallback has the look-up on (Lead-2, 22 Oct); a build without the look-up card does not list the row at all");
   assert.equal(registryAvailable({ ...Object.fromEntries(REGISTRY.map((e) => [e.key, true])) }).wf_b1_section_lookup, false, "a map that omits it: off");
   assert.equal(registryAvailable({ wf_b1_section_lookup: false }).wf_b1_section_lookup, false);
   assert.equal(registryAvailable({ wf_b1_section_lookup: true }).wf_b1_section_lookup, true);
@@ -180,18 +180,18 @@ test("the section look-up row: R1's title and line by hash, last of eleven, only
   assert.doesNotMatch(readFileSync(join(root, "src", "lib", "workflowRegistry.ts"), "utf8"), /process\.env/);
 });
 
-// Lead-2 (21 Oct, decision b): the anonymous / unreadable-status fallback follows the shipped engine config: on a drafting build A4 and A8 are Available WITH links when the status map cannot be read; the section look-up row is NEVER Available in the fallback
-// (R1: Coming with its line, no link, where the build lists it); a readable map still decides everything (an omitted key is off).
-test("fallback by build: eight only / drafting build adds A4 and A8 / the look-up is never Available in it; a readable map decides; no map and unreadable status are the same fallback", () => {
+// Lead-2 (21 Oct, decision b): the anonymous / unreadable-status fallback follows the shipped engine config: on a drafting build A4 and A8 are Available WITH links when the status map cannot be read; the section look-up row WAS never Available in the fallback (R1); Lead-2 changed that on 22 Oct after the live transient read: it is Available there now
+// (a build that lists it shows its link); a readable map still decides everything (an omitted key is off).
+test("fallback by build: eight only / drafting build adds A4 and A8 / the look-up is Available in it (22 Oct); a readable map decides; no map and unreadable status are the same fallback", () => {
   const eight = Object.fromEntries(REGISTRY.map((e) => [e.key, true]));
   for (const noMap of [undefined, null]) {
     const plain = registryAvailable(noMap, {});
     assert.deepEqual(REGISTRY.map((e) => plain[e.key]), REGISTRY.map(() => true));
-    assert.equal(plain.wf_a4_bail_drafting, false); assert.equal(plain.wf_a8_synopsis_list_of_dates, false); assert.equal(plain.wf_b1_section_lookup, false);
+    assert.equal(plain.wf_a4_bail_drafting, false); assert.equal(plain.wf_a8_synopsis_list_of_dates, false); assert.equal(plain.wf_b1_section_lookup, true);
     const draft = registryAvailable(noMap, { drafting: true });
-    assert.equal(draft.wf_a4_bail_drafting, true); assert.equal(draft.wf_a8_synopsis_list_of_dates, true); assert.equal(draft.wf_b1_section_lookup, false, "the look-up row is not in the fallback on a drafting-only build");
-    // R1: the look-up row is NEVER Available in the fallback, on any build ("Coming" with its line and no link where the build lists it)
-    for (const b of [{}, { drafting: true }]) assert.equal(registryAvailable(noMap, b).wf_b1_section_lookup, false);
+    assert.equal(draft.wf_a4_bail_drafting, true); assert.equal(draft.wf_a8_synopsis_list_of_dates, true); assert.equal(draft.wf_b1_section_lookup, true, "the look-up row is on in the fallback on every build");
+    // Lead-2 (22 Oct): the look-up row is Available in the fallback on any build (the card works; a slow or failed map read must not say Coming)
+    for (const b of [{}, { drafting: true }]) assert.equal(registryAvailable(noMap, b).wf_b1_section_lookup, true);
   }
   // a readable map decides on every build: an omitted key is off (even with the build flags), a true key is on
   for (const b of [{}, { drafting: true }]) {
