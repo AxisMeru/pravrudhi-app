@@ -9,165 +9,205 @@ This is the technical view of Pravrudhi-Nyaya: how a screening is built, how it'
 We'll go through the moving parts in the order a matter flows through them.
 
 3
-00:00:16.100 --> 00:00:26.094
+00:00:16.100 --> 00:00:25.502
 First, two names, because they get mixed up. Pravrudhi-Nyaya is the product, the app a firm opens. Prabhāsa-Nyāya is our own set of trained models, which sit inside it.
 
 4
-00:00:26.094 --> 00:00:33.887
+00:00:25.502 --> 00:00:32.832
 Think of the whole system as a second reader that works before filing. It doesn't decide cases and it doesn't draft your pleadings.
 
 5
-00:00:33.887 --> 00:00:39.300
+00:00:32.832 --> 00:00:37.925
 When it can't support a statement, it says so, gives the reason, and refers it to a lawyer.
 
 6
-00:00:40.800 --> 00:00:46.547
+00:00:39.500 --> 00:00:45.140
 Everything starts with the corpus. Every real item begins as a public judgment or an order.
 
 7
-00:00:46.547 --> 00:00:53.935
+00:00:45.140 --> 00:00:52.392
 We gather it, clean it, and then two model readers go through it separately, pulling out facts and ingredient labels.
 
 8
-00:00:53.935 --> 00:01:02.207
+00:00:52.392 --> 00:01:00.512
 Two readers, so that a disagreement shows up instead of hiding. Be clear about what that is: model-extracted, with no human review.
 
 9
-00:01:02.207 --> 00:01:11.996
+00:01:00.512 --> 00:01:10.119
 Then the material is split three ways: training, held-out testing, and evaluation. Constructed cases exist too, but they're kept apart and always labelled.
 
 10
-00:01:11.996 --> 00:01:17.300
+00:01:10.119 --> 00:01:15.326
 And evaluation items are checked against the training data, by identity and by text.
 
 11
-00:01:18.800 --> 00:01:22.986
-Now the judges, our trained models that read one ingredient at a time.
+00:01:15.326 --> 00:01:24.375
+On the real court items we have seen, that is three hundred seventy-two: three hundred thirty-six court-rejected and thirty-six court-established.
 
 12
-00:01:22.986 --> 00:01:29.085
-An offence is broken into its ingredients, and a smaller four-billion-parameter judge scores each one.
+00:01:25.900 --> 00:01:29.844
+Now the judges, our trained models that read one ingredient at a time.
 
 13
-00:01:29.085 --> 00:01:39.131
-A larger thirty-two-billion-parameter judge then checks those same ingredients. An ingredient is shown as supported only if both judges point to a fact that carries it.
+00:01:29.844 --> 00:01:35.591
+An offence is broken into its ingredients, and a smaller four-billion-parameter judge scores each one.
 
 14
-00:01:39.131 --> 00:01:48.579
-A separate structure check then confirms every ingredient was addressed. If either is unsure, or they disagree, the answer is refer, with the reason attached.
+00:01:35.591 --> 00:01:45.056
+A larger thirty-two-billion-parameter judge then checks those same ingredients. An ingredient is shown as supported only if both judges point to a fact that carries it.
 
 15
-00:01:48.579 --> 00:01:51.150
-One ingredient at a time, two readers deep.
+00:01:45.056 --> 00:01:53.958
+A separate structure check then confirms every ingredient was addressed. If either is unsure, or they disagree, the answer is refer, with the reason attached.
 
 16
-00:01:52.700 --> 00:02:00.320
-Around the judges sits the harness, and this is where the decision actually gets made. Assembly of the table is deterministic.
+00:01:53.958 --> 00:01:56.380
+One ingredient at a time, two readers deep.
 
 17
-00:02:00.320 --> 00:02:07.456
-Every quoted passage has to appear in the source text, and a quote that doesn't is labelled not found, never invented.
+00:01:56.380 --> 00:02:07.198
+On a seventy-row calibration set, on the dev stack, the four-billion judge alone agreed with the labels on thirty-three rows of seventy, against twenty-nine of seventy for refusing everything.
 
 18
-00:02:07.456 --> 00:02:16.890
-Each offence is also written as a contract in Lean, a language for exact, machine-checked reasoning, and that check confirms every ingredient was addressed.
+00:02:07.198 --> 00:02:12.325
+That is agreement with model-extracted labels, not accuracy. A screening signal, not proof.
 
 19
-00:02:16.890 --> 00:02:24.147
-Unclear facts, judges that disagree, an offence outside the validated list: all of those give refer. The models propose.
+00:02:13.900 --> 00:02:21.552
+Around the judges sits the harness, and this is where the decision actually gets made. Assembly of the table is deterministic.
 
 20
-00:02:24.147 --> 00:02:28.925
-The code decides, and given the same judge answers, it gives the same decision.
+00:02:21.552 --> 00:02:28.719
+Every quoted passage has to appear in the source text, and a quote that doesn't is labelled not found, never invented.
 
 21
-00:02:30.500 --> 00:02:38.657
-The vocabulary of the results comes from Nyaya, a classical Indian school of logic. We borrow its discipline about what may be claimed.
+00:02:28.719 --> 00:02:38.193
+Each offence is also written as a contract in Lean, a language for exact, machine-checked reasoning, and that check confirms every ingredient was addressed.
 
 22
-00:02:38.657 --> 00:02:47.359
-Pramana: a reason to hold something true. For us, that's a fact you can point to in the papers. Nirnaya, the settled judgment: that is withheld.
+00:02:38.193 --> 00:02:45.481
+Unclear facts, judges that disagree, an offence outside the validated list: all of those give refer. The models propose.
 
 23
-00:02:47.359 --> 00:02:50.682
-The system never states a conclusion about your matter.
+00:02:45.481 --> 00:02:50.279
+The code decides, and given the same judge answers, it gives the same decision.
 
 24
-00:02:50.682 --> 00:02:59.081
-And agama, testimony: an allegation in a complaint is a claim to be checked, and a model's output is a proposal, never evidence on its own.
+00:02:50.279 --> 00:02:59.450
+Our verifier checked a frontier model's quotes against case texts: one hundred eighty-six of two hundred eight verbatim quotes were not found verbatim.
 
 25
-00:02:59.081 --> 00:03:01.075
-Old ideas, used as working rules.
+00:03:01.000 --> 00:03:08.677
+The vocabulary of the results comes from Nyaya, a classical Indian school of logic. We borrow its discipline about what may be claimed.
 
 26
-00:03:02.600 --> 00:03:08.471
-There's also an optional assistant, built on Claude Managed Agents, which runs Claude as an agent.
+00:03:08.677 --> 00:03:16.866
+Pramana: a reason to hold something true. For us, that's a fact you can point to in the papers. Nirnaya, the settled judgment: that is withheld.
 
 27
-00:03:08.471 --> 00:03:16.500
-It's offered to signed-in users, it's off unless you tick a consent box for that run, and ticking it means your facts go to Anthropic.
+00:03:16.866 --> 00:03:19.994
+The system never states a conclusion about your matter.
 
 28
-00:03:16.500 --> 00:03:26.625
-Spending is capped per session and per day. It runs the same steps you'd see anyway, and shows them. But the principle doesn't change. Claude proposes. The core decides.
+00:03:19.994 --> 00:03:27.898
+And agama, testimony: an allegation in a complaint is a claim to be checked, and a model's output is a proposal, never evidence on its own.
 
 29
-00:03:28.600 --> 00:03:38.849
-The citation check is deliberately modest. It looks a citation up in an index of titles, courts, years and citation strings. That index holds no judgment text.
+00:03:27.898 --> 00:03:29.775
+Old ideas, used as working rules.
 
 30
-00:03:38.849 --> 00:03:49.098
-So it can tell you a case exists, but not what the case says. A citation reads Found in our index only when exactly one case fits the year and the party names.
+00:03:31.300 --> 00:03:37.318
+There's also an optional assistant, built on Claude Managed Agents, which runs Claude as an agent.
 
 31
-00:03:49.098 --> 00:03:53.932
-No match, and several possible matches, are both reported as what they are.
+00:03:37.318 --> 00:03:47.449
+It is optional, for signed-in users, and only when you tick the consent box. Ticking it means your facts go to Anthropic. Spending is capped per session and per day.
 
 32
-00:03:53.932 --> 00:04:04.310
-And because there's no text to check against, a request that carries a quote is refused rather than guessed. It's an existence check. It is never a verification.
+00:03:47.449 --> 00:03:55.125
+It runs the same steps you'd see anyway, and shows them. But the principle doesn't change. Claude proposes. The core decides.
 
 33
-00:04:04.310 --> 00:04:06.050
-In the app it is a preview.
+00:03:57.300 --> 00:04:06.534
+The citation check is deliberately modest. It looks a citation up in an index of titles, courts, years and citation strings. That index holds no judgment text.
 
 34
-00:04:07.600 --> 00:04:15.462
-On serving and cost. A small always-on CPU service runs the harness and calls the judges. It holds no model weights.
+00:04:06.534 --> 00:04:15.768
+So it can tell you a case exists, but not what the case says. A citation reads Found in our index only when exactly one case fits the year and the party names.
 
 35
-00:04:15.462 --> 00:04:31.730
-The judges run on rented serverless GPUs that scale to zero: a worker is billed while it runs, including a short idle time after the last request, and not once it has stopped, and the first request after a pause waits for a worker to start.
+00:04:15.768 --> 00:04:24.363
+No match, and several possible matches, are both reported as what they are. The citation check looks up a citation in our index. Found in our index.
 
 36
-00:04:31.730 --> 00:04:39.456
-Development, training and tests run on our own GPU machines, and results from those are labelled dev stack, local.
+00:04:24.363 --> 00:04:28.893
+It does not look at quotes and does not say whether the case supports a point.
 
 37
-00:04:39.456 --> 00:04:45.150
-A fallback endpoint is planned, but it isn't part of what we're describing as built.
+00:04:28.893 --> 00:04:38.650
+On a constructed set of exact-text quotes, fifty-five of fifty-six were verified and none of one hundred two planted wrong quotes; that is not a rate on real citations.
 
 38
-00:04:46.700 --> 00:04:55.234
-Finally, evaluation discipline. The test, the pass bar and the stopping rule are written down before the run, so the result can't move them.
+00:04:40.200 --> 00:04:45.107
+Next, the Matter tools page. On Matter tools you add the papers of a matter.
 
 39
-00:04:55.234 --> 00:05:04.743
-Every look at an evaluation set is counted, so nothing gets quietly re-run until it passes. If a result shows no difference, it's reported as no difference.
+00:04:45.107 --> 00:04:52.661
+The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter.
 
 40
-00:05:04.743 --> 00:05:08.218
-A model that wasn't promoted is recorded as not promoted.
+00:04:52.661 --> 00:05:03.250
+The tools below use those papers, except the Section 138 checklist, which counts from dates you confirm. Two tools help with a first draft, for a lawyer to rewrite.
 
 41
-00:05:08.218 --> 00:05:15.716
-And where a document-level overlap turned up in an earlier model line, we removed the affected evaluation rows and said so.
+00:05:06.200 --> 00:05:15.209
+On serving. A small always-on CPU service runs the harness and calls the judges. It holds no model weights. The judges run on rented serverless GPUs.
 
 42
-00:05:15.716 --> 00:05:25.225
-Every figure carries a label: real or constructed material, and which serving stack produced it. A result is only worth what the test could have done to it.
+00:05:15.209 --> 00:05:22.101
+Development, training and tests run on our own GPU machines, and results from those are labelled dev stack, local.
 
 43
-00:05:26.800 --> 00:05:35.350
-Built to show its work, and to say so when the facts don't carry it. The technical report holds the figures, each with its label.
+00:05:22.101 --> 00:05:31.775
+On the dev stack on the Spark, thirty real-court matters took a median of three point nine seconds, one at a time. A one-machine deployment is not demonstrated.
+
+44
+00:05:33.300 --> 00:05:41.598
+Finally, evaluation discipline. The test, the pass bar and the stopping rule are written down before the run, so the result can't move them.
+
+45
+00:05:41.598 --> 00:05:50.845
+Every look at an evaluation set is counted, so nothing gets quietly re-run until it passes. If a result shows no difference, it's reported as no difference.
+
+46
+00:05:50.845 --> 00:05:54.223
+A model that wasn't promoted is recorded as not promoted.
+
+47
+00:05:54.223 --> 00:06:01.514
+And where a document-level overlap turned up in an earlier model line, we removed the affected evaluation rows and said so.
+
+48
+00:06:01.514 --> 00:06:10.760
+Every figure carries a label: real or constructed material, and which serving stack produced it. A result is only worth what the test could have done to it.
+
+49
+00:06:10.760 --> 00:06:23.504
+On the real court items, the rule returned a proof on none of two hundred ninety court-rejected items, one-sided ninety-five percent upper bound one point oh three percent, checked after the fact on the mixed stack.
+
+50
+00:06:23.504 --> 00:06:30.380
+It also proved none of thirty-one real court-established items that reached the judges, and five more were referred.
+
+51
+00:06:30.380 --> 00:06:39.152
+If the two rows on which the second judge was unavailable are counted as proofs, the count is two of two hundred ninety, two point one five percent.
+
+52
+00:06:39.152 --> 00:06:42.175
+Head-to-head against a frontier model is not shown.
+
+53
+00:06:43.700 --> 00:06:48.125
+Built to show its work, and to say so when the facts don't carry it.
