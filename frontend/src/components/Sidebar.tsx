@@ -26,6 +26,7 @@ import {
   Workflow,
   ShieldCheck,
   FolderOpen,
+  House,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { MatterBNav } from "@/components/MatterBNav";
@@ -221,7 +222,7 @@ export function Sidebar() {
       >
       <div className="border-b border-[var(--color-border)] px-5 py-5 max-md:pl-[68px]">
         <div className="flex items-center justify-between gap-2">
-          <div data-testid="drawer-brand" className="min-w-0 text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition}</div>
+          <div data-testid="drawer-brand" className="min-w-0 text-lg font-semibold tracking-tight text-[var(--color-text)]">{whoami.edition === STUDIO ? whoami.edition : <Link href="/" className="hover:underline" data-testid="brand-home-link">{whoami.edition}</Link>}</div>
           <div className="flex shrink-0 items-center gap-1">
             <ThemeSwitch where="row" />
             {canSeeNotifications(whoami.access, IS_DEMO) && <NotificationBell />}
@@ -241,6 +242,13 @@ export function Sidebar() {
         {/* A product install does not serve the engine's self-improvement surfaces at all, so offering them
             here would be links that answer 404. The rule lives in lib/palette.ts, which the command palette
             asks too. */}
+        {/* Home (app#539): the first item of the product nav; the Studio edition keeps its own Improve entry at the same address. */}
+        {whoami.edition !== STUDIO && (
+          <Link href="/" aria-current={pathname === "/" ? "page" : undefined} data-testid="nav-home" className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors max-md:min-h-11 ${pathname === "/" ? "bg-[var(--color-surface-raised)] text-[var(--color-text)]" : "text-[var(--color-text-dim)] hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"}`}>
+            <House size={16} />
+            <span className="flex-1">{NAV_LABELS.home}</span>
+          </Link>
+        )}
         {LAYOUT_MATTER_B ? (
           <MatterBNav
             pathname={pathname}

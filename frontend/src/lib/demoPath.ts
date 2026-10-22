@@ -9,7 +9,7 @@ export const DEMO_HOME = "/screening";
 
 // The demo path plus the settings page (keys, account). Nothing here is labelled experimental yet, so
 // nothing experimental is offered.
-export const DEMO_PATH_HREFS: readonly string[] = ["/screening", "/matters", "/citations", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings", "/about"];
+export const DEMO_PATH_HREFS: readonly string[] = ["/", "/screening", "/matters", "/citations", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings", "/about"];
 
 export function offeredInDemoPath(href: string, on: boolean = DEMO_PATH): boolean {
   return !on || DEMO_PATH_HREFS.includes(href);
@@ -67,6 +67,7 @@ export function gateDecision(
   // Anyone who is not (known to be) Studio gets an ALLOW-list: a path is rendered only if the surface offers it. A path
   // that is not on the list is never rendered, whatever spelling it arrives in, and a page nobody listed is closed by default.
   if (!surfaceOpen(pathname)) return edition === null ? "wait" : "block";
-  if (normalizePath(pathname) === "/") return edition === null ? "wait" : "redirect-home";
+  // "/" is the product Home (app#539): a landing signed out, the workspace home signed in; it is no longer sent to the Screening page. It still waits while the edition is unknown (a Studio user must not see the product Home first).
+  if (normalizePath(pathname) === "/") return edition === null ? "wait" : "allow";
   return "allow";
 }
