@@ -95,5 +95,5 @@ test("nothing writes an address to the console", async ({ page }) => {
   await page.getByLabel(ACCESS_COPY.inviteLabel).fill("someone@example.com");
   await page.getByTestId("access-invite-send").click();
   await expect(page.getByTestId("access-note")).toBeVisible();
-  expect(logs.join("\n")).not.toMatch(/@example\.invalid/);
+  expect(logs.join("\n")).not.toMatch(/@example\.com/);
 });

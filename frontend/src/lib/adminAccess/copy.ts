@@ -25,6 +25,7 @@ export const ERROR_COPY: Readonly<Record<string, string>> = {
   rate_limited: "Too many requests. Try again later.",
   invite_rate_limited: "Email sending is limited at the moment. Try again later.",
   already_registered: "This address already has an account.",
+  no_answer: "There was no answer in time. The invitation may or may not have been sent: check with the person before sending again.",
   upstream_unavailable: "The service did not answer. Nothing was changed. Try again.",
   audit_unavailable: "Nothing was done. Try again.",
   not_configured: "This is not available.",

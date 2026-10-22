@@ -12,7 +12,7 @@ test("the email rule: trimmed, lowercased, one address, no listed character, at 
 });
 
 test("every error code of the contract has one fixed message, an unknown code gets the generic one, and none echoes an input", () => {
-  const codes = ["unauthorized", "forbidden", "invalid_email", "rate_limited", "invite_rate_limited", "already_registered", "upstream_unavailable", "audit_unavailable", "not_configured", "invite_redirect_not_allowed"];
+  const codes = ["unauthorized", "forbidden", "invalid_email", "rate_limited", "invite_rate_limited", "already_registered", "upstream_unavailable", "audit_unavailable", "not_configured", "invite_redirect_not_allowed", "no_answer"];
   for (const c of codes) assert.ok(ERROR_COPY[c], c);
   assert.equal(messageFor("something_new"), ERROR_GENERIC);
   assert.equal(messageFor(""), ERROR_GENERIC);

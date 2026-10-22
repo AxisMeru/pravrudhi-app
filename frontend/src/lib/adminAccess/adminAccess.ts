@@ -20,6 +20,9 @@ export function messageFor(code: string): string {
   return ERROR_COPY[code] ?? ERROR_GENERIC;
 }
 
+/** The function answers within its own 10 s upstream limit; a request with no answer after this long is stopped so "Working…" cannot hang. */
+export const FUNCTION_TIMEOUT_MS = 20_000;
+
 type Body = { action: "invite"; email: string } | { action: "resend"; email: string };
 
 async function callFunction(body: Body): Promise<ActionResult> {
@@ -33,13 +36,17 @@ async function callFunction(body: Body): Promise<ActionResult> {
       headers: { authorization: `Bearer ${token}`, apikey: key, "content-type": "application/json" },
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: AbortSignal.timeout(FUNCTION_TIMEOUT_MS),
     });
     const out = (await res.json().catch(() => null)) as { ok?: unknown; code?: unknown } | null;
     if (res.ok && out?.ok === true) return { ok: true };
     const code = typeof out?.code === "string" ? out.code : res.status === 401 ? "unauthorized" : res.status === 403 ? "forbidden" : "";
     return { ok: false, code, message: messageFor(code) };
-  } catch {
-    return { ok: false, code: "upstream_unavailable", message: messageFor("upstream_unavailable") };
+  } catch (e) {
+    // No answer in time: the invitation may or may not have been sent, so the message says so (never "nothing was changed").
+    const timedOut = typeof e === "object" && e !== null && ((e as { name?: string }).name === "TimeoutError" || (e as { name?: string }).name === "AbortError");
+    const code = timedOut ? "no_answer" : "upstream_unavailable";
+    return { ok: false, code, message: messageFor(code) };
   }
 }
 
