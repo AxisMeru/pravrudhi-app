@@ -19,7 +19,7 @@ test("/about with a live engine: the versions, the signed What's new lines, the 
   await expect(page.getByTestId("about-status")).toHaveText("Engine: running");
   const rel = page.getByTestId("about-release");
   await expect(rel).toHaveCount(5);
-  await expect(rel.nth(0)).toHaveText("22 Oct 2026 14:15 BST · Engine 0.6.32 · Adds groundwork for a later feature, switched off. Nothing changes for you.");
+  await expect(rel.nth(0)).toHaveText("22 Oct 2026 14:15 BST · Engine 0.6.32 · Adds the service's part of a feature that starts on request. Whether the feature is in use is a separate setting, not part of this release.");
   await expect(rel.nth(2)).toHaveText("21 Oct 2026 · Engine 0.6.28 · Old section look-up is on: it shows the table's section for an old IPC or CrPC number, and the IPC section text is restored.");
   await expect(page.getByRole("heading", { name: "What's new" })).toBeVisible();
   const links = page.getByTestId("about-pages").getByRole("link");
