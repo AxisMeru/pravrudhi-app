@@ -65,5 +65,5 @@ test("flag ON: an empty list, a truncated list (says only the first 50), and a r
   // the list is hidden, so the matter note must NOT say your matters are listed above (R1): it falls back to the interim note
   await page.getByTestId("pv-start").click();
   await expect(page.getByTestId("pv-matter-note")).not.toContainText("listed above");
-  await expect(page.getByTestId("pv-matter-note")).toContainText("your matters cannot be listed here");
+  await expect(page.getByTestId("pv-matter-note")).toContainText("When you are signed in, Your matters lists your matters");
 });
