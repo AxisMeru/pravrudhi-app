@@ -1,3 +1,4 @@
+import { ASSISTANT_SESSION_BILLED_CODE, ASSISTANT_SESSION_BILLED_LINE } from "./assistantBilled";
 import { INTERNAL_ERROR_LINE, internalErrorLine, isInternalError } from "./internalError";
 import { ApiError, apiBase, engineFetch, hasWebSession, health, isAbortError, isHostedEngine, IS_DEMO } from "./api";
 import { CODED_ERROR_TEXT, SERVICE_ERROR_TEXT, SESSION_401_TEXT } from "./signedStrings";
@@ -113,6 +114,7 @@ export type AnalyseErrorKind =
   | "sign_in_unverified"
   | "judge_unavailable"
   | "service_config_missing"
+  | "assistant_session_billed"
   | "agent_at_capacity"
   | "agent_unavailable"
   | "judges_offline"
@@ -168,6 +170,7 @@ export function classifyAnalyseError(e: unknown, internalLine: string | null = I
     if (e.status === 503 && e.code === "service_config_missing") {
       return { kind: "service_config_missing", message: SERVICE_ERROR_TEXT.service_config_missing };
     }
+    if (e.status === 502 && e.code === ASSISTANT_SESSION_BILLED_CODE) return { kind: "assistant_session_billed", message: ASSISTANT_SESSION_BILLED_LINE };
     const generic = `The engine answered with an error (HTTP ${e.status}). Nothing was scored.`;
     return { kind: "server", message: isInternalError(e) ? internalErrorLine(generic, internalLine) : generic };
   }
