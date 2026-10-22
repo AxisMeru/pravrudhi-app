@@ -61,7 +61,7 @@ type Nullable<T> = { [K in keyof T]: T[K] extends Record<string, string> ? Recor
 // R1's words, byte-exact (15 Oct 2026, with Interim lead's ruling: an explicit exception confined to /benchmarks; figures only here, each with n and its exact 95% interval; signed rows only; no ranking; no "proof").
 export const NYAYASIDDHI_STRINGS: Nullable<NyayaSiddhiStrings> = {
   heading: "NyayaSiddhi results",
-  intro: "NyayaSiddhi is our benchmark for screening under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
+  intro: "NyayaSiddhi is our element-by-element benchmark under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
   benchmarksSupplyLine: "For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.",
   tableCaption: "NyayaSiddhi runs, one card for each run",
   colSystem: "System", colStatus: "Status", colSplit: "Material", colRunDate: "Run date",

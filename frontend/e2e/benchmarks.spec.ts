@@ -52,6 +52,8 @@ test("the NyayaSiddhi results: R1's heading and intro, the signed cards in a fix
   await page.goto("/benchmarks");
   const box = page.getByTestId("nyayasiddhi-results");
   await expect(box.getByRole("heading", { name: "NyayaSiddhi results", level: 2 })).toBeVisible();
+  await expect(box).toContainText("NyayaSiddhi is our element-by-element benchmark under Indian criminal law. Only signed runs appear here");
+  await expect(box).not.toContainText("benchmark for screening");
   await expect(box).toContainText("Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.");
   await expect(box.getByTestId("ns-supply-line")).toHaveText("For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.");
   await expect(box.getByTestId("ns-order-line")).toHaveText("Rows are listed in a fixed order, by split and system name, never by a figure.");

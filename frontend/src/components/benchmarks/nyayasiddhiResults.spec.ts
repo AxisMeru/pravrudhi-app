@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
@@ -10,10 +11,19 @@ import { NYAYASIDDHI_STRINGS, resolveStrings } from "@/lib/nyayasiddhi";
 import { STATUSES, errorLineFor, isNotRun, parseRows } from "@/lib/nyayasiddhiRows";
 import { NyayaSiddhiResultsView } from "./NyayaSiddhiResults";
 
+// R1 (22 Oct, live read; advise): the first sentence of the results paragraph says "element-by-element", not "for screening"; pinned by hash (the rest of the paragraph stays as signed).
+test("the results paragraph opens with R1's 22 Oct sentence, by hash", () => {
+  const intro = NYAYASIDDHI_STRINGS.intro ?? "";
+  const first = `${intro.split(". ")[0]}.`;
+  assert.equal(first, "NyayaSiddhi is our element-by-element benchmark under Indian criminal law.");
+  assert.equal(createHash("sha256").update(first).digest("hex").slice(0, 16), "ea29b66f7ad52427");
+  assert.doesNotMatch(intro, /benchmark for screening/);
+});
+
 // R1's words, byte-exact (15 Oct 2026): the test holds its own copy, so a changed constant fails here.
 const R1 = {
   heading: "NyayaSiddhi results",
-  intro: "NyayaSiddhi is our benchmark for screening under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
+  intro: "NyayaSiddhi is our element-by-element benchmark under Indian criminal law. Only signed runs appear here, and every figure is a development figure on material we have already seen, not a measure of how the product does on your matter.",
   benchmarksSupplyLine: "For now the board holds only our own rows. A larger hidden set depends on the supply of suitable court items, and we promise no date.",
   tableCaption: "NyayaSiddhi runs, one card for each run",
   unitHeading: "How the system decides each item", groupHeading: "Offence group", groupAll: "All groups",
