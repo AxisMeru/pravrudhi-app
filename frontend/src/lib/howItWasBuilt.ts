@@ -17,7 +17,7 @@ export const HOW_BUILT_CARDS: readonly HowBuiltCard[] = [
       },
       {
         "label": "What it means for you",
-        "text": "the examples shown to you are real court text; the real-text part of the training material is traceable to a public source; the rest is constructed and labelled as constructed."
+        "text": "the examples shown to you are real court text; the real-text part of the training material is drawn from publicly available texts; for the Supreme Court judgments we have not confirmed the source or licence of our copy; the rest is constructed and labelled as constructed."
       },
       {
         "label": "What we found",
@@ -109,7 +109,7 @@ export const HOW_BUILT_CARDS: readonly HowBuiltCard[] = [
       },
       {
         "label": "What we do not claim",
-        "text": "that more training would help; we paused further judge training for the current release."
+        "text": "that more training would help. The analysis models in production are the versions described on this page; a retrained model replaces them only after it passes the same tests."
       }
     ]
   },

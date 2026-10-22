@@ -21,7 +21,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
   await expect(page.getByTestId("guide-caption")).toHaveText([...((await isLayoutB(page)) ? [] : ["This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text."]), ...(PANEL ? ["Existence check only."] : [])]); // layout B's frame 03 shows a Supported by a fact row, so it carries no such caption
   const step6 = page.getByTestId("guide-step").nth(5);
   if (PANEL) {
@@ -81,6 +81,7 @@ test("How it works is a section of the guide (the steps, the example link), and 
   await page.goto("/demo");
   await expect(page).toHaveURL(/\/guide\/?#how-it-works$/);
   await expect(page.getByTestId("guide-how-it-works")).toBeVisible();
+});
 
 test("the guide's Access and the analysis models section: three rows, every signed-in person can start the models (ON version), no ask-an-administrator line", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));

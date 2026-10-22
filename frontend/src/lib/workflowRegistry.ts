@@ -32,7 +32,7 @@ export interface RegistryEntry {
 
 // Display order (Advisor): Add papers first and marked "Start here", then the papers-based tools, then the cheque checklist and the cheque case check.
 export const REGISTRY: readonly RegistryEntry[] = [
-  { key: "wf_a2_span_index", route: "/matter-spans/query", title: "Papers for a matter", line: "Add the papers of a matter and find a passage in them.", anchor: "pv-matter", usesPapers: true, startHere: true },
+  { key: "wf_a2_span_index", route: "/matter-spans/query", title: "Papers for a matter", line: "Add the papers of a matter, open it again, and delete a paper or the matter.", anchor: "pv-matter", usesPapers: true, startHere: true },
   { key: "wf_a3_chronology", route: "/chronology", title: "Chronology", line: "Lists the dates it reads in your papers, each with its sentence. May be incomplete.", anchor: "pv-a3", usesPapers: true, startHere: false },
   { key: "wf_a5_ingredient_agenda", route: "/review-agenda", title: "Review agenda", line: "Lists the ingredients of the cheque-dishonour offence and the papers to look in.", anchor: "pv-a5", usesPapers: true, startHere: false },
   { key: "wf_a7_matter_hearing_pack", route: "/matter-hearing-pack", title: "Hearing pack", line: "Gathers the dates, papers still to add and citations to look up for a hearing.", anchor: "pv-hp", usesPapers: true, startHere: false },

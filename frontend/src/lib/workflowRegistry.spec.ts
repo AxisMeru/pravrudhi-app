@@ -11,7 +11,7 @@ const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").
 
 // R1's words (WORKFLOW_REGISTRY_WORDS_DRAFT_R1_2026-10-20.md sha12 bda372ae9d62): title / one line, sha256[:16].
 const PINS: Record<string, [string, string]> = {
-  wf_a2_span_index: ["1ec1a29ecd3f03f9", "25c519a8b94feacf"],
+  wf_a2_span_index: ["1ec1a29ecd3f03f9", "1d7c4c538386d571"],
   wf_a3_chronology: ["c96cad0be677f0b8", "b6fdf8f2e4cd746f"],
   wf_a5_ingredient_agenda: ["998b578bcf6d0cb2", "23fce3f5bc49c806"],
   wf_s1_matter_citation_sweep: ["a43b0c3543c11808", "93c987008a0b5b6e"],

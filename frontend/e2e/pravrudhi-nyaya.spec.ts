@@ -52,7 +52,7 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   else await expect(body.getByTestId("dh-papers")).toContainText("If you lose the matter number, there is not yet a tested way to ask us to delete your papers.");
   await expect(body.getByTestId("dh-papers")).not.toContainText(/permanent|we will remove|we will look into/i);
   await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
-  await expect(body.getByTestId("dh-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
+  await expect(body.getByTestId("dh-where")).toContainText("One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there.");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");
   expect(promiseHits(await body.innerText())).toEqual([]);
   await expect(body).not.toContainText(/no fact text is kept/i);

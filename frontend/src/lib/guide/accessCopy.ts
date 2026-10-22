@@ -19,7 +19,7 @@ const COMMON = {
 } as const;
 
 const ROW_PUBLIC = { label: "Without signing in", text: "You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in." };
-const ROW_ADMIN = { label: "Administrator", text: "An administrator can do everything a signed-in person can." };
+const ROW_ADMIN = { label: "Administrator", text: "An administrator can do everything a signed-in person can, and can invite a person by email." };
 
 /** The ON version: ships with cold start ON and the any-signed-in rule applied. */
 export const ACCESS_ON: AccessGuide = {

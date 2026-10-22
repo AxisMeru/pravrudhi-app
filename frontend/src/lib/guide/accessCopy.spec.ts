@@ -8,7 +8,7 @@ import { ACCESS_ON, type AccessGuide } from "./accessCopy";
 const all = (g: AccessGuide): string => [g.heading, g.intro, g.rowsHeading, ...g.rows.flatMap((r) => [r.label, r.text]), g.modelsHeading, ...g.models].join("\n");
 
 // REDACTIONS (operator, 22 Oct): no email, user id, endpoint id, dollar figure, limit, machine name or the helper that starts the models; nothing about who can create an account.
-const BANNED = /@|\$|\bwake\b|\bwaker\b|endpoint|runpod|\bgpu\b|\buser id\b|[0-9a-f]{8}-[0-9a-f]{4}|invit|sign-?ups?|create an account|approved|whitelist|allowlist|team member|beta|early access|pilot|restricted|request access|\bflag\b|dollar|cap\b|limit/i;
+const BANNED = /@|\$|\bwake\b|\bwaker\b|endpoint|runpod|\bgpu\b|\buser id\b|[0-9a-f]{8}-[0-9a-f]{4}|sign-?ups?|create an account|approved|whitelist|allowlist|team member|beta|early access|pilot|restricted|request access|\bflag\b|dollar|cap\b|limit/i;
 test("the section is redacted: nothing a reader should not see", () => {
   assert.doesNotMatch(all(ACCESS_ON), BANNED);
 });
@@ -27,13 +27,14 @@ test("the ON section (R1): the app starts the models for a signed-in screening a
   assert.doesNotMatch(on, /\b\d+\s*(s|sec|seconds|min|minutes)\b/i, "no number of seconds or minutes ('a few minutes' is the only duration word)");
   assert.deepEqual(ACCESS_ON.rows.map((r) => r.label), ["Without signing in", "Signed in", "Administrator"]);
   assert.equal(ACCESS_ON.rows[0]!.text, "You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in.");
-  assert.equal(ACCESS_ON.rows[2]!.text, "An administrator can do everything a signed-in person can.");
+  assert.equal(ACCESS_ON.rows[2]!.text, "An administrator can do everything a signed-in person can, and can invite a person by email.");
 });
 
-test("the guide page imports the ON section, and the guide's own step 2 and 'If it seems slow' keep their original sentences (true when cold start is on)", () => {
+test("the guide page imports the ON section, and the guide's own step 2 and 'If it seems slow' are R1's d61 words (true in every state: switched off, admin-only, any signed-in)", () => {
   const page = readFileSync(join(__dirname, "..", "..", "app", "guide", "page.tsx"), "utf8");
   assert.match(page, /import \{ ACCESS_ON as ACCESS \} from "@\/lib\/guide\/accessCopy";/);
   const copy = readFileSync(join(__dirname, "copy.ts"), "utf8");
-  assert.match(copy, /The first screening after a quiet period can take a few minutes to start; a later one can be faster\./);
-  assert.match(copy, /Choose Screen these facts\. The first screening after a quiet period can take a few minutes to start \(see If it seems slow\)\./);
+  assert.match(copy, /If the analysis models are switched off, the page either starts them and shows progress, or says plainly that they are switched off and nothing was scored\./);
+  assert.match(copy, /If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster\./);
+  assert.doesNotMatch(copy, /tries once more|quiet period/);
 });

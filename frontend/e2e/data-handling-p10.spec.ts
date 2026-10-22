@@ -13,13 +13,13 @@ test("the glance: heading, R1's line, three blocks quoting the first signed para
   await expect(glance.getByRole("link", { name: /^See the full section/ })).toHaveCount(3);
   await expect(page.getByTestId("dh-glance-sent")).toContainText("When you press Screen these facts, the facts you enter and the offences you select are sent to the Pravrudhi engine.");
   await expect(page.getByTestId("dh-glance-where")).toContainText("The screening runs on the Pravrudhi engine, hosted on RunPod");
-  // R1: the fallback-region sentence is in the glance too, as its own paragraph (a skimmer sees every location fact)
-  await expect(page.getByTestId("dh-glance-where").locator("p")).toHaveCount(2);
-  await expect(page.getByTestId("dh-glance-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there.");
+  // R1 (22 Oct, #537 V1): ONE sentence about where the two models run, in the glance as well (a skimmer sees every location fact)
+  await expect(page.getByTestId("dh-glance-where").locator("p")).toHaveCount(1);
+  await expect(page.getByTestId("dh-glance-where")).toContainText("One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there.");
   await expect(page.getByTestId("dh-glance-kept")).toContainText("Screening run records are kept for up to 7 days; papers you add to a matter are kept until you delete them.");
   // R1 (15 Oct, #300): the glance carries the sentence about what a run record can include, and never the fallback's tail that points "above" at another section
   await expect(page.getByTestId("dh-glance-kept")).toContainText("A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it.");
-  await expect(page.getByTestId("dh-glance-where")).toContainText("Parts of the screening run in EU data centres; for some parts the region is not fixed.");
+  await expect(page.getByTestId("dh-glance-where")).not.toContainText(/Europe only|EU data centres|North American/);
   await expect(page.getByTestId("dh-glance")).not.toContainText("described above");
   for (const id of ["sent", "where", "kept"]) {
     await expect(page.getByTestId(`dh-glance-link-${id}`)).toHaveAttribute("href", `#dh-${id}`);
