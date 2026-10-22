@@ -225,6 +225,8 @@ jobs:
       NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED: "1"
       NEXT_PUBLIC_INTAKE: "1"
       INTAKE_BUILD: "1"
+      NEXT_PUBLIC_YOUR_MATTERS: "1"
+      YOUR_MATTERS_BUILD: "1"
     steps:
       - uses: actions/checkout@v4
 

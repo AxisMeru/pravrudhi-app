@@ -298,17 +298,17 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "evaluation",
       "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
       "Evaluation discipline",
-      "Prabhasa-Nyaya is our own trained models;",
       "Evaluation kept out of training, looks counted, and null results reported.",
+      "Prabhāsa-Nyāya is our own trained models;",
     ],
   },
   "public/films/client/captions.vtt": {
     reason: "the client film's captions: the narration's own \"text\" (NARRATION_CLIENT_FROZEN v3, narration.json sha256 2ebe69ec11ebf242, R1-confirmed by hash), cut into cues; describes how the product is built and evaluated, not what happens to a submission",
     sentences: [
       "4 00:00:23.627 --> 00:00:29.175 Prabhāsa-Nyāya is the set of models we trained ourselves, and they work quietly inside it.",
-      "22 00:02:25.500 --> 00:02:35.600 Behind the checklist there are two of our trained models.",
-      "24 00:02:43.400 --> 00:02:46.844 Where does a model like that learn?",
-      "26 00:02:55.086 --> 00:03:02.425 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.",
+      "21 00:02:25.400 --> 00:02:35.500 Behind the checklist there are two of our trained models.",
+      "23 00:02:43.300 --> 00:02:46.744 Where does a model like that learn?",
+      "25 00:02:54.986 --> 00:03:02.325 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.",
     ],
   },
   "public/films/technical/captions.vtt": {

@@ -10,6 +10,8 @@ export const REQUIRED = {
   "assistant-tier": { minExpected: 1, maxSkipped: null },
   "intake": { minExpected: 1, maxSkipped: 0 },
   "anonymous-assistant": { minExpected: 1, maxSkipped: 0 },
+  // "Your matters" (cut 2): in the flag-ON build the two ON tests run and the one flag-OFF test skips on purpose, so two passes and at most one skip.
+  "your-matters": { minExpected: 2, maxSkipped: 1 },
 };
 
 /** Walks the report's suites and counts, per spec file (name without .spec.ts), the tests by final status. */
