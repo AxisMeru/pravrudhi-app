@@ -17,7 +17,6 @@ test("the standalone Data handling links carry a 24 px minimum", () => {
   assert.match(src("components/screening/AssistantRun.tsx"), /className="inline-flex min-h-6 [^"]*"\s+data-testid="assistant-data-link"/);
 });
 
-test("the Create an account switch and the fact-row Remove button carry a 24 px minimum", () => {
-  assert.match(src("app/signin/page.tsx"), /className="min-h-6 py-1 font-medium/);
+test("the fact-row Remove button carries a 24 px minimum (the sign-in page has no sign-up switch since #523)", () => {
   assert.match(src("app/screening/page.tsx"), /className="inline-flex min-h-8 min-w-6 /);
 });
