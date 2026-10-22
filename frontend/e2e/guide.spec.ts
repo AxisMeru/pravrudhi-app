@@ -93,5 +93,11 @@ test("the guide's Access and the analysis models section: three rows, state-free
   await expect(sec).toContainText("Whether you can start the analysis models depends on your account.");
   await expect(sec).toContainText("your account may start them, the app starts them and shows each model loading");
   await expect(sec).toContainText("If the first model does not start, the page says so plainly and no result is shown.");
-  await expect(sec).not.toContainText(/ask your administrator|allowed to start|invit|sign-?up/i);
+  await expect(sec).not.toContainText(/ask your administrator|allowed to start|sign-?up/i);
+  // R1: the invitation sentence is in the Administrator row only (true only with #534 and its function live), never in the Signed-in row or the models paragraphs
+  const rows = sec.getByTestId("guide-access-rows").locator("dd");
+  await expect(rows.nth(2)).toContainText("can invite a person by email");
+  await expect(rows.nth(0)).not.toContainText(/invit/i);
+  await expect(rows.nth(1)).not.toContainText(/invit/i);
+  expect((await sec.getByTestId("guide-access-models").allInnerTexts()).join(" ")).not.toMatch(/invit/i);
 });
