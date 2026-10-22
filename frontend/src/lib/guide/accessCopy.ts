@@ -45,7 +45,7 @@ export const ACCESS_ON: AccessGuide = {
   ],
   models: [
     "The analysis models are normally switched off. If you are signed in and send a screening while they are off, the app starts them and shows each model loading, one line for the first model and one for the second. This can take a few minutes. Nothing is shown as supported until both models have checked it.",
-    "If the second model does not complete its check, the first model's result is shown with a warning. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.",
+    "Even when both models have started, the second model may not complete its check for every ingredient. When that happens, the first model's result is shown with a warning, and any ingredient the second model did not check goes to a lawyer and is not shown as supported.",
     "If the models do not start, nothing is scored and no result is shown. You can try again in a few minutes.",
     "The models are switched off again after a period without use.",
   ],

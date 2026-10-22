@@ -45,7 +45,8 @@ test("the ON version (d60): the app starts the models for a signed-in screening,
   assert.match(on, /the app starts them and shows each model loading/);
   assert.match(on, /This can take a few minutes\./);
   assert.match(on, /Nothing is shown as supported until both models have checked it\./);
-  assert.match(on, /Any ingredient the second model did not check goes to a lawyer and is not shown as supported\./);
+  assert.match(on, /Even when both models have started, the second model may not complete its check for every ingredient\. When that happens, the first model's result is shown with a warning, and any ingredient the second model did not check goes to a lawyer and is not shown as supported\./);
+  assert.doesNotMatch(on, /\balways\b|every ingredient is scored|both models score/i);
   assert.match(on, /Every signed-in person can use all of these, including starting the analysis models\./);
   assert.doesNotMatch(on, /You can send a screening|Nothing is scored until|when nobody needs them|ask your administrator/i);
   assert.doesNotMatch(on, /\b\d+\s*(s|sec|seconds|min|minutes)\b/i, "no number of seconds or minutes ('a few minutes' is the only duration word)");
