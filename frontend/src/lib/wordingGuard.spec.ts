@@ -8,7 +8,7 @@ import test from "node:test";
 // "quoted words" rule here until then (see KNOWN_PENDING).
 const ROOT = join(__dirname, "..");
 const FILES = [
-  "app/matters/page.tsx", "app/citations/page.tsx", "app/safety/page.tsx", "app/demo/page.tsx", "app/benchmarks/page.tsx",
+  "app/matters/page.tsx", "app/citations/page.tsx", "app/safety/page.tsx", "components/HowItWorks.tsx", "app/benchmarks/page.tsx",
   "lib/surfaceCopy.ts", "lib/memo.ts", "lib/demo/steps.ts", "lib/demo/safety.ts", "lib/citedFact.ts", "lib/benchmarks.ts", "lib/citationCheck.ts",
 ];
 const code = (f: string): string =>

@@ -31,7 +31,7 @@ test("the grouped navigation: Work, Reference and Account, labels changed and pa
     for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
   }
   await expect(nav.getByTestId("nav-group-studio")).toHaveCount(0);
-  const hrefs: Record<string, string> = { ...(b ? {} : { Matter: "/screening" }), Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
+  const hrefs: Record<string, string> = { ...(b ? {} : { Matter: "/screening" }), Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "User guide": "/guide" };
   for (const [name, href] of Object.entries(hrefs)) await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", new RegExp(`${href}/?$`));
   await expect(nav.getByRole("link", { name: "User guide", exact: true })).toHaveAttribute("aria-current", "page");
   for (const studio of ["Objectives", "Progress", "Memory", "Catalogue", "Chat", "Runs", "Models", "Install"]) await expect(nav.getByRole("link", { name: studio, exact: true })).toHaveCount(0);

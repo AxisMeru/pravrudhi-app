@@ -30,7 +30,7 @@ export function MatterBNav({ items, pathname, studio }: { items: MbNavItem[]; pa
   const by = (href: string) => items.find((i) => i.href === href);
   // with the workflows front door (NEXT_PUBLIC_WORKFLOWS_V2=1) Workflows leads the group
   const general = (WORKFLOWS_V2 ? ["/workflows", "/matter-tools", "/citations", "/settings"] : ["/citations", "/workflows", "/matter-tools", "/settings"]).map(by).filter((i): i is MbNavItem => !!i);
-  const reference = ["/data-handling", "/guide", "/safety", "/benchmarks", "/demo", "/how-it-was-built", "/about"].map(by).filter((i): i is MbNavItem => !!i);
+  const reference = ["/data-handling", "/guide", "/safety", "/benchmarks", "/how-it-was-built", "/about"].map(by).filter((i): i is MbNavItem => !!i);
   const link = (i: MbNavItem) => {
     const active = i.href === "/" ? pathname === "/" : pathname.startsWith(i.href);
     return (

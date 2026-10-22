@@ -1,7 +1,7 @@
 import { expect, test } from "./support/engineTest";
 
 // #325: at 390 px the page heading starts at the content edge, not 64 px in. The menu button (fixed, 12-56 px) sits in the band the layout reserves above every page, so it clears the title vertically on every page that renders PageHeader.
-const PAGES = ["/screening", "/matters", "/workflows", "/guide", "/data-handling", "/demo", "/settings", "/safety", "/benchmarks", "/how-it-was-built", "/citations", "/technical-film", "/workflows", "/"];
+const PAGES = ["/screening", "/matters", "/workflows", "/guide", "/data-handling", "/settings", "/safety", "/benchmarks", "/how-it-was-built", "/citations", "/technical-film", "/workflows", "/"];
 test.use({ viewport: { width: 390, height: 844 } });
 
 test("390 px: on every page the menu button clears the heading vertically and the heading starts at 16 px", async ({ page }) => {

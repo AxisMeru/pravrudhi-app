@@ -31,8 +31,8 @@ test("the page works at phone width: no horizontal scroll of the page", async ({
   expect(sw).toBeLessThanOrEqual(iw);
 });
 
-test("the benchmarks page and the demo page link NyayaSiddhi with its blurb, and show no figure for it", async ({ page }) => {
-  for (const path of ["/benchmarks", "/demo"]) {
+test("the benchmarks page and the guide (How it works section) link NyayaSiddhi with its blurb, and show no figure for it", async ({ page }) => {
+  for (const path of ["/benchmarks", "/guide"]) {
     await page.goto(path);
     const link = page.getByTestId("nyayasiddhi-link");
     await expect(link).toHaveText("NyayaSiddhi v0.2: open Indian element-by-element development benchmark (data + scorer)");

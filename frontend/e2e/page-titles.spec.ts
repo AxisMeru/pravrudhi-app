@@ -5,7 +5,6 @@ import { isLayoutB } from "./support/layout";
 const TITLES: Array<[string, string]> = [
   ["/signin", "Sign in"],
   ["/screening", "Matter workspace"],
-  ["/demo", "How it works"],
   ["/workflows", "Workflows"],
   ["/data-handling", "Data handling"],
   ["/guide", "User guide"],

@@ -72,8 +72,8 @@ test("reduced motion: the poster and a button, no video until the visitor asks; 
   await expect(page.getByTestId("film-video")).toBeVisible();
 });
 
-test("/demo links to the technical film page and to the film in the guide", async ({ page }) => {
-  await page.goto("/demo");
+test("the guide's How it works section links to the technical film page and to the film in the guide", async ({ page }) => {
+  await page.goto("/guide");
   await expect(page.getByTestId("demo-technical-film")).toHaveAttribute("href", /\/technical-film\/?$/);
   await expect(page.getByTestId("demo-guide-film")).toHaveAttribute("href", /\/guide\/?#film$/);
 });

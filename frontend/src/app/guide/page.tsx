@@ -1,3 +1,4 @@
+import { HowItWorks } from "@/components/HowItWorks";
 import { PageHeader } from "@/components/PageHeader";
 import Link from "next/link";
 
@@ -60,6 +61,7 @@ export default function GuidePage() {
             </article>
           ))}
         </section>
+        <HowItWorks />
         <section>
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_STATUS_HEADING}</h2>
           <dl className="mt-2 space-y-2" data-testid="guide-statuses">

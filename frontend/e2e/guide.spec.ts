@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { STEPS } from "../src/lib/demo/steps";
 import { isLayoutB, openReference } from "./support/layout";
 
 // A build with both citation flags (the panel) describes the panel (R1's flip text) and shows the retaken frame 05 with its caption; any other build says the check is not offered and has
@@ -66,4 +67,18 @@ test("the guide is in the nav", async ({ page }) => {
     await expect(link).toHaveAttribute("aria-current", "page");
   }
   await expect(page.getByRole("link", { name: "User guide" }).first()).toBeVisible();
+});
+
+test("How it works is a section of the guide (the steps, the example link), and the old /demo address goes to it; the nav has no separate How it works link (#535)", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-how-it-works");
+  await expect(sec.getByRole("heading", { name: "How it works", exact: true })).toBeVisible();
+  await expect(sec.getByTestId("demo-steps").locator("li")).toHaveCount(STEPS.length);
+  await expect(sec).toContainText("The steps, on a public court order.");
+  await expect(sec.getByTestId("load-example")).toHaveAttribute("href", /\/screening\?example=/);
+  await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "How it works", exact: true })).toHaveCount(0);
+  await page.goto("/demo");
+  await expect(page).toHaveURL(/\/guide\/?#how-it-works$/);
+  await expect(page.getByTestId("guide-how-it-works")).toBeVisible();
 });

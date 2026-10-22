@@ -65,7 +65,6 @@ const NAV: NavEntry[] = [
   { group: "reference", href: "/matter-tools", label: NAV_LABELS.matterTools, icon: FolderOpen },
   { group: "reference", href: "/safety", label: NAV_LABELS.safety, icon: Gavel },
   { group: "reference", href: "/benchmarks", label: NAV_LABELS.benchmarks, icon: LineChart },
-  { group: "reference", href: "/demo", label: NAV_LABELS.demo, icon: Scale },
   { group: "reference", href: "/how-it-was-built", label: NAV_LABELS.howBuilt, icon: Hammer },
   { group: "reference", href: "/guide", label: GUIDE_NAV_LABEL, icon: BookOpen },
   { group: "account", href: "/data-handling", label: NAV_LABELS.dataHandling, icon: ShieldCheck },
