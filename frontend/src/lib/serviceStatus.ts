@@ -120,6 +120,7 @@ export type AnalyseErrorKind =
   | "invalid_answer"
   | "outside_window"
   | "server"
+  | "wake_stopped"
   | "network";
 
 export interface ClassifiedError {
@@ -136,6 +137,7 @@ export function classifyAnalyseError(e: unknown, internalLine: string | null = I
     return { kind: "timeout", message: "The analysis models did not answer in time, so we stopped waiting. They may be switched off at the moment. No result was returned. Try again later." };
   }
   if (name === "AbortError") return { kind: "cancelled", message: "Analysis cancelled." };
+  if (name === "WakeStoppedError") return { kind: "wake_stopped", message: (e as Error).message };
   if (name === "NotSignedInError") return { kind: "not_signed_in", message: NOT_SIGNED_IN_TEXT };
   if (name === "InvalidEngineAnswerError") return { kind: "invalid_answer", message: INVALID_ENGINE_ANSWER_TEXT, runId: (e as { runId?: string | null }).runId ?? null };
   if (name === "SignInUnverifiedError") return { kind: "sign_in_unverified", message: SIGN_IN_UNVERIFIED_TEXT };

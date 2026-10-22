@@ -5,6 +5,9 @@
 
 import { parseAppendix, parseAssistantBlock, parseAssistantInfo, type AssistantBlock, type ScreeningAppendix } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
+import { runWake, type WakeIO } from "./wake/wakeRun";
+import { parseWakeBody, type WakeView } from "./wake/wake";
+import { WAKE_POLL_ERROR } from "./wake/wakeCopy";
 
 function detectBase(): string {
   const configured = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "");
@@ -1340,6 +1343,13 @@ export class InvalidEngineAnswerError extends Error {
     this.runId = runId;
   }
 }
+/** #1038: a start the engine began but could not finish (or that could not be followed). Carries R1's line; nothing was scored. */
+export class WakeStoppedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "WakeStoppedError";
+  }
+}
 /** The run-record download for an unreadable answer: a machine marker and the run id, nothing else. */
 export const invalidAnswerRecord = (runId: string | null): string => JSON.stringify({ invalid_engine_answer: true, run_id: runId }, null, 2);
 
@@ -1426,6 +1436,8 @@ export function decideResultOnly(wire: AnalyseFactsWire): AnalyseFactsWire {
 
 /** What the app works with: the wire answer with each echoed fact's text filled in from the facts this app SUBMITTED. */
 export interface AnalyseFactsResult {
+  /** #1038 (R2): set only on a run that came through a wake, when the wake was partial or a contract of the answer carries reason second_judge_unavailable (engine 0.6.31: no second_judge_ran field). The page then shows the partial-load warning whatever the wake block said. */
+  second_judge_did_not_run?: true;
   /** Present only on an assisted run (#125): the app's kept part of the engine's assistant block. */
   assistant?: AssistantBlock;
   /** Present only on a finished assisted run whose answer carried a readable appendix (#169): the memo prints its steps. */
@@ -1446,7 +1458,7 @@ export interface AnalyseFactsResult {
 // backend could ever have answered -- this exists so that never happens, not to bound wall-clock time.
 export const ANALYSE_FACTS_TIMEOUT_MS = 320_000;
 
-async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal, anonymous = false): Promise<Response> {
+async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal, anonymous = false, extraHeaders: Record<string, string> = {}): Promise<Response> {
   const localTok = await localToken();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ANALYSE_FACTS_TIMEOUT_MS);
@@ -1456,7 +1468,7 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
   try {
     return await engineFetch(`${detectBase()}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
+      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}), ...extraHeaders },
       body,
       signal: controller.signal,
       anonymous,
@@ -1585,6 +1597,73 @@ export interface AnalyseFactsOptions {
    * plain analyse-facts route (the assisted route is consent-bearing and paid: no retry until Track C says it is safe), and only when the caller shows the line. The second timeout is the ordinary error.
    */
   onTimeoutRetry?: () => void;
+  /**
+   * #1038 cold start with progress. Given only by the screening page, and only on the plain route. When the engine refuses with judges_offline, the app asks it to start the models (a wake job); a refusal
+   * that wake is not allowed, or ANY other answer to that ask, leaves today's refusal exactly as it was. While a start is in progress this is called with what to show.
+   */
+  onWake?: (view: WakeView) => void;
+}
+
+/**
+ * #1038 (engine 0.6.31): the start of a wake and its status, both for the signed-in user and with no facts (a start sends none; the status is keyed by the user, no id). The page then sends the screening ITSELF.
+ * Any answer to the start but 200/202 (including 503 {"error":"judges_offline","wake":"not_allowed"}) is "not allowed": today's refusal stands.
+ * A wake this page began and may still have open (it stopped following after its own limit, a cancel, or unreadable polls) is FOLLOWED on the next try, never started a second time (daily cap, cooldown): the wake belongs to
+ * the user, not to a request, so the screening that follows is always the current facts. Cleared when the engine reports a terminal state, the poll answers 401/403, or the lease ends.
+ */
+let openWake: { userId: string; at: number } | null = null;
+const OPEN_WAKE_LEASE_MS = 10 * 60 * 1000;
+
+function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, userId: string | null, onTerminal: () => void): WakeIO {
+  const base = `${detectBase()}/api/v1/analyse-facts/wake`;
+  const call = async (url: string, init: RequestInit) => {
+    const localTok = await localToken();
+    return engineFetch(url, { ...init, headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) }, signal, authOptional: true });
+  };
+  const resume = openWake !== null && openWake.userId === (userId ?? "session") && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS;
+  if (!resume) openWake = null;
+  return {
+    signal,
+    onView,
+    resume,
+    sleep: (ms, sig) => new Promise<void>((resolve, reject) => {
+      const t = setTimeout(resolve, ms);
+      sig?.addEventListener("abort", () => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); }, { once: true });
+    }),
+    start: async () => {
+      try {
+        const r = await call(base, { method: "POST" });
+        if (r.status !== 200 && r.status !== 202) return { kind: "not_allowed" };
+        // R2 (#509 BLOCK, flag OFF on a real server: a signed-in POST answers 200 text/html, the app shell): the body is read FIRST and a wake counts as open only when the body is a status the page accepts; anything else is not_allowed and nothing is remembered
+        const body: unknown = await r.json();
+        if (parseWakeBody(body).wake === null) return { kind: "not_allowed" };
+        openWake = { userId: userId ?? "session", at: Date.now() };
+        return { kind: "started", body };
+      } catch (e) {
+        if ((e as { name?: string } | null)?.name === "AbortError") throw e;
+        return { kind: "not_allowed" };
+      }
+    },
+    poll: async () => {
+      const r = await call(`${base}/status`, { method: "GET" });
+      if (!r.ok) {
+        if (r.status === 503) {
+          const e = await apiErrorFrom(r, "/api/v1/analyse-facts/wake/status");
+          if (e.code === "judges_offline") { openWake = null; const n = new Error("wake not allowed"); n.name = "WakeNotAllowedError"; throw n; }
+        }
+        if (r.status === 401 || r.status === 403) { openWake = null; onTerminal(); }
+        throw new ApiError(r.status, "/api/v1/analyse-facts/wake/status");
+      }
+      // a 200 that is not JSON (flag OFF: the app shell as text/html) is "not allowed", never a poll error: today's refusal stands and the open-wake memory is cleared
+      try {
+        return await r.json();
+      } catch {
+        openWake = null;
+        const n = new Error("wake not allowed");
+        n.name = "WakeNotAllowedError";
+        throw n;
+      }
+    },
+  };
 }
 
 export async function analyseFacts(
@@ -1602,6 +1681,7 @@ export async function analyseFacts(
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once (plain route only, #338); a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
   let res: Response;
+  let wakeMode: "ready" | "partial" | null = null;
   try {
     res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
   } catch (e) {
@@ -1622,6 +1702,23 @@ export async function analyseFacts(
       const plain = await analyseFacts(facts, contractIds, narrative, signal, { ...opts, assisted: false });
       return { ...plain, assistant: { used: false, outcome: "refused", reason: "error", steps: [] } };
     }
+    if (!res.ok && !opts.assisted && !opts.allowAnonymous && opts.onWake && res.status === 503 && err.code === "judges_offline") {
+      const { currentSession } = await import("./auth");
+      const o = await runWake(wakeIO(signal, opts.onWake, currentSession()?.id ?? null, () => {}));
+      if (o.kind === "stopped") {
+        if (o.terminal) openWake = null;
+        throw new WakeStoppedError(o.view.warning ?? "");
+      }
+      if (o.kind === "ready" || o.kind === "partial") {
+        openWake = null;
+        // the engine no longer runs the screening for the user: the page sends it itself, with the one-time ticket when only the first model is up (the ticket stays in memory and is never shown)
+        if (o.kind === "partial" && !o.ticket) throw new WakeStoppedError(WAKE_POLL_ERROR);
+        wakeMode = o.kind;
+        // the ticket is required for partial and optional for ready (it only lets the engine extend the judge leases)
+        res = await analyseFactsAttempt(path, body, signal, false, o.ticket ? { "x-wake-ticket": o.ticket } : {});
+        if (!res.ok) throw await apiErrorFrom(res, path);
+      }
+    }
     if (!res.ok) throw err;
   }
   const wire = (await res.json()) as AnalyseFactsWire;
@@ -1629,7 +1726,9 @@ export async function analyseFacts(
   const raw = wire as unknown as Record<string, unknown>;
   // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
   if (!Array.isArray(raw.contracts) || !Array.isArray(raw.facts)) throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null);
-  if (!opts.assisted) return result;
+  // engine 0.6.31: the screening answer carries no second_judge_ran; a partial run shows per contract: reason second_judge_unavailable means the second judge did not read it
+  const secondSkipped = wakeMode !== null && (wakeMode === "partial" || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).reason === "second_judge_unavailable"));
+  if (!opts.assisted) return secondSkipped ? { ...result, second_judge_did_not_run: true } : result;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   const appendix = parseAppendix(raw.appendix);
   return { ...result, assistant: parseAssistantBlock(raw.assistant, unreadable), ...(appendix ? { appendix } : {}) };

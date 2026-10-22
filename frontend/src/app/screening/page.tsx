@@ -49,6 +49,9 @@ import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/
 import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
 import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
+import { WakeProgress, WakeWarning } from "@/components/WakeProgress";
+import type { WakeView } from "@/lib/wake/wake";
+import { WAKE_WARN_SECOND_FAILED } from "@/lib/wake/wakeCopy";
 import { CHECKING_SIGN_IN_LABEL, SCREENING_FILE_NOTE, SIGNING_IN_TEXT, TIMEOUT_RETRY_TEXT, WARM_UP_NOTE, validatedById, offenceMark } from "@/lib/surfaceCopy";
 
 const SLOW_START_SECONDS = 200;
@@ -109,6 +112,8 @@ export default function ScreeningPage() {
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [wake, setWake] = useState<WakeView | null>(null);
+  const [wakeWarning, setWakeWarning] = useState<string | null>(null);
   const [svc, setSvc] = useState<StatusResult | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   // Leaving the page cancels the run in flight (#176): the request and its ticker no longer run on until the engine answers or the 320 s timeout.
@@ -273,15 +278,19 @@ export default function ScreeningPage() {
     setNotSignedIn(null);
     setSigningIn(false);
     setRetrying(false);
+    setWake(null);
+    setWakeWarning(null);
     setResult(null);
     setAssistedTimeout(null);
     setElapsed(0);
     const startedAt = Date.now();
+    const wakeLast: { v: WakeView | null } = { v: null };
     const ticker = window.setInterval(() => setElapsed((s) => s + 1), 1000);
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true) });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true), onWake: (v) => { setWake(v); wakeLast.v = v; } });
+      if (wakeLast.v && (wakeLast.v.phase === "partial" || r.second_judge_did_not_run === true)) setWakeWarning(WAKE_WARN_SECOND_FAILED);
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
       if (LAYOUT_MATTER_B) setView("result");
@@ -298,6 +307,7 @@ export default function ScreeningPage() {
       abortRef.current = null;
       setSigningIn(false);
       setRetrying(false);
+      setWake(null);
       setChecking(false);
       setLoading(false);
     }
@@ -669,14 +679,15 @@ export default function ScreeningPage() {
               </button>
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
               {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
-              <p className="text-base font-medium text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>
+              {wake && <WakeProgress view={wake} />}
+              {!wake && <p className="text-base font-medium text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>}
               <p className="font-mono text-lg text-[var(--color-text)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
               {runAssisted && <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-assisted">{ASSISTED_RUNNING_NOTE}</p>}
-              {!signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">{WARM_UP_NOTE}</p>}
+              {!signingIn && !wake && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite">{WARM_UP_NOTE}</p>}
               <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-leave">{LEAVE_AND_RETURN_TEXT}</p>
             </div>
           )}
-          {inflight && elapsed >= SLOW_START_SECONDS && (
+          {inflight && !wake && elapsed >= SLOW_START_SECONDS && (
             <p className="rounded-lg border border-[var(--color-warn-border)] bg-[var(--color-warn-bg)] p-3 text-sm text-[var(--color-warn)]" role="status">
               This is taking longer than a normal start. The analysis models may be switched off at the moment. You can cancel and try again later; no result is returned until they answer.
             </p>
@@ -701,6 +712,7 @@ export default function ScreeningPage() {
           </div>
         )}
 
+        {result && request && wakeWarning && <WakeWarning text={wakeWarning} />}
         {result && request && (
           <div ref={resultRef} className={`flex scroll-mt-4 flex-col gap-6${LAYOUT_MATTER_B ? " max-md:pb-24" : ""}`} data-testid="screening-result" id={LAYOUT_MATTER_B ? "screening-result" : undefined}>
             {/* Print only (#234; no new words: the step's own "Facts" label, then the facts as submitted, numbered as the memo numbers them). The form is hidden on paper, so without this the printout carries only the facts a row happens to cite. */}
