@@ -27,7 +27,7 @@ test("parseWake: absent or unreadable is null; unknown states and bad rows are d
   assert.equal(parseWake("waking"), null);
   assert.equal(parseWake({ state: "running", models: [] }), null);
   const w = parseWake({ state: "waking", reason: "nonsense", models: [{ role: "first", state: "starting", progress: Number.NaN }, { role: "third", state: "ready" }, { role: "second", state: "bogus" }, { role: "first", state: "ready" }, null] });
-  assert.deepEqual(w, { state: "waking", reason: null, models: [{ role: "first", state: "starting", progress: null }] });
+  assert.deepEqual(w, { state: "waking", reason: null, deadlineS: null, pollAfterS: null, models: [{ role: "first", state: "starting", progress: null }] });
   assert.equal(parseWake({ state: "waking", models: [{ role: "first", state: "ready", progress: 7 }] })?.models[0].progress, null);
 });
 
@@ -38,7 +38,7 @@ test("reducer: waiting lines by which model is ready; missing row reads as waiti
   assert.equal(wakeView(wk("waking", "starting", "waiting")).line, C.WAKE_PROGRESS_ALL);
   assert.equal(wakeView(wk("waking", "ready", "starting")).line, C.WAKE_PROGRESS_FIRST_READY);
   assert.equal(wakeView(wk("waking", "starting", "ready")).line, C.WAKE_PROGRESS_SECOND_READY);
-  const v = wakeView({ state: "waking", reason: null, models: [] });
+  const v = wakeView({ state: "waking", reason: null, models: [], deadlineS: null, pollAfterS: null });
   assert.deepEqual(v.rows.map((r) => r.status), ["Waiting to start", "Waiting to start"]);
   assert.equal(v.phase, "waiting");
 });

@@ -7,7 +7,7 @@ export type WakeModelState = "waiting" | "starting" | "ready" | "failed";
 export type WakeState = "waking" | "ready" | "partial" | "failed" | "timeout";
 export type WakeReason = "second_judge_unavailable" | "first_judge_unavailable" | "start_timeout";
 export interface WakeModel { role: WakeRole; state: WakeModelState; progress: number | null }
-export interface Wake { state: WakeState; models: WakeModel[]; reason: WakeReason | null }
+export interface Wake { state: WakeState; models: WakeModel[]; reason: WakeReason | null; deadlineS: number | null; pollAfterS: number | null }
 
 const STATES: readonly WakeState[] = ["waking", "ready", "partial", "failed", "timeout"];
 const MODEL_STATES: readonly WakeModelState[] = ["waiting", "starting", "ready", "failed"];
@@ -32,7 +32,8 @@ export function parseWake(raw: unknown): Wake | null {
     }
   }
   const reason = REASONS.find((x) => x === o.reason) ?? null;
-  return { state, models, reason };
+  const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+  return { state, models, reason, deadlineS: num(o.deadline_s), pollAfterS: num(o.poll_after_s) };
 }
 
 export interface WakeRow { role: WakeRole; label: string; status: string; state: WakeModelState }
@@ -78,3 +79,16 @@ export function wakeView(w: Wake): WakeView {
 /** A poll that cannot be read or answered (S10). */
 export const WAKE_UNREADABLE_VIEW: WakeView = { phase: "stopped", rows: [], line: "", warning: WAKE_POLL_ERROR };
 export { WAKE_FAIL_BOTH };
+
+/**
+ * The engine's wake status body (0.6.31): {wake: {...}, ticket?: {value, mode: "partial", expires_in_s}}. The ticket is read ONLY when the wake is partial and only a non-empty string value with mode "partial" counts;
+ * anything else is no ticket (the screening then gets today's 503). The ticket stays in memory, is never shown and never stored.
+ */
+export function parseWakeBody(raw: unknown): { wake: Wake | null; ticket: string | null } {
+  if (typeof raw !== "object" || raw === null) return { wake: null, ticket: null };
+  const o = raw as Record<string, unknown>;
+  const wake = parseWake(o.wake);
+  const t = o.ticket;
+  const ticket = wake?.state === "partial" && typeof t === "object" && t !== null && (t as Record<string, unknown>).mode === "partial" && typeof (t as Record<string, unknown>).value === "string" && ((t as Record<string, unknown>).value as string) !== "" ? ((t as Record<string, unknown>).value as string) : null;
+  return { wake, ticket };
+}

@@ -7,6 +7,7 @@ import { parseAppendix, parseAssistantBlock, parseAssistantInfo, type AssistantB
 import contractElements from "./fixtures/contractElements.json";
 import { runWake, type WakeIO } from "./wake/wakeRun";
 import type { WakeView } from "./wake/wake";
+import { WAKE_POLL_ERROR } from "./wake/wakeCopy";
 
 function detectBase(): string {
   const configured = process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "");
@@ -1457,7 +1458,7 @@ export interface AnalyseFactsResult {
 // backend could ever have answered -- this exists so that never happens, not to bound wall-clock time.
 export const ANALYSE_FACTS_TIMEOUT_MS = 320_000;
 
-async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal, anonymous = false): Promise<Response> {
+async function analyseFactsAttempt(path: string, body: string, signal?: AbortSignal, anonymous = false, extraHeaders: Record<string, string> = {}): Promise<Response> {
   const localTok = await localToken();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ANALYSE_FACTS_TIMEOUT_MS);
@@ -1467,7 +1468,7 @@ async function analyseFactsAttempt(path: string, body: string, signal?: AbortSig
   try {
     return await engineFetch(`${detectBase()}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) },
+      headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}), ...extraHeaders },
       body,
       signal: controller.signal,
       anonymous,
@@ -1603,58 +1604,49 @@ export interface AnalyseFactsOptions {
   onWake?: (view: WakeView) => void;
 }
 
-/** #1038: the wake job's start and poll over the engine (signed-in session, same auth as the sync screening). Any answer but 202 with a job id is "not allowed": today's refusal stands. */
-/** R2 (#509): the page stops following a start after its own limit (or a cancel, or unreadable polls) but the engine's job may still be open; a retry resumes THAT job and never starts a second wake. Cleared when the job reports done or failed, or after the lease. */
-let openWake: { key: string; jobId: string; at: number } | null = null;
-/** R2 (#509 BLOCK): an open wake is resumed only by the SAME request (facts, contracts, narrative) from the SAME signed-in user; anything else starts fresh. */
-function wakeKey(userId: string | null, facts: string[], contractIds: string[], narrative: string | undefined): string {
-  return JSON.stringify([userId, facts, contractIds, narrative ?? ""]);
-}
-const OPEN_WAKE_LEASE_MS = 15 * 60 * 1000;
+/**
+ * #1038 (engine 0.6.31): the start of a wake and its status, both for the signed-in user and with no facts (a start sends none; the status is keyed by the user, no id). The page then sends the screening ITSELF.
+ * Any answer to the start but 200/202 (including 503 {"error":"judges_offline","wake":"not_allowed"}) is "not allowed": today's refusal stands.
+ * A wake this page began and may still have open (it stopped following after its own limit, a cancel, or unreadable polls) is FOLLOWED on the next try, never started a second time (daily cap, cooldown): the wake belongs to
+ * the user, not to a request, so the screening that follows is always the current facts. Cleared when the engine reports a terminal state, the poll answers 401/403, or the lease ends.
+ */
+let openWake: { userId: string; at: number } | null = null;
+const OPEN_WAKE_LEASE_MS = 10 * 60 * 1000;
 
-function wakeIO(facts: string[], contractIds: string[], narrative: string | undefined, signal: AbortSignal | undefined, onView: (v: WakeView) => void): WakeIO {
-  const base = `${detectBase()}/api/v1/analyse-facts/jobs`;
+function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, userId: string | null, onTerminal: () => void): WakeIO {
+  const base = `${detectBase()}/api/v1/analyse-facts/wake`;
   const call = async (url: string, init: RequestInit) => {
     const localTok = await localToken();
     return engineFetch(url, { ...init, headers: { "content-type": "application/json", ...(localTok ? { "x-pravrudhi-token": localTok } : {}) }, signal, authOptional: true });
   };
+  const resume = openWake !== null && openWake.userId === (userId ?? "session") && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS;
+  if (!resume) openWake = null;
   return {
     signal,
     onView,
+    resume,
     sleep: (ms, sig) => new Promise<void>((resolve, reject) => {
       const t = setTimeout(resolve, ms);
       sig?.addEventListener("abort", () => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); }, { once: true });
     }),
     start: async () => {
-      const { currentSession } = await import("./auth");
-      const userId = currentSession()?.id ?? null;
-      const key = wakeKey(userId, facts, contractIds, narrative);
-      if (openWake && openWake.key === key && userId !== null && Date.now() - openWake.at < OPEN_WAKE_LEASE_MS) return { kind: "started", jobId: openWake.jobId, pollAfterS: 2, wake: null };
-      openWake = null;
       try {
-        const r = await call(base, { method: "POST", body: JSON.stringify({ facts, contract_ids: contractIds, narrative: narrative ?? "", wake: true }) });
-        if (r.status !== 202) return { kind: "not_allowed" };
-        const b = (await r.json()) as { job_id?: unknown; poll_after_s?: unknown; wake?: unknown };
-        if (typeof b.job_id !== "string" || b.job_id === "") return { kind: "not_allowed" };
-        const w = (b.wake ?? {}) as { poll_after_s?: unknown };
-        const pa = Number(b.poll_after_s ?? w.poll_after_s);
-        openWake = { key, jobId: b.job_id, at: Date.now() };
-        return { kind: "started", jobId: b.job_id, pollAfterS: pa, wake: b.wake };
+        const r = await call(base, { method: "POST", body: "{}" });
+        if (r.status !== 200 && r.status !== 202) return { kind: "not_allowed" };
+        openWake = { userId: userId ?? "session", at: Date.now() };
+        return { kind: "started", body: await r.json() };
       } catch (e) {
         if ((e as { name?: string } | null)?.name === "AbortError") throw e;
         return { kind: "not_allowed" };
       }
     },
-    poll: async (jobId) => {
-      const r = await call(`${base}/${encodeURIComponent(jobId)}`, { method: "GET" });
+    poll: async () => {
+      const r = await call(`${base}/status`, { method: "GET" });
       if (!r.ok) {
-        if (r.status === 404 || r.status === 401) openWake = null;
-        throw new ApiError(r.status, "/api/v1/analyse-facts/jobs");
+        if (r.status === 401 || r.status === 403) { openWake = null; onTerminal(); }
+        throw new ApiError(r.status, "/api/v1/analyse-facts/wake/status");
       }
-      const b = (await r.json()) as { status?: unknown; wake?: unknown; result?: unknown };
-      const status = typeof b.status === "string" ? b.status : "";
-      if (status === "done" || status === "failed") openWake = null;
-      return { status, wake: b.wake, result: b.result };
+      return r.json();
     },
   };
 }
@@ -1674,7 +1666,7 @@ export async function analyseFacts(
   // A network failure or timeout is NOT retried: the caller gets a definite message quickly (#14). Only an
   // uncoded 5xx is retried once (plain route only, #338); a coded refusal (outside_service_window, judge_unavailable) and any 4xx are final.
   let res: Response;
-  let wakeWire: AnalyseFactsWire | undefined;
+  let wakeMode: "ready" | "partial" | null = null;
   try {
     res = await analyseFactsAttempt(path, body, signal, opts.allowAnonymous === true);
   } catch (e) {
@@ -1696,18 +1688,29 @@ export async function analyseFacts(
       return { ...plain, assistant: { used: false, outcome: "refused", reason: "error", steps: [] } };
     }
     if (!res.ok && !opts.assisted && !opts.allowAnonymous && opts.onWake && res.status === 503 && err.code === "judges_offline") {
-      const o = await runWake(wakeIO(facts, contractIds, narrative, signal, opts.onWake));
-      if (o.kind === "stopped") throw new WakeStoppedError(o.view.warning ?? "");
-      if (o.kind === "done") wakeWire = o.wire as AnalyseFactsWire;
+      const { currentSession } = await import("./auth");
+      const o = await runWake(wakeIO(signal, opts.onWake, currentSession()?.id ?? null, () => {}));
+      if (o.kind === "stopped") {
+        if (o.terminal) openWake = null;
+        throw new WakeStoppedError(o.view.warning ?? "");
+      }
+      if (o.kind === "ready" || o.kind === "partial") {
+        openWake = null;
+        // the engine no longer runs the screening for the user: the page sends it itself, with the one-time ticket when only the first model is up (the ticket stays in memory and is never shown)
+        if (o.kind === "partial" && !o.ticket) throw new WakeStoppedError(WAKE_POLL_ERROR);
+        wakeMode = o.kind;
+        res = await analyseFactsAttempt(path, body, signal, false, o.kind === "partial" && o.ticket ? { "x-wake-ticket": o.ticket } : {});
+        if (!res.ok) throw await apiErrorFrom(res, path);
+      }
     }
-    if (!res.ok && wakeWire === undefined) throw err;
+    if (!res.ok) throw err;
   }
-  const wire = wakeWire ?? ((await res.json()) as AnalyseFactsWire);
+  const wire = (await res.json()) as AnalyseFactsWire;
   const result = await withFactText(wire, facts);
   const raw = wire as unknown as Record<string, unknown>;
   // #360: an object answer that lacks `facts` or `contracts` (a proxy or version mismatch) is off the contract like null or a non-list: the page must not read a list that is not there
   if (!Array.isArray(raw.contracts) || !Array.isArray(raw.facts)) throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null);
-  const secondSkipped = wakeWire !== undefined && (raw.second_judge_ran === false || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).second_judge_ran === false));
+  const secondSkipped = wakeMode !== null && (wakeMode === "partial" || raw.second_judge_ran === false || raw.contracts.some((c) => typeof c === "object" && c !== null && (c as Record<string, unknown>).second_judge_ran === false));
   if (!opts.assisted) return secondSkipped ? { ...result, second_judge_did_not_run: true } : result;
   const unreadable = (): never => { throw new InvalidEngineAnswerError(typeof raw.run_id === "string" ? raw.run_id : null); };
   const appendix = parseAppendix(raw.appendix);
