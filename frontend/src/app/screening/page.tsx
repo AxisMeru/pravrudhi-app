@@ -48,7 +48,7 @@ import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
 import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
-import { ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
+import { AGENT_NOT_READY_TEXT, ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
 import { WakeProgress, WakeWarning } from "@/components/WakeProgress";
 import type { WakeView } from "@/lib/wake/wake";
 import { WAKE_WARN_SECOND_FAILED } from "@/lib/wake/wakeCopy";
@@ -112,6 +112,7 @@ export default function ScreeningPage() {
   const [notSignedIn, setNotSignedIn] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [agentWait, setAgentWait] = useState(false); // app#543
   const [wake, setWake] = useState<WakeView | null>(null);
   const [wakeWarning, setWakeWarning] = useState<string | null>(null);
   const [svc, setSvc] = useState<StatusResult | null>(null);
@@ -277,7 +278,7 @@ export default function ScreeningPage() {
     setInvalidRunId(undefined);
     setNotSignedIn(null);
     setSigningIn(false);
-    setRetrying(false);
+    setRetrying(false); setAgentWait(false);
     setWake(null);
     setWakeWarning(null);
     setResult(null);
@@ -289,7 +290,7 @@ export default function ScreeningPage() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true), onWake: (v) => { setWake(v); wakeLast.v = v; } });
+      const r = await analyseFacts(check.facts, ids, undefined, ac.signal, { allowAnonymous: anonymous, assisted, onSigningIn: () => setSigningIn(true), onRequestStart: () => { setChecking(false); setElapsed(0); }, onTimeoutRetry: () => setRetrying(true), onAgentWait: () => setAgentWait(true), onWake: (v) => { setWake(v); wakeLast.v = v; } });
       if (wakeLast.v && (wakeLast.v.phase === "partial" || r.second_judge_did_not_run === true)) setWakeWarning(WAKE_WARN_SECOND_FAILED);
       setRequest({ facts: check.facts, contractIds: ids });
       setResult(r);
@@ -306,7 +307,7 @@ export default function ScreeningPage() {
       window.clearInterval(ticker);
       abortRef.current = null;
       setSigningIn(false);
-      setRetrying(false);
+      setRetrying(false); setAgentWait(false);
       setWake(null);
       setChecking(false);
       setLoading(false);
@@ -680,6 +681,7 @@ export default function ScreeningPage() {
               {signingIn && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="signing-in">{SIGNING_IN_TEXT}</p>}
               {retrying && <p className="text-sm text-[var(--color-text-dim)]" aria-live="polite" data-testid="timeout-retry">{TIMEOUT_RETRY_TEXT}</p>}
               {wake && <WakeProgress view={wake} />}
+              {agentWait && <p className="text-sm text-[var(--color-text)]" aria-live="polite" data-testid="agent-wait">{AGENT_NOT_READY_TEXT}</p>}
               {!wake && <p className="text-base font-medium text-[var(--color-text)]" aria-live="polite" data-testid="running-status">{RUNNING_STATUS_LINE}</p>}
               <p className="font-mono text-lg text-[var(--color-text)]" data-testid="running-elapsed">{waitingFor(elapsed)}</p>
               {runAssisted && <p className="text-sm text-[var(--color-text-dim)]" data-testid="running-assisted">{ASSISTED_RUNNING_NOTE}</p>}
