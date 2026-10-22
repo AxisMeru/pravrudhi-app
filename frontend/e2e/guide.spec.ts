@@ -81,4 +81,16 @@ test("How it works is a section of the guide (the steps, the example link), and 
   await page.goto("/demo");
   await expect(page).toHaveURL(/\/guide\/?#how-it-works$/);
   await expect(page.getByTestId("guide-how-it-works")).toBeVisible();
+
+test("the guide's Access and the analysis models section: three rows, every signed-in person can start the models (ON version), no ask-an-administrator line", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-access");
+  await expect(sec.getByRole("heading", { name: "Access and the analysis models" })).toBeVisible();
+  await expect(sec.getByTestId("guide-access-rows").locator("dt")).toHaveText(["Without signing in", "Signed in", "Administrator"]);
+  await expect(sec).toContainText("You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in.");
+  await expect(sec).toContainText("Every signed-in person can use all of these, including starting the analysis models.");
+  await expect(sec).toContainText("the app starts them and shows each model loading");
+  await expect(sec).toContainText("If the first model does not start, the page says so plainly and no result is shown.");
+  await expect(sec).not.toContainText(/ask your administrator|allowed to start|invit|sign-?up/i);
 });
