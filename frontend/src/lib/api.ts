@@ -1603,13 +1603,14 @@ export interface AnalyseFactsOptions {
    */
   onWake?: (view: WakeView) => void;
   /**
-   * app#543: right after a wake turned READY the screening can still answer 503 agent_unavailable (the models are up before the agent serves, #1041). Only then, and only once, the page waits AGENT_RETRY_WAIT_MS and sends the SAME request again (same ticket, no extra wake call); this is called once when the wait starts so the page can say so. Any other error, and a second agent_unavailable, ends as before.
+   * app#543: right after a wake turned READY the screening can still answer 503 agent_unavailable (the models are up before the agent serves, #1041). Only then the page waits AGENT_RETRY_WAIT_MS and sends the SAME request again (same ticket, no extra wake call), up to AGENT_RETRY_MAX times; this is called once when the first wait starts so the page can say so. Any other error, and the last agent_unavailable, ends as before.
    */
   onAgentWait?: () => void;
 }
 
-/** app#543: how long the page waits before the one retry after a ready wake answered agent_unavailable. */
-export const AGENT_RETRY_WAIT_MS = 60_000;
+/** app#543 (widened 22 Oct, Lead-2): a ready wake can precede a serving agent by minutes. After agent_unavailable the page retries every AGENT_RETRY_WAIT_MS, at most AGENT_RETRY_MAX times (about 4 minutes in all). */
+export const AGENT_RETRY_WAIT_MS = 45_000;
+export const AGENT_RETRY_MAX = 5;
 function waitMs(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("cancelled", "AbortError"));
@@ -1734,12 +1735,16 @@ export async function analyseFacts(
         res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
         if (!res.ok) {
           const first = await apiErrorFrom(res, path);
-          // app#543: ONE wait-and-retry, only for agent_unavailable straight after a ready wake, the same request, never another wake
+          // app#543: up to AGENT_RETRY_MAX retries, AGENT_RETRY_WAIT_MS apart, only for agent_unavailable straight after a ready wake, the same request and ticket, never another wake
           if (opts.onAgentWait && res.status === 503 && first.code === "agent_unavailable") {
             opts.onAgentWait();
-            await waitMs(AGENT_RETRY_WAIT_MS, signal);
-            res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
-            if (!res.ok) throw await apiErrorFrom(res, path);
+            for (let n = 1; n <= AGENT_RETRY_MAX; n++) {
+              await waitMs(AGENT_RETRY_WAIT_MS, signal);
+              res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
+              if (res.ok) break;
+              const again = await apiErrorFrom(res, path);
+              if (n === AGENT_RETRY_MAX || res.status !== 503 || again.code !== "agent_unavailable") throw again;
+            }
           } else throw first;
         }
       }

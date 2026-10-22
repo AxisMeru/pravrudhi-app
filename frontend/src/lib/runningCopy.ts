@@ -2,7 +2,7 @@
 // It does NOT know the steps until the result returns, so no step name is shown during the wait. WARM_UP_NOTE and TIMEOUT_RETRY_TEXT (surfaceCopy.ts) are used as signed.
 
 /** app#543 (R1 22 Oct): shown once, with the page's normal Cancel and elapsed counter, when the screening sent right after a ready wake answers agent_unavailable and the page waits to try once more. */
-export const AGENT_NOT_READY_TEXT = "The analysis models were not ready yet. Nothing was scored. The page will try once more in about a minute.";
+export const AGENT_NOT_READY_TEXT = "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a few minutes; you can cancel at any point.";
 export const RUNNING_STATUS_LINE = "Screening in progress. This page is waiting for the result.";
 
 /** The elapsed line, one dynamic pattern: "Waiting for 00:07". No promise of a time. */
