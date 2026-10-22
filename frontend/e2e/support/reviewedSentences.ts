@@ -298,8 +298,8 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "evaluation",
       "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
       "Evaluation discipline",
-      "Prabhasa-Nyaya is our own trained models;",
       "Evaluation kept out of training, looks counted, and null results reported.",
+      "Prabhāsa-Nyāya is our own trained models;",
     ],
   },
   "public/films/client/captions.vtt": {

@@ -141,7 +141,7 @@
     },
     {
       "name": "Two names",
-      "text": "Pravrudhi-Nyaya is the product; Prabhasa-Nyaya is our own trained models; the system is a second reader that refers when it cannot support a statement.",
+      "text": "Pravrudhi-Nyaya is the product; Prabhāsa-Nyāya is our own trained models; the system is a second reader that refers when it cannot support a statement.",
       "startS": 15.5,
       "endS": 38.9
     },
@@ -171,7 +171,7 @@
     },
     {
       "name": "The assistant",
-      "text": "The optional Claude managed-agent assistant: consent, spending limits, and the core still decides. Building, not yet offered.",
+      "text": "The optional Claude managed-agent assistant: consent, spending limits, and the core still decides.",
       "startS": 210.70000000000002,
       "endS": 236.70000000000002
     },
