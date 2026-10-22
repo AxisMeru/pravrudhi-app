@@ -21,8 +21,8 @@ const NYAYASIDDHI_ROWS = parseRows(rowsFile); // signed rows only, from the buil
 // A short, static page in R1's words (lib/benchmarks.ts): what we check, how we test, and what the checks do and do not show. No figure.
 export default async function BenchmarksPage() {
   // the explainer film #430 (Studio's final render; the manifests are loaded by a dynamic import, on this page only): the narrated cut is the default, the silent cut the fallback; poster first: no film file is requested until the visitor presses Play
-  const narratedManifest = await loadNyayasiddhiManifest("nyayasiddhi-explainer");
-  const silentManifest = await loadNyayasiddhiManifest("nyayasiddhi-explainer-silent");
+  const narratedManifest = await loadNyayasiddhiManifest("nyayasiddhi-participant");
+  const silentManifest = narratedManifest; // the participant film has one cut only: the fallback (reduced motion, a media error) plays the same film, muted, with its captions
   return (
     <div>
       <PageHeader title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />
@@ -41,7 +41,7 @@ export default async function BenchmarksPage() {
         </section>
         <section className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="benchmarks-film-heading" data-testid="block-film">
           <h2 id="benchmarks-film-heading" className="text-base font-medium text-[var(--color-text)]">{BENCHMARKS_FILM_HEADING}</h2>
-          <NarratedDefaultFilm narrated={narratedManifest} silent={silentManifest} posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
+          <NarratedDefaultFilm narrated={narratedManifest} silent={silentManifest} narratedId="nyayasiddhi-participant" silentId="nyayasiddhi-participant" posterAlt={BENCHMARKS_FILM_POSTER_ALT} />
         </section>
         <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4" aria-labelledby="ns-links-heading" data-testid="block-ns-links">
           <h2 id="ns-links-heading" className="text-base font-medium text-[var(--color-text)]">{NS_LINKS_HEADING}</h2>

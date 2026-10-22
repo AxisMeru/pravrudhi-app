@@ -1,6 +1,6 @@
 // The motion films (#251). Every word the pages add around a film is here, for R1 to read; the film's own text (scene names and descriptions) comes from its manifest, written by scripts/render-films.mjs
 // from the film itself. R1 confirmed these nine lines byte-exact (15 Oct, #273). Nothing here is a claim about results.
-export const FILM_IDS = ["client", "technical", "nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "guide-v2", "guide-v2-silent"] as const;
+export const FILM_IDS = ["client", "technical", "nyayasiddhi", "nyayasiddhi-loop", "nyayasiddhi-firm", "nyayasiddhi-narrated", "nyayasiddhi-firm-narrated", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "nyayasiddhi-participant", "guide-v2", "guide-v2-silent"] as const;
 export type FilmId = (typeof FILM_IDS)[number];
 
 /** Where the rendered files live (public/films/<id>/): the page adds the build's base path. */

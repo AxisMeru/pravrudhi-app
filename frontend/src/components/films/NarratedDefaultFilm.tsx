@@ -23,7 +23,7 @@ export function NarratedDefaultFilm({ narrated, silent, narratedId = "nyayasiddh
   const reduced = useSyncExternalStore(subscribe, reducedNow, () => false);
   const [failed, setFailed] = useState(false);
   if (reduced || failed) {
-    return <FilmPlayer key={silentId} id={silentId} manifest={silent} posterFirst downloadLabel={FILM_DOWNLOAD_LINK} posterAlt={posterAlt} />;
+    return <FilmPlayer key={`${silentId}:fallback`} id={silentId} manifest={silent} posterFirst downloadLabel={FILM_DOWNLOAD_LINK} posterAlt={posterAlt} />;
   }
-  return <FilmPlayer key={narratedId} id={narratedId} manifest={narrated} posterFirst soundOnPlay downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={posterAlt} onPlaybackError={() => setFailed(true)} />;
+  return <FilmPlayer key={`${narratedId}:narrated`} id={narratedId} manifest={narrated} posterFirst soundOnPlay downloadLabel={FILM_DOWNLOAD_NARRATED} posterAlt={posterAlt} onPlaybackError={() => setFailed(true)} />;
 }
