@@ -53,7 +53,7 @@ test("the palette on the surface lists pages only: no actions, no objectives, ru
   };
   const surface = buildCatalogue(index, false, false, true, true);
   assert.ok(surface.length > 0 && surface.every((r) => r.group === "Pages"));
-  assert.deepEqual(surface.map((r) => r.href).sort(), ["/benchmarks", "/data-handling", "/demo", "/guide", "/how-it-was-built", "/safety", "/screening", "/settings", "/workflows"]);
+  assert.deepEqual(surface.map((r) => r.href).sort(), ["/benchmarks", "/data-handling", "/guide", "/how-it-was-built", "/safety", "/screening", "/settings", "/workflows"]);
   const normal = buildCatalogue(index, false, true, true, false);
   assert.ok(normal.some((r) => r.group === "Actions") && normal.some((r) => r.group === "Objectives"));
 });

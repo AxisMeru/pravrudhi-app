@@ -9,7 +9,7 @@ export const DEMO_HOME = "/screening";
 
 // The demo path plus the settings page (keys, account). Nothing here is labelled experimental yet, so
 // nothing experimental is offered.
-export const DEMO_PATH_HREFS: readonly string[] = ["/screening", "/matters", "/citations", "/demo", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings", "/about", "/admin/access"];
+export const DEMO_PATH_HREFS: readonly string[] = ["/screening", "/matters", "/citations", "/how-it-was-built", "/safety", "/benchmarks", "/guide", "/workflows", "/data-handling", "/settings", "/about", "/admin/access"];
 
 export function offeredInDemoPath(href: string, on: boolean = DEMO_PATH): boolean {
   return !on || DEMO_PATH_HREFS.includes(href);

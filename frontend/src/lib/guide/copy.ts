@@ -151,7 +151,7 @@ export const GUIDE_STEPS: GuideStep[] = [
   {
     id: "run",
     heading: "2. Screen the facts",
-    text: "Choose Screen these facts. The first screening after a quiet period can take a few minutes to start (see If it seems slow). If it takes longer than usual, the page says so and, for a screening without the assistant, tries once more. You can cancel at any point.",
+    text: "Choose Screen these facts. If the analysis models are switched off, the page either starts them and shows progress, or says plainly that they are switched off and nothing was scored. If it takes longer than usual, the page says so. You can cancel at any point.",
   },
   {
     id: "checklist",
@@ -228,7 +228,7 @@ export const GUIDE_LIMITS: string[] = [
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
-  "The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.";
+  "If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.";
 
 export const GUIDE_GLOSSARY_HEADING = "Glossary";
 export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] = [

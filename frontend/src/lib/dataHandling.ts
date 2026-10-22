@@ -58,7 +58,8 @@ export const DH_ASSIST_CONSENT = "The consent box is off for every run until you
 export const DH_ASSIST_SIGNIN = "The assistant is offered only to signed-in users. Without signing in, you get the screening result without it.";
 
 // R1's final sentence (Lead-2, 14 Oct): a fallback processing region is disclosed BEFORE it can take any traffic. Always shown: it is true whatever the assistant flags are.
-export const DH_WHERE_FALLBACK = "If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.";
+export const DH_WHERE_MODELS = "The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there.";
+export const DH_WHERE_FALLBACK = "Retention is as described above; the hosting provider may keep its own logs.";
 
 export const DH_WHERE_ASSIST = "If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).";
 
@@ -114,7 +115,7 @@ const BASE_SECTIONS: readonly DataHandlingSection[] = [
     id: "where",
     heading: "Where it is processed",
     paragraphs: [
-      "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). Parts of the screening run in EU data centres; for some parts the region is not fixed. " +
+      "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). " + DH_WHERE_MODELS + " " +
         "This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase. The hosting providers may keep their own logs.",
       DH_WHERE_FALLBACK,
     ],
@@ -183,11 +184,11 @@ export function dataHandlingPage(assist: boolean, deleteConfirmed: boolean): Dat
     const s = standard.find((x) => x.id === id)!;
     // R1 (15 Oct, #300): the glance texts are set per block, as sentences of the section's own text (the full sections stay as they are):
     //  sent  = the first sentence;
-    //  where = the first TWO sentences of the first paragraph, then, as its own paragraph, only the first sentence of the fallback (its tail "Retention is as described above..." would point "above" at the wrong block here);
+    //  where = the first TWO sentences of the first paragraph, and nothing of the fallback tail ("Retention is as described above..." would point "above" at the wrong block here);
     //  kept  = the first sentence and the sentence that tells a reader what a run record can include.
     const sents = splitSentences(s.paragraphs[0]);
     const texts =
-      id === "where" ? [`${sents[0]} ${sents[1]}`, firstSentence(DH_WHERE_FALLBACK)]
+      id === "where" ? [`${sents[0]} ${sents[1]}`]
       : id === "kept" ? [DH_GLANCE_KEPT, (sents.find((x) => x.startsWith("A run record can include")) ?? "").trim()].filter(Boolean)
       : [sents[0]];
     return { id, heading: s.heading, texts, href: `#dh-${id}` };

@@ -31,7 +31,7 @@ test("the grouped navigation: Work, Reference and Account, labels changed and pa
     for (const g of ["work", "reference", "account"]) await expect(nav.getByTestId(`nav-group-${g}`)).toBeVisible();
   }
   await expect(nav.getByTestId("nav-group-studio")).toHaveCount(0);
-  const hrefs: Record<string, string> = { ...(b ? {} : { Matter: "/screening" }), Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "How it works": "/demo", "User guide": "/guide" };
+  const hrefs: Record<string, string> = { ...(b ? {} : { Matter: "/screening" }), Workflows: "/workflows", "Data handling": "/data-handling", Settings: "/settings", "Safety record": "/safety", "User guide": "/guide" };
   for (const [name, href] of Object.entries(hrefs)) await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", new RegExp(`${href}/?$`));
   await expect(nav.getByRole("link", { name: "User guide", exact: true })).toHaveAttribute("aria-current", "page");
   for (const studio of ["Objectives", "Progress", "Memory", "Catalogue", "Chat", "Runs", "Models", "Install"]) await expect(nav.getByRole("link", { name: studio, exact: true })).toHaveCount(0);
@@ -51,8 +51,7 @@ test("/data-handling: the sections are R1's text, with the three browser-storage
   if (process.env.YOUR_MATTERS_BUILD === "1") await expect(body.getByTestId("dh-papers")).toContainText("You can list your matters on Matter tools, open one, and delete a paper or the whole matter.");
   else await expect(body.getByTestId("dh-papers")).toContainText("If you lose the matter number, there is not yet a tested way to ask us to delete your papers.");
   await expect(body.getByTestId("dh-papers")).not.toContainText(/permanent|we will remove|we will look into/i);
-  await expect(body.getByTestId("dh-where")).toContainText("for some parts the region is not fixed");
-  await expect(body.getByTestId("dh-where")).toContainText("If our EU processing is unavailable, part of the screening may instead run in a North American data centre for that request, and your facts are sent there. Retention is as described above; the hosting provider may keep its own logs.");
+  await expect(body.getByTestId("dh-where")).toContainText("The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there.");
   await expect(body.getByTestId("dh-browser")).toContainText("your sign-in session, your recent pages in the command palette and your theme choice");
   expect(promiseHits(await body.innerText())).toEqual([]);
   await expect(body).not.toContainText(/no fact text is kept/i);

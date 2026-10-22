@@ -2,7 +2,7 @@ import { expect, test } from "./support/engineTest";
 
 // #294 (#138): standalone controls on these pages are at least 24 px high and wide (WCAG 2.2 target size minimum). Inline links inside running text are exempt, as in the standard; visually hidden inputs
 // (sr-only) are not targets (their label is). Measured in the browser at a desktop and a phone width.
-const PAGES = ["/matters", "/data-handling", "/guide", "/demo", "/signin", "/screening", "/workflows", "/settings", "/safety", "/benchmarks", "/how-it-was-built", "/citations", "/technical-film"];
+const PAGES = ["/matters", "/data-handling", "/guide", "/signin", "/screening", "/workflows", "/settings", "/safety", "/benchmarks", "/how-it-was-built", "/citations", "/technical-film"];
 for (const width of [1280, 390]) {
   test(`standalone controls are at least 24 px at ${width} px on the main pages`, async ({ page }) => {
     await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: ["ipc415_property"], entries: [{ id: "ipc415_property", validated: true }] } }));

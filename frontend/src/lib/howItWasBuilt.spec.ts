@@ -12,7 +12,7 @@ test("How it was built: six cards of four lines, the customer layer only", () =>
   assert.equal(HOW_BUILT_TITLE, "How it was built");
   assert.equal(HOW_BUILT_CARDS.length, 6);
   for (const c of HOW_BUILT_CARDS) assert.equal(c.items.length, 4, c.title);
-  assert.equal(SIGNED, "494907c61c328ba971652cfa016bf46803384123248d6113e6945e1d8fe4be7f");
+  assert.equal(SIGNED, "f45ad846469d591089952c8db43fad8fcd115648380860801139c786810883cb");
 });
 
 test("How it was built: no figures, no internal source map, the naming and the extraction caveat are as signed", () => {

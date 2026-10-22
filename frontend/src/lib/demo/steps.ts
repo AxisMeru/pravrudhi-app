@@ -1,4 +1,4 @@
-// The five steps shown on the How it works page (Lead-2's decision on #525); R1 reviews the words.
+// The steps shown in the How it works section of the user guide (was the How it works page) (Lead-2's decision on #525); R1 reviews the words.
 export const STEPS: { title: string; body: string }[] = [
   {
     title: "Paste the facts and name the offence",

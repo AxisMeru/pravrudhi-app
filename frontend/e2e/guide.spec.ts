@@ -1,4 +1,5 @@
 import { expect, test } from "./support/engineTest";
+import { STEPS } from "../src/lib/demo/steps";
 import { isLayoutB, openReference } from "./support/layout";
 
 // A build with both citation flags (the panel) describes the panel (R1's flip text) and shows the retaken frame 05 with its caption; any other build says the check is not offered and has
@@ -20,7 +21,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
   await expect(page.getByTestId("guide-caption")).toHaveText([...((await isLayoutB(page)) ? [] : ["This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text."]), ...(PANEL ? ["Existence check only."] : [])]); // layout B's frame 03 shows a Supported by a fact row, so it carries no such caption
   const step6 = page.getByTestId("guide-step").nth(5);
   if (PANEL) {
@@ -66,4 +67,37 @@ test("the guide is in the nav", async ({ page }) => {
     await expect(link).toHaveAttribute("aria-current", "page");
   }
   await expect(page.getByRole("link", { name: "User guide" }).first()).toBeVisible();
+});
+
+test("How it works is a section of the guide (the steps, the example link), and the old /demo address goes to it; the nav has no separate How it works link (#535)", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-how-it-works");
+  await expect(sec.getByRole("heading", { name: "How it works", exact: true })).toBeVisible();
+  await expect(sec.getByTestId("demo-steps").locator("li")).toHaveCount(STEPS.length);
+  await expect(sec).toContainText("The steps, on a public court order.");
+  await expect(sec.getByTestId("load-example")).toHaveAttribute("href", /\/screening\?example=/);
+  await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "How it works", exact: true })).toHaveCount(0);
+  await page.goto("/demo");
+  await expect(page).toHaveURL(/\/guide\/?#how-it-works$/);
+  await expect(page.getByTestId("guide-how-it-works")).toBeVisible();
+});
+
+test("the guide's Access and the analysis models section: three rows, state-free Signed-in row and models paragraph (ON version), no ask-an-administrator line", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-access");
+  await expect(sec.getByRole("heading", { name: "Access and the analysis models" })).toBeVisible();
+  await expect(sec.getByTestId("guide-access-rows").locator("dt")).toHaveText(["Without signing in", "Signed in", "Administrator"]);
+  await expect(sec).toContainText("You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in.");
+  await expect(sec).toContainText("Whether you can start the analysis models depends on your account.");
+  await expect(sec).toContainText("your account may start them, the app starts them and shows each model loading");
+  await expect(sec).toContainText("If the first model does not start, the page says so plainly and no result is shown.");
+  await expect(sec).not.toContainText(/ask your administrator|allowed to start|sign-?up/i);
+  // R1: the invitation sentence is in the Administrator row only (true only with #534 and its function live), never in the Signed-in row or the models paragraphs
+  const rows = sec.getByTestId("guide-access-rows").locator("dd");
+  await expect(rows.nth(2)).toContainText("can invite a person by email");
+  await expect(rows.nth(0)).not.toContainText(/invit/i);
+  await expect(rows.nth(1)).not.toContainText(/invit/i);
+  expect((await sec.getByTestId("guide-access-models").allInnerTexts()).join(" ")).not.toMatch(/invit/i);
 });
