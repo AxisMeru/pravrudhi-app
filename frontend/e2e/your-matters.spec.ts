@@ -49,6 +49,8 @@ test("flag ON: rows in the engine's order, numbered, with paper counts and no id
 
 test("flag ON: an empty list, a truncated list (says only the first 50), and a route that is not on (the section is hidden)", async ({ page }) => {
   test.skip(!ON, "needs the build with NEXT_PUBLIC_YOUR_MATTERS=1");
+  // Start a matter is mocked: the test used to call the real engine here, whose answer time made the interim-note check fail intermittently in CI (#517, #525, #532).
+  await page.route("**/api/v1/matter-spans/matters", (r) => r.fulfill({ json: { matter_id: A } }));
   await page.route("**/api/v1/matter-spans/my-matters", (r) => r.fulfill({ json: { matters: [], truncated: false } }));
   await page.goto("/matter-tools");
   await expect(page.getByTestId("pv-yourmatters-empty")).toHaveText("You have no matters yet.");
