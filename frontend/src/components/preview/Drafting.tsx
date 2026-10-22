@@ -143,7 +143,6 @@ export function BailCard({ prefill = null, prefillLine }: { prefill?: { key: num
   }
   return (
     <Box id="bail" name={D.bailName} line={D.bailLine}>
-      {filled && prefillLine && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-prefill-line-bail">{prefillLine}</p>}
       <label className={`flex items-start gap-2 ${P}`}><input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} data-testid="bail-consent" /> {D.consent}</label>
       <div className="flex flex-wrap gap-3">
         <label className={P}>{D.kind}
@@ -161,6 +160,7 @@ export function BailCard({ prefill = null, prefillLine }: { prefill?: { key: num
         <label className={P}>{D.offenceDate}<input type="date" className={`${FIELD} mt-1`} value={offence} onChange={(e) => setOffence(e.target.value)} data-testid="bail-offence" /></label>
         <label className={P}>{D.firDate}<input type="date" className={`${FIELD} mt-1`} value={fir} onChange={(e) => setFir(e.target.value)} data-testid="bail-fir" /></label>
       </div>
+      {filled && prefillLine && <p className="text-xs text-[var(--color-text-dim)]" data-testid="pv-prefill-line-bail">{prefillLine}</p>}
       <FactsEditor id="bail" rows={facts} setRows={setFacts} warning={R.bailTickWarning} withGrounds />
       <fieldset>
         <legend className={H}>{D.tagsHeading}</legend>

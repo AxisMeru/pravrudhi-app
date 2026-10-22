@@ -177,6 +177,7 @@ test("flag ON: an upload that finishes after the matter was removed is neither k
   await page.getByTestId("pv-start").click();
   await page.getByTestId("scan-file").setInputFiles({ name: "slow.png", mimeType: "image/png", buffer: PNG_2X2 });
   await page.getByTestId("pv-remove-all").click();
+  await page.getByTestId("pv-remove-all-yes").click();
   await page.waitForTimeout(2500);
   await expect(page.getByTestId("scan-result")).toHaveCount(0);
 });
