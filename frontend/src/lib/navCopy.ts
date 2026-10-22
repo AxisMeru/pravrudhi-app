@@ -17,6 +17,7 @@ export const NAV_GROUP_LABELS = { work: "Work", reference: "Reference", account:
 
 /** Item labels of the firm surface; the paths do not change. R1 reads this list once (13 Oct 2026: "Offence rules" for /matters). */
 export const NAV_LABELS = {
+  home: "Home", // app#539 (R1 words it with the Home strings)
   screening: WORKSPACE_NAV_LABEL,
   matters: "Offence rules",
   citations: "Citation check",

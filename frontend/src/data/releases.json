@@ -5,6 +5,6 @@
     { "engine": "0.6.29", "liveAt": "2026-10-22T09:02:00+01:00", "line": "The service can list your matters, which the Your matters list uses." },
     { "engine": "0.6.28", "liveAt": "2026-10-21T17:56:00+01:00", "showTime": false, "line": "Old section look-up is on: it shows the table's section for an old IPC or CrPC number, and the IPC section text is restored." },
     { "engine": "0.6.27", "liveAt": "2026-10-21T09:01:00+01:00", "line": "Adds groundwork for reading scanned pages and for listing matters. Whether each is in use is set separately from this release." },
-    { "engine": "0.6.26", "liveAt": "2026-10-20T18:40:00+01:00", "line": "A build change for scanned-page reading, switched off. Nothing changes for you." }
+    { "engine": "0.6.26", "liveAt": "2026-10-20T18:40:00+01:00", "line": "A build change for scanned-page reading. Whether it is in use is set separately from this release." }
   ]
 }

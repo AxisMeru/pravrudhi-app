@@ -21,7 +21,9 @@ for (const path of LOOP) {
     await asEdition(page, "Pravrudhi", "member");
     await page.goto(path);
     if (path === "/") {
-      await page.waitForURL(/\/screening/);
+      // app#539: "/" is the product Home for a member; the Studio page (the improvement loop) is still not offered
+      await expect(page.getByTestId("home-workspace")).toBeVisible();
+      await expect(page.getByText("what to point it at next")).toHaveCount(0);
       return;
     }
     await expect(page.getByTestId("not-on-this-surface")).toBeVisible();
@@ -84,8 +86,9 @@ for (const path of VARIANTS) {
   });
 }
 
-test("a member who types /index.html (the Studio home) lands on Matters", async ({ page }) => {
+test("a member who types /index.html (the same address as /) sees the Home, not the Studio home", async ({ page }) => {
   await asEdition(page, "Pravrudhi", "member");
   await page.goto("/index.html");
-  await page.waitForURL(/\/screening/);
+  await expect(page.getByTestId("home-workspace")).toBeVisible();
+  await expect(page.getByText("what to point it at next")).toHaveCount(0);
 });

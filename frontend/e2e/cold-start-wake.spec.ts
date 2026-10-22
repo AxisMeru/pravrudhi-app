@@ -20,7 +20,7 @@ const w = (state: string, first: string, second: string, reason: string | null =
 const TICKET = { ticket: { value: "tkt-invented-123", mode: "partial", expires_in_s: 600 } };
 const FULL_TICKET = { ticket: { value: "tkt-full-456", mode: "full", expires_in_s: 600 } };
 
-interface Mock { start: { status: number; json: unknown }; polls: Array<{ status?: number; json?: unknown }>; result?: unknown }
+interface Mock { start: { status: number; json: unknown }; polls: Array<{ status?: number; json?: unknown }>; result?: unknown; agent?: number[] }
 async function setup(page: import("@playwright/test").Page, m: Mock) {
   const seen = { wakeStarts: 0, statusPolls: 0, screenings: [] as Array<{ ticket: string | undefined; body: string }> };
   let ready = false;
@@ -36,6 +36,10 @@ async function setup(page: import("@playwright/test").Page, m: Mock) {
     const ticket = r.request().headers()["x-wake-ticket"];
     seen.screenings.push({ ticket, body: r.request().postData() ?? "" });
     if (!ready && !ticket) return r.fulfill({ status: 503, json: { error: "judges_offline" } });
+    // app#543: answers for the screenings that carry the wake ticket: 503 agent_unavailable (status 503) or the result (200)
+    const a = ticket && m.agent?.length ? m.agent.shift() : undefined;
+    if (a === 503) return r.fulfill({ status: 503, json: { error: "agent_unavailable", detail: "the nyaya agent is unavailable; retry later" } });
+    if (a === 500) return r.fulfill({ status: 500, json: { error: "internal_error" } });
     return r.fulfill({ json: m.result ?? RESULT("uncertain") });
   });
   await page.goto("/screening");
@@ -68,7 +72,7 @@ test("wake: rows and R1's lines show while the models start, then the page sends
 
 test("wake: a partial load sends the ticket from the status body as X-Wake-Ticket, shows the neutral warning above the result, and keeps the ticket off the page", async ({ page }) => {
   const seen = await setup(page, { start: STARTED, polls: [{ json: w("partial", "ready", "failed", "second_judge_unavailable", TICKET) }], result: RESULT("second_judge_unavailable") });
-  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
+  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check for at least one ingredient. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
   expect(seen.screenings[1].ticket).toBe("tkt-invented-123");
   expect(await page.locator("body").innerText()).not.toContain("tkt-invented-123");
@@ -144,4 +148,62 @@ test("wake: a status poll that answers 200 text/html after a valid start is not 
   await page.getByRole("button", { name: "Screen these facts" }).click();
   await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
+});
+
+// app#543 (R1's words): a screening sent right after a READY wake can still answer 503 agent_unavailable. The page says so once and sends the SAME request again every 45 s, up to five times (same ticket, no new wake); after the last failure it shows the existing line; no other error retries.
+const WAIT_TEXT = "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a few minutes; you can cancel at any point.";
+const NOT_AVAILABLE = "The analysis service is not available right now, so nothing was scored. Try again later.";
+const READY_POLLS = [{ json: w("ready", "ready", "ready", null, FULL_TICKET) }];
+
+const tickets = (seen: { screenings: { ticket?: string | null; body?: string }[] }) => seen.screenings.filter((s) => s.ticket);
+
+test("#543: agent_unavailable x3 right after a ready wake: the wait line shows, the SAME request goes again every 45 s, then the result shows, no banner, one wake only", async ({ page }) => {
+  await page.clock.install();
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [503, 503, 503] });
+  await expect(page.getByTestId("agent-wait")).toHaveText(WAIT_TEXT);
+  await expect(page.getByTestId("screening-cancel")).toBeVisible();
+  await expect(page.getByTestId("running-elapsed")).toBeVisible();
+  expect(tickets(seen)).toHaveLength(1);
+  for (let n = 2; n <= 4; n++) {
+    await page.clock.fastForward(46_000);
+    await expect.poll(() => tickets(seen).length).toBe(n);
+  }
+  await expect(page.getByTestId("agent-wait")).toHaveCount(0);
+  await expect(page.getByTestId("screening-error")).toHaveCount(0);
+  await expect(page.getByTestId("wake-warning")).toHaveCount(0);
+  const t = tickets(seen);
+  expect(t[3]!.ticket).toBe("tkt-full-456");
+  expect(t[3]!.body).toBe(t[0]!.body);
+  expect(seen.wakeStarts).toBe(1);
+});
+
+test("#543: agent_unavailable every time: five retries 45 s apart, then the existing line unchanged, and no further try", async ({ page }) => {
+  await page.clock.install();
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [503, 503, 503, 503, 503, 503] });
+  await expect(page.getByTestId("agent-wait")).toHaveText(WAIT_TEXT);
+  for (let n = 2; n <= 6; n++) {
+    await page.clock.fastForward(46_000);
+    await expect.poll(() => tickets(seen).length).toBe(n);
+  }
+  await expect(page.getByTestId("screening-error")).toHaveText(NOT_AVAILABLE);
+  await expect(page.getByTestId("agent-wait")).toHaveCount(0);
+  await page.clock.fastForward(600_000);
+  expect(tickets(seen)).toHaveLength(6);
+  expect(seen.wakeStarts).toBe(1);
+});
+
+test("#543: any other error right after a ready wake does not retry and shows no wait line", async ({ page }) => {
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [500] });
+  await expect(page.getByTestId("screening-error")).toBeVisible();
+  await expect(page.getByTestId("agent-wait")).toHaveCount(0);
+  expect(seen.screenings.filter((s) => s.ticket)).toHaveLength(1);
+});
+
+test("#543: Cancel during the wait stops it: no second request", async ({ page }) => {
+  await page.clock.install();
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [503] });
+  await expect(page.getByTestId("agent-wait")).toBeVisible();
+  await page.getByTestId("screening-cancel").click();
+  await page.clock.fastForward(300_000);
+  expect(seen.screenings.filter((s) => s.ticket)).toHaveLength(1);
 });

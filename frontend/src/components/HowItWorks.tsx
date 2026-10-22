@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DEMO_FILM_LINK, GUIDE_FILM_LINK } from "@/lib/films/copy";
+import { GUIDE_FILM_LINK } from "@/lib/films/copy";
 import { NyayaSiddhiLink } from "@/components/benchmarks/NyayaSiddhiCard";
 import { CaveatStrip } from "@/components/CaveatStrip";
 import { DEFAULT_EXAMPLE, EXAMPLES, EXAMPLE_LABEL } from "@/lib/demo/example";
@@ -38,7 +38,6 @@ export function HowItWorks() {
           <Link href="/safety" className="inline-flex min-h-6 items-center text-sm underline">
             Safety record
           </Link>
-          <Link href="/technical-film" className="inline-flex min-h-6 items-center text-sm underline" data-testid="demo-technical-film">{DEMO_FILM_LINK}</Link>
           <Link href="/guide#film" className="inline-flex min-h-6 items-center text-sm underline" data-testid="demo-guide-film">{GUIDE_FILM_LINK}</Link>
         </div>
         {EXAMPLES.length > 1 && (

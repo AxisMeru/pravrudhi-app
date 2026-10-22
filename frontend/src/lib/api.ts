@@ -1602,6 +1602,22 @@ export interface AnalyseFactsOptions {
    * that wake is not allowed, or ANY other answer to that ask, leaves today's refusal exactly as it was. While a start is in progress this is called with what to show.
    */
   onWake?: (view: WakeView) => void;
+  /**
+   * app#543: right after a wake turned READY the screening can still answer 503 agent_unavailable (the models are up before the agent serves, #1041). Only then the page waits AGENT_RETRY_WAIT_MS and sends the SAME request again (same ticket, no extra wake call), up to AGENT_RETRY_MAX times; this is called once when the first wait starts so the page can say so. Any other error, and the last agent_unavailable, ends as before.
+   */
+  onAgentWait?: () => void;
+}
+
+/** app#543 (widened 22 Oct, Lead-2): a ready wake can precede a serving agent by minutes. After agent_unavailable the page retries every AGENT_RETRY_WAIT_MS, at most AGENT_RETRY_MAX times (about 4 minutes in all). */
+export const AGENT_RETRY_WAIT_MS = 45_000;
+export const AGENT_RETRY_MAX = 5;
+function waitMs(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) return reject(new DOMException("cancelled", "AbortError"));
+    const onAbort = (): void => { clearTimeout(t); reject(new DOMException("cancelled", "AbortError")); };
+    const t = setTimeout(() => { signal?.removeEventListener("abort", onAbort); resolve(); }, ms);
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 /**
@@ -1715,8 +1731,22 @@ export async function analyseFacts(
         if (o.kind === "partial" && !o.ticket) throw new WakeStoppedError(WAKE_POLL_ERROR);
         wakeMode = o.kind;
         // the ticket is required for partial and optional for ready (it only lets the engine extend the judge leases)
-        res = await analyseFactsAttempt(path, body, signal, false, o.ticket ? { "x-wake-ticket": o.ticket } : {});
-        if (!res.ok) throw await apiErrorFrom(res, path);
+        const wakeHeaders: Record<string, string> = o.ticket ? { "x-wake-ticket": o.ticket } : {};
+        res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
+        if (!res.ok) {
+          const first = await apiErrorFrom(res, path);
+          // app#543: up to AGENT_RETRY_MAX retries, AGENT_RETRY_WAIT_MS apart, only for agent_unavailable straight after a ready wake, the same request and ticket, never another wake
+          if (opts.onAgentWait && res.status === 503 && first.code === "agent_unavailable") {
+            opts.onAgentWait();
+            for (let n = 1; n <= AGENT_RETRY_MAX; n++) {
+              await waitMs(AGENT_RETRY_WAIT_MS, signal);
+              res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
+              if (res.ok) break;
+              const again = await apiErrorFrom(res, path);
+              if (n === AGENT_RETRY_MAX || res.status !== 503 || again.code !== "agent_unavailable") throw again;
+            }
+          } else throw first;
+        }
       }
     }
     if (!res.ok) throw err;
