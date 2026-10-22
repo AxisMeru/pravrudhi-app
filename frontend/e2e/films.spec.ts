@@ -72,9 +72,10 @@ test("reduced motion: the poster and a button, no video until the visitor asks; 
   await expect(page.getByTestId("film-video")).toBeVisible();
 });
 
-test("the guide's How it works section links to the technical film page and to the film in the guide", async ({ page }) => {
+test("the guide's How it works section links to the film in the guide and has NO link to the technical film (15 Oct direction, lane check d27)", async ({ page }) => {
   await page.goto("/guide");
-  await expect(page.getByTestId("demo-technical-film")).toHaveAttribute("href", /\/technical-film\/?$/);
+  await expect(page.getByTestId("demo-technical-film")).toHaveCount(0);
+  await expect(page.locator('main a[href="/technical-film"]')).toHaveCount(0);
   await expect(page.getByTestId("demo-guide-film")).toHaveAttribute("href", /\/guide\/?#film$/);
 });
 
