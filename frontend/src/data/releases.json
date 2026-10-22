@@ -1,0 +1,10 @@
+{
+  "note": "Engine releases that were LIVE in production, newest first: version, the time it went live (ISO with offset, from L2A's swap ledger, not the tag time), whether the page shows the time or only the date, and one plain line (R1 signed each line, 22 Oct 2026). Updating this file is one line in the deploy checklist (L2A).",
+  "releases": [
+    { "engine": "0.6.32", "liveAt": "2026-10-22T14:15:00+01:00", "line": "Adds groundwork for a later feature, switched off. Nothing changes for you." },
+    { "engine": "0.6.29", "liveAt": "2026-10-22T09:02:00+01:00", "line": "The service can list your matters, which the Your matters list uses." },
+    { "engine": "0.6.28", "liveAt": "2026-10-21T17:56:00+01:00", "showTime": false, "line": "Old section look-up is on: it shows the table's section for an old IPC or CrPC number, and the IPC section text is restored." },
+    { "engine": "0.6.27", "liveAt": "2026-10-21T09:01:00+01:00", "line": "Adds groundwork for reading scanned pages and for listing matters, both switched off. Nothing changes for you." },
+    { "engine": "0.6.26", "liveAt": "2026-10-20T18:40:00+01:00", "line": "A build change for scanned-page reading, switched off. Nothing changes for you." }
+  ]
+}
