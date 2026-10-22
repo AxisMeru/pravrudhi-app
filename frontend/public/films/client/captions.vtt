@@ -61,161 +61,157 @@ That's a prompt, not an error. Think of it as a review agenda for the next conve
 And the page says it plainly: this is a screening aid, not legal advice. A lawyer decides.
 
 16
-00:01:47.300 --> 00:01:51.932
+00:01:47.300 --> 00:01:51.859
 Next, the Matter tools page. On Matter tools you add the papers of a matter.
 
 17
-00:01:51.932 --> 00:01:59.063
+00:01:51.859 --> 00:01:58.877
 The papers you add here are kept as text in our store, in the EU (Romania), until you delete the paper or the matter.
 
 18
-00:01:59.063 --> 00:02:08.206
-Keep the matter number: it is lost when you reload this page, and your matters cannot be listed here. Deleting removes them from this service's store.
+00:01:58.877 --> 00:02:08.775
+When you are signed in, Your matters lists your matters, and you can open or delete them there. Deleting removes them from this service's store. Images are not read.
 
 19
-00:02:08.206 --> 00:02:09.425
-Images are not read.
-
-20
-00:02:11.000 --> 00:02:15.072
+00:02:10.900 --> 00:02:14.972
 To try the tools without your own papers, load a sample matter.
 
-21
-00:02:15.072 --> 00:02:22.700
+20
+00:02:14.972 --> 00:02:22.600
 The sample matter is invented: an invented FIR, chargesheet extract, bail order and cheque memo, with no real parties.
 
-22
-00:02:25.500 --> 00:02:35.600
+21
+00:02:25.400 --> 00:02:35.500
 Behind the checklist there are two of our trained models. The first reads an ingredient and names the fact it's leaning on. The second looks again, on its own.
 
-23
-00:02:35.600 --> 00:02:41.825
+22
+00:02:35.500 --> 00:02:41.725
 Both have to agree. If either one isn't sure, it doesn't guess. That ingredient comes back to you.
 
-24
-00:02:43.400 --> 00:02:46.844
+23
+00:02:43.300 --> 00:02:46.744
 Where does a model like that learn? From real court material.
 
-25
-00:02:46.844 --> 00:02:55.086
+24
+00:02:46.744 --> 00:02:54.986
 Judgments and orders from real cases, gathered, cleaned up, and read by two separate model readers whose work is compared before anything is used.
 
-26
-00:02:55.086 --> 00:03:02.425
+25
+00:02:54.986 --> 00:03:02.325
 Cases we construct ourselves are always labelled as such, and the material we test on is checked against the material we train on.
 
-27
-00:03:04.000 --> 00:03:07.767
+26
+00:03:03.900 --> 00:03:07.667
 There's one more safeguard that never touches your facts.
 
-28
-00:03:07.767 --> 00:03:19.000
+27
+00:03:07.667 --> 00:03:18.900
 Each offence is written down as a precise list of ingredients, and a formal check confirms that every ingredient was actually addressed. So a skipped ingredient shows up.
 
-29
-00:03:20.500 --> 00:03:28.523
+28
+00:03:20.400 --> 00:03:28.423
 We borrowed three habits from Nyaya, an old Indian tradition of logic. An ingredient only counts when it points to a fact in your papers.
 
-30
-00:03:28.523 --> 00:03:36.370
+29
+00:03:28.423 --> 00:03:36.270
 If the facts don't carry it, the system holds back rather than reaching a conclusion. And what a model says is treated like testimony.
 
-31
-00:03:36.370 --> 00:03:39.825
+30
+00:03:36.270 --> 00:03:39.725
 It's useful, but it isn't accepted until it's been checked.
 
-32
-00:03:41.400 --> 00:03:51.226
+31
+00:03:41.300 --> 00:03:51.126
 Put together, it's a sequence of stages, from reading the facts to the final decision. The last stages decide by fixed rules, not by a model's mood.
 
-33
-00:03:51.226 --> 00:03:57.400
+32
+00:03:51.126 --> 00:03:57.300
 And from a result you can download the memo and the run record, to keep with the matter file.
 
-34
-00:03:58.900 --> 00:04:08.554
+33
+00:03:58.800 --> 00:04:08.454
 Some firms will want more help than a single screening. So there's an optional layer of managed workflows. The assistant can propose steps, but the core still decides.
 
-35
-00:04:08.554 --> 00:04:12.600
+34
+00:04:08.454 --> 00:04:12.500
 It's only for signed-in users, and only when you tick the consent box.
 
-36
-00:04:14.100 --> 00:04:20.347
+35
+00:04:14.000 --> 00:04:20.247
 The tools below use those papers, except the Section 138 checklist, which counts from dates you confirm.
 
-37
-00:04:20.347 --> 00:04:30.498
+36
+00:04:20.247 --> 00:04:30.398
 Papers for a matter Add the papers of a matter and find a passage in them. Chronology Lists the dates it reads in your papers, each with its sentence. May be incomplete.
 
-38
-00:04:30.498 --> 00:04:36.144
+37
+00:04:30.398 --> 00:04:36.044
 Review agenda Lists the ingredients of the cheque-dishonour offence and the papers to look in.
 
-39
-00:04:36.144 --> 00:04:41.550
+38
+00:04:36.044 --> 00:04:41.450
 Citation sweep Checks that each citation in your papers exists in our index, nothing more.
 
-40
-00:04:43.100 --> 00:04:49.031
+39
+00:04:43.000 --> 00:04:48.931
 Quashing agenda Lists the Supreme Court's quashing categories; does not say whether any applies.
 
-41
-00:04:49.031 --> 00:04:54.838
+40
+00:04:48.931 --> 00:04:54.738
 Cheque case check Shows the review agenda and candidate dates per step; you confirm each date.
 
-42
-00:04:54.838 --> 00:05:00.460
+41
+00:04:54.738 --> 00:05:00.360
 Hearing pack Gathers the dates, papers still to add and citations to look up for a hearing.
 
-43
-00:05:00.460 --> 00:05:06.700
+42
+00:05:00.360 --> 00:05:06.600
 Section 138 checklist Counts section 138 periods from dates you confirm: a checklist, not a decision.
 
-44
-00:05:10.100 --> 00:05:15.130
+43
+00:05:10.000 --> 00:05:15.030
 Two tools help with a first draft, for a lawyer to rewrite. Bail application grounds.
 
-45
-00:05:15.130 --> 00:05:24.775
+44
+00:05:15.030 --> 00:05:24.675
 Writes a first draft of the grounds from the facts you enter, for a lawyer to rewrite. It is not advice on how the application will go. Synopsis and list of dates.
 
-46
-00:05:24.775 --> 00:05:32.526
+45
+00:05:24.675 --> 00:05:32.426
 Shows a list of dates from the papers you added, and a first draft of a synopsis where one can be drafted, for a lawyer to rewrite.
 
-47
-00:05:32.526 --> 00:05:39.213
+46
+00:05:32.426 --> 00:05:39.113
 First you say whether any of these is involved in the matter: a person under 18, a sexual offence or trafficking.
 
-48
-00:05:39.213 --> 00:05:43.000
+47
+00:05:39.113 --> 00:05:42.900
 If one is, no draft is made and a lawyer drafts the application.
 
-49
-00:05:44.600 --> 00:05:53.500
+48
+00:05:44.500 --> 00:05:53.400
 The citation check looks up a citation in our index. Found in our index. It does not look at quotes and does not say whether the case supports a point.
 
-50
-00:05:55.000 --> 00:06:03.195
+49
+00:05:54.900 --> 00:06:03.095
 So how is this different from just asking a chatbot? A chatbot can write a fluent answer, and sometimes cite a case that doesn't exist.
 
-51
-00:06:03.195 --> 00:06:12.179
+50
+00:06:03.095 --> 00:06:12.079
 Pravrudhi-Nyaya goes ingredient by ingredient, matches quotes against your own facts, and when the facts don't carry it, it refers the point to you.
 
-52
-00:06:12.179 --> 00:06:14.850
+51
+00:06:12.079 --> 00:06:14.750
 It's built to be checked, not just believed.
 
-53
-00:06:16.400 --> 00:06:25.559
+52
+00:06:16.300 --> 00:06:25.459
 Privacy and where it runs, briefly. Screening without the assistant runs on our own engine and our own models, and your facts aren't sent to an outside AI.
 
-54
-00:06:25.559 --> 00:06:32.650
+53
+00:06:25.459 --> 00:06:32.550
 If you choose the assistant, and tick its box, they are, and the page tells you so first. The models run on rented GPUs.
 
-55
-00:06:34.200 --> 00:06:38.500
+54
+00:06:34.100 --> 00:06:38.400
 Pravrudhi-Nyaya. Built to be checked. A lawyer decides.
