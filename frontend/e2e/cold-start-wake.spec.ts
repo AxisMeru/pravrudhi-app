@@ -111,3 +111,37 @@ test("wake: a status that answers not allowed (503 judges_offline, the allowlist
   await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
 });
+
+test("wake: with the engine flag OFF a signed-in POST /wake answers 200 text/html (the app shell): today's refusal, nothing remembered; a second try starts again and never polls (R2 BLOCK)", async ({ page }) => {
+  let starts = 0;
+  let polls = 0;
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: CONTRACTS }));
+  await page.route("**/api/v1/analyse-facts/wake/status", (r) => { polls++; return r.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><html><body>app</body></html>" }); });
+  await page.route("**/api/v1/analyse-facts/wake", (r) => { starts++; return r.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><html><body>app</body></html>" }); });
+  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ status: 503, json: { error: "judges_offline" } }));
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.");
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.");
+  await expect.poll(() => starts).toBe(2);
+  expect(polls, "never polled: no wake was ever started").toBe(0);
+  await expect(page.getByTestId("wake-progress")).toHaveCount(0);
+});
+
+test("wake: a status poll that answers 200 text/html after a valid start is not allowed, not a poll error", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: CONTRACTS }));
+  await page.route("**/api/v1/analyse-facts/wake/status", (r) => r.fulfill({ status: 200, contentType: "text/html", body: "<!doctype html><html><body>app</body></html>" }));
+  await page.route("**/api/v1/analyse-facts/wake", (r) => r.fulfill(STARTED));
+  await page.route("**/api/v1/analyse-facts", (r) => r.fulfill({ status: 503, json: { error: "judges_offline" } }));
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(F1);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toHaveText("The analysis models are switched off at the moment. Nothing was scored. Try again later.", { timeout: 20_000 });
+  await expect(page.getByTestId("wake-progress")).toHaveCount(0);
+});

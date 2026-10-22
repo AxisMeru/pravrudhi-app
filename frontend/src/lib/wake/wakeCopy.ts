@@ -10,7 +10,7 @@ export const WAKE_WARN_SECOND_FAILED = "The second model did not complete its ch
 export const WAKE_WARN_FIRST_FAILED = "The first model did not start. Nothing was scored, and no ingredient is shown as supported.";
 export const WAKE_FAIL_BOTH = "The analysis models did not start. Nothing was scored and no result is shown. This is not a finding about your matter. You can try again in a few minutes.";
 export const WAKE_FAIL_TIMEOUT_TAIL = "The models did not start within the time we allow.";
-/** Poll errors (S10): Web's line, R1 to confirm. */
+/** Poll errors (S10): R1's line, confirmed (hash 48532b162248a874). */
 export const WAKE_POLL_ERROR = "We could not check whether the analysis models started. Nothing was scored and no result is shown. You can try again in a few minutes.";
 /** Waking not allowed: the old line, exactly as today. */
 export const WAKE_REFUSAL_KEEP = "The analysis models are switched off at the moment. Nothing was scored.";

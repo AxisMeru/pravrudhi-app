@@ -6,7 +6,7 @@
 import { parseAppendix, parseAssistantBlock, parseAssistantInfo, type AssistantBlock, type ScreeningAppendix } from "./assistantRun";
 import contractElements from "./fixtures/contractElements.json";
 import { runWake, type WakeIO } from "./wake/wakeRun";
-import type { WakeView } from "./wake/wake";
+import { parseWakeBody, type WakeView } from "./wake/wake";
 import { WAKE_POLL_ERROR } from "./wake/wakeCopy";
 
 function detectBase(): string {
@@ -1633,8 +1633,11 @@ function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, 
       try {
         const r = await call(base, { method: "POST" });
         if (r.status !== 200 && r.status !== 202) return { kind: "not_allowed" };
+        // R2 (#509 BLOCK, flag OFF on a real server: a signed-in POST answers 200 text/html, the app shell): the body is read FIRST and a wake counts as open only when the body is a status the page accepts; anything else is not_allowed and nothing is remembered
+        const body: unknown = await r.json();
+        if (parseWakeBody(body).wake === null) return { kind: "not_allowed" };
         openWake = { userId: userId ?? "session", at: Date.now() };
-        return { kind: "started", body: await r.json() };
+        return { kind: "started", body };
       } catch (e) {
         if ((e as { name?: string } | null)?.name === "AbortError") throw e;
         return { kind: "not_allowed" };
@@ -1650,7 +1653,15 @@ function wakeIO(signal: AbortSignal | undefined, onView: (v: WakeView) => void, 
         if (r.status === 401 || r.status === 403) { openWake = null; onTerminal(); }
         throw new ApiError(r.status, "/api/v1/analyse-facts/wake/status");
       }
-      return r.json();
+      // a 200 that is not JSON (flag OFF: the app shell as text/html) is "not allowed", never a poll error: today's refusal stands and the open-wake memory is cleared
+      try {
+        return await r.json();
+      } catch {
+        openWake = null;
+        const n = new Error("wake not allowed");
+        n.name = "WakeNotAllowedError";
+        throw n;
+      }
     },
   };
 }
