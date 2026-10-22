@@ -2,11 +2,11 @@ import { expect, test } from "./support/engineTest";
 import { ACCESS_COPY, ERROR_COPY, ERROR_GENERIC } from "../src/lib/adminAccess/copy";
 
 // app#520 minimal, against MOCKED routes: the Edge Function admin-invite (invite and resend by email). Every address is invented.
-const ME = "11111111-1111-4111-8111-111111111111";
+const ME = "11111111-1111-4111-8111-1111111111ab";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem("pravrudhi-auth-session", JSON.stringify({ accessToken: "invented-token", user: { id: "11111111-1111-4111-8111-111111111111", email: "admin@example.com" }, expiresAt: 4102444800 }));
+    localStorage.setItem("pravrudhi-auth-session", JSON.stringify({ accessToken: "invented-token", user: { id: "11111111-1111-4111-8111-1111111111ab", email: "admin@example.com" }, expiresAt: 4102444800 }));
   });
 });
 
