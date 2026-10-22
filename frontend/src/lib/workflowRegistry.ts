@@ -88,13 +88,13 @@ export interface RegistryBuild { drafting?: boolean }
 
 /**
  * Available where the engine says so (a readable map decides: a key it omits is off). With NO usable map (an anonymous visitor, a status that could not be read, or an older engine) the fallback is the shipped engine config
- * (Lead-2, 21 Oct): the eight, plus A4 and A8 (on since 0.6.24) on a build that lists them (chip and link point at the real routes). The section look-up row is NEVER Available in the fallback (R1: his cleared B1 row says Available only when the
- * engine's status says wf_b1_section_lookup true): on a build that lists it, it shows Coming with its line and no link. A row the build does not list is never reported.
+ * (Lead-2, 21 Oct): the eight, plus A4 and A8 (on since 0.6.24) on a build that lists them (chip and link point at the real routes). The section look-up row IS Available in the fallback (Lead-2, 22 Oct: the fallback said Coming whenever the
+ * status-map read was slow or failed, which was untrue while the card works: seen live as a transient pre-map render): on a build that lists it, it shows Available with its link; a readable map still decides (a key it omits is off). A row the build does not list is never reported.
  */
 export function registryAvailable(statusWorkflows: Record<string, unknown> | null | undefined, build: RegistryBuild = {}): Record<RegistryKey, boolean> {
   const has = statusWorkflows !== null && typeof statusWorkflows === "object";
   const fallbackOn = (key: RegistryKey): boolean =>
-    REGISTRY_FALLBACK_ON.includes(key) || (build.drafting === true && REGISTRY_DRAFTING.some((d) => d.key === key));
+    REGISTRY_FALLBACK_ON.includes(key) || key === REGISTRY_LOOKUP.key || (build.drafting === true && REGISTRY_DRAFTING.some((d) => d.key === key));
   return Object.fromEntries([...REGISTRY, ...REGISTRY_DRAFTING, REGISTRY_LOOKUP].map((e) => [e.key, has ? statusWorkflows[e.key] === true : fallbackOn(e.key)])) as Record<RegistryKey, boolean>;
 }
 

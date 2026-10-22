@@ -100,9 +100,9 @@ test("flag ON: a workflow the engine reports off is a Coming card with no link; 
   await expect(page.getByTestId("workflow-card-wf_a5_ingredient_agenda").locator("a")).toHaveCount(1);
 });
 
-test("flag ON: an engine status without the workflows field, an unreadable status and an anonymous visitor all get the fallback = the shipped engine config: the eight (+ A4/A8 on a drafting build) are Available WITH links; the look-up row, where the build lists it, is Coming with no link, never Available", async ({ page }) => {
+test("flag ON: an engine status without the workflows field, an unreadable status and an anonymous visitor all get the fallback = the shipped engine config: the eight (+ A4/A8 on a drafting build) are Available WITH links; the look-up row, where the build lists it, is Available WITH its link too (Lead-2, 22 Oct: a slow or failed map read must not say Coming)", async ({ page }) => {
   test.skip(!ON, "needs the build with the workflows flag");
-  const AVAILABLE = ENTRIES.filter((e) => e.key !== "wf_b1_section_lookup");
+  const AVAILABLE = ENTRIES;
   for (const route of [(r: import("@playwright/test").Route) => r.fulfill({ json: statusWith() }), (r: import("@playwright/test").Route) => r.fulfill({ status: 503, json: { detail: "down" } }), (r: import("@playwright/test").Route) => r.fulfill({ status: 401, json: { detail: "no session" } })]) {
     await page.route("**/api/v1/status", route);
     await page.goto("/workflows");
@@ -115,7 +115,7 @@ test("flag ON: an engine status without the workflows field, an unreadable statu
     expect(await page.getByTestId("workflow-card-wf_a4_bail_drafting").count(), "A4 listed only on a drafting build").toBe(DRAFT ? 1 : 0);
     const look = page.getByTestId("workflow-card-wf_b1_section_lookup");
     expect(await look.count(), "the look-up row only on a look-up build").toBe(LOOKUP ? 1 : 0);
-    if (LOOKUP) { await expect(look.getByTestId("workflow-card-chip")).toHaveText("Coming"); await expect(look.locator("a")).toHaveCount(0); }
+    if (LOOKUP) { await expect(look.getByTestId("workflow-card-chip")).toHaveText("Available"); await expect(look.locator("a")).toHaveAttribute("href", "/matter-tools#pv-sl"); }
     await page.unroute("**/api/v1/status");
   }
 });
