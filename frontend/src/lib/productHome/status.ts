@@ -3,7 +3,7 @@ import { apiBase, engineFetch } from "@/lib/api";
 
 export type ModelsState = "ready" | "starting" | "off" | "unavailable" | "none";
 
-/** `judges` = {first, second}, each "parked" | "warming" | "ready" (engine 0.6.32+). Absent = the feature is off in this engine: no line. */
+/** `judges` = {first, second}, each "parked" | "warming" | "ready" (engine 0.6.32+). Absent = the feature is off in this engine: no line; one ready and one parked: no line. */
 export function modelsStateOf(body: unknown): ModelsState {
   if (typeof body !== "object" || body === null) return "unavailable";
   const j = (body as Record<string, unknown>).judges;
@@ -11,8 +11,10 @@ export function modelsStateOf(body: unknown): ModelsState {
   if (typeof j !== "object" || j === null) return "unavailable";
   const f = (j as Record<string, unknown>).first, s = (j as Record<string, unknown>).second;
   if (f === "ready" && s === "ready") return "ready";
-  if (f === "warming" || s === "warming" || (f === "ready" && s !== "ready") || (s === "ready" && f !== "ready")) return "starting";
+  if (f === "warming" || s === "warming") return "starting";
   if (f === "parked" && s === "parked") return "off";
+  // one ready and the other parked (a partial start, or one lease ended first): no line rather than a wrong one (R2 advise)
+  if ((f === "ready" && s === "parked") || (s === "ready" && f === "parked")) return "none";
   return "unavailable";
 }
 

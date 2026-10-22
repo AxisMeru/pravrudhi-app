@@ -4,11 +4,12 @@ import test from "node:test";
 import { HOME_COPY, HOME_FILMS, HOME_QUICK, HOME_READ_MORE } from "./copy";
 import { modelsStateOf } from "./status";
 
-test("the models line follows the engine's judges field: both parked = off, any warming or one ready = starting, both ready = ready, absent = no line, anything else unreadable", () => {
+test("the models line follows the engine's judges field: both parked = off, any warming = starting, one ready and one parked = no line, both ready = ready, absent = no line, anything else unreadable", () => {
   assert.equal(modelsStateOf({ judges: { first: "parked", second: "parked" } }), "off");
   assert.equal(modelsStateOf({ judges: { first: "warming", second: "parked" } }), "starting");
   assert.equal(modelsStateOf({ judges: { first: "ready", second: "warming" } }), "starting");
-  assert.equal(modelsStateOf({ judges: { first: "ready", second: "parked" } }), "starting");
+  assert.equal(modelsStateOf({ judges: { first: "ready", second: "parked" } }), "none");
+  assert.equal(modelsStateOf({ judges: { first: "parked", second: "ready" } }), "none");
   assert.equal(modelsStateOf({ judges: { first: "ready", second: "ready" } }), "ready");
   assert.equal(modelsStateOf({ engine_version: "0.6.32" }), "none");
   assert.equal(modelsStateOf(null), "unavailable");
