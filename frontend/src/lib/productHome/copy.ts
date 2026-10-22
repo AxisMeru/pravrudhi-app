@@ -8,7 +8,7 @@ export const HOME_COPY = {
   heading: "Pravrudhi-Nyaya",
   lead: "Element-by-element screening under Indian law, starting with criminal matters. An ingredient is shown as supported only where a cited fact appears to carry it, as a suggestion for you to check; where none does, it is referred back to you.",
   signIn: "Sign in",
-  noNewAccounts: `${SIGNIN_COPY.noNewAccounts} ${SIGNIN_COPY.getAccess}`,
+  noNewAccounts: SIGNIN_COPY.getAccess, // R1: only "To get an account, ask your administrator." here; "New accounts cannot be created on this page" belongs to /signin
   filmsHeading: "Three films",
   syntheticVoice: "The narration is a synthetic voice.",
   readMoreHeading: "Read more",
@@ -27,7 +27,7 @@ export const HOME_COPY = {
   workflowsHeading: "Workflows",
   allWorkflows: "All workflows",
   quickHeading: "Quick links",
-  invitePeople: "Invite people",
+  invitePeople: "Access", // R1: the same word as the sidebar item and the page's own heading
   loading: "Loading…",
 } as const;
 
