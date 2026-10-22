@@ -20,7 +20,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("The time a screening takes varies; the page counts it, says so if it is slow, and you can cancel at any point. Starting the analysis models when a signed-in person asks for a screening is being tested and is not switched on yet, so such a screening is refused at once while they are off (see Access and the analysis models).");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("The first screening after a quiet period can take a few minutes to start; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point.");
   await expect(page.getByTestId("guide-caption")).toHaveText([...((await isLayoutB(page)) ? [] : ["This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text."]), ...(PANEL ? ["Existence check only."] : [])]); // layout B's frame 03 shows a Supported by a fact row, so it carries no such caption
   const step6 = page.getByTestId("guide-step").nth(5);
   if (PANEL) {
@@ -68,14 +68,15 @@ test("the guide is in the nav", async ({ page }) => {
   await expect(page.getByRole("link", { name: "User guide" }).first()).toBeVisible();
 });
 
-test("the guide's Access and the analysis models section: three rows, no promise about who can start the models, no ask-an-administrator line, the refusal line verbatim", async ({ page }) => {
+test("the guide's Access and the analysis models section: three rows, every signed-in person can start the models (ON version), no ask-an-administrator line", async ({ page }) => {
   await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
   await page.goto("/guide");
   const sec = page.getByTestId("guide-access");
   await expect(sec.getByRole("heading", { name: "Access and the analysis models" })).toBeVisible();
   await expect(sec.getByTestId("guide-access-rows").locator("dt")).toHaveText(["Without signing in", "Signed in", "Administrator"]);
   await expect(sec).toContainText("You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in.");
-  await expect(sec).not.toContainText("Every signed-in person");
-  await expect(sec).toContainText("The analysis models are switched off at the moment. Nothing was scored. Try again later.");
+  await expect(sec).toContainText("Every signed-in person can use all of these, including starting the analysis models.");
+  await expect(sec).toContainText("the app starts them and shows each model loading");
+  await expect(sec).toContainText("If the models do not start, nothing is scored and no result is shown.");
   await expect(sec).not.toContainText(/ask your administrator|allowed to start|invit|sign-?up/i);
 });

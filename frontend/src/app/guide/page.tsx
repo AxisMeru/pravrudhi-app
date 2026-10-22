@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
-import { ACCESS_OFF as ACCESS } from "@/lib/guide/accessCopy";
+import { ACCESS_ON as ACCESS } from "@/lib/guide/accessCopy";
 import Link from "next/link";
 
 import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
