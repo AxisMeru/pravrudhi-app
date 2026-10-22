@@ -75,8 +75,8 @@ test("the gate closes the loop's pages for anyone not known to be Studio, and wa
   }
 });
 
-test("the home page of a non-Studio user goes to Matters; Studio keeps it", () => {
-  assert.equal(gateDecision("/", "product", true, false), "redirect-home");
+test("the home page of a non-Studio user is the product Home (no redirect, app#539); it waits while the edition is unknown; Studio keeps its own", () => {
+  assert.equal(gateDecision("/", "product", true, false), "allow");
   assert.equal(gateDecision("/", null, true, false), "wait");
   assert.equal(gateDecision("/", "studio", true, false), "allow");
 });
@@ -107,7 +107,7 @@ const VARIANTS = ["/nyaya.html", "/chat.html", "/memory.html", "/runs.html", "/i
 test("every spelling of a hidden page is closed to a member, and waits while the edition is unknown", () => {
   for (const v of VARIANTS) {
     const loop = studioOnlyPath(v);
-    const want = v === "/index.html" ? "redirect-home" : "block";
+    const want = v === "/index.html" ? "allow" : "block";
     assert.equal(gateDecision(v, "product", loop, false), want, v);
     assert.equal(gateDecision(v, null, loop, false), "wait", v);
     assert.equal(gateDecision(v, "studio", loop, false), "allow", v);
