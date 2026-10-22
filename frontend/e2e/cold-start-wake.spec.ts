@@ -68,7 +68,7 @@ test("wake: rows and R1's lines show while the models start, then the page sends
 
 test("wake: a partial load sends the ticket from the status body as X-Wake-Ticket, shows the neutral warning above the result, and keeps the ticket off the page", async ({ page }) => {
   const seen = await setup(page, { start: STARTED, polls: [{ json: w("partial", "ready", "failed", "second_judge_unavailable", TICKET) }], result: RESULT("second_judge_unavailable") });
-  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
+  await expect(page.getByTestId("wake-warning")).toHaveText("The second model did not complete its check for at least one ingredient. The first model's result is shown. Any ingredient the second model did not check goes to a lawyer and is not shown as supported.", { timeout: 20_000 });
   await expect(page.getByTestId("wake-progress")).toHaveCount(0);
   expect(seen.screenings[1].ticket).toBe("tkt-invented-123");
   expect(await page.locator("body").innerText()).not.toContain("tkt-invented-123");
