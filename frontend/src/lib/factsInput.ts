@@ -2,6 +2,8 @@
 // truncation), and client-side file reading. Nothing here touches the network.
 
 export const MAX_FACTS = 8;
+/** The engine reads 1 to 5 contract ids per request; more is a 422 (app#545). One offence can carry up to three ids, so this is NOT a count of offences. */
+export const MAX_CONTRACT_IDS = 5;
 export const MAX_FACT_CHARS = 4000;
 export const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
@@ -96,3 +98,6 @@ export async function extractText(
   const text = raw.trim();
   return text ? { ok: true, text } : { ok: false, message: NO_TEXT_MESSAGE };
 }
+
+/** app#545 (R1's words): the ticked offences together carry more contract ids than the engine reads at once. Shown beside a disabled Screen button and as its description. No number: the person cannot see the id total. */
+export const TOO_MANY_OFFENCES_TEXT = "These offences together are more than one screening can run. Untick one or more of them to screen.";
