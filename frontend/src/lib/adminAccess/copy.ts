@@ -1,8 +1,8 @@
-// Admin → Access page strings (app#520). DRAFT for R1: every string the page shows is here, none inline. Words follow Track B's contract rules: "Blocked" (never "deleted" or "banned"), "up to 1 hour" (never "immediately"),
+// Admin → Access page strings (app#520). DRAFT for R1: every string the page shows is here, none inline. Words: R1 (22 Oct, #527 rulings 1-3 + advise applied). Follow Track B's contract rules: "Blocked" (never "deleted" or "banned"), "up to 1 hour" (never "immediately"),
 // no model-start switch, no delete, no un-block. Nothing here names an email or an id.
 export const ACCESS_COPY = {
   heading: "Access",
-  intro: "The accounts that can sign in, and who may be added or blocked. Only an administrator sees this page.",
+  intro: "The accounts, and who can be invited or blocked. Only an administrator sees this page.",
   notAdmin: "This page is for administrators.",
   loading: "Loading the accounts…",
   loadError: "The accounts could not be loaded. Try again.",
@@ -16,7 +16,7 @@ export const ACCESS_COPY = {
   colStatus: "Status",
   colActions: "Actions",
   roleAdmin: "Administrator",
-  roleMember: "Member",
+  roleMember: "User",
   statusPending: "Invitation not yet accepted",
   statusAccepted: "Signed in before",
   statusBlocked: "Blocked",
@@ -24,7 +24,7 @@ export const ACCESS_COPY = {
   lastSignIn: "Last signed in",
   never: "never",
   inviteHeading: "Invite by email",
-  inviteExplain: "A person you invite joins as a member and can start the models with no further step. The link in the email opens the sign-in page.",
+  inviteExplain: "A person you invite gets an account and can start the models with no further step. The link in the email opens the sign-in page.",
   inviteLabel: "Email address",
   invitePlaceholder: "name@example.org",
   inviteButton: "Send invitation",
@@ -32,7 +32,7 @@ export const ACCESS_COPY = {
   blockButton: "Block",
   blockConfirm: "Block this account",
   blockCancel: "Cancel",
-  blockExplain: "A blocked account cannot sign in again and cannot start the models. A session that is already open can keep using the rest of the product for up to 1 hour. This cannot be undone here.",
+  blockExplain: "A blocked account cannot sign in again. A session that is already open can keep working for up to 1 hour. This cannot be undone here.",
   invitedOk: "Invitation sent.",
   resentOk: "Invitation sent again.",
   blockedOk: "Blocked.",
@@ -55,7 +55,7 @@ export const ERROR_COPY: Readonly<Record<string, string>> = {
   no_such_user: "This account no longer exists.",
   upstream_unavailable: "The service did not answer. Nothing was changed. Try again.",
   audit_unavailable: "Nothing was done. Try again.",
-  not_configured: "This is not available yet.",
+  not_configured: "This is not available.",
   invite_redirect_not_allowed: "Something went wrong. The invitation was not sent.",
 };
 export const ERROR_GENERIC = "Something went wrong. Nothing was done.";

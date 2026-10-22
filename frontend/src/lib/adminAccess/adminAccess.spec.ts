@@ -50,4 +50,6 @@ test("the wording rules: Blocked, up to 1 hour, never immediately; no model-star
   assert.doesNotMatch(all, /immediately|\bbanned\b|\bdelete|unblock|un-block|reinstate|restore access/i);
   assert.doesNotMatch(all, /allow(ed)? to start|toggle|switch (on|off)|may start the models/i);
   assert.equal(ACCESS_COPY.statusBlocked, "Blocked");
+  assert.doesNotMatch(all, /\bmember\b/i, "house wording: no 'member' (R1)");
+  assert.doesNotMatch(ACCESS_COPY.blockExplain, /models/i, "no claim about the models for an open session unless Track B confirms in writing (R1)");
 });
