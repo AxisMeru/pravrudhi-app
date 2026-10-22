@@ -1,5 +1,5 @@
 // The guide section "Access and the analysis models" (app#522; operator 22 Oct: in the user guide, with edits and redactions where needed). Words: R1 (ACCESS_GUIDE_522_R1_v2).
-// Standalone (Lead-2, 22 Oct: #525 closed unmerged). Ships ONLY with cold start ON in production AND every account that can sign in allowed to start the models (the any-signed-in rule live and read back; nothing invited before then), #509 live and the waker in live mode (R2). If the flag goes back OFF, take this section out (git revert of the deploy PR) rather than restore other text. R1 reads it with the flag roll.
+// Standalone (Lead-2, 22 Oct: #525 closed unmerged). R1 22 Oct evening: the Signed in row and the first models paragraph are STATE-FREE (true before and after any-signed-in is live), so this text can ship in any of those states; the administrator row sentence about inviting by email is true only with #534 and its function live.
 // Redacted on purpose: no email, user id, endpoint id, dollar figure, limit, machine name or the helper that starts the models; no statement about who can create an account.
 
 export interface AccessGuide {
@@ -26,11 +26,11 @@ export const ACCESS_ON: AccessGuide = {
   ...COMMON,
   rows: [
     ROW_PUBLIC,
-    { label: "Signed in", text: "You can do everything above, and use the workflows, Your matters, Matter tools and the old section look-up. Every signed-in person can use all of these, including starting the analysis models." },
+    { label: "Signed in", text: "You can do everything above, and use the workflows, Your matters, Matter tools and the old section look-up. Whether you can start the analysis models depends on your account." },
     ROW_ADMIN,
   ],
   models: [
-    "The analysis models are normally switched off. If you are signed in and send a screening while they are off, the app starts them and shows each model loading, one line for the first model and one for the second. This can take a few minutes. Nothing is shown as supported until both models have checked it.",
+    "The analysis models are normally switched off. If you send a screening while they are off and your account may start them, the app starts them and shows each model loading, one line for the first model and one for the second. This can take a few minutes. Otherwise the page says they are switched off and nothing is scored. Nothing is shown as supported until both models have checked it.",
     "The second model may not start, or may not complete its check for every ingredient, even when the first model has. When that happens, the first model's result is shown with a warning, and any ingredient the second model did not check goes to a lawyer and is not shown as supported.",
     "If the first model does not start, the page says so plainly and no result is shown. You can try again in a few minutes.",
     "The models can be switched off again after a period without use.",
