@@ -174,10 +174,12 @@ test("the Citations panel is below the checklist and nothing about the frontier 
   }
 });
 
-test("a member who opens / lands on Screening", async ({ page }) => {
+test("a member who opens / sees the Home (app#539), not a redirect to Screening", async ({ page }) => {
   await page.route("**/api/me", (r) => r.fulfill({ json: { edition: "Pravrudhi", tagline: "t", access: "member" } }));
   await page.goto("/");
-  await page.waitForURL(/\/screening/);
+  await expect(page.getByTestId("home-workspace")).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId("home-start")).toHaveAttribute("href", /\/screening\/?$/);
 });
 
 test("the demo link loads the public-order example as numbered facts, R1's label and the order's citation, with its offences selected", async ({ page }) => {
