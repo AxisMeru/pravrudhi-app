@@ -18,8 +18,13 @@ export function citationStatusText(status: string): string {
   }
 }
 
-function Lines({ lines, testid }: { lines: string[]; testid?: string }) {
-  return <div className="space-y-1" data-testid={testid}>{lines.map((l, i) => <p key={i} className={P}>{l}</p>)}</div>;
+/**
+ * The engine's signed sentences, in the engine's order and unchanged. UX polish #2 (R1: no word change; the caveat lines may be smaller but keep readable contrast and stay visible, never collapsed or hover-only):
+ * the ONE line that carries the result (`lead`: the first, or the last for the chronology whose counts line comes last) is set in weight, the other lines in the dim colour at the same readable size.
+ */
+function Lines({ lines, testid, lead = "first" }: { lines: string[]; testid?: string; lead?: "first" | "last" }) {
+  const at = lead === "last" ? lines.length - 1 : 0;
+  return <div className="space-y-1.5" data-testid={testid}>{lines.map((l, i) => <p key={i} className={i === at ? `${P} font-medium` : "text-sm text-[var(--color-text-dim)]"} data-testid={i === at ? "pv-lead-line" : undefined}>{l}</p>)}</div>;
 }
 function List({ heading, items }: { heading?: string | null; items: string[] }) {
   if (items.length === 0) return null;
@@ -80,7 +85,7 @@ export function A5Result({ v }: { v: A5View }) {
 export function A3Result({ v }: { v: A3View }) {
   return (
     <div className="space-y-4" data-testid="pv-a3-result">
-      <Lines lines={v.lines} />
+      <Lines lines={v.lines} lead="last" />
       {v.sections.map((s) => (
         <div key={s.key} className="overflow-x-auto" data-testid={`pv-a3-${s.key}`}>
           {s.heading && <h4 className={H}>{s.heading}</h4>}

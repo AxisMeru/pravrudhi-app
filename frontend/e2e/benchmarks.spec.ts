@@ -16,9 +16,11 @@ test("the page shows R1's statements, NyayaSiddhi and How we test, and no figure
   await expect(page.getByTestId("block-how")).toContainText("Each result is checked by a second model reviewer.");
   await expect(page.getByText("Research results, not legal advice.")).toBeVisible();
   // everything outside the NyayaSiddhi results view
-  const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"], [data-testid="block-film"]').forEach((n) => n.remove()); return c.innerText; });
+  const text = await page.locator("main").evaluate((el) => { const c = el.cloneNode(true) as HTMLElement; c.querySelectorAll('[data-testid="nyayasiddhi-results"], [data-testid="block-film"], [data-testid="block-ns-links"]').forEach((n) => n.remove()); return c.innerText; });
   expect(text).not.toMatch(/%|interval|upper bound|Result pending|Registered bar|Inconclusive/i);
   expect(text.replace(/NyayaSiddhi v0\.2/, "")).not.toMatch(/\d/);
+  // the Links block (R1): file names such as s6_scorer.py carry a digit, so it is read apart: no percent, no count of files
+  expect(await page.getByTestId("block-ns-links").innerText()).not.toMatch(/%|\d+ files/i);
 });
 
 test("the page works at phone width: no horizontal scroll of the page", async ({ page }) => {
@@ -164,7 +166,7 @@ test("the NyayaSiddhi choosers show keyboard focus: tabbing to a radio draws an 
 });
 
 // The NyayaSiddhi film inside the Benchmarks page (operator, 16 Oct; R1's strings hash 9f41ebf6cbd5; 20 Oct: the NARRATED explainer is the default, sound on at Play with a visible Mute, R1 FILM_MUTE_WORDS 7ed782e9f2b3): poster first, nothing requested until Play, captions off, no figure beside it.
-test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the results, poster first, no film request at load, then plays with sound on, a Mute button and the captions control", async ({ page }) => {
+test("/benchmarks: the narrated NyayaSiddhi participant film (rev2) sits above the results, poster first, no film request at load, then plays with sound on, a Mute button and the captions control", async ({ page }) => {
   const filmRequests: string[] = [];
   page.on("request", (r) => { if (/\/films\/[a-z-]+\/film\.(mp4|webm)/.test(r.url())) filmRequests.push(r.url()); });
   await page.goto("/benchmarks");
@@ -175,7 +177,7 @@ test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the
   await expect(block.getByTestId("benchmarks-film-label")).toHaveCount(0);
   const poster = block.getByTestId("film-poster");
   await expect(poster).toHaveAttribute("alt", "Poster of the NyayaSiddhi film");
-  await expect(poster).toHaveAttribute("src", /\/films\/nyayasiddhi-explainer\/poster\.png$/);
+  await expect(poster).toHaveAttribute("src", /\/films\/nyayasiddhi-participant\/poster\.png$/);
   await expect(block.getByTestId("film-play")).toHaveText("Play the film");
   await expect(block.getByTestId("film-video")).toHaveCount(0);
   expect(filmRequests, "no film file before Play").toEqual([]);
@@ -185,7 +187,7 @@ test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the
   await expect(block.locator("figcaption")).toContainText("The film is narrated;");
   await expect(block.locator("figcaption")).toContainText("The narration is a synthetic voice.");
   await expect(block.getByTestId("film-download")).toHaveText("Download the narrated film");
-  await expect(block.getByTestId("film-download")).toHaveAttribute("href", /\/films\/nyayasiddhi-explainer\/film\.mp4$/);
+  await expect(block.getByTestId("film-download")).toHaveAttribute("href", /\/films\/nyayasiddhi-participant\/film\.mp4$/);
   // Play: sound ON (not muted), preload none, captions off, a visible Mute button (R1's words), no Turn on sound
   await block.getByTestId("film-play").click();
   const video = block.getByTestId("film-video");
@@ -209,19 +211,18 @@ test("/benchmarks: the narrated NyayaSiddhi explainer film (#430) sits above the
   expect(text, "no claim about the voice").not.toMatch(/human|natural|lifelike|professional/i);
 });
 
-test("/benchmarks with reduced motion: the SILENT cut is the fallback (silent note, no mute or sound button, no voice line)", async ({ browser }) => {
+test("/benchmarks with reduced motion: the fallback plays the SAME participant film, muted at Play (the film has one cut), with Turn on sound and no Mute button", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();
   await page.goto("/benchmarks");
   const block = page.getByTestId("block-film");
-  await expect(block.getByTestId("film-poster")).toHaveAttribute("src", /\/films\/nyayasiddhi-explainer-silent\/poster\.png$/);
-  await expect(block.locator("figcaption")).toContainText("The film is silent;");
-  await expect(block.locator("figcaption")).not.toContainText("synthetic voice");
+  await expect(block.getByTestId("film-poster")).toHaveAttribute("src", /\/films\/nyayasiddhi-participant\/poster\.png$/);
+  await expect(block.locator("figcaption")).toContainText("The film is narrated;");
   await expect(block.getByTestId("film-download")).toHaveText("Download the film");
   await block.getByTestId("film-play").click();
   await expect(block.getByTestId("film-video")).toHaveJSProperty("muted", true);
   await expect(block.getByTestId("film-mute")).toHaveCount(0);
-  await expect(block.getByTestId("film-sound")).toHaveCount(0);
+  await expect(block.getByTestId("film-sound")).toHaveText("Turn on sound");
   await ctx.close();
 });
 

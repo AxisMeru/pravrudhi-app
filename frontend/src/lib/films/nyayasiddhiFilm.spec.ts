@@ -35,8 +35,9 @@ test("the film id is registered, its files are named like the other films', and 
 
 test("public/films holds only the film's cuts (three silent, two narrated previews for the voice review, the explainer and its silent cut): five files each (mp4, webm, poster, captions, manifest), no script or log, no host path (R2)", () => {
   const films = readdirSync(join(root, "public", "films")).filter((n) => n.startsWith("nyayasiddhi")).sort();
-  assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated"]);
-  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
+  assert.deepEqual(films, ["nyayasiddhi", "nyayasiddhi-explainer", "nyayasiddhi-explainer-silent", "nyayasiddhi-firm", "nyayasiddhi-firm-narrated", "nyayasiddhi-loop", "nyayasiddhi-narrated", "nyayasiddhi-participant"]);
+  // the participant film (rev2, Studio nys_delivery_rev2_8c87fb51eb58) ships four files: no WebM (its manifest lists three files and the player lists the mp4 only)
+  for (const f of films) assert.deepEqual(readdirSync(join(root, "public", "films", f)).sort(), f === "nyayasiddhi-participant" ? ["captions.vtt", "film.mp4", "manifest.json", "poster.png"] : ["captions.vtt", "film.mp4", "film.webm", "manifest.json", "poster.png"], f);
   for (const f of films) for (const n of ["captions.vtt", "manifest.json"]) assert.doesNotMatch(readFileSync(join(root, "public", "films", f, n), "utf8"), /\/home\/|\/tmp\//, `${f}/${n}`);
 });
 
@@ -125,7 +126,7 @@ test("the NyayaSiddhi manifests are imported by one module, dynamically; no othe
   })(join(root, "src"));
   assert.deepEqual(importers, ["src/lib/films/nyayasiddhiFilms.ts"]);
   const src = readFileSync(join(root, "src", "lib", "films", "nyayasiddhiFilms.ts"), "utf8");
-  assert.equal((src.match(/import\("\.\.\/\.\.\/\.\.\/public\/films\/nyayasiddhi[a-z-]*\/manifest\.json"\)/g) ?? []).length, 7, "seven dynamic imports");
+  assert.equal((src.match(/import\("\.\.\/\.\.\/\.\.\/public\/films\/nyayasiddhi[a-z-]*\/manifest\.json"\)/g) ?? []).length, 8, "eight dynamic imports");
   assert.doesNotMatch(src, /^import .* from ".*manifest\.json"/m, "no static import of a manifest");
 });
 
@@ -195,12 +196,13 @@ test("the /benchmarks film: R1's three strings, the rows.json sha256 is the publ
   assert.match(page, /parseRows\(rowsFile\)/);
   assert.match(page, /<NyayaSiddhiResults rows=\{NYAYASIDDHI_ROWS\}( links=\{NYAYASIDDHI_LINKS\})? \/>/);
   assert.ok(page.indexOf("<NarratedDefaultFilm") > 0 && page.indexOf("<NarratedDefaultFilm") < page.indexOf("<NyayaSiddhiResults"), "the film player is above the results view");
-  assert.match(page, /loadNyayasiddhiManifest\("nyayasiddhi-explainer"\)/, "the narrated cut is the default");
-  assert.match(page, /loadNyayasiddhiManifest\("nyayasiddhi-explainer-silent"\)/, "the silent cut is the fallback");
+  assert.match(page, /loadNyayasiddhiManifest\("nyayasiddhi-participant"\)/, "the participant film (rev2) is the default");
+  assert.match(page, /silentManifest = narratedManifest/, "the film has one cut: the fallback plays the same film");
   const wrapper = readFileSync(join(root, "src", "components", "films", "NarratedDefaultFilm.tsx"), "utf8");
   assert.match(wrapper, /posterFirst/);
   assert.match(wrapper, /if \(reduced \|\| failed\)/, "silent cut for reduced motion or a playback error");
-  assert.match(wrapper, /key=\{silentId\}/, "each cut keeps its own player state");
+  assert.match(wrapper, /key=\{`\$\{silentId\}:fallback`\}/, "each cut keeps its own player state, also when both cuts are the same film (the participant film has one cut)");
+  assert.match(wrapper, /key=\{`\$\{narratedId\}:narrated`\}/);
   assert.match(wrapper, /silentId = "nyayasiddhi-explainer-silent"/, "the benchmarks default silent cut");
   assert.doesNotMatch(page, /autoPlay|autoplay/i);
   assert.doesNotMatch(page, /benchmarks-film-preview/, "no anchor to the review route");
@@ -250,6 +252,31 @@ for (const id of ["nyayasiddhi-explainer", "nyayasiddhi-explainer-silent"] as co
     assert.ok(vtt.includes(norm(FILM_HIDDEN_SET_LINE)), "the film's S9 text is the re-rendered sentence");
   });
 }
+
+// ---- the participant film (rev2, Studio nys_delivery_rev2_8c87fb51eb58; operator-approved, frozen; SUMS 85f592709785): the four shipped files are pinned by hash; R1 signed its words.
+const PARTICIPANT_SHA256 = {
+  "film.mp4": "8c87fb51eb581c4bb5e4f459f95707d1c3f3aa92216ed297ca76ae3c0cd559d7",
+  "captions.vtt": "3f52136abbe845f0fdf9c202bcf908834b0e28380dda8f6193c286b8af4f5203",
+  "manifest.json": "e451f569f5711c0bbdab3d410d8747a910be5da30f7b40b67bf9c0a0fc438ae3",
+  "poster.png": "bdc1e3a6183026b21d218aeaff426a5f0b2988971218104437c7bdf48c78ab22",
+} as const;
+
+test("nyayasiddhi-participant: the four shipped files are exactly Studio's frozen delivery; narrated, WEBVTT, every cue ends inside the duration, no host path", () => {
+  const dir = join(root, "public", "films", "nyayasiddhi-participant");
+  for (const [f, sha] of Object.entries(PARTICIPANT_SHA256)) assert.equal(createHash("sha256").update(readFileSync(join(dir, f))).digest("hex"), sha, f);
+  const man = readManifest("nyayasiddhi-participant");
+  assert.equal(man.audio, true);
+  const vtt = readFileSync(join(dir, "captions.vtt"), "utf8");
+  assert.match(vtt, /^WEBVTT/);
+  const t = (x: string): number => { const [h, m, sec] = x.split(":"); return Number(h) * 3600 + Number(m) * 60 + Number(sec); };
+  let cues = 0;
+  for (const m of vtt.matchAll(/(\d\d:\d\d:\d\d\.\d{3}) --> (\d\d:\d\d:\d\d\.\d{3})[^\n]*\n([\s\S]*?)(?:\n\n|$)/g)) {
+    assert.ok(t(m[1]) >= 0 && t(m[2]) > t(m[1]) && t(m[2]) <= man.durationS + 0.5, `cue ${m[1]}`);
+    cues += 1;
+  }
+  assert.ok(cues > 20);
+  assert.doesNotMatch(vtt + JSON.stringify(man), /\/home\/|\/tmp\//);
+});
 
 // R1 (20 Oct, FILM_MUTE_WORDS_R1_2026-10-20.md sha12 7ed782e9f2b3): the mute control's words and the two voice statements, by hash.
 const h16 = (s: string): string => createHash("sha256").update(s).digest("hex").slice(0, 16);

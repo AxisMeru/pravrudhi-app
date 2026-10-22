@@ -8,6 +8,19 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "15 00:00:53.157 --> 00:00:59.050 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
+  "public/films/nyayasiddhi-participant/captions.vtt": {
+    reason: "the NyayaSiddhi participant film's captions (Studio nys_delivery_rev2_8c87fb51eb58, captions sha256 3f52136abbe8..., words read and signed by R1 on 21 Oct): what the benchmark does and does not offer today (training on public items and overlap checks are declared by the entrant in the manifest, not verified by us; hosted evaluation is not offered yet); nothing says what happens to a submission, nothing is promised about a model we run on one.",
+    sentences: [
+      "36 00:04:19.897 --> 00:04:25.293 Training on public items and any overlap check are declared in the manifest, not verified.",
+      "And hosted evaluation is planned.",
+    ],
+  },
+  "public/films/nyayasiddhi-participant/manifest.json": {
+    reason: "the same film's own scene text (manifest sha256 e451f569f571..., R1-signed words): a scene name saying the benchmark has no hosted evaluation; it states what is not offered and promises nothing about a submission.",
+    sentences: [
+      "No hosted evaluation.",
+    ],
+  },
   "src/lib/howItWasBuiltData.ts": {
     reason: "R1's worded data note for How it was built (17 Oct, v1b sha12 5885ee683fec): they describe which data sets were used for training, held-out and evaluation and which are not published; none promises anything about what happens to a submission.",
     sentences: [
@@ -283,11 +296,10 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
     reason: "the technical film's own scene text as frozen in the v6 film strings (FILMS_V6_STRINGS_FROZEN, SHA256SUMS 46e72f81b7a7e416) and read and confirmed by R1 by hash; describes how the product is built and evaluated, not what happens to a submission",
     sentences: [
       "evaluation",
-      "Prabhāsa-Nyāya is our own trained models;",
       "Real judgments and orders are gathered, cleaned, read by two model readers, checked and split into training, held-out testing and evaluation sets.",
-      "Our trained models that read one ingredient at a time.",
       "Evaluation discipline",
-      "Evaluation items are checked against training data, every look at the evaluation set is counted, and results that show no effect are reported.",
+      "Prabhasa-Nyaya is our own trained models;",
+      "Evaluation kept out of training, looks counted, and null results reported.",
     ],
   },
   "public/films/client/captions.vtt": {
@@ -303,13 +315,13 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
     reason: "the technical film's captions: the narration's own \"text\" (NARRATION_TECHNICAL_FROZEN v3, narration.json sha256 56f2a5d315aaef27, R1-confirmed by hash), cut into cues; describes how the product is built and evaluated, not what happens to a submission",
     sentences: [
       "Prabhāsa-Nyāya is our own set of trained models, which sit inside it.",
-      "9 00:01:02.207 --> 00:01:11.996 Then the material is split three ways: training, held-out testing, and evaluation.",
-      "10 00:01:11.996 --> 00:01:17.300 And evaluation items are checked against the training data, by identity and by text.",
-      "11 00:01:18.800 --> 00:01:22.986 Now the judges, our trained models that read one ingredient at a time.",
-      "36 00:04:31.730 --> 00:04:39.456 Development, training and tests run on our own GPU machines, and results from those are labelled dev stack, local.",
-      "38 00:04:46.700 --> 00:04:55.234 Finally, evaluation discipline.",
-      "39 00:04:55.234 --> 00:05:04.743 Every look at an evaluation set is counted, so nothing gets quietly re-run until it passes.",
-      "41 00:05:08.218 --> 00:05:15.716 And where a document-level overlap turned up in an earlier model line, we removed the affected evaluation rows and said so.",
+      "9 00:01:00.512 --> 00:01:10.119 Then the material is split three ways: training, held-out testing, and evaluation.",
+      "10 00:01:10.119 --> 00:01:15.326 And evaluation items are checked against the training data, by identity and by text.",
+      "12 00:01:25.900 --> 00:01:29.844 Now the judges, our trained models that read one ingredient at a time.",
+      "42 00:05:15.209 --> 00:05:22.101 Development, training and tests run on our own GPU machines, and results from those are labelled dev stack, local.",
+      "44 00:05:33.300 --> 00:05:41.598 Finally, evaluation discipline.",
+      "45 00:05:41.598 --> 00:05:50.845 Every look at an evaluation set is counted, so nothing gets quietly re-run until it passes.",
+      "47 00:05:54.223 --> 00:06:01.514 And where a document-level overlap turned up in an earlier model line, we removed the affected evaluation rows and said so.",
     ],
   },
 };
