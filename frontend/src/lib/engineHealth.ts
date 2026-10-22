@@ -12,9 +12,18 @@ export function useEngineRead(): EngineRead {
   const [read, setRead] = useState<EngineRead>({ kind: "loading" });
   useEffect(() => {
     let live = true;
-    health()
-      .then((h) => { if (live) setRead(h.ok === true && typeof h.version === "string" && h.version !== "" ? { kind: "ok", version: h.version } : { kind: "down" }); })
-      .catch(() => { if (live) setRead({ kind: "down" }); });
+    const load = (): void => {
+      health()
+        .then((h) => { if (live) setRead(h.ok === true && typeof h.version === "string" && h.version !== "" ? { kind: "ok", version: h.version } : { kind: "down" }); })
+        .catch(() => { if (live) setRead({ kind: "down" }); });
+    };
+    // A hidden tab makes no health read (#323): wait until it is shown.
+    if (document.hidden) {
+      const onShow = (): void => { if (!document.hidden) { document.removeEventListener("visibilitychange", onShow); load(); } };
+      document.addEventListener("visibilitychange", onShow);
+      return () => { live = false; document.removeEventListener("visibilitychange", onShow); };
+    }
+    load();
     return () => { live = false; };
   }, []);
   return read;
