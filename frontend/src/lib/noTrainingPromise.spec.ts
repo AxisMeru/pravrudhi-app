@@ -24,6 +24,8 @@ const EXEMPT_SENTENCES_IN = new Map<string, readonly string[]>([
   ["src/data/nyayasiddhi/rows.json", ["not checked: public open-weight model used as released, no training by us"]],
   // R1's data note (17 Oct, #431): LegalBench's held-out tasks "never as training data" says what WE did with a public benchmark's tasks; it says nothing about what happens to a submission
   ["src/lib/howItWasBuiltData.ts", ["used only as held-out checks and never as training data"]],
+  // Technical film scene text (#430, Studio delivery c0f994cc0a14_m3; R1 accepted this exact sentence 21 Oct): "Evaluation kept out of training" says WE keep OUR OWN evaluation items out of training (the eval discipline scene); it says nothing about what happens to a submission.
+  ["public/films/technical/manifest.json", ["Evaluation kept out of training, looks counted, and null results reported."]],
 ]);
 
 function walk(dir: string, out: string[] = []): string[] {
