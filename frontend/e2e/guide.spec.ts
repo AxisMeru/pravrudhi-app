@@ -67,3 +67,14 @@ test("the guide is in the nav", async ({ page }) => {
   }
   await expect(page.getByRole("link", { name: "User guide" }).first()).toBeVisible();
 });
+
+test("the guide's Access and the analysis models section: three rows, every signed-in person can use everything, no ask-an-administrator line, the refusal line verbatim", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-access");
+  await expect(sec.getByRole("heading", { name: "Access and the analysis models" })).toBeVisible();
+  await expect(sec.getByTestId("guide-access-rows").locator("dt")).toHaveText(["Without signing in", "Signed in", "Administrator"]);
+  await expect(sec).toContainText("Every signed-in person can use everything, including starting the analysis models once that is switched on.");
+  await expect(sec).toContainText("The analysis models are switched off at the moment. Nothing was scored. Try again later.");
+  await expect(sec).not.toContainText(/ask your administrator|allowed to start|invit|sign-?up/i);
+});

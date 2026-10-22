@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/PageHeader";
+import { ACCESS_OFF as ACCESS } from "@/lib/guide/accessCopy";
 import Link from "next/link";
 
 import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
@@ -80,6 +81,23 @@ export default function GuidePage() {
               <li key={l}>{l}</li>
             ))}
           </ul>
+        </section>
+        <section data-testid="guide-access">
+          <h2 className="text-base font-medium text-[var(--color-text)]">{ACCESS.heading}</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-dim)]">{ACCESS.intro}</p>
+          <h3 className="mt-3 text-sm font-medium text-[var(--color-text)]">{ACCESS.rowsHeading}</h3>
+          <dl className="mt-1 space-y-2" data-testid="guide-access-rows">
+            {ACCESS.rows.map((r) => (
+              <div key={r.label}>
+                <dt className="text-sm font-medium text-[var(--color-text)]">{r.label}</dt>
+                <dd className="text-sm text-[var(--color-text-dim)]">{r.text}</dd>
+              </div>
+            ))}
+          </dl>
+          <h3 className="mt-3 text-sm font-medium text-[var(--color-text)]">{ACCESS.modelsHeading}</h3>
+          {ACCESS.models.map((m) => (
+            <p key={m} className="mt-1 text-sm text-[var(--color-text-dim)]" data-testid="guide-access-models">{m}</p>
+          ))}
         </section>
         <section data-testid="guide-glossary">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_GLOSSARY_HEADING}</h2>
