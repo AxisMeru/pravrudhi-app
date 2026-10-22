@@ -1,14 +1,14 @@
 {
   "title": "Pravrudhi-Nyaya for Firms",
-  "durationS": 400.09999999999997,
+  "durationS": 399.99999999999994,
   "width": 1280,
   "height": 720,
   "fps": 30,
   "audio": true,
   "narration": {
     "voice": "hm_omega (male scenes) + bf_emma (female scenes) (Kokoro-82M f3ff3571, lang b), a synthetic voice",
-    "narrationJsonSha256": "ef8013e10b172af3bb37f7d4d144961050485525b3e3c968129d8141cce1fb6d",
-    "timingsSha256": "a438948999d7302ce6a26688a9483685176478d28a095389c40d3f3ed76d6e55",
+    "narrationJsonSha256": "3aaea1c289e9389a7dceb2a57e5f3f1013bb50aa986c357d9857e88483739ecc",
+    "timingsSha256": "7d130eb66df877e9d7ddd01b4e9021b29f55918c06acec8c9a42d08bd984f04d",
     "scenes": [
       {
         "id": "open",
@@ -60,11 +60,11 @@
       },
       {
         "id": "matterpapers",
-        "audioS": 22.13,
-        "durS": 23.7,
+        "audioS": 21.48,
+        "durS": 23.6,
         "origDurS": 23.6,
-        "stretch": 1.004,
-        "wavSha256": "4486506fb05ccf4445ead9fbb9e4a41c63217c72ec089afa8b4924d2ea3770b0"
+        "stretch": 1,
+        "wavSha256": "1116bbaecaaa0a41ef61d77e3529ccaf26f38c9f7a1eccdaf618d988042de48e"
       },
       {
         "id": "sample",
@@ -184,17 +184,17 @@
       "scoreDb": -7,
       "duckDb": -11,
       "voiceRmsDb": -19,
-      "voiceGain": 1.212,
+      "voiceGain": 1.213,
       "speechRmsDb": -20.7,
-      "peakBeforeLimit": 0.868,
+      "peakBeforeLimit": 0.869,
       "limiterGain": 1,
-      "scoreSeconds": 400.1,
+      "scoreSeconds": 400,
       "scoreLufs": 0
     },
     "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
   },
   "sources": {
-    "filmSha256": "7f433002cb7a66ec535d929563be69cc76c6b0b55c7f5f3df74dd44e919f4d91",
+    "filmSha256": "d22a60a0f8040f91396fab9d6f68b284f43b60603f35e3f154cac5e23cf12e97",
     "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
     "playerPatchedSha256": "80d5706b3c221f021baf4d9c0ad2905253260eaa5cac046fe9ef43bd5b06dd18",
     "gateTokenReplaced": 1,
@@ -245,99 +245,99 @@
       "name": "Matter tools",
       "text": "Matter tools: add the papers of a matter; kept as text in the EU (Romania) until you delete.",
       "startS": 106.70000000000002,
-      "endS": 130.4
+      "endS": 130.3
     },
     {
       "name": "A sample matter",
       "text": "One click loads an invented sample matter.",
-      "startS": 130.4,
-      "endS": 144.9
+      "startS": 130.3,
+      "endS": 144.8
     },
     {
       "name": "Two models",
       "text": "Our trained models read each ingredient; both must agree or the matter is referred.",
-      "startS": 144.9,
-      "endS": 162.8
+      "startS": 144.8,
+      "endS": 162.70000000000002
     },
     {
       "name": "Real field data",
       "text": "Built from real judgments and orders: gathered, cleaned, read by two models and checked, then divided into training, held-out testing and evaluation sets. Evaluation items are checked against training data. Real and constructed cases are labelled.",
-      "startS": 162.8,
-      "endS": 183.4
+      "startS": 162.70000000000002,
+      "endS": 183.3
     },
     {
       "name": "The formal check",
       "text": "Each offence is a formal contract; the check confirms every ingredient was addressed.",
-      "startS": 183.4,
-      "endS": 199.9
+      "startS": 183.3,
+      "endS": 199.8
     },
     {
       "name": "Nyaya discipline",
       "text": "Three Nyaya ideas that change a result: evidence you can point to, judgment withheld, testimony is checked, not trusted.",
-      "startS": 199.9,
-      "endS": 220.8
+      "startS": 199.8,
+      "endS": 220.70000000000002
     },
     {
       "name": "The pipeline",
       "text": "The seven stages light up in order, from ingest to decide.",
-      "startS": 220.8,
-      "endS": 238.3
+      "startS": 220.70000000000002,
+      "endS": 238.20000000000002
     },
     {
       "name": "Managed workflows",
       "text": "Optional managed workflows broaden the same core: the assistant proposes, the core decides.",
-      "startS": 238.3,
-      "endS": 253.5
+      "startS": 238.20000000000002,
+      "endS": 253.4
     },
     {
       "name": "The tools, part 1",
       "text": "The tools that use the papers, part 1.",
-      "startS": 253.5,
-      "endS": 282.5
+      "startS": 253.4,
+      "endS": 282.4
     },
     {
       "name": "The tools, part 2",
       "text": "The tools that use the papers, part 2.",
-      "startS": 282.5,
-      "endS": 309.5
+      "startS": 282.4,
+      "endS": 309.4
     },
     {
       "name": "First drafts",
       "text": "Bail grounds and the synopsis with a list of dates: first drafts for a lawyer to rewrite.",
-      "startS": 309.5,
-      "endS": 344
+      "startS": 309.4,
+      "endS": 343.9
     },
     {
       "name": "The citation check",
       "text": "The citation check: existence only.",
-      "startS": 344,
-      "endS": 354.4
+      "startS": 343.9,
+      "endS": 354.29999999999995
     },
     {
       "name": "What sets it apart",
       "text": "Four differences from general-purpose legal AI.",
-      "startS": 354.4,
-      "endS": 375.79999999999995
+      "startS": 354.29999999999995,
+      "endS": 375.69999999999993
     },
     {
       "name": "Privacy and cost",
       "text": "Our own models on rented GPUs; the live data-handling page.",
-      "startS": 375.79999999999995,
-      "endS": 393.59999999999997
+      "startS": 375.69999999999993,
+      "endS": 393.49999999999994
     },
     {
       "name": "End card",
       "text": "Name, line and address.",
-      "startS": 393.59999999999997,
-      "endS": 400.09999999999997
+      "startS": 393.49999999999994,
+      "endS": 399.99999999999994
     }
   ],
   "missingAssets": [],
   "files": [
     {
       "name": "film.mp4",
-      "bytes": 9840775,
-      "sha256": "7f9b077ae1c69d2228c8e735dc7b5de62f1026db903da27a9a2105c0a49ef62d"
+      "bytes": 9839699,
+      "sha256": "3552e2defb94a67ed3b9ffce357319b61eb6cee86d28a1494e44e3ec1316e825"
     },
     {
       "name": "poster.png",
@@ -346,8 +346,8 @@
     },
     {
       "name": "captions.vtt",
-      "bytes": 7932,
-      "sha256": "ed8e5b9c9556d60553e643bee35de819100689dd56cca63fb013f74e3c1a7422"
+      "bytes": 7892,
+      "sha256": "bf3a8096bcb815d2523a507e5c07a75b4b5404d7a5ea4c15a3aab24e4510addb"
     }
   ]
 }
