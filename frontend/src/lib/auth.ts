@@ -234,11 +234,14 @@ export async function verifySession(): Promise<boolean> {
 }
 
 /**
- * Send a magic link: Supabase emails a one-time sign-in link that lands back on this origin's /signin with the
- * session in the URL fragment (implicit flow). `create_user` makes a first sign-in an account too, so the
- * operator's admin identity exists the moment they approve the first link. Supabase only honours redirect_to
- * when the origin is in the project's allowed Redirect URLs; otherwise it uses the Site URL.
+ * Send a magic link: Supabase emails a one-time sign-in link that lands back on this origin's /signin with the session in the URL fragment (implicit flow). Supabase only honours redirect_to when the origin is in the
+ * project's allowed Redirect URLs; otherwise it uses the Site URL.
+ *
+ * app#523 (R1, sign-ups are off): the link is for EXISTING accounts only (`create_user: false`, so it can never create one even if sign-ups are switched back on), and the answer never tells a visitor whether an address has an
+ * account: a refusal for an unknown address (any 4xx except a rate limit) is the same `ok` as a sent link and the page says the neutral line for both. Only a rate limit, a server error or a network failure is an error, and its text is
+ * ours ("Could not send the link"), never the provider's raw words.
  */
+export const MAGIC_LINK_ERROR = "Could not send the link";
 export async function sendMagicLink(email: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -248,15 +251,13 @@ export async function sendMagicLink(email: string): Promise<{ ok: true } | { ok:
     const response = await fetch(`${url}/auth/v1/otp${redirect ? `?redirect_to=${encodeURIComponent(redirect)}` : ""}`, {
       method: "POST",
       headers: { "content-type": "application/json", apikey: anonKey },
-      body: JSON.stringify({ email, create_user: true }),
+      body: JSON.stringify({ email, create_user: false }),
     });
-    if (!response.ok) {
-      const data = (await response.json()) as { error_description?: string; msg?: string };
-      return { ok: false, error: data.error_description || data.msg || "Could not send the link" };
-    }
+    if (response.ok) return { ok: true };
+    if (response.status === 429 || response.status >= 500) return { ok: false, error: MAGIC_LINK_ERROR };
     return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Unknown error" };
+  } catch {
+    return { ok: false, error: MAGIC_LINK_ERROR };
   }
 }
 

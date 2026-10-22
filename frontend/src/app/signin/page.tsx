@@ -3,13 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  signIn as supabaseSignIn,
-  signUp as supabaseSignUp,
-  currentSession,
-  sendMagicLink,
-  completeMagicLink,
-} from "@/lib/auth";
+import { signIn as supabaseSignIn, currentSession, sendMagicLink, completeMagicLink } from "@/lib/auth";
+import { SIGNIN_COPY } from "@/lib/signinCopy";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -17,7 +12,6 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,12 +27,12 @@ export default function SignInPage() {
   }, [router]);
 
   async function handleMagicLink() {
-    if (!email) { setError("Enter your email first, then ask for the link."); return; }
+    if (!email) { setError(SIGNIN_COPY.linkEmptyEmail); return; }
     setError(null);
     setConfirmationMessage(null);
     setIsLoading(true);
     const result = await sendMagicLink(email);
-    if (result.ok) setConfirmationMessage(`A sign-in link is on its way to ${email}. Open it on this device to continue.`);
+    if (result.ok) setConfirmationMessage(SIGNIN_COPY.linkSent); // the same line for every address (R1, #523): it never says whether the address has an account
     else setError(result.error);
     setIsLoading(false);
   }
@@ -51,25 +45,11 @@ export default function SignInPage() {
     setConfirmationMessage(null);
     setIsLoading(true);
 
-    if (isSignUp) {
-      const result = await supabaseSignUp(email, password);
-      if (result.ok) {
-        router.push("/");
-      } else if ("needsConfirmation" in result) {
-        setConfirmationMessage("Check your email for a confirmation link, then sign in here.");
-        setEmail("");
-        setPassword("");
-        setIsSignUp(false);
-      } else {
-        setError((result as { error?: string }).error || "Sign up failed");
-      }
+    const result = await supabaseSignIn(email, password);
+    if (result.ok) {
+      router.push("/");
     } else {
-      const result = await supabaseSignIn(email, password);
-      if (result.ok) {
-        router.push("/");
-      } else {
-        setError(result.error || "Sign in failed");
-      }
+      setError(result.error || "Sign in failed");
     }
 
     setIsLoading(false);
@@ -102,14 +82,8 @@ export default function SignInPage() {
     <div className="flex h-screen items-center justify-center bg-bg">
       <div className="mx-auto w-full max-w-sm space-y-6 px-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-[var(--color-text)]">
-            {isSignUp ? "Create an account" : "Sign in"}
-          </h1>
-          <p className="text-sm text-[var(--color-text-dim)]">
-            {isSignUp
-              ? "Enter your email and password to create an account."
-              : "Enter your email and password to continue."}
-          </p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text)]">Sign in</h1>
+          <p className="text-sm text-[var(--color-text-dim)]">Enter your email and password to continue.</p>
         </div>
 
         {error && (
@@ -149,7 +123,7 @@ export default function SignInPage() {
             <input
               id="password"
               type="password"
-              autoComplete={isSignUp ? "new-password" : "current-password"}
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -164,7 +138,7 @@ export default function SignInPage() {
             disabled={isLoading}
             className="w-full rounded-md bg-text px-4 py-2 text-sm font-medium text-bg hover:opacity-90 disabled:opacity-50"
           >
-            {isLoading ? (isSignUp ? "Creating account..." : "Signing in...") : isSignUp ? "Create account" : "Sign in"}
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
@@ -178,20 +152,7 @@ export default function SignInPage() {
         </button>
 
         <div className="space-y-3">
-          <div className="text-center text-sm text-[var(--color-text-dim)]">
-            {isSignUp ? "Already have an account? " : "Don't have an account? "}
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-                setConfirmationMessage(null);
-              }}
-              className="min-h-6 py-1 font-medium text-[var(--color-text)] hover:underline"
-            >
-              {isSignUp ? "Sign in" : "Create an account"}
-            </button>
-          </div>
+          <p className="text-center text-sm text-[var(--color-text-dim)]" data-testid="signin-no-new-accounts">{SIGNIN_COPY.noNewAccounts} {SIGNIN_COPY.getAccess}</p>
 
           <div className="text-center text-sm text-[var(--color-text-dim)]">
             <Link href="/" className="inline-flex min-h-6 items-center hover:text-[var(--color-text)]">
