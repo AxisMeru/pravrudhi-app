@@ -211,7 +211,7 @@ test("the consent line links to the Data handling section, which describes both 
   if (process.env.NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED === "1") await expect(sec).toContainText("it is deleted within 2 hours at the latest");
   else await expect(sec).not.toContainText("we delete the assistant's session"); // behind its own flag until confirmed
   await expect(page.getByTestId("dh-where")).toContainText("If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).");
-  await expect(page.getByTestId("dh-where")).toContainText("One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider"); // always shown, beside the assistant sentence
+  await expect(page.getByTestId("dh-where")).toContainText("The analysis models run in a data centre chosen by our GPU provider; the region is not fixed"); // always shown, beside the assistant sentence
 });
 
 test("signed out: no consent box and no button, only the sign-in line; Screen still works", async ({ page }) => {

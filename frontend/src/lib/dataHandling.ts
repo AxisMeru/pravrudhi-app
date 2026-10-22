@@ -58,7 +58,7 @@ export const DH_ASSIST_CONSENT = "The consent box is off for every run until you
 export const DH_ASSIST_SIGNIN = "The assistant is offered only to signed-in users. Without signing in, you get the screening result without it.";
 
 // R1's final sentence (Lead-2, 14 Oct): a fallback processing region is disclosed BEFORE it can take any traffic. Always shown: it is true whatever the assistant flags are.
-export const DH_WHERE_MODELS = "One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there.";
+export const DH_WHERE_MODELS = "The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there.";
 export const DH_WHERE_FALLBACK = "Retention is as described above; the hosting provider may keep its own logs.";
 
 export const DH_WHERE_ASSIST = "If you use the assistant, Anthropic also processes your facts; see Screening with the assistant (optional).";

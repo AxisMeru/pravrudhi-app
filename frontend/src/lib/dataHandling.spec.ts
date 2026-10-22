@@ -24,7 +24,7 @@ test("the data-handling text is R1's exact words, and it answers all three quest
   );
   assert.equal(
     text("where"),
-    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase. The hosting providers may keep their own logs. Retention is as described above; the hosting provider may keep its own logs.",
+    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there. This app is hosted on Vercel, whose region is not fixed. Sign-in is handled by Supabase. The hosting providers may keep their own logs. Retention is as described above; the hosting provider may keep its own logs.",
   );
   assert.equal(text("browser"), "For a signed-in member, your browser keeps your sign-in session, your recent pages in the command palette and your theme choice. The facts you type are not kept in your browser. The public demo also keeps your notification preferences.");
   // R1 (15 Oct, #300): the existence-only check sends a citation and nothing else, so the sentence names only the citation; the quote-box arm keeps its own

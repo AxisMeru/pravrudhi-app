@@ -30,7 +30,7 @@ test("the glance: R1's heading, line and link label exactly; three blocks = the 
   const [sent, where, kept] = OFF.glance.blocks;
   assert.deepEqual(sent.texts, ["When you press Screen these facts, the facts you enter and the offences you select are sent to the Pravrudhi engine."]);
   assert.deepEqual(where.texts, [
-    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there.",
+    "The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre). The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there.",
   ]);
   assert.ok(!where.texts.join(" ").includes("described above"), "the fallback's tail would point above at the wrong block");
   assert.deepEqual(kept.texts, ["Screening run records are kept for up to 7 days; papers you add to a matter are kept until you delete them.", "A run record can include the text of facts the screening marked as supported, so do not enter real names or case details unless your firm's setup allows it."]); // R1 glance_kept e9ffe2df25fadb6a, then the section's own sentence
@@ -90,7 +90,7 @@ test("R1: the 'where' glance block shows the first signed paragraph AND the fall
     const where = p.glance.blocks.find((b) => b.id === "where")!;
     assert.equal(where.texts.length, 1);
     assert.ok(where.texts[0].startsWith("The screening runs on the Pravrudhi engine, hosted on RunPod (serverless, in an EU data centre)."));
-    assert.match(where.texts[0], /One of the two analysis models runs in a European data centre; the other may run in any region of our hosting provider, including outside Europe, and your facts are sent to it there\./);
+    assert.match(where.texts[0], /The analysis models run in a data centre chosen by our GPU provider; the region is not fixed and can be outside Europe, and your facts are sent to them there\./);
     assert.doesNotMatch(where.texts.join(" "), /Europe only|EU data centres|North American/);
     assert.deepEqual(p.glance.blocks.filter((b) => b.id !== "where").map((b) => b.texts.length), [1, 2], "sent shows one; kept shows R1's scoped glance line and the run-record sentence (#478)");
   }
