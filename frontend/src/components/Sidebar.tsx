@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   FolderOpen,
   House,
+  Users,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { MatterBNav } from "@/components/MatterBNav";
@@ -57,6 +58,7 @@ interface NavEntry extends NavItem {
 
 // Grouped navigation (Pravrudhi-Nyaya): labels changed, every path is as it was. The Studio group holds the improvement loop's own pages, which the rules
 // below show only to the Studio edition.
+const ADMIN_ACCESS_HREF = "/admin/access";
 const NAV: NavEntry[] = [
   { group: "work", href: "/screening", label: NAV_LABELS.screening, icon: ScanSearch },
   // /matters ("Offence rules", the contract-picker form) is not offered in the product nav (Lead-2, 14 Oct: it shows raw contract ids); the route and the page stay.
@@ -71,6 +73,7 @@ const NAV: NavEntry[] = [
   { group: "account", href: "/data-handling", label: NAV_LABELS.dataHandling, icon: ShieldCheck },
   { group: "account", href: "/settings", label: NAV_LABELS.settings, icon: Settings },
   { group: "account", href: "/about", label: NAV_LABELS.about, icon: Info },
+  { group: "account", href: "/admin/access", label: "Access", icon: Users }, // shown to an administrator only (app#520)
   { group: "studio", href: "/start", label: "Start", icon: Rocket },
   { group: "studio", href: "/", label: "Improve", icon: Sparkles },
   { group: "studio", href: "/objectives", label: "Objectives", icon: Target },
@@ -252,12 +255,12 @@ export function Sidebar() {
         {LAYOUT_MATTER_B ? (
           <MatterBNav
             pathname={pathname}
-            items={NAV.filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))}
+            items={NAV.filter(({ href }) => (href !== ADMIN_ACCESS_HREF || whoami.access === "admin") && offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))}
             studio={NAV.filter((n) => n.group === "studio").filter(({ href }) => whoami.edition === STUDIO && (href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO)))}
           />
         ) : NAV_GROUP_ORDER.map((group) => {
           const items = NAV.filter((n) => n.group === group)
-            .filter(({ href }) => offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
+            .filter(({ href }) => (href !== ADMIN_ACCESS_HREF || whoami.access === "admin") && offeredInDemoPath(href) && citationNavOffered(href) && (whoami.edition === STUDIO || !isStudioOnlyHref(href)))
             .filter(({ href }) => href !== "/runs" || canSeeRuns(whoami.access, IS_DEMO));
           if (items.length === 0) return null;
           return (
