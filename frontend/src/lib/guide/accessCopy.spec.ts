@@ -18,11 +18,11 @@ test("the ON section (R1): the app starts the models for a signed-in screening a
   assert.match(on, /the app starts them and shows each model loading/);
   assert.match(on, /This can take a few minutes\./);
   assert.match(on, /Nothing is shown as supported until both models have checked it\./);
-  assert.match(on, /Even when both models have started, the second model may not complete its check for every ingredient\. When that happens, the first model's result is shown with a warning, and any ingredient the second model did not check goes to a lawyer and is not shown as supported\./);
+  assert.match(on, /The second model may not start, or may not complete its check for every ingredient, even when the first model has\. When that happens, the first model's result is shown with a warning, and any ingredient the second model did not check goes to a lawyer and is not shown as supported\./);
   assert.match(on, /Every signed-in person can use all of these, including starting the analysis models\./);
-  assert.match(on, /If a model does not start, the page says so plainly\. Nothing is shown as supported that both models did not check\. You can try again in a few minutes\./);
+  assert.match(on, /If the first model does not start, the page says so plainly and no result is shown\. You can try again in a few minutes\./);
   assert.match(on, /The models can be switched off again after a period without use\./);
-  assert.doesNotMatch(on, /nothing is scored/i, "no claim that rests only on mocked tests (R1, Track A coverage)");
+  assert.doesNotMatch(on, /nothing is scored|model rows|each model while/i, "no claim that rests only on mocked tests (R1, Track A coverage)");
   assert.doesNotMatch(on, /You can send a screening|Nothing is scored until|when nobody needs them|ask your administrator|\balways\b|every ingredient is scored|both models score/i);
   assert.doesNotMatch(on, /\b\d+\s*(s|sec|seconds|min|minutes)\b/i, "no number of seconds or minutes ('a few minutes' is the only duration word)");
   assert.deepEqual(ACCESS_ON.rows.map((r) => r.label), ["Without signing in", "Signed in", "Administrator"]);

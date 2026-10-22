@@ -77,6 +77,6 @@ test("the guide's Access and the analysis models section: three rows, every sign
   await expect(sec).toContainText("You can read the public pages, watch the three films and use the anonymous demo. To screen your own facts you need to sign in.");
   await expect(sec).toContainText("Every signed-in person can use all of these, including starting the analysis models.");
   await expect(sec).toContainText("the app starts them and shows each model loading");
-  await expect(sec).toContainText("If a model does not start, the page says so plainly.");
+  await expect(sec).toContainText("If the first model does not start, the page says so plainly and no result is shown.");
   await expect(sec).not.toContainText(/ask your administrator|allowed to start|invit|sign-?up/i);
 });
