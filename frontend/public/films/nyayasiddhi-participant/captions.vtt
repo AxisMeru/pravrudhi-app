@@ -1,0 +1,241 @@
+WEBVTT
+
+1
+00:00:00.600 --> 00:00:08.000
+NyayaSiddhi version zero point two is an open Indian element-by-element development benchmark, with data and a scorer.
+
+2
+00:00:08.000 --> 00:00:14.711
+It is a development benchmark: descriptive, with no ranking. This film is for people who want to take part.
+
+3
+00:00:14.711 --> 00:00:22.550
+It covers what the benchmark is, why it was needed, how to take part and submit, and how the leaderboard is built and scored.
+
+4
+00:00:24.100 --> 00:00:32.393
+The task is simple to state. Given the allegation-side facts of a court matter and a named offence contract, a system returns PROOF or NOT_PROOF.
+
+5
+00:00:32.393 --> 00:00:36.511
+PROOF means every required element of the named contract is established.
+
+6
+00:00:36.511 --> 00:00:43.832
+The items are real Indian High Court orders on three offence families: criminal breach of trust, cheating, and cheque dishonour.
+
+7
+00:00:43.832 --> 00:00:51.725
+The label is the court's own outcome, as extracted from judgments by models and filtered by extractor agreement. It is not human-verified.
+
+8
+00:00:53.300 --> 00:01:01.526
+There are two released sets. The first, obj1_dev, has one hundred seventy-seven items, of which one hundred seventy-one are scored.
+
+9
+00:01:01.526 --> 00:01:11.384
+We have seen it, and used it to design fixes. The second, obj1b_minus_cruelty, has one hundred fifty-four items, of which one hundred forty-three are scored.
+
+10
+00:01:11.384 --> 00:01:20.175
+It is exposed: a model we use has read it. Both are public. This is a development benchmark, with no hidden split in version zero point two.
+
+11
+00:01:20.175 --> 00:01:22.875
+It is descriptive, and there is no ranking.
+
+12
+00:01:24.400 --> 00:01:28.586
+Why was it needed? Here is the reason, as the dataset card prints it.
+
+13
+00:01:28.586 --> 00:01:34.713
+We found no public board that scores whether a stated claim is proved from facts, element by element.
+
+14
+00:01:34.713 --> 00:01:41.386
+This release lets outside models, harnesses and our own systems be compared on the same items with one scorer.
+
+15
+00:01:41.386 --> 00:01:45.450
+It is a comparison place, not a claim that any system proves cases.
+
+16
+00:01:47.000 --> 00:01:55.387
+From their abstracts and card pages, these are works we looked at. LegalBench: legal reasoning tasks written by legal professionals.
+
+17
+00:01:55.387 --> 00:02:02.566
+LexGLUE: English legal language understanding tasks. IL-TUR: Indian legal text understanding and reasoning tasks.
+
+18
+00:02:02.566 --> 00:02:09.238
+ILDC: Indian Supreme Court cases annotated with court decisions, for judgment prediction and explanation.
+
+19
+00:02:09.238 --> 00:02:16.226
+BhashaBench-Legal: Indian legal knowledge questions from judicial service and bar exams. Are LLMs Court-Ready?
+
+20
+00:02:16.226 --> 00:02:22.199
+: India's public legal exams as a proxy for legal competence, with lawyer-graded long answers.
+
+21
+00:02:22.199 --> 00:02:27.599
+And JUREX-4E: an expert-annotated knowledge base of the elements of criminal charges.
+
+22
+00:02:27.599 --> 00:02:35.160
+The works we looked at test legal knowledge from exams, legal text understanding, case outcome prediction or retrieval.
+
+23
+00:02:35.160 --> 00:02:42.975
+NyayaSiddhi scores whether a system says an offence is made out, on items the court found made out and on items it did not.
+
+24
+00:02:44.500 --> 00:02:54.338
+Every result is two numbers, shown together. Wrongly supported is counted over the items the court did not establish: how many the system still marked as supported.
+
+25
+00:02:54.338 --> 00:03:00.217
+Coverage is counted over the items the court established: how many the system marked as supported.
+
+26
+00:03:00.217 --> 00:03:08.975
+A system that refuses every item shows zero wrongly supported and zero coverage by construction. So zero wrongly supported is not read on its own.
+
+27
+00:03:10.500 --> 00:03:20.353
+To take part, you prepare two files. A prediction file has one row per item: the item id and a verdict, PROOF or NOT_PROOF, with every item exactly once.
+
+28
+00:03:20.353 --> 00:03:23.766
+A missing item is an error, never a silent NOT_PROOF.
+
+29
+00:03:23.766 --> 00:03:34.392
+A manifest names your system and version, pins every model id with a revision, and gives the run date, the scorer sha, the split, the unit, and your publish consent.
+
+30
+00:03:34.392 --> 00:03:45.275
+We do not ask for weights, prompts or code. Before you submit, check it yourself: score_entry.py runs the organisers' check and the released scorer on your own machine.
+
+31
+00:03:45.275 --> 00:03:53.325
+Nothing is uploaded. There is no key, no account and no model call. The output is a self-scored preview, not a published row.
+
+32
+00:03:54.900 --> 00:04:02.993
+You submit by a Hugging Face pull request on the dataset page. publish_consent is false for a private local score with score_entry.py.
+
+33
+00:04:02.993 --> 00:04:07.549
+It must be true before you open a pull request, and the checks refuse false.
+
+34
+00:04:07.549 --> 00:04:14.802
+True only says you would allow your row, your manifest and your predictions file to be published. A merge publishes them.
+
+35
+00:04:14.802 --> 00:04:19.897
+A file whose verdicts equal the released labels on every scored item is not accepted.
+
+36
+00:04:19.897 --> 00:04:25.293
+Training on public items and any overlap check are declared in the manifest, not verified.
+
+37
+00:04:25.293 --> 00:04:30.508
+Rows are append-only: a correction is a new row, and a withdrawal leaves a visible row.
+
+38
+00:04:30.508 --> 00:04:39.200
+As of 21 October 2026, the submission path has been exercised only on a synthetic file from a clean checkout; no outside party has submitted yet.
+
+39
+00:04:40.700 --> 00:04:50.792
+Here is the leaderboard as it is built. Each row shows wrongly supported and coverage as k of n, with exact ninety-five percent intervals, by offence group and pooled.
+
+40
+00:04:50.792 --> 00:05:00.702
+It also shows the unit, the stack, the run date, the status and the contamination flag. Statuses are self-reported, re-scored, reproduced, and third-party verified.
+
+41
+00:05:00.702 --> 00:05:08.800
+Rows are listed in a fixed order, by split and system name, never by a figure. This is the app's Benchmarks page. There is no ranking.
+
+42
+00:05:10.300 --> 00:05:12.680
+Scoring is the same for every submission.
+
+43
+00:05:12.680 --> 00:05:23.300
+The organisers record the pull request head sha, run the checker, which must print PASS, score with the released scorer, build and validate the row, and re-read the head before merge.
+
+44
+00:05:23.300 --> 00:05:30.845
+The scorer is open: it uses only the Python standard library, and it is pinned in SHA256SUMS. Intervals are exact Clopper-Pearson.
+
+45
+00:05:30.845 --> 00:05:39.376
+Wrongly supported has an exact one-sided ninety-five percent upper bound and an exact two-sided interval. Coverage has an exact two-sided interval.
+
+46
+00:05:39.376 --> 00:05:48.894
+Errored items are counted both ways: not as a proof, and as a proof, the worst case. When two systems are compared, a direction is stated only if both counts agree.
+
+47
+00:05:48.894 --> 00:05:56.439
+A family with fewer than ten items in either label is descriptive. The rules fail closed. There is no rank and no composite score.
+
+48
+00:05:56.439 --> 00:06:04.100
+The contamination flag is set by the organisers, never the submitter, and a row stays self-reported until a clean-checkout re-score.
+
+49
+00:06:05.600 --> 00:06:09.338
+We built this benchmark, and we enter our own systems in it.
+
+50
+00:06:09.338 --> 00:06:18.993
+Our rows are marked, they sit in the same table, they are checked by the same script and they carry the same intervals. Another team member re-scores them.
+
+51
+00:06:18.993 --> 00:06:23.229
+That is an internal consistency check, not independent verification.
+
+52
+00:06:23.229 --> 00:06:32.697
+Here are our own system's figures, with their limits on screen: self-reported, an organiser entry, on the dev stack, on sets we have both seen, one run.
+
+53
+00:06:32.697 --> 00:06:38.926
+On obj1b minus cruelty: none of one hundred twenty-eight false proofs, with none of fifteen covered.
+
+54
+00:06:38.926 --> 00:06:47.710
+On obj1 dev: none of sixty-four with errors as not proof, but one of sixty-four with errors as proof, with none of one hundred seven covered.
+
+55
+00:06:47.710 --> 00:06:50.575
+Zero wrongly supported is not read on its own.
+
+56
+00:06:52.100 --> 00:06:58.483
+Two things do not exist yet. There is no hidden split in version zero point two. The mechanism for one is planned.
+
+57
+00:06:58.483 --> 00:07:02.514
+The organisers would hold it, and there is no independent custodian yet.
+
+58
+00:07:02.514 --> 00:07:10.241
+A hash commitment to a hidden split is published when the strict court-established holdout reaches thirty or more, and we promise no date.
+
+59
+00:07:10.241 --> 00:07:17.800
+Today it is three court-established and ten court-rejected, real, model-extracted. And hosted evaluation is planned. It does not exist.
+
+60
+00:07:19.300 --> 00:07:30.925
+NyayaSiddhi is a place to compare, with no ranking. The NyayaSiddhi dataset is on Hugging Face, under AxisMeru slash nyayasiddhi, and the app has a Benchmarks page.

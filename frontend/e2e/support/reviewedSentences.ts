@@ -8,6 +8,19 @@ export const REVIEWED: Readonly<Record<string, { reason: string; sentences: read
       "15 00:00:53.157 --> 00:00:59.050 Prabh\u0101sa-Ny\u0101ya is the set of models we trained ourselves, and they work quietly inside it.",
     ],
   },
+  "public/films/nyayasiddhi-participant/captions.vtt": {
+    reason: "the NyayaSiddhi participant film's captions (Studio nys_delivery_rev2_8c87fb51eb58, captions sha256 3f52136abbe8..., words read and signed by R1 on 21 Oct): what the benchmark does and does not offer today (training on public items and overlap checks are declared by the entrant in the manifest, not verified by us; hosted evaluation is not offered yet); nothing says what happens to a submission, nothing is promised about a model we run on one.",
+    sentences: [
+      "36 00:04:19.897 --> 00:04:25.293 Training on public items and any overlap check are declared in the manifest, not verified.",
+      "And hosted evaluation is planned.",
+    ],
+  },
+  "public/films/nyayasiddhi-participant/manifest.json": {
+    reason: "the same film's own scene text (manifest sha256 e451f569f571..., R1-signed words): a scene name saying the benchmark has no hosted evaluation; it states what is not offered and promises nothing about a submission.",
+    sentences: [
+      "No hosted evaluation.",
+    ],
+  },
   "src/lib/howItWasBuiltData.ts": {
     reason: "R1's worded data note for How it was built (17 Oct, v1b sha12 5885ee683fec): they describe which data sets were used for training, held-out and evaluation and which are not published; none promises anything about what happens to a submission.",
     sentences: [

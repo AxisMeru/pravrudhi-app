@@ -1,0 +1,241 @@
+{
+  "title": "NyayaSiddhi, for people who want to take part",
+  "durationS": 452.6,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "audio": true,
+  "narration": {
+    "voice": "hm_omega (male scenes) + bf_emma (female scenes) (Kokoro-82M f3ff3571, lang b), a synthetic voice",
+    "narrationJsonSha256": "05a660ad945b314b013f46f1f78932d0fec3adc187f51968707fd38d7fbafcd2",
+    "timingsSha256": "d8521ebdc889a7bba7a79b0b41d8896ad553445765f20d2a5c13cb57238b330a",
+    "scenes": [
+      {
+        "id": "title",
+        "audioS": 21.95,
+        "durS": 23.5,
+        "origDurS": 23.5,
+        "stretch": 1,
+        "wavSha256": "a626ba3d020a3c54dd53b1265aca1f2380141b4d76af8f45bed1d39f9cbda0a4"
+      },
+      {
+        "id": "what",
+        "audioS": 27.63,
+        "durS": 29.2,
+        "origDurS": 29.2,
+        "stretch": 1,
+        "wavSha256": "a1614abd1ab3a86da4e43b0df1b24eb12c4a4f45427543fbacf4ab8fce306c35"
+      },
+      {
+        "id": "sets",
+        "audioS": 29.58,
+        "durS": 31.1,
+        "origDurS": 31.1,
+        "stretch": 1,
+        "wavSha256": "b30c87bb7aaa43c31dd48e7829d4a52f6ed65b6ecac5675a7aecf4f7dedceab1"
+      },
+      {
+        "id": "why",
+        "audioS": 21.05,
+        "durS": 22.6,
+        "origDurS": 22.6,
+        "stretch": 1,
+        "wavSha256": "ec66adbcb325d7f8052294856082a65ea5af234ee7bfaa269d0adc93ea4cc4d3"
+      },
+      {
+        "id": "others",
+        "audioS": 55.98,
+        "durS": 57.5,
+        "origDurS": 57.5,
+        "stretch": 1,
+        "wavSha256": "7171df83b6cc0341193b3956c52a55c1434aa57d0173fccde4ca7bff845a958a"
+      },
+      {
+        "id": "pair",
+        "audioS": 24.48,
+        "durS": 26,
+        "origDurS": 26,
+        "stretch": 1,
+        "wavSha256": "0c2e64ab3964dfcdc06352b19f73d4b236e3791455131746c6f0d704699b843e"
+      },
+      {
+        "id": "rules1",
+        "audioS": 42.83,
+        "durS": 44.4,
+        "origDurS": 44.4,
+        "stretch": 1,
+        "wavSha256": "1d5965e408d6b3a1f9ef6190cd8ffd63b77c34be97d6738798609bfd270c7d14"
+      },
+      {
+        "id": "rules2",
+        "audioS": 44.3,
+        "durS": 45.8,
+        "origDurS": 45.8,
+        "stretch": 1,
+        "wavSha256": "7e95ba00424750a10ebdb47424f7bab4a1fec6de1e477bb9459e52233bc83431"
+      },
+      {
+        "id": "board",
+        "audioS": 28.1,
+        "durS": 29.6,
+        "origDurS": 29.6,
+        "stretch": 1,
+        "wavSha256": "51038d5016026561425856000d0429da9cc8443c0d3034d42658ddc8c1f70694"
+      },
+      {
+        "id": "scoring",
+        "audioS": 53.8,
+        "durS": 55.3,
+        "origDurS": 55.3,
+        "stretch": 1,
+        "wavSha256": "81614facf8c982a6782e6c745387d7cdbd0ddb420d7d3208d468b3dd992b5352"
+      },
+      {
+        "id": "ours",
+        "audioS": 44.98,
+        "durS": 46.5,
+        "origDurS": 46.5,
+        "stretch": 1,
+        "wavSha256": "85c7b6017620e70dffa507889e40c645c3d08f78f087df1af180edbe8a72456f"
+      },
+      {
+        "id": "hidden",
+        "audioS": 25.7,
+        "durS": 27.2,
+        "origDurS": 27.2,
+        "stretch": 1,
+        "wavSha256": "a8b33db5b028752e9204cefa8db8374d79f439862c9f3db994ab80ed962f9a43"
+      },
+      {
+        "id": "end",
+        "audioS": 11.63,
+        "durS": 13.9,
+        "origDurS": 13.9,
+        "stretch": 1,
+        "wavSha256": "badc79ae405e1c4a45e217b66eb5a1a71b0263034e0f1828eb63184fdcaa2618"
+      }
+    ],
+    "mix": {
+      "rate": 48000,
+      "scoreDb": -7,
+      "duckDb": -11,
+      "voiceRmsDb": -19,
+      "voiceGain": 1.227,
+      "speechRmsDb": -20.8,
+      "peakBeforeLimit": 0.971,
+      "limiterGain": 0.999,
+      "scoreSeconds": 452.6,
+      "scoreLufs": 0
+    },
+    "audioCodec": "AAC mono 56 kbit/s (avenc_aac, GStreamer)"
+  },
+  "sources": {
+    "filmSha256": "24c2e64508bb02539febff3082a86ff1950731c73942320e12b8a34ba346dab7",
+    "playerSha256": "dc108ac6cbdfb3a180492245421db873226f8ce7787a9fa173c4af419c559014",
+    "playerPatchedSha256": "0e74913552fbd62d336eba7061a9c9753b59e88bbe3aaa469f309cbe9f248ab0",
+    "gateTokenReplaced": 1,
+    "durationLimitTokensReplaced": 4,
+    "durationLimitS": "300 to 420 (local copy only)"
+  },
+  "encoders": {
+    "mp4": "H.264 (openh264enc) + AAC (avenc_aac), GStreamer"
+  },
+  "scenes": [
+    {
+      "name": "Benchmark",
+      "text": "NyayaSiddhi",
+      "startS": 0,
+      "endS": 23.5
+    },
+    {
+      "name": "What it is",
+      "text": "Facts and a named offence in. PROOF or NOT_PROOF out.",
+      "startS": 23.5,
+      "endS": 52.7
+    },
+    {
+      "name": "The released sets",
+      "text": "Two sets, both public.",
+      "startS": 52.7,
+      "endS": 83.80000000000001
+    },
+    {
+      "name": "Why it was needed",
+      "text": "This is a statement about our search.",
+      "startS": 83.80000000000001,
+      "endS": 106.4
+    },
+    {
+      "name": "Works we looked at",
+      "text": "Names only, from their abstracts and card pages.",
+      "startS": 106.4,
+      "endS": 163.9
+    },
+    {
+      "name": "The two numbers",
+      "text": "Always together. Never one alone.",
+      "startS": 163.9,
+      "endS": 189.9
+    },
+    {
+      "name": "Taking part: before you submit",
+      "text": "A prediction file, a manifest, and a check on your own machine.",
+      "startS": 189.9,
+      "endS": 234.3
+    },
+    {
+      "name": "Taking part: submitting",
+      "text": "A Hugging Face pull request, with consent.",
+      "startS": 234.3,
+      "endS": 280.1
+    },
+    {
+      "name": "The leaderboard",
+      "text": "Rows are listed in a fixed order, by split and system name, never by a figure.",
+      "startS": 280.1,
+      "endS": 309.70000000000005
+    },
+    {
+      "name": "How it is scored",
+      "text": "One open scorer. The same steps for every submission.",
+      "startS": 309.70000000000005,
+      "endS": 365.00000000000006
+    },
+    {
+      "name": "Our own rows",
+      "text": "We built this benchmark and we enter our own systems in it.",
+      "startS": 365.00000000000006,
+      "endS": 411.50000000000006
+    },
+    {
+      "name": "What does not exist yet",
+      "text": "No hidden split. No hosted evaluation.",
+      "startS": 411.50000000000006,
+      "endS": 438.70000000000005
+    },
+    {
+      "name": "NyayaSiddhi",
+      "text": "A place to compare.",
+      "startS": 438.70000000000005,
+      "endS": 452.6
+    }
+  ],
+  "missingAssets": [],
+  "files": [
+    {
+      "name": "film.mp4",
+      "bytes": 9978536,
+      "sha256": "8c87fb51eb581c4bb5e4f459f95707d1c3f3aa92216ed297ca76ae3c0cd559d7"
+    },
+    {
+      "name": "poster.png",
+      "bytes": 109624,
+      "sha256": "bdc1e3a6183026b21d218aeaff426a5f0b2988971218104437c7bdf48c78ab22"
+    },
+    {
+      "name": "captions.vtt",
+      "bytes": 9179,
+      "sha256": "8035a4e8571e624fa9ae426535013c03339ab42a8217e868a349dd204648f5ee"
+    }
+  ]
+}
