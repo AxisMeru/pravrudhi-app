@@ -1,6 +1,6 @@
 import { HowItWorks } from "@/components/HowItWorks";
 import { PageHeader } from "@/components/PageHeader";
-import { ACCESS_ON as ACCESS } from "@/lib/guide/accessCopy";
+import { ACCESS_ON as ACCESS, START_LIMITS } from "@/lib/guide/accessCopy";
 import Link from "next/link";
 
 import { LAYOUT_MATTER_B } from "@/lib/layoutFlag";
@@ -100,6 +100,12 @@ export default function GuidePage() {
           {ACCESS.models.map((m) => (
             <p key={m} className="mt-1 text-sm text-[var(--color-text-dim)]" data-testid="guide-access-models">{m}</p>
           ))}
+          <h3 className="mt-3 text-sm font-medium text-[var(--color-text)]">{START_LIMITS.heading}</h3>
+          <ul className="mt-1 list-disc space-y-1 pl-5" data-testid="guide-start-limits">
+            {START_LIMITS.items.map((l) => (
+              <li key={l} className="text-sm text-[var(--color-text-dim)]">{l}</li>
+            ))}
+          </ul>
         </section>
         <section data-testid="guide-glossary">
           <h2 className="text-base font-medium text-[var(--color-text)]">{GUIDE_GLOSSARY_HEADING}</h2>

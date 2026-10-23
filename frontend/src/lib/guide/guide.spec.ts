@@ -71,7 +71,7 @@ test("the guide states each limit it was asked to: not legal advice, the citatio
   assert.doesNotMatch(text, /frontier/i, "the frontier reader was removed in #129; the guide no longer describes it");
   assert.doesNotMatch(copySource, /much faster/, "no signed source for 'much'");
   assert.doesNotMatch(copySource, /\b(145|177|180)\b|9\.9 ?s|about 3 minutes|100 seconds/, "no production timing figure (n=1) in the app");
-  assert.equal(GUIDE_COLD_START, "If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
+  assert.equal(GUIDE_COLD_START, "If the analysis models have to start first, a screening can take several minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
   assert.equal(GUIDE_STEPS.find((s) => s.id === "run")!.text, "Choose Screen these facts. If the analysis models are switched off, the page either starts them and shows progress, or says plainly that they are switched off and nothing was scored. If it takes longer than usual, the page says so. You can cancel at any point.");
 });
 
