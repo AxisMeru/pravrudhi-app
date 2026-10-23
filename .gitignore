@@ -30,3 +30,4 @@ frontend/.build-info.json
 
 # Local film-rendering tools: the third-party player is never committed (#255)
 frontend/.film-tools/
+docs/reference/

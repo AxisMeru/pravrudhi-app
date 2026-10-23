@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "Pravrudhi-Nyaya frontend: library reference",
+  "entryPoints": [
+    "src/lib/api.ts",
+    "src/lib/serviceStatus.ts",
+    "src/lib/edition.ts",
+    "src/lib/demoPath.ts",
+    "src/lib/factsInput.ts",
+    "src/lib/wake/wake.ts",
+    "src/lib/wake/wakeRun.ts",
+    "src/lib/screening/offences.ts",
+    "src/lib/adminAccess/adminAccess.ts"
+  ],
+  "tsconfig": "tsconfig.json",
+  "out": "../docs/reference",
+  "exclude": ["**/*.spec.ts", "**/node_modules/**"],
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "readme": "none",
+  "gitRevision": "main",
+  "disableSources": true,
+  "treatWarningsAsErrors": false,
+  "validation": { "notExported": false, "invalidLink": true, "notDocumented": false }
+}

@@ -1,30 +1,37 @@
-# Pravrudhi
+# Pravrudhi-Nyaya (app)
 
-A clean-slate platform for recursive self-improvement: install Pravrudhi, state one objective, get one artifact.
+The web app, and the desktop shell around it, for **Pravrudhi-Nyaya**: a screening aid for Indian criminal-law matters. A person states the facts of a matter, picks the offences to screen for, and gets a checklist of the ingredients of each offence, with the facts that appear to carry each one cited, and the ones that do not referred back to a lawyer. It is a screening aid; it is not legal advice and it does not decide anything.
 
-Pravrudhi is the progenitor in a three-altitude architecture described in [ADR-0049](https://github.com/AxisMeru/pravrudhi/blob/main/docs/decisions/ADR-0049-three-altitudes-studio-product-artifact.md):
+This repository is the **product** altitude of a three-altitude system (see [ADR-0049](https://github.com/AxisMeru/pravrudhi/blob/main/docs/decisions/ADR-0049-three-altitudes-studio-product-artifact.md)):
 
 | Altitude | Role | Code |
 |---|---|---|
-| **Studio** (the architect) | Improves the engine itself | `AxisMeru/pravrudhi` |
-| **Product** (this repository) | A clean-slate platform: takes one objective, produces one artifact | `AxisMeru/pravrudhi-app` |
-| **Artifact** (e.g., a trained model family) | The outcome of one ask: code, corpus, gates, evidence | User's GitHub account or `AxisMeru` |
+| **Studio** | Improves the engine itself | `AxisMeru/pravrudhi` |
+| **Product** (this repository) | The screening app: web UI, desktop shell, install scripts | `AxisMeru/pravrudhi-app` |
+| **Artifact** | The trained models behind the screening (4B and 32B judges) | `AxisMeru` |
 
-## What this is
+## What is in this repository
 
-A desktop application that:
-- Installs Pravrudhi's engine (pinned to a specific version)
-- Provides a minimal, clean-slate interface
-- Takes a single objective as input
-- Produces a repository as output—the artifact
+| Path | What it is |
+|---|---|
+| [`frontend/`](frontend/README.md) | The Next.js static-export UI (no SSR): screening, Your matters, workflows, citation check, guide, benchmarks, admin access page. Served on the web and by the engine inside the desktop shell. |
+| `desktop/` | Electron shell: engine discovery and launch, a local loopback engine, packaging. See [`desktop/README.md`](desktop/README.md). |
+| `engine/` and `scripts/install-engine.sh` | The engine version this app is tested against, and the installer that fetches that release. |
+| [`docs/engine-calls.md`](docs/engine-calls.md) | Every engine and Edge Function call the app makes, and how each error is shown. |
+| [`docs/ci-guards.md`](docs/ci-guards.md) | The CI checks and guards, and what each one protects. |
+| `docs/decisions/` | Decision records and requests (ADR-0001 to ADR-0005). |
+| `docs/demo-runbook.md` | How the public demo path is rehearsed. |
+| `scripts/` | Repository guards (private data, invented fixtures, flag specs ran) and the benchmark-page validator. |
+| `.github/workflows/` | CI and release. |
 
-## What this is not
+## The two doors
 
-- **Not the Pravrudhi Studio.** Studio is where the engine itself improves; the product is where users deploy engines to solve their own problems. Studio stays in `AxisMeru/pravrudhi` and is not installable by users outside the operator's team.
-- **Not a holder of multiple artifacts.** Each user objective gets its own repository. The product is ephemeral—you install it, use it, and can uninstall it once the artifact is created and pushed to GitHub.
-- **Not a standalone artifact.** Prabhāsa-Nyāya is our family of trained Indian-legal models (4B and 32B judges); Pravrudhi-Nyaya is the product that uses them.
+- **Web.** The `pravrudhi-app` project on Vercel serves `frontend/` (static export). The page talks to a hosted engine named at build time by `NEXT_PUBLIC_API_BASE`, and signs people in through Supabase (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Sign-ups are off; an administrator can invite a person by email from the Access page. The engine requires a signed-in token on every call except the health check.
+- **Desktop.** An Electron shell that launches a local engine on `127.0.0.1` and opens the same UI. It never talks to the hosted engine (`desktop/lib/connection.js` refuses any non-loopback origin).
 
-## Installation
+The analysis models are switched off when nobody is using them. A screening that finds them off asks the engine to start them (a "wake"), shows progress, and sends the screening when they are ready. See [`docs/engine-calls.md`](docs/engine-calls.md#cold-start-wake) for the contract.
+
+## Install the desktop app
 
 ### 1. Install the engine
 
@@ -59,140 +66,35 @@ The desktop application will use the newly installed engine on next launch.
 
 ## Development
 
-### Frontend
-
 ```bash
 cd frontend
-npm ci           # Install dependencies
-npm run build    # Build static export (required for desktop packaging)
-npm test         # Run tests
-npm run dev      # Development server
+npm ci
+npm run dev        # development server
+npm test           # unit tests (tsx --test "src/**/*.spec.ts")
+npx tsc --noEmit
+npx eslint . --max-warnings=0
+npm run build      # static export into frontend/out
 ```
 
-### Desktop
+End-to-end tests (Playwright) need a product engine serving the built pages; the exact commands, the build flags and the test projects are in [`frontend/README.md`](frontend/README.md#testing). Desktop:
 
 ```bash
 cd desktop
-npm ci            # Install dependencies
-npm test          # Run tests
-npm run start     # Launch dev app
-npm run dist      # Build installer for your platform
+npm ci
+npm test
+npm run start      # launch the dev app
+npm run dist       # build an installer for your platform
 ```
 
-### Building the release
+## Releases and deploys
 
-```bash
-# Frontend build is done by CI; the desktop shell packages the product edition on each platform
-npm run dist:linux   # Linux
-npm run dist:mac     # macOS
-npm run dist:win     # Windows
-```
+`main` is protected: a change merges through a pull request with CI green and the reviews it needs. The web app deploys from `main` through Vercel's git integration (root directory `frontend`). Releases of the desktop shell are built by `.github/workflows/release.yml`.
 
-## The web door
+## Public repository
 
-The same interface is served on the web at the `pravrudhi-app` Vercel project (team `axismeru`), deployed by
-Vercel's git integration on every push to `main`, root directory `frontend`. It talks to the engine named by
-`NEXT_PUBLIC_API_BASE` in the project's environment and signs users in through Supabase when
-`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set; without an engine it shows the
-connection banner rather than a recording. The desktop shell is the other door to the same account, with what
-a browser cannot offer: a local engine, the file system and local models.
-
-Since 2026-09-11 the engine behind the web door is a hosted one: `NEXT_PUBLIC_API_BASE` names
-`https://pravrudhi-app.axismeru.workers.dev`, a Cloudflare Worker that proxies to the product's engine
-container wherever it currently runs (the gateway recipe is `deploy/gateway/` in `AxisMeru/pravrudhi`). The
-engine runs with identity required: every `/api` call but the health check carries the signed-in user's token.
-
-## The nightlies
-
-Two scheduled checks run on the operator's own box (`pravrudhi-e2e-nightly.timer`, `deploy/e2e-nightly/` in
-`AxisMeru/pravrudhi`), signed in as a real, dedicated, non-admin Supabase account (the e2e test account, see the private runbook):
-
-- **The web nightly** (project `live-chromium`) signs in against the real hosted door
-  (`https://pravrudhi-app.vercel.app`) and runs:
-  - `frontend/e2e/live.spec.ts` — clicks through every offered page, plus one written-and-removed memory note.
-  - `frontend/e2e/matters-live.spec.ts` — a real anonymous `analyse-facts` call, asserting the cold-start
-    warm-up UI and a real judged response (run id + score sha).
-  - `frontend/e2e/nyaya-live.spec.ts` (added 2026-09-26, e2e testing against serverless) — the `/nyaya`
-    citation-verification loop: asking a question must resolve to a real verdict badge (one of the page's own
-    five: licensed / unlicensed / invented citation / abstained / no answer) for every vendor checked, or, if
-    this deployment currently offers no reachable vendor at all, the Ask button must honestly stay disabled
-    rather than accept a submit with nothing to ask. Deliberately does not assume any particular vendor is
-    healthy: `available_vendors()`'s own honesty (issue/PR #27, #29) is what this depends on, not a specific
-    vendor's uptime.
-  - `frontend/e2e/partner-api-live.spec.ts` (added 2026-09-26; project `live-api`, no browser -- there is no
-    frontend page for the partner tenancy API at all) — the real `/api/v1/orgs/...` door: no bearer token is
-    401'd, this account (deliberately never provisioned as a tenancy admin) is 403'd, and a small 11-request
-    burst against the (cheap, low-limit) provisioning endpoint gets a real 429 with `Retry-After` -- every
-    request here is refused before it ever reaches a judge, so this costs no GPU/judge spend.
-
-  This is what proves the hosted engine and the deployed frontend.
-- **The desktop nightly** (`desktop/nightly-dist.js`) fetches the latest *released* Linux AppImage, verifies it
-  against the release's own `SHA256SUMS`, installs the engine version that release was pinned to, and drives a
-  real sign-in / default-workspace / one-run scenario against it via `desktop/lib/nightly-scenario.js`, executed
-  inside the packaged shell's own loaded page (the same technique `PRAVRUDHI_DESKTOP_SHOT` already used for a
-  screenshot, extended into a full scripted scenario). Its report lands beside the web nightly's, under
-  `~/.local/share/pravrudhi-hosted/e2e/`.
-
-### Running the live projects yourself
-
-Needs the same seed, non-admin account the nightly uses (`~/.config/pravrudhi/e2e.env`, never a real client's
-credentials) and, for `partner-api-live.spec.ts`, the Supabase project config (`~/.config/pravrudhi/supabase.env`)
-to sign in directly via the password grant (no browser for that one). Both `live-chromium` and `live-api` only
-exist in the project list when the OPERATOR sets `LIVE_E2E_GO=1` (and the account is then in the environment): with
-the flag unset the guard (`frontend/playwright.live-guard.ts`) defines no live project and never reads `E2E_EMAIL` or
-`E2E_PASSWORD`, so an account left in an environment is inert. This is what keeps CI and agent sessions from ever running them.
-
-```bash
-cd frontend
-set -a && source ~/.config/pravrudhi/e2e.env && source ~/.config/pravrudhi/supabase.env && set +a
-# the live projects refuse to load without an explicit go (LIVE_E2E_GO=1); they hit the deployed site
-LIVE_E2E_GO=1 npx playwright test --project=live-chromium   # signed-in browser checks, incl. a real analyse-facts call
-LIVE_E2E_GO=1 npx playwright test --project=live-api        # partner API only, no browser, no judge cost
-```
-
-`LIVE_URL` overrides the Vercel origin `live-chromium` uses (a rehearsal against a preview deployment);
-`LIVE_ENGINE_URL` overrides the Worker origin `live-api` hits directly (there is no `/api/*` rewrite on the
-Vercel origin -- the browser app itself only reaches the Worker via a build-time `NEXT_PUBLIC_API_BASE`, never
-a relative path, which is why the API-only project needs its own base URL rather than sharing `live-chromium`'s).
-
-Keep this modest: `matters-live.spec.ts` and a chosen-vendor branch of `nyaya-live.spec.ts` are real calls
-against the live judge/vendor infrastructure, not free. `partner-api-live.spec.ts` is not -- every request in
-it is refused before reaching a judge.
-
-**The desktop nightly's exact claim, because it is easy to overstate: real account, real auth, released shell,
-fresh local root — not the hosted engine's data.** The desktop shell cannot reach the hosted product engine at
-all: `desktop/lib/connection.js`'s `loopbackOrigin` refuses any origin that is not `127.0.0.1`/`localhost`, by
-design (the product is a shell over the user's own hardware, ADR-0051 and the operator's bring-your-own-key
-rule — not a client for a remote engine). So the desktop nightly starts a *local* engine, with
-`PRAVRUDHI_AUTH=required` and the real Supabase project's URL (never a service key — only `SUPABASE_URL`;
-`identity.py`'s token verification needs nothing else), and gateway-probe signs into *that* — a real account,
-validated by real Supabase auth, running a released shell — but the workspace and run it creates live in a
-throwaway local root, never the hosted engine's own data. The web nightly above is what proves the hosted
-engine; the desktop nightly proves the shell.
-
-## Testing
-
-Unit tests and the type-check run with `npm test` and `npx tsc --noEmit` in `frontend/`. The end-to-end suite
-needs a running product engine serving this repository's built pages:
-
-```bash
-cd frontend && npm run build
-PRAVRUDHI_EDITION=product PRAVRUDHI_FRONTEND_DIR=$PWD/out pravrudhi app --root <a root made by pravrudhi init> --no-browser --port 8301
-LOCAL_ENGINE_URL=http://127.0.0.1:8301 npx playwright test
-```
-
-CI does exactly this against the release pinned in `engine/ENGINE_VERSION`, from a fresh `pravrudhi init` root.
-
-## Architecture
-
-- **`desktop/`** — Electron shell, platform-native lifecycle, engine discovery and launching
-- **`frontend/`** — Next.js static-export UI (no SSR), consumed by the desktop app
-- **`engine/`** — Engine versioning and installation scripts
-- **`.github/workflows/`** — CI (frontend, desktop tests) and release workflows
-
-The desktop app launches the engine (a Python subprocess) and points it to the built frontend via `PRAVRUDHI_FRONTEND_DIR`.
+This repository is public. Fixtures and examples are invented, or are allegations recited in a public court order and labelled as such. No real name, case or crime number, email, phone number or identity number may be committed; CI refuses them (see [`docs/ci-guards.md`](docs/ci-guards.md)). Secrets and account details never belong here.
 
 ## See also
 
-- [Pravrudhi Studio](https://github.com/AxisMeru/pravrudhi) — The engine and its improvement loop
-- [ADR-0049](https://github.com/AxisMeru/pravrudhi/blob/main/docs/decisions/ADR-0049-three-altitudes-studio-product-artifact.md) — The three-altitude architecture
+- [Pravrudhi Studio](https://github.com/AxisMeru/pravrudhi): the engine and its improvement loop.
+- [ADR-0049](https://github.com/AxisMeru/pravrudhi/blob/main/docs/decisions/ADR-0049-three-altitudes-studio-product-artifact.md): the three altitudes.
