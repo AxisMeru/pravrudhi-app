@@ -153,7 +153,7 @@ test("wake: a status poll that answers 200 text/html after a valid start is not 
 });
 
 // app#543 (R1's words): a screening sent right after a READY wake can still answer 503 agent_unavailable. The page says so once and sends the SAME request again every 45 s, up to five times (same ticket, no new wake); after the last failure it shows the existing line; no other error retries.
-const WAIT_TEXT = "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a few minutes; you can cancel at any point.";
+const WAIT_TEXT = "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a while; you can cancel at any point.";
 const NOT_AVAILABLE = "The analysis service is not available right now, so nothing was scored. Try again later.";
 const READY_POLLS = [{ json: w("ready", "ready", "ready", null, FULL_TICKET) }];
 

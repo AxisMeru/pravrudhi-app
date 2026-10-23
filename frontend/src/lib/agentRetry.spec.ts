@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { AGENT_RETRY_MAX, AGENT_RETRY_WAIT_MS, WARMING_WAIT_MAX_MS, WARMING_WAIT_MIN_MS, apiErrorFrom, isNotServingYet, nextRetryWaitMs } from "./api";
+import { AGENT_RETRY_MAX, AGENT_RETRY_WAIT_MS, RETRY_TOTAL_MAX_MS, WARMING_WAIT_MAX_MS, WARMING_WAIT_MIN_MS, apiErrorFrom, boundedRetryWaitMs, isNotServingYet, nextRetryWaitMs } from "./api";
 import { AGENT_NOT_READY_TEXT } from "./runningCopy";
 import { CODED_ERROR_TEXT } from "./signedStrings";
 
 test("#543: R1's wait line (by hash), the 45 s wait x5, and the existing failure line unchanged", () => {
-  assert.equal(AGENT_NOT_READY_TEXT, "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a few minutes; you can cancel at any point.");
-  assert.equal(createHash("sha256").update(AGENT_NOT_READY_TEXT, "utf8").digest("hex").slice(0, 8), "7e2742b6");
+  assert.equal(AGENT_NOT_READY_TEXT, "The analysis models were not ready yet. Nothing was scored so far. The page will keep trying for a while; you can cancel at any point.");
+  assert.equal(createHash("sha256").update(AGENT_NOT_READY_TEXT, "utf8").digest("hex").slice(0, 8), "51605e40");
   assert.doesNotMatch(AGENT_NOT_READY_TEXT, /loading|shortly|judge|\d/i, "R1: no loading, no shortly, no count");
   assert.equal(AGENT_RETRY_WAIT_MS, 45_000);
   assert.equal(AGENT_RETRY_MAX, 5);
@@ -40,4 +40,19 @@ test("#548: the body's retry_after_s becomes retryAfter; the Retry-After header 
   assert.equal(a.reason, "judges_warming");
   const b = await apiErrorFrom(new Response(body, { status: 503, headers: { "retry-after": "40" } }), "/x");
   assert.equal(b.retryAfter, 40);
+});
+
+test("#548 (R2): the total of the retry waits never passes 540 s, even at 120 s x 5; a spent budget stops the loop", () => {
+  const warm = { code: "judge_unavailable", reason: "judges_warming", retryAfter: 120 };
+  let waited = 0;
+  const waits: number[] = [];
+  for (let n = 0; n < AGENT_RETRY_MAX; n++) {
+    const w = boundedRetryWaitMs(warm, waited);
+    waits.push(w);
+    waited += w;
+  }
+  assert.deepEqual(waits, [120_000, 120_000, 120_000, 120_000, 60_000]);
+  assert.equal(waited, RETRY_TOTAL_MAX_MS);
+  assert.equal(boundedRetryWaitMs(warm, RETRY_TOTAL_MAX_MS), 0);
+  assert.equal(boundedRetryWaitMs({ code: "agent_unavailable" }, 0), AGENT_RETRY_WAIT_MS);
 });

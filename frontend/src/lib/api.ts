@@ -1617,6 +1617,13 @@ export const AGENT_RETRY_MAX = 5;
 /** app#548: a judges_warming answer names how long to wait (retry_after_s); it is honoured within these bounds, so a missing or absurd value cannot stall or hammer the engine. */
 export const WARMING_WAIT_MIN_MS = 5_000;
 export const WARMING_WAIT_MAX_MS = 120_000;
+/** app#548 (R2): the SUM of the retry waits stays under the wake ticket's 600 s life, so the last retry cannot meet an expired ticket. */
+export const RETRY_TOTAL_MAX_MS = 540_000;
+
+/** The wait before the next try given what was already waited: the usual wait, cut to what is left of RETRY_TOTAL_MAX_MS; 0 means the budget is spent and the last error stands. */
+export function boundedRetryWaitMs(e: { code?: string; reason?: string; retryAfter?: number }, waitedMs: number): number {
+  return Math.max(0, Math.min(nextRetryWaitMs(e), RETRY_TOTAL_MAX_MS - waitedMs));
+}
 
 /** app#543/#548: the two answers that mean "the models are not serving yet" right after a ready wake, so the same request is sent again. */
 export function isNotServingYet(e: { status?: number; code?: string; reason?: string }): boolean {
@@ -1756,8 +1763,12 @@ export async function analyseFacts(
           if (opts.onAgentWait && isNotServingYet({ status: res.status, code: first.code, reason: first.reason })) {
             opts.onAgentWait();
             let last = first;
+            let waited = 0;
             for (let n = 1; n <= AGENT_RETRY_MAX; n++) {
-              await waitMs(nextRetryWaitMs(last), signal);
+              const w = boundedRetryWaitMs(last, waited);
+              if (w <= 0) throw last;
+              waited += w;
+              await waitMs(w, signal);
               res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
               if (res.ok) break;
               const again = await apiErrorFrom(res, path);
