@@ -104,6 +104,26 @@ jobs:
   # The interface on a real product engine: the pinned release wheels (engine/ENGINE_VERSION) serve this
   # repository's built pages through PRAVRUDHI_FRONTEND_DIR, from a root `pravrudhi init` made a moment ago,
   # exactly as the desktop shell arranges it on a user's machine.
+  # app#1055: the library reference (TypeDoc) must build. Build-only: the output (docs/reference) is not committed; the HTML is kept as a run artifact.
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: build the library reference
+        working-directory: frontend
+        run: npm run docs
+      - name: keep the reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-reference
+          path: docs/reference
+          retention-days: 7
+
   e2e-shard:
     runs-on: ubuntu-latest
     needs: frontend
