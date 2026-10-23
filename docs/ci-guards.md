@@ -11,7 +11,7 @@ What runs on every pull request and push to `main` (`.github/workflows/ci.yml`),
 | `docs` | `npm run docs` in `frontend/` (TypeDoc) | That the library reference still builds. Build-only: the HTML is kept as a run artifact for 7 days and is not committed. |
 | `desktop` | `node --test test/` in `desktop/` | The Electron shell's logic. |
 | `e2e` (three shards: `e2e-shard (1..3)`) | Builds the interface, installs the engine release pinned in `engine/ENGINE_VERSION`, serves the built pages from a product engine and runs the whole Playwright suite split in three | That the pages work against the real engine, with the engine's answers mocked where a test must not need a model. `e2e` is the aggregate and fails if any shard fails. |
-| `e2e-shipped` (three shards) | The same suite built with the flag set the deployed build uses | That what ships (flags on) works, not only the default build. |
+| `e2e-shipped` (three shards) | The same suite built with the flag set the deployed build uses | That the flag set the deployed build uses is also run through the whole suite. |
 
 ## The guards
 

@@ -26,7 +26,7 @@ This repository is the **product** altitude of a three-altitude system (see [ADR
 
 ## The two doors
 
-- **Web.** The `pravrudhi-app` project on Vercel serves `frontend/` (static export). The page talks to a hosted engine named at build time by `NEXT_PUBLIC_API_BASE`, and signs people in through Supabase (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`). There is no self-service sign-up: an administrator invites each person by email, from the Access page. The engine requires a signed-in token on every call except the health check.
+- **Web.** The `pravrudhi-app` project on Vercel serves `frontend/` (static export). The page talks to a hosted engine named at build time by `NEXT_PUBLIC_API_BASE`, and signs people in through Supabase (`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`). Sign-ups are off; an administrator can invite a person by email from the Access page. The engine requires a signed-in token on every call except the health check.
 - **Desktop.** An Electron shell that launches a local engine on `127.0.0.1` and opens the same UI. It never talks to the hosted engine (`desktop/lib/connection.js` refuses any non-loopback origin).
 
 The analysis models are switched off when nobody is using them. A screening that finds them off asks the engine to start them (a "wake"), shows progress, and sends the screening when they are ready. See [`docs/engine-calls.md`](docs/engine-calls.md#cold-start-wake) for the contract.
@@ -63,51 +63,6 @@ The engine version is pinned in `engine/ENGINE_VERSION`. To upgrade:
 2. Run `bash scripts/install-engine.sh` again
 
 The desktop application will use the newly installed engine on next launch.
-
-## Development
-
-### Frontend
-
-```bash
-cd frontend
-npm ci           # Install dependencies
-npm run build    # Build static export (required for desktop packaging)
-npm test         # Run tests
-npm run dev      # Development server
-```
-
-### Desktop
-
-```bash
-cd desktop
-npm ci            # Install dependencies
-npm test          # Run tests
-npm run start     # Launch dev app
-npm run dist      # Build installer for your platform
-```
-
-### Building the release
-
-```bash
-# Frontend build is done by CI; the desktop shell packages the product edition on each platform
-npm run dist:linux   # Linux
-npm run dist:mac     # macOS
-npm run dist:win     # Windows
-```
-
-## The web door
-
-The same interface is served on the web at the `pravrudhi-app` Vercel project (team `axismeru`), deployed by
-Vercel's git integration on every push to `main`, root directory `frontend`. It talks to the engine named by
-`NEXT_PUBLIC_API_BASE` in the project's environment and signs users in through Supabase when
-`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set; without an engine it shows the
-connection banner rather than a recording. The desktop shell is the other door to the same account, with what
-a browser cannot offer: a local engine, the file system and local models.
-
-Since 2026-09-11 the engine behind the web door is a hosted one: `NEXT_PUBLIC_API_BASE` names
-`https://pravrudhi-app.axismeru.workers.dev`, a Cloudflare Worker that proxies to the product's engine
-container wherever it currently runs (the gateway recipe is `deploy/gateway/` in `AxisMeru/pravrudhi`). The
-engine runs with identity required: every `/api` call but the health check carries the signed-in user's token.
 
 ## Development
 

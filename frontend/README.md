@@ -39,7 +39,7 @@ Everything the page needs at run time is decided when it is built. All flags are
 | `NEXT_PUBLIC_API_BASE` | Origin of the hosted engine. Empty on a build served by the engine itself, which then uses its own origin. |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The Supabase project used for sign-in (publishable values only). Without them the sign-in form is not rendered. |
 | `NEXT_PUBLIC_BASE_PATH` | Sub-path the export is served under, if any. |
-| `NEXT_PUBLIC_DEMO` | Forces the recorded-demo mode for local preview of the public site. No production build sets it. |
+| `NEXT_PUBLIC_DEMO` | Forces the recorded-demo mode for local run of the public site. No production build sets it. |
 | Feature flags: `NEXT_PUBLIC_INTAKE`, `NEXT_PUBLIC_CITATION_NAV`, `NEXT_PUBLIC_CITATION_EXISTENCE_ONLY`, `NEXT_PUBLIC_LAYOUT_MATTER_B`, `NEXT_PUBLIC_LOOK_TONAL`, `NEXT_PUBLIC_WORKFLOWS_V2`, `NEXT_PUBLIC_DRAFTING_CARDS`, `NEXT_PUBLIC_SCANNED_INTAKE`, `NEXT_PUBLIC_ASSISTANT_ENTRY`, `NEXT_PUBLIC_ASSISTANT_DELETE_CONFIRMED`, and the others in `src/lib` | Turn one feature on. Several have a matching `*_BUILD` variable that the build scripts read. `vercel.json` and `src/lib/vercelConfig.spec.ts` pin which flags the deployed build sets. |
 | `NEXT_PUBLIC_APP_SHA`, `NEXT_PUBLIC_BUILD_TIME` | Written by the build scripts; shown in the page footer. |
 
