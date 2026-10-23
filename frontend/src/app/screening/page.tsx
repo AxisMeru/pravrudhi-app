@@ -47,7 +47,7 @@ import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/li
 import { splitIntoFacts } from "@/lib/screening/facts";
 import { OFFENCES, offenceCheckboxName, offenceNoteIds, offenceOf } from "@/lib/screening/offences";
 import { EXPORT_LABELS, ipcDisclosure, NOT_VALIDATED_OFFENCE_NOTE, SCREENING_SUBTITLE, SCREENING_TITLE } from "@/lib/screening/copy";
-import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, startStatusPoll, type StatusResult } from "@/lib/serviceStatus";
 import { AGENT_NOT_READY_TEXT, ASSISTED_RUNNING_NOTE, LEAVE_AND_RETURN_TEXT, RUNNING_STATUS_LINE, waitingFor } from "@/lib/runningCopy";
 import { WakeProgress, WakeWarning } from "@/components/WakeProgress";
 import type { WakeView } from "@/lib/wake/wake";
@@ -136,14 +136,7 @@ export default function ScreeningPage() {
   const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
-    let off = false;
-    const poll = () => fetchServiceStatus().then((r) => !off && setSvc(r));
-    poll();
-    const id = window.setInterval(poll, 30_000);
-    return () => {
-      off = true;
-      window.clearInterval(id);
-    };
+    return startStatusPoll(setSvc); // #557: a few failed reads in a row before the "not answering" line
   }, []);
 
   useEffect(() => {

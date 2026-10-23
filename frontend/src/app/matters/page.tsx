@@ -20,7 +20,7 @@ import { REFERRED_HEADING, referReasonPresentation } from "@/lib/referReason";
 import { UNKNOWN_NON_REFER_REASON_TEXT, bindingLegText, nonReferReasonText, quoteCheckPresentation } from "@/lib/reasonText";
 import { citedFactView, leanAttestationView, noStructuralCheckLine } from "@/lib/quoteHighlight";
 import { standardLine } from "@/lib/standardLine";
-import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, type StatusResult } from "@/lib/serviceStatus";
+import { classifyAnalyseError, fetchServiceStatus, formatNextOpen, isClosed, startStatusPoll, type StatusResult } from "@/lib/serviceStatus";
 import { referFirst } from "@/lib/contractOrder";
 import { citationNote } from "@/lib/citedFact";
 import { NO_CONTRACTS_MESSAGE, pickerState } from "@/lib/contractsPicker";
@@ -289,18 +289,7 @@ export default function MattersPage() {
   const picker = pickerState(contractsLoaded, contractsError !== null, contracts.length, IS_DEMO);
 
   useEffect(() => {
-    let off = false;
-    const poll = () => {
-      fetchServiceStatus().then((r) => {
-        if (!off) setSvc(r);
-      });
-    };
-    poll();
-    const id = window.setInterval(poll, 30_000);
-    return () => {
-      off = true;
-      window.clearInterval(id);
-    };
+    return startStatusPoll(setSvc); // #557: a few failed reads in a row before the "not answering" line
   }, []);
 
   // /matters?example=<id> loads a demo example (the allegations of one public court order); an unknown id shows the "not available" notice. Applied from a microtask, not

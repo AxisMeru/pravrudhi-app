@@ -184,3 +184,47 @@ export function classifyAnalyseError(e: unknown, internalLine: string | null = I
 export function isHostedBuild(): boolean {
   return IS_DEMO || !!process.env.NEXT_PUBLIC_SUPABASE_URL;
 }
+
+/** #557: how many consecutive failed status reads the page lets pass quietly before it says the engine is not answering. */
+export const STATUS_FAILURES_TOLERATED = 3;
+
+interface StatusPollOptions {
+  fetch?: () => Promise<StatusResult>;
+  everyMs?: number;
+  quickMs?: number;
+  tolerate?: number;
+  setTimeout?: typeof setTimeout;
+  clearTimeout?: typeof clearTimeout;
+}
+
+/**
+ * Reads the service status now and then every `everyMs` (30 s). An "offline" read is only passed on once `tolerate` reads in a row have been offline: one failed read while the engine is busy
+ * (a model booting) says nothing, and a failed read is asked again after `quickMs` (5 s), not after the full interval. Any other answer is passed on at once and resets the count.
+ * Returns the function that stops it.
+ */
+export function startStatusPoll(onResult: (r: StatusResult) => void, o: StatusPollOptions = {}): () => void {
+  const read = o.fetch ?? fetchServiceStatus;
+  const every = o.everyMs ?? 30_000;
+  const quick = o.quickMs ?? 5_000;
+  const tolerate = o.tolerate ?? STATUS_FAILURES_TOLERATED;
+  const setT = o.setTimeout ?? setTimeout;
+  const clearT = o.clearTimeout ?? clearTimeout;
+  let failures = 0;
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const run = async (): Promise<void> => {
+    const r = await read();
+    if (stopped) return;
+    if (r.kind === "offline") {
+      failures += 1;
+      if (failures >= tolerate) onResult(r);
+      timer = setT(run, failures >= tolerate ? every : quick);
+      return;
+    }
+    failures = 0;
+    onResult(r);
+    timer = setT(run, every);
+  };
+  void run();
+  return () => { stopped = true; if (timer !== undefined) clearT(timer); };
+}
