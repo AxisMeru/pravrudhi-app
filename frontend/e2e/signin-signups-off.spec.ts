@@ -36,13 +36,19 @@ test("the sign-in link says the same neutral line for an address with an account
   expect(body.every((b) => JSON.parse(b).create_user === false)).toBe(true);
 });
 
-test("a rate limit shows our own error, never the provider's words; an empty email shows R1's line", async ({ page }) => {
+test("a rate limit or a server error gets the same neutral line (d65); only a dropped connection shows our error, never the provider's words; an empty email shows R1's line", async ({ page }) => {
   test.skip(await page.getByText("Sign-in is not configured").count() > 0, "needs the build with a Supabase URL");
   await page.route("**/auth/v1/otp**", (r) => r.fulfill({ status: 429, json: { msg: "email rate limit exceeded" } }));
   await page.getByRole("button", { name: "Email me a sign-in link instead" }).click();
   await expect(page.getByText("Enter your email first, then ask for the link.")).toBeVisible();
   await page.getByLabel("Email").fill("someone@example.invalid");
   await page.getByRole("button", { name: "Email me a sign-in link instead" }).click();
-  await expect(page.getByText("Could not send the link")).toBeVisible();
+  await expect(page.getByText(SENT)).toBeVisible();
   expect(await page.locator("body").innerText()).not.toMatch(/rate limit exceeded/i);
+  await page.unroute("**/auth/v1/otp**");
+  await page.route("**/auth/v1/otp**", (r) => r.abort());
+  await page.reload();
+  await page.getByLabel("Email").fill("someone@example.invalid");
+  await page.getByRole("button", { name: "Email me a sign-in link instead" }).click();
+  await expect(page.getByText("Could not send the link")).toBeVisible();
 });

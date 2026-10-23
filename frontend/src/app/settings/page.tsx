@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
 import {
   clearMessaging,
@@ -21,6 +21,9 @@ import {
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { AccountControl } from "@/components/AccountControl";
+import { PasswordForm } from "@/components/PasswordForm";
+import { currentSession } from "@/lib/auth";
+import { PASSWORD_COPY } from "@/lib/passwordCopy";
 import { DEMO_PATH } from "@/lib/demoPath";
 import { edition, STUDIO } from "@/lib/edition";
 import { canSeeApiKeys } from "@/lib/runsAccess";
@@ -405,6 +408,20 @@ function TelegramSection() {
   );
 }
 
+const subscribeNever = () => () => {};
+
+function ChangePassword() {
+  // app d65: a signed-in person can change the password. Not shown signed out; the server snapshot is "nobody" and the client reads the session once hydrated (same pattern as AccountControl).
+  const user = useSyncExternalStore(subscribeNever, currentSession, () => null);
+  if (user === null) return null;
+  return (
+    <div data-testid="change-password">
+      <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">{PASSWORD_COPY.changeHeading}</h2>
+      <div className="max-w-sm"><PasswordForm mode="change" onDone={() => undefined} /></div>
+    </div>
+  );
+}
+
 function SurfaceSettings() {
   // The law-firm surface: the account and, for an organisation admin, the API keys and usage entry. The model-provider,
   // notification and update panels belong to the improvement loop and are not displayed here.
@@ -424,6 +441,7 @@ function SurfaceSettings() {
           <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">Account</h2>
           <AccountControl />
         </div>
+        <ChangePassword />
         {canSeeApiKeys(access) && (
           <div>
             <h2 className="mb-3 text-sm font-medium text-[var(--color-text)]">API access</h2>
