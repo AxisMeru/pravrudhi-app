@@ -26,7 +26,8 @@ const MIN_POLL_S = 2;
 const MAX_POLL_S = 10;
 const DEFAULT_POLL_S = 5;
 const MAX_POLL_FAILURES = 3;
-const DEFAULT_MAX_MS = 480_000;
+/** app#549 (R2): just above the engine's 570 s wake deadline (+ DEADLINE_MARGIN_S), below the 900 s lease: the 32B's 444-449 s start fits with slack and a slower one is not cut off at 480 s. */
+export const DEFAULT_MAX_MS = 600_000;
 const DEADLINE_MARGIN_S = 30;
 
 export async function runWake(io: WakeIO): Promise<WakeOutcome> {

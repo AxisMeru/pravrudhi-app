@@ -140,8 +140,11 @@ export async function apiErrorFrom(res: Response, path: string): Promise<ApiErro
   let code: string | undefined;
   let reason: string | undefined;
   let validationTypes: string[] | undefined;
+  let bodyRetryAfter: number | undefined;
   try {
-    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown; detail?: unknown };
+    const body = (await res.clone().json()) as { error?: unknown; reason?: unknown; detail?: unknown; retry_after_s?: unknown };
+    // engine 0.6.34 (#644): judges_warming carries retry_after_s in the body (app#548)
+    if (typeof body.retry_after_s === "number" && Number.isFinite(body.retry_after_s) && body.retry_after_s > 0) bodyRetryAfter = body.retry_after_s;
     if (typeof body.error === "string") code = body.error;
     if (typeof body.reason === "string") reason = body.reason;
     if (Array.isArray(body.detail)) validationTypes = body.detail.flatMap((d) => (typeof d === "object" && d !== null && typeof (d as { type?: unknown }).type === "string" ? [(d as { type: string }).type] : []));
@@ -149,7 +152,7 @@ export async function apiErrorFrom(res: Response, path: string): Promise<ApiErro
     /* not JSON (a gateway error page): status alone */
   }
   const ra = Number(res.headers.get("retry-after"));
-  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : undefined, validationTypes });
+  return new ApiError(res.status, path, { code, reason, retryAfter: Number.isFinite(ra) && ra > 0 ? ra : bodyRetryAfter, validationTypes });
 }
 
 // Routes workspace_root.py's root_for() resolves by a named `workspace` (server.py's objectives/providers/
@@ -1611,6 +1614,27 @@ export interface AnalyseFactsOptions {
 /** app#543 (widened 22 Oct, Lead-2): a ready wake can precede a serving agent by minutes. After agent_unavailable the page retries every AGENT_RETRY_WAIT_MS, at most AGENT_RETRY_MAX times (about 4 minutes in all). */
 export const AGENT_RETRY_WAIT_MS = 45_000;
 export const AGENT_RETRY_MAX = 5;
+/** app#548: a judges_warming answer names how long to wait (retry_after_s); it is honoured within these bounds, so a missing or absurd value cannot stall or hammer the engine. */
+export const WARMING_WAIT_MIN_MS = 5_000;
+export const WARMING_WAIT_MAX_MS = 120_000;
+/** app#548 (R2): the SUM of the retry waits stays under the wake ticket's 600 s life, so the last retry cannot meet an expired ticket. */
+export const RETRY_TOTAL_MAX_MS = 540_000;
+
+/** The wait before the next try given what was already waited: the usual wait, cut to what is left of RETRY_TOTAL_MAX_MS; 0 means the budget is spent and the last error stands. */
+export function boundedRetryWaitMs(e: { code?: string; reason?: string; retryAfter?: number }, waitedMs: number): number {
+  return Math.max(0, Math.min(nextRetryWaitMs(e), RETRY_TOTAL_MAX_MS - waitedMs));
+}
+
+/** app#543/#548: the two answers that mean "the models are not serving yet" right after a ready wake, so the same request is sent again. */
+export function isNotServingYet(e: { status?: number; code?: string; reason?: string }): boolean {
+  return e.status === 503 && (e.code === "agent_unavailable" || (e.code === "judge_unavailable" && e.reason === "judges_warming"));
+}
+
+/** How long to wait before the next try: the engine's own retry_after_s for judges_warming (bounded), else AGENT_RETRY_WAIT_MS. */
+export function nextRetryWaitMs(e: { code?: string; reason?: string; retryAfter?: number }): number {
+  if (e.code === "judge_unavailable" && e.reason === "judges_warming" && e.retryAfter) return Math.min(WARMING_WAIT_MAX_MS, Math.max(WARMING_WAIT_MIN_MS, e.retryAfter * 1000));
+  return AGENT_RETRY_WAIT_MS;
+}
 function waitMs(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException("cancelled", "AbortError"));
@@ -1736,14 +1760,20 @@ export async function analyseFacts(
         if (!res.ok) {
           const first = await apiErrorFrom(res, path);
           // app#543: up to AGENT_RETRY_MAX retries, AGENT_RETRY_WAIT_MS apart, only for agent_unavailable straight after a ready wake, the same request and ticket, never another wake
-          if (opts.onAgentWait && res.status === 503 && first.code === "agent_unavailable") {
+          if (opts.onAgentWait && isNotServingYet({ status: res.status, code: first.code, reason: first.reason })) {
             opts.onAgentWait();
+            let last = first;
+            let waited = 0;
             for (let n = 1; n <= AGENT_RETRY_MAX; n++) {
-              await waitMs(AGENT_RETRY_WAIT_MS, signal);
+              const w = boundedRetryWaitMs(last, waited);
+              if (w <= 0) throw last;
+              waited += w;
+              await waitMs(w, signal);
               res = await analyseFactsAttempt(path, body, signal, false, wakeHeaders);
               if (res.ok) break;
               const again = await apiErrorFrom(res, path);
-              if (n === AGENT_RETRY_MAX || res.status !== 503 || again.code !== "agent_unavailable") throw again;
+              if (n === AGENT_RETRY_MAX || !isNotServingYet({ status: res.status, code: again.code, reason: again.reason })) throw again;
+              last = again;
             }
           } else throw first;
         }

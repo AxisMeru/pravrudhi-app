@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { WakeView } from "./wake";
-import { runWake, type WakeIO } from "./wakeRun";
+import { DEFAULT_MAX_MS, runWake, type WakeIO } from "./wakeRun";
 import * as C from "./wakeCopy";
 
 // The 0.6.31 wake status body: {wake: {state, models, reason, deadline_s, poll_after_s}, ticket?: {value, mode: "partial", expires_in_s}}.
@@ -98,4 +98,18 @@ test("the status is allowlist-gated like the start: a poll that answers not allo
   const { base, views } = io([gated]);
   assert.deepEqual(await runWake(base), { kind: "not_allowed" });
   assert.equal(views.filter((v) => v.warning).length, 0);
+});
+
+test("#549 (R2): a start that takes 550 s under the engine's 570 s deadline is waited for (the old 480 s cap would have stopped it); a never-ready wake stops at the deadline + margin", async () => {
+  assert.equal(DEFAULT_MAX_MS, 600_000);
+  const slow = (state: string) => ({ wake: { state, reason: null, deadline_s: 570, poll_after_s: 5, models: [{ role: "first", state: state === "ready" ? "ready" : "starting", progress: null }, { role: "second", state: state === "ready" ? "ready" : "starting", progress: null }] } });
+  const polls: unknown[] = Array.from({ length: 109 }, () => slow("waking"));
+  polls.push(slow("ready"));
+  const startSlow = async () => ({ kind: "started" as const, body: slow("waking") });
+  const { base } = io(polls, { start: startSlow });
+  assert.deepEqual(await runWake(base), { kind: "ready", ticket: null });
+  const never = io([slow("waking")], { start: startSlow });
+  const out = await runWake(never.base);
+  assert.equal(out.kind, "stopped");
+  assert.ok(never.sleeps.reduce((a, b) => a + b, 0) <= 605_000);
 });
