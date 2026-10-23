@@ -20,7 +20,6 @@
   "readme": "none",
   "gitRevision": "main",
   "disableSources": true,
-  "skipErrorChecking": true,
   "treatWarningsAsErrors": false,
   "validation": { "notExported": false, "invalidLink": true, "notDocumented": false }
 }
