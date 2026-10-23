@@ -36,7 +36,7 @@ function stubFetch(status: number | "throw", body: unknown = {}): { calls: Array
   return { calls };
 }
 
-test("sendMagicLink: existing accounts only (create_user false); a refusal for an unknown address is the same ok as a sent link; only a rate limit, a server error or a network failure is an error, in OUR words", async () => {
+test("sendMagicLink: existing accounts only (create_user false); a refusal for an unknown address is the same ok as a sent link; every HTTP answer (a rate limit and a server error included, d65: they can depend on whether the address has an account) is the same ok; only a dropped connection is an error, in OUR words", async () => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:3000";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-key";
   const sent = stubFetch(200);
@@ -48,7 +48,7 @@ test("sendMagicLink: existing accounts only (create_user false); a refusal for a
   assert.deepEqual(await sendMagicLink("x@example.invalid"), { ok: true });
   for (const st of [429, 500, 503] as const) {
     stubFetch(st, { msg: "raw provider words" });
-    assert.deepEqual(await sendMagicLink("x@example.invalid"), { ok: false, error: MAGIC_LINK_ERROR });
+    assert.deepEqual(await sendMagicLink("x@example.invalid"), { ok: true }, String(st));
   }
   stubFetch("throw");
   assert.deepEqual(await sendMagicLink("x@example.invalid"), { ok: false, error: MAGIC_LINK_ERROR });

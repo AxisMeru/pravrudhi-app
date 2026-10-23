@@ -103,22 +103,32 @@ test("requestPasswordReset POSTs the email to /auth/v1/recover with redirect_to 
   assert.equal(c.headers.apikey, "anon-key");
 });
 
-test("requestPasswordReset gives the SAME answer for an unknown address (any 4xx but a rate limit), so the page cannot enumerate accounts", async () => {
+test("requestPasswordReset gives the SAME answer for an unknown address (any 4xx, a rate limit included: it only happens for a real address), so the page cannot enumerate accounts", async () => {
   setup();
-  for (const status of [200, 400, 404, 422]) {
+  for (const status of [200, 400, 404, 422, 429]) {
     answer = { status, json: { msg: "User not found" } };
     assert.deepEqual(await requestPasswordReset("nobody@example.invalid"), { ok: true }, String(status));
   }
 });
 
-test("requestPasswordReset: a rate limit, a server error or a dropped connection is the one generic failure", async () => {
+test("requestPasswordReset: every HTTP answer, a rate limit and a server error included, is the same ok; only a dropped connection is the one generic failure", async () => {
   setup();
-  for (const status of [429, 500, 503]) {
+  for (const status of [200, 400, 404, 422, 429, 500, 503]) {
     answer = { status, json: {} };
-    assert.deepEqual(await requestPasswordReset("someone@example.invalid"), { ok: false, error: "Could not send the link. Try again later." }, String(status));
+    assert.deepEqual(await requestPasswordReset("someone@example.invalid"), { ok: true }, String(status));
   }
   global.fetch = (async () => { throw new Error("down"); }) as typeof fetch;
   assert.deepEqual(await requestPasswordReset("someone@example.invalid"), { ok: false, error: "Could not send the link. Try again later." });
+});
+
+test("a fragment error is never shown in the provider's words: an expired or used link gets our line, and the fragment is removed at once", async () => {
+  setup("#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+  const replaced: string[] = [];
+  (global as unknown as { window: { history: { replaceState: (a: unknown, b: string, c: string) => void } } }).window.history.replaceState = (_a, _b, c) => { replaced.push(c); };
+  const r = await completeMagicLink();
+  assert.deepEqual(r, { ok: false, error: PASSWORD_COPY.expired });
+  assert.deepEqual(replaced, ["/signin"]);
+  assert.equal(calls.length, 0);
 });
 
 test("an invite or recovery arrival is told apart by the fragment's type; a magic link and a bare token are not", async () => {

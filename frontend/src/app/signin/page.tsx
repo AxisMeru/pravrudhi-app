@@ -43,11 +43,11 @@ export default function SignInPage() {
   }
 
   async function handleForgot() {
-    if (!email) { setError(PASSWORD_COPY.forgotEmptyEmail); return; }
+    if (!/^\S+@\S+$/.test(email.trim())) { setError(PASSWORD_COPY.forgotEmptyEmail); return; } // empty or not an address: asked for before anything is sent
     setError(null);
     setConfirmationMessage(null);
     setIsLoading(true);
-    const result = await requestPasswordReset(email);
+    const result = await requestPasswordReset(email.trim());
     if (result.ok) setConfirmationMessage(PASSWORD_COPY.forgotSent); // the same line for every address: it never says whether the address has an account
     else setError(PASSWORD_COPY.forgotFailed);
     setIsLoading(false);

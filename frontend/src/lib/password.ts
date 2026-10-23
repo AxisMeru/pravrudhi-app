@@ -52,7 +52,7 @@ export async function setPassword(password: string): Promise<SetPasswordResult> 
 
 /**
  * POST /auth/v1/recover {email} with redirect_to <origin>/signin. Like the sign-in link (app#523) the answer does not depend on whether the address has an account: any refusal for an unknown
- * address is the same `ok` as a sent link. Only a rate limit, a server error or a dropped connection is a failure, and that is our one generic line.
+ * address is the same `ok` as a sent link. Only a dropped connection is a failure (our one generic line); every status, a rate limit and a server error included, is the same answer as a sent link.
  */
 export async function requestPasswordReset(email: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const cfg = supabase();
@@ -65,7 +65,9 @@ export async function requestPasswordReset(email: string): Promise<{ ok: true } 
       body: JSON.stringify({ email }),
     });
     if (res.ok) return { ok: true };
-    if (res.status === 429 || res.status >= 500) return { ok: false, error: PASSWORD_COPY.forgotFailed };
+    // Every answer is the same as a sent link: a 429 is the per-address cooldown and only a real address can hit it, and while the mail sender is broken a real address can answer 500 where an unknown one answers 200 (R2, R1, Track B).
+    // Only a dropped connection, which does not depend on the address, shows the failure line. Timing is a residual: Supabase's recover endpoint can be called directly with the public key.
+    void res;
     return { ok: true };
   } catch {
     return { ok: false, error: PASSWORD_COPY.forgotFailed };

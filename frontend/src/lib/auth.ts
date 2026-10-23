@@ -1,3 +1,5 @@
+import { PASSWORD_COPY } from "./passwordCopy";
+
 // Authentication module for Supabase email/password sign-in.
 // Session is stored in localStorage and persisted across page reloads.
 
@@ -253,8 +255,8 @@ export async function sendMagicLink(email: string): Promise<{ ok: true } | { ok:
       headers: { "content-type": "application/json", apikey: anonKey },
       body: JSON.stringify({ email, create_user: false }),
     });
-    if (response.ok) return { ok: true };
-    if (response.status === 429 || response.status >= 500) return { ok: false, error: MAGIC_LINK_ERROR };
+    // the same answer for every status (R2, d65): a rate limit and a server error can depend on whether the address has an account. Only a dropped connection is a failure.
+    void response;
     return { ok: true };
   } catch {
     return { ok: false, error: MAGIC_LINK_ERROR };
@@ -271,8 +273,11 @@ export async function completeMagicLink(): Promise<{ ok: true; data: User; kind:
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const token = params.get("access_token");
-  const failure = params.get("error_description");
-  if (!token) return failure ? { ok: false, error: failure.replace(/\+/g, " ") } : null;
+  const failure = params.get("error_description") ?? params.get("error");
+  // the fragment carries a token or an error: read once, then removed from the address bar and history at once, whatever follows (R2, d65)
+  if (window.location.hash) window.history.replaceState(null, "", window.location.pathname);
+  // the provider's words in a fragment are never shown: an expired or used link gets our own line, with the next step
+  if (!token) return failure ? { ok: false, error: PASSWORD_COPY.expired } : null;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anonKey) return { ok: false, error: "Supabase not configured" };
@@ -284,7 +289,6 @@ export async function completeMagicLink(): Promise<{ ok: true; data: User; kind:
       refresh_token: params.get("refresh_token") ?? undefined,
       expires_in: Number(params.get("expires_in")) || undefined,
     });
-    window.history.replaceState(null, "", window.location.pathname);
     // an invitation or a password-recovery link carries type=invite / type=recovery: the page then asks for a password (app d65)
     const type = params.get("type");
     return { ok: true, data: user, kind: type === "invite" || type === "recovery" ? type : "magiclink" };

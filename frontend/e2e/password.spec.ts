@@ -16,11 +16,14 @@ async function arrive(page: import("@playwright/test").Page, type: string) {
   await page.goto(`/signin#access_token=tok-arrival&refresh_token=ref-arrival&expires_in=3600&type=${type}`);
 }
 
-test("Forgot password: an empty email shows R1's line and sends nothing", async ({ page }) => {
+test("Forgot password: an empty or malformed email shows R1's line and sends nothing", async ({ page }) => {
   let sent = 0;
   await page.route("**/auth/v1/recover**", (r) => { sent += 1; return r.fulfill({ json: {} }); });
   await page.goto("/signin");
   await needsSupabase(page);
+  await page.getByTestId("forgot-password").click();
+  await expect(page.getByText("Enter your email first, then ask for the link.")).toBeVisible();
+  await page.getByLabel("Email").fill("not-an-address");
   await page.getByTestId("forgot-password").click();
   await expect(page.getByText("Enter your email first, then ask for the link.")).toBeVisible();
   expect(sent).toBe(0);
@@ -47,7 +50,7 @@ test("Forgot password: the SAME line for an address with an account and for one 
   }
 });
 
-test("Forgot password: a rate limit or a server error is the one failure line, never the provider's words", async ({ page }) => {
+test("Forgot password: every HTTP answer, a rate limit and a server error included, gets the same neutral line; only a dropped connection is the one failure line", async ({ page }) => {
   await page.goto("/signin");
   await needsSupabase(page);
   for (const status of [429, 500]) {
@@ -55,10 +58,15 @@ test("Forgot password: a rate limit or a server error is the one failure line, n
     await page.reload();
     await page.getByLabel("Email").fill("someone@example.invalid");
     await page.getByTestId("forgot-password").click();
-    await expect(page.getByText(FAILED)).toBeVisible();
+    await expect(page.getByText(SENT)).toBeVisible();
     expect(await page.locator("body").innerText()).not.toMatch(/rate limit exceeded/i);
     await page.unroute("**/auth/v1/recover**");
   }
+  await page.route("**/auth/v1/recover**", (r) => r.abort());
+  await page.reload();
+  await page.getByLabel("Email").fill("someone@example.invalid");
+  await page.getByTestId("forgot-password").click();
+  await expect(page.getByText(FAILED)).toBeVisible();
 });
 
 for (const type of ["invite", "recovery"]) {
@@ -156,4 +164,12 @@ test.describe("Settings", () => {
     await page.getByRole("button", { name: "Change password" }).click();
     await expect(page.getByTestId("password-error")).toHaveText(REAUTH);
   });
+});
+
+test("an expired or used link (error in the fragment) shows R1's line with the next step, never the provider's words, and the fragment leaves the address bar", async ({ page }) => {
+  await page.goto("/signin#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired");
+  await needsSupabase(page);
+  await expect(page.getByText(EXPIRED)).toBeVisible();
+  expect(await page.locator("body").innerText()).not.toMatch(/invalid or has expired/i);
+  expect(page.url()).not.toContain("error");
 });
