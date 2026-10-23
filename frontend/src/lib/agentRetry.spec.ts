@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { AGENT_RETRY_MAX, AGENT_RETRY_WAIT_MS } from "./api";
+import { AGENT_RETRY_MAX, AGENT_RETRY_WAIT_MS, WARMING_WAIT_MAX_MS, WARMING_WAIT_MIN_MS, apiErrorFrom, isNotServingYet, nextRetryWaitMs } from "./api";
 import { AGENT_NOT_READY_TEXT } from "./runningCopy";
 import { CODED_ERROR_TEXT } from "./signedStrings";
 
@@ -13,4 +13,31 @@ test("#543: R1's wait line (by hash), the 45 s wait x5, and the existing failure
   assert.equal(AGENT_RETRY_WAIT_MS, 45_000);
   assert.equal(AGENT_RETRY_MAX, 5);
   assert.equal(CODED_ERROR_TEXT.agent_unavailable, "The analysis service is not available right now, so nothing was scored. Try again later.");
+});
+
+test("#548: judges_warming (engine 0.6.34) joins agent_unavailable on the retry path; nothing else does", () => {
+  assert.equal(isNotServingYet({ status: 503, code: "agent_unavailable" }), true);
+  assert.equal(isNotServingYet({ status: 503, code: "judge_unavailable", reason: "judges_warming" }), true);
+  assert.equal(isNotServingYet({ status: 503, code: "judge_unavailable" }), false);
+  assert.equal(isNotServingYet({ status: 503, code: "judges_offline" }), false);
+  assert.equal(isNotServingYet({ status: 500, code: "agent_unavailable" }), false);
+  assert.equal(isNotServingYet({ status: 422 }), false);
+});
+
+test("#548: retry_after_s is honoured within bounds; no value means the usual 45 s; agent_unavailable ignores it", () => {
+  const w = (retryAfter?: number) => nextRetryWaitMs({ code: "judge_unavailable", reason: "judges_warming", retryAfter });
+  assert.equal(w(30), 30_000);
+  assert.equal(w(1), WARMING_WAIT_MIN_MS);
+  assert.equal(w(9999), WARMING_WAIT_MAX_MS);
+  assert.equal(w(undefined), AGENT_RETRY_WAIT_MS);
+  assert.equal(nextRetryWaitMs({ code: "agent_unavailable", retryAfter: 30 }), AGENT_RETRY_WAIT_MS);
+});
+
+test("#548: the body's retry_after_s becomes retryAfter; the Retry-After header wins when both exist", async () => {
+  const body = JSON.stringify({ error: "judge_unavailable", reason: "judges_warming", retry_after_s: 25 });
+  const a = await apiErrorFrom(new Response(body, { status: 503 }), "/x");
+  assert.equal(a.retryAfter, 25);
+  assert.equal(a.reason, "judges_warming");
+  const b = await apiErrorFrom(new Response(body, { status: 503, headers: { "retry-after": "40" } }), "/x");
+  assert.equal(b.retryAfter, 40);
 });

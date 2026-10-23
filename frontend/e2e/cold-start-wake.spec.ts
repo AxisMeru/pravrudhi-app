@@ -40,6 +40,8 @@ async function setup(page: import("@playwright/test").Page, m: Mock) {
     const a = ticket && m.agent?.length ? m.agent.shift() : undefined;
     if (a === 503) return r.fulfill({ status: 503, json: { error: "agent_unavailable", detail: "the nyaya agent is unavailable; retry later" } });
     if (a === 500) return r.fulfill({ status: 500, json: { error: "internal_error" } });
+    // app#548 (engine 0.6.34): 599 stands for 503 judge_unavailable / judges_warming with retry_after_s 20
+    if (a === 599) return r.fulfill({ status: 503, json: { error: "judge_unavailable", reason: "judges_warming", retry_after_s: 20 } });
     return r.fulfill({ json: m.result ?? RESULT("uncertain") });
   });
   await page.goto("/screening");
@@ -206,4 +208,37 @@ test("#543: Cancel during the wait stops it: no second request", async ({ page }
   await page.getByTestId("screening-cancel").click();
   await page.clock.fastForward(300_000);
   expect(seen.screenings.filter((s) => s.ticket)).toHaveLength(1);
+});
+
+// app#548: engine 0.6.34 answers 503 judge_unavailable / judges_warming with retry_after_s; the page waits that long (not 45 s), says the same words as for agent_unavailable, and sends the same request again.
+test("#548: judges_warming x3 with retry_after_s 20: tries again after 20 s each time, same wait line, then the result", async ({ page }) => {
+  await page.clock.install();
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [599, 599, 599] });
+  await expect(page.getByTestId("agent-wait")).toHaveText(WAIT_TEXT);
+  expect(tickets(seen)).toHaveLength(1);
+  await page.clock.fastForward(10_000);
+  expect(tickets(seen)).toHaveLength(1);
+  for (let n = 2; n <= 4; n++) {
+    await page.clock.fastForward(21_000);
+    await expect.poll(() => tickets(seen).length).toBe(n);
+  }
+  await expect(page.getByTestId("agent-wait")).toHaveCount(0);
+  await expect(page.getByTestId("screening-error")).toHaveCount(0);
+  expect(seen.wakeStarts).toBe(1);
+  expect(tickets(seen)[3]!.body).toBe(tickets(seen)[0]!.body);
+});
+
+test("#548: judges_warming every time: five retries, then the existing warming line, no further try", async ({ page }) => {
+  await page.clock.install();
+  const seen = await setup(page, { start: STARTED, polls: READY_POLLS, agent: [599, 599, 599, 599, 599, 599] });
+  await expect(page.getByTestId("agent-wait")).toHaveText(WAIT_TEXT);
+  for (let n = 2; n <= 6; n++) {
+    await page.clock.fastForward(21_000);
+    await expect.poll(() => tickets(seen).length).toBe(n);
+  }
+  await expect(page.getByTestId("screening-error")).toBeVisible();
+  await expect(page.getByTestId("agent-wait")).toHaveCount(0);
+  await page.clock.fastForward(600_000);
+  expect(tickets(seen)).toHaveLength(6);
+  expect(seen.wakeStarts).toBe(1);
 });
