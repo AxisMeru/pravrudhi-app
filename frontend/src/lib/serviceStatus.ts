@@ -104,6 +104,8 @@ export function formatNextOpen(w: ServiceWindowStatus, viewerTz: string = Intl.D
   return `${wall(w.open)}–${wall(w.close)} (${viewerTz})`;
 }
 
+export const REQUEST_NOT_ACCEPTED_TEXT = "The screening could not accept these facts or offences. Nothing was scored. Check them and try again.";
+
 export type AnalyseErrorKind =
   | "timeout"
   | "cancelled"
@@ -170,6 +172,8 @@ export function classifyAnalyseError(e: unknown, internalLine: string | null = I
     if (e.status === 503 && e.code === "service_config_missing") {
       return { kind: "service_config_missing", message: SERVICE_ERROR_TEXT.service_config_missing };
     }
+    // app#544: the engine refused the request itself (a FastAPI 422): the facts or offences were not acceptable. R1's words (app#544).
+    if (e.status === 422) return { kind: "server", message: REQUEST_NOT_ACCEPTED_TEXT };
     const generic = `The engine answered with an error (HTTP ${e.status}). Nothing was scored.`;
     return { kind: "server", message: isInternalError(e) ? internalErrorLine(generic, internalLine) : generic };
   }

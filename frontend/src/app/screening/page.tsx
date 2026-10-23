@@ -41,7 +41,7 @@ import { WorkspaceSteps } from "@/components/WorkspaceSteps";
 import { HEARING_NOT_OFFERED_TEXT, HEARING_PREP_BUILT, INTAKE_OPEN_LABEL, INTAKE_PATH, INTAKE_START_SENTENCE, WORKSPACE_ANCHORS, intakeLineShown, WORKSPACE_LOCKED_TEXT, WORKSPACE_STEP_LABELS } from "@/lib/workspace";
 import { EXAMPLES, exampleById, intakeCitationsFor, isUnchangedExample, memoExample, type DemoExample } from "@/lib/demo/example";
 import { ABOUT_SCREENING_LABEL, BANNER_STANDING_LINE, DROP_ZONE_LINE, DROP_ZONE_TYPES, EXAMPLE_ENTRY_LABEL, FACTS_HEADING, OFFENCE_HEADING, OFFENCE_SEARCH_EMPTY, OFFENCE_SEARCH_LABEL } from "@/lib/screening/copy";
-import { checkFacts, extractText, fileKind, UNREADABLE_MESSAGE } from "@/lib/factsInput";
+import { checkFacts, extractText, fileKind, MAX_CONTRACT_IDS, TOO_MANY_OFFENCES_TEXT, UNREADABLE_MESSAGE } from "@/lib/factsInput";
 import { DOCX_MIME } from "@/lib/docxWriter";
 import { buildRunRecord, buildScreeningMemo, buildScreeningMemoDocx } from "@/lib/screening/memo";
 import { splitIntoFacts } from "@/lib/screening/facts";
@@ -86,6 +86,7 @@ export default function ScreeningPage() {
   const [contractsTry, setContractsTry] = useState(0);
   const [validated, setValidated] = useState<Map<string, boolean> | null>(null);
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const tooManyOffences = picked.size > MAX_CONTRACT_IDS; // app#545: picked holds contract ids; the engine reads 1 to 5
   const assistant = useAssistantState();
   const signedIn = useSignedIn();
   const assistantProvider = useAssistantProvider(assistant, signedIn);
@@ -271,6 +272,7 @@ export default function ScreeningPage() {
     }
     const ids = Array.from(picked);
     if (ids.length === 0) return setError("Pick at least one offence to screen for.");
+    if (ids.length > MAX_CONTRACT_IDS) return setError(TOO_MANY_OFFENCES_TEXT);
     setLoading(true);
     setChecking(true);
     setRunAssisted(assisted);
@@ -656,12 +658,14 @@ export default function ScreeningPage() {
           <button
             type="button"
             onClick={() => submit()}
-            disabled={loading || closed || offline}
+            disabled={loading || closed || offline || tooManyOffences}
+            aria-describedby={tooManyOffences ? "offence-limit-reason" : undefined}
             className={`inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[var(--color-accent)] px-5 py-2 text-sm font-semibold text-[var(--color-on-accent)] disabled:opacity-50${LAYOUT_MATTER_B ? " max-md:sticky max-md:bottom-3 max-md:z-30 max-md:shadow-lg" : ""}`}
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : <ScanSearch size={14} />}
             {checking ? CHECKING_SIGN_IN_LABEL : loading ? "Screening…" : "Screen these facts"}
           </button>
+          {tooManyOffences && <p id="offence-limit-reason" className="text-sm text-[var(--color-text)]" data-testid="offence-limit">{TOO_MANY_OFFENCES_TEXT}</p>}
           {closed && svc?.kind === "ok" && svc.status.service_window && (
             <p className="text-sm text-[var(--color-warn)]" role="status" data-testid="screening-offline">
               The hosted demo is offline outside its service hours ({formatNextOpen(svc.status.service_window)}). Nothing is sent while it is closed.

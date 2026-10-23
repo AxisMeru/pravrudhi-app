@@ -264,3 +264,36 @@ test("while a first run warms up, the page says so without a timing figure, coun
   release();
   await expect(page.getByTestId("checklist")).toBeVisible();
 });
+
+// app#545 / #544 (R1's words): offences that together carry more than the engine's 5 contract ids are refused before any request; an engine 422 shows the plain line, not "HTTP 422".
+test("two offences carrying six contract ids: Screen is disabled with R1's reason as its description; unticking one re-enables it; nothing is sent", async ({ page }) => {
+  let sent = 0;
+  const SIX = ["ipc405_misappropriation", "ipc405_use_or_disposal", "ipc405_wilfully_suffers", "bns46_instigation", "bns46_conspiracy", "bns46_intentional_aid"];
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: SIX, entries: SIX.map((id) => ({ id, validated: true })) } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => { sent += 1; return r.fulfill({ json: ANSWER }); });
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(`${F1}\n\n${F2}`);
+  await page.getByTestId("split-facts").click();
+  await page.getByRole("checkbox", { name: /^Criminal breach of trust/ }).check();
+  await page.getByRole("checkbox", { name: /^Abetment ·/ }).check();
+  const screen = page.getByRole("button", { name: "Screen these facts" });
+  await expect(screen).toBeDisabled();
+  await expect(page.getByTestId("offence-limit")).toHaveText("These offences together are more than one screening can run. Untick one or more of them to screen.");
+  await expect(screen).toHaveAccessibleDescription("These offences together are more than one screening can run. Untick one or more of them to screen.");
+  await page.getByRole("checkbox", { name: /^Abetment ·/ }).uncheck();
+  await expect(screen).toBeEnabled();
+  await expect(page.getByTestId("offence-limit")).toHaveCount(0);
+  expect(sent).toBe(0);
+});
+
+test("an engine 422 shows R1's plain line, never 'HTTP 422'", async ({ page }) => {
+  await page.route(REGISTRY, (r) => r.fulfill({ json: { contracts: [CID], entries: [{ id: CID, validated: true }] } }));
+  await page.route("**/api/v1/analyse-facts**", (r) => r.fulfill({ status: 422, json: { detail: [{ type: "too_long", loc: ["body", "contract_ids"], msg: "internal" }] } }));
+  await page.goto("/screening");
+  await page.getByLabel("Paste the FIR, complaint or narrative").fill(`${F1}\n\n${F2}`);
+  await page.getByTestId("split-facts").click();
+  await page.getByText("Cheating", { exact: false }).first().click();
+  await page.getByRole("button", { name: "Screen these facts" }).click();
+  await expect(page.getByTestId("screening-error")).toHaveText("The screening could not accept these facts or offences. Nothing was scored. Check them and try again.");
+  await expect(page.locator("body")).not.toContainText("HTTP 422");
+});
