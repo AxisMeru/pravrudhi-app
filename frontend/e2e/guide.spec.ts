@@ -21,7 +21,7 @@ test("the guide opens from the Screening page, shows its steps, statuses and lim
   await expect(page.getByTestId("guide-about")).toContainText("Nyāya is the Indian school of reasoning");
   await expect(page.getByTestId("guide-statuses")).toContainText("Needs your review");
   await expect(page.getByTestId("guide-limits")).toContainText("This is a screening aid, not legal advice. A lawyer decides.");
-  await expect(page.getByTestId("guide-cold-start")).toContainText("If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
+  await expect(page.getByTestId("guide-cold-start")).toContainText("If the analysis models have to start first, a screening can take several minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.");
   await expect(page.getByTestId("guide-caption")).toHaveText([...((await isLayoutB(page)) ? [] : ["This row has no cited fact: the screening found no fact in your papers that supports this ingredient, so it asks you to look for one. When an ingredient is supported, its row names the fact it cites and shows that fact from your text."]), ...(PANEL ? ["Existence check only."] : [])]); // layout B's frame 03 shows a Supported by a fact row, so it carries no such caption
   const step6 = page.getByTestId("guide-step").nth(5);
   if (PANEL) {
@@ -100,4 +100,19 @@ test("the guide's Access and the analysis models section: three rows, state-free
   await expect(rows.nth(0)).not.toContainText(/invit/i);
   await expect(rows.nth(1)).not.toContainText(/invit/i);
   expect((await sec.getByTestId("guide-access-models").allInnerTexts()).join(" ")).not.toMatch(/invit/i);
+});
+
+test("the guide states the limits on starting the models, R1's lines, with one number and no money figure (d66)", async ({ page }) => {
+  await page.route("**/api/nyaya/registry/contracts", (r) => r.fulfill({ json: { contracts: [], entries: [] } }));
+  await page.goto("/guide");
+  const sec = page.getByTestId("guide-access");
+  await expect(sec.getByRole("heading", { name: "Starting the models: limits" })).toBeVisible();
+  const items = sec.getByTestId("guide-start-limits").locator("li");
+  await expect(items).toHaveCount(6);
+  const text = (await items.allInnerTexts()).join(" ");
+  expect(text).toContain("only a limited number of times in any 24 hours (currently 6)");
+  expect(text).toContain("a daily limit on their cost is reached");
+  expect(text).not.toMatch(/\$|€|£|dollar|hours of|wake|endpoint|invit/i);
+  await expect(sec).toContainText("This can take several minutes.");
+  await expect(sec).toContainText("You can try again later.");
 });

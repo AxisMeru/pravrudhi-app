@@ -228,7 +228,7 @@ export const GUIDE_LIMITS: string[] = [
 
 export const GUIDE_COLD_START_HEADING = "If it seems slow";
 export const GUIDE_COLD_START =
-  "If the analysis models have to start first, a screening can take a few minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.";
+  "If the analysis models have to start first, a screening can take several minutes to begin; a later one can be faster. The time varies; the page counts it, says so if it is slow, and you can cancel at any point. If the models cannot be started, the page says so and nothing is scored.";
 
 export const GUIDE_GLOSSARY_HEADING = "Glossary";
 export const GUIDE_GLOSSARY: { term: string; meaning: string; note?: string }[] = [
