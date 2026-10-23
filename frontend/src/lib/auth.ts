@@ -266,7 +266,8 @@ export async function sendMagicLink(email: string): Promise<{ ok: true } | { ok:
  * (or `#error_description=…`). Nothing to do when the fragment carries neither; the fragment is removed from
  * the address bar once read so a reload does not replay it.
  */
-export async function completeMagicLink(): Promise<{ ok: true; data: User } | { ok: false; error: string } | null> {
+export type ArrivalKind = "invite" | "recovery" | "magiclink";
+export async function completeMagicLink(): Promise<{ ok: true; data: User; kind: ArrivalKind } | { ok: false; error: string } | null> {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const token = params.get("access_token");
@@ -284,7 +285,9 @@ export async function completeMagicLink(): Promise<{ ok: true; data: User } | { 
       expires_in: Number(params.get("expires_in")) || undefined,
     });
     window.history.replaceState(null, "", window.location.pathname);
-    return { ok: true, data: user };
+    // an invitation or a password-recovery link carries type=invite / type=recovery: the page then asks for a password (app d65)
+    const type = params.get("type");
+    return { ok: true, data: user, kind: type === "invite" || type === "recovery" ? type : "magiclink" };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Unknown error" };
   }
